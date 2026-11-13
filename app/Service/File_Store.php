@@ -234,6 +234,16 @@ class File_Store {
 		// Problems a person can fix themselves get a sentence instead of a code.
 		$readable = [
 			'spreadsheet_invalid' => __( 'The spreadsheet could not be read. Open it in Excel, Google Sheets or LibreOffice and save it again as .xlsx, .ods or .csv.', 'import-export-by-rockstarlab' ),
+			// A broken or wrong package said "File operation failed: zip_invalid.".
+			'zip_invalid'         => __( 'This file is not a valid ZIP archive. Download the content migration package again from the source site and upload the .zip file without changing it.', 'import-export-by-rockstarlab' ),
+			'zip_read'            => __( 'The ZIP archive could not be read. Download the package again and upload it without changing it.', 'import-export-by-rockstarlab' ),
+			'zip_integrity'       => __( 'The ZIP archive is damaged or incomplete. Download the package again and upload it without changing it.', 'import-export-by-rockstarlab' ),
+			'zip_unsafe_entry'    => __( 'The ZIP archive contains files with unsafe names and was refused.', 'import-export-by-rockstarlab' ),
+			'zip_content_limit'   => __( 'The ZIP archive is too large or contains too many files to be unpacked on this site.', 'import-export-by-rockstarlab' ),
+			'zip_unavailable'     => __( 'ZIP archives cannot be opened on this site: the PHP Zip extension is missing. Ask your host to enable it.', 'import-export-by-rockstarlab' ),
+			'upload_incomplete'   => __( 'The upload did not finish. Upload the file again.', 'import-export-by-rockstarlab' ),
+			'file_not_found'      => __( 'The file is no longer on the server (old uploads are cleaned up). Upload it again.', 'import-export-by-rockstarlab' ),
+			'busy'                => __( 'This file is being processed by another job. Try again in a moment.', 'import-export-by-rockstarlab' ),
 		];
 		if ( '' === $message ) {
 			$message = $readable[ $reason ] ?? sprintf( /* translators: %s: File operation failure code. */ __( 'File operation failed: %s.', 'import-export-by-rockstarlab' ), $reason );

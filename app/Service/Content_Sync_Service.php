@@ -754,6 +754,9 @@ class Content_Sync_Service {
 				'image_sources'  => $image_sources,
 				'target_post_id' => $target_post_id,
 				'post_mapping'   => (array) ( $input['post_mapping'] ?? [] ),
+				// A reply pushed from the Comments screen without its parent was refused with
+				// "records or destinations are invalid"; like a selective pull, it becomes a top comment.
+				'detach_missing_parents' => ! $this->standalone_domain,
 			) + ( isset( $input['comment_user_mapping'] ) ? [ 'comment_user_mapping' => $input['comment_user_mapping'] ] : [] ),
 			60
 		);
@@ -871,6 +874,33 @@ class Content_Sync_Service {
 	}
 
 	/**
+	 * Post type recorded for a content sync history row.
+	 *
+	 * @param string       $direction push|pull.
+	 * @param array        $post_ids Selected post IDs.
+	 * @param array|string $post_mapping Explicit source/target mapping.
+	 * @return string
+	 */
+	private function history_post_type( $direction, $post_ids, $post_mapping ) {
+		if ( ! empty( $this->input['post_type'] ) && is_string( $this->input['post_type'] ) ) {
+			return sanitize_key( $this->input['post_type'] );
+		}
+		// Admin screens send no post type. A push lists local IDs; a pull lists remote IDs
+		// and maps local => remote for updates, so only its updated local posts tell the type.
+		$local = 'push' === $direction ? (array) $post_ids : [];
+		if ( 'pull' === $direction ) {
+			$mapping = is_string( $post_mapping ) ? json_decode( $post_mapping, true ) : $post_mapping;
+			foreach ( (array) $mapping as $local_id => $remote_id ) {
+				if ( is_numeric( $remote_id ) ) {
+					$local[] = (int) $local_id;
+				}
+			}
+		}
+		$types = array_values( array_unique( array_filter( array_map( 'get_post_type', array_map( 'absint', $local ) ) ) ) );
+		return 1 === count( $types ) ? $types[0] : 'post';
+	}
+
+	/**
 	 * Create a Jobs Log row for immediate content sync actions.
 	 *
 	 * @param string $direction push|pull.
@@ -882,7 +912,8 @@ class Content_Sync_Service {
 	 */
 	private function create_content_sync_job( $direction, $site, $post_ids, $post_mapping ) {
 		$direction = 'pull' === $direction ? 'pull' : 'push';
-		$edition   = Sync_Policy::class === $this->policy_class && in_array( $this->input['post_type'] ?? 'post', [ 'post', 'page' ], true ) ? 'free' : 'pro';
+		$post_type = $this->history_post_type( $direction, $post_ids, $post_mapping );
+		$edition   = Sync_Policy::class === $this->policy_class && in_array( $post_type, [ 'post', 'page' ], true ) ? 'free' : 'pro';
 		$scheduler = new Sync_Job_Service();
 		$provider  = $scheduler->provider( $edition );
 		$operation = 'sync-' . $direction;
@@ -892,14 +923,14 @@ class Content_Sync_Service {
 				'sync_queue_version'     => 1,
 				'edition'                => $edition,
 				'operation'              => $operation,
-				'input'                  => array_intersect_key( $this->input, $provider['definitions'][ $operation ]['input']['properties'] ),
+				'input'                  => array_intersect_key( [ 'post_type' => $post_type ] + $this->input, $provider['definitions'][ $operation ]['input']['properties'] ),
 				'connection_fingerprint' => $scheduler->fingerprint( $site ),
 			];
 		}
 		$job_id = rsl_ie()->Model->job->create(
 			array(
 				'type'            => 'push' === $direction ? 'content_sync_push' : 'content_sync_pull',
-				'data_type'       => $this->input['post_type'] ?? ( 1 === count( array_unique( array_map( 'get_post_type', (array) $post_ids ) ) ) && 'page' === get_post_type( (int) reset( $post_ids ) ) && 'push' === $direction ? 'page' : 'post' ),
+				'data_type'       => $post_type,
 				'file_format'     => 'json',
 				'status'          => 'processing',
 				'user_id'         => get_current_user_id(),

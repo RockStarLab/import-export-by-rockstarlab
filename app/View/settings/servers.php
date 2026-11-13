@@ -34,19 +34,31 @@ $rsl_ie_names = [
 	'sftp' => __( 'SFTP (over SSH)', 'import-export-by-rockstarlab' ),
 ];
 ?>
-<div id="rsl-ie-servers" class="import-export-by-rockstarlab wrap">
-	<h1><?php esc_html_e( 'Jobs Log', 'import-export-by-rockstarlab' ); ?></h1>
+<div id="rsl-ie-servers" class="wrap">
+	<h1>
+		<span class="dashicons dashicons-admin-settings"></span>
+		<?php esc_html_e( 'Plugin Options', 'import-export-by-rockstarlab' ); ?>
+	</h1>
 	<?php
-	$rsl_ie_active_tab = 'servers';
-	require RSL_IE_PATH . 'app/View/settings/partials/jobs-tabs.php';
+	$rsl_ie_options_active_tab = 'servers';
+	require RSL_IE_PATH . 'app/View/settings/partials/plugin-options-tabs.php';
 	?>
 
 	<?php if ( is_array( $rsl_ie_notice ) ) : ?>
 		<div class="notice notice-<?php echo esc_attr( $rsl_ie_notice[0] ); ?> is-dismissible"><p><?php echo esc_html( $rsl_ie_notice[1] ); ?></p></div>
 	<?php endif; ?>
 
-	<p class="description rsl-ie-servers-intro"><?php esc_html_e( 'Save an FTP, FTPS or SFTP server once, then import files from it and upload finished exports to it. Scheduled imports download the current file from the server on every run; scheduled exports upload a new file every time. Passwords are stored encrypted and are never shown again.', 'import-export-by-rockstarlab' ); ?></p>
+	<div class="rsl-ie-settings-container">
+	<div class="rsl-ie-settings-section">
+		<div class="rsl-ie-settings-section-header">
+			<h2><?php esc_html_e( 'FTP / SFTP Servers', 'import-export-by-rockstarlab' ); ?></h2>
+			<p class="description"><?php esc_html_e( 'Save an FTP, FTPS or SFTP server once, then import files from it and upload finished exports to it. Scheduled imports download the current file from the server on every run; scheduled exports upload a new file every time. Passwords are stored encrypted and are never shown again.', 'import-export-by-rockstarlab' ); ?></p>
+		</div>
+		<div class="rsl-ie-settings-section-body">
 
+	<?php if ( ! $rsl_ie_servers ) : ?>
+		<p class="rsl-ie-servers-empty"><?php esc_html_e( 'No servers saved yet. Add one below.', 'import-export-by-rockstarlab' ); ?></p>
+	<?php endif; ?>
 	<?php if ( $rsl_ie_servers ) : ?>
 		<table class="widefat striped rsl-ie-servers-table">
 			<thead><tr>
@@ -89,9 +101,15 @@ $rsl_ie_names = [
 			<p><a class="button button-primary" href="<?php echo esc_url( add_query_arg( [ 'page' => 'rsl-ie-servers', 'add' => 1 ], admin_url( 'admin.php' ) ) ); ?>"><?php esc_html_e( 'Add Server', 'import-export-by-rockstarlab' ); ?></a></p>
 		<?php endif; ?>
 	<?php endif; ?>
+		</div>
+	</div>
 
 	<?php if ( $rsl_ie_show_form ) : ?>
-		<h2><?php echo $rsl_ie_editing ? esc_html__( 'Edit server', 'import-export-by-rockstarlab' ) : esc_html__( 'Add a server', 'import-export-by-rockstarlab' ); ?></h2>
+	<div class="rsl-ie-settings-section">
+		<div class="rsl-ie-settings-section-header">
+			<h2><?php echo $rsl_ie_editing ? esc_html__( 'Edit server', 'import-export-by-rockstarlab' ) : esc_html__( 'Add a server', 'import-export-by-rockstarlab' ); ?></h2>
+		</div>
+		<div class="rsl-ie-settings-section-body">
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="rsl-ie-server-form" autocomplete="off">
 			<input type="hidden" name="action" value="rsl_ie_save_remote_server">
 			<input type="hidden" name="id" value="<?php echo esc_attr( $rsl_ie_f['id'] ); ?>">
@@ -146,5 +164,8 @@ $rsl_ie_names = [
 				<?php endif; ?>
 			</p>
 		</form>
+		</div>
+	</div>
 	<?php endif; ?>
+	</div>
 </div>

@@ -963,10 +963,17 @@ import 'select2/dist/css/select2.min.css';
 				);
 			} )
 			.fail( ( message ) => {
-				showMessage(
-					message || config.i18n?.syncFailed || 'Sync failed.',
-					'error'
-				);
+				const text =
+					message || config.i18n?.syncFailed || 'Sync failed.';
+				showMessage( text, 'error' );
+				// The push dialog stays open over the sync dialog, so its error was not visible.
+				if ( $( `#${ pushModalId }` ).is( ':visible' ) ) {
+					$( '#rsl-ie-pro-comment-push-message' ).html(
+						`<div class="notice notice-error inline"><p>${ escapeHtml(
+							text
+						) }</p></div>`
+					);
+				}
 			} )
 			.always( () => {
 				stopButtonBusy();
@@ -2543,12 +2550,18 @@ import 'select2/dist/css/select2.min.css';
 		} )
 			.done( ( data ) => {
 				$( `#${ browseModalId }` ).hide();
-				showMessage(
+				const doneMessage =
 					data.message ||
-						config.i18n?.syncComplete ||
-						'Sync completed successfully.',
-					'success'
-				);
+					config.i18n?.syncComplete ||
+					'Sync completed successfully.';
+				showMessage( doneMessage, 'success' );
+				// The result was visible for 0.9 s before the reload; show it again after it.
+				try {
+					window.sessionStorage.setItem(
+						'rslIeObjectNotice',
+						String( doneMessage )
+					);
+				} catch ( e ) {}
 				window.setTimeout( () => window.location.reload(), 900 );
 			} )
 			.fail( ( message ) => {
@@ -2564,6 +2577,28 @@ import 'select2/dist/css/select2.min.css';
 				updateRemoteObjectSelectionCount();
 			} );
 	}
+
+	// Result of a pull from before the reload.
+	$( () => {
+		try {
+			const pendingNotice =
+				window.sessionStorage.getItem( 'rslIeObjectNotice' );
+			if ( ! pendingNotice ) {
+				return;
+			}
+			window.sessionStorage.removeItem( 'rslIeObjectNotice' );
+			const $notice = $(
+				'<div class="notice notice-success is-dismissible"><p></p></div>'
+			);
+			$notice.find( 'p' ).text( pendingNotice );
+			const $anchor = $( '.wrap .wp-header-end, .wrap h1' ).first();
+			if ( $anchor.length ) {
+				$anchor.after( $notice );
+			} else {
+				$( '.wrap' ).first().prepend( $notice );
+			}
+		} catch ( e ) {}
+	} );
 
 	$( document ).on(
 		'change',

@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, site-migration
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.2.10
+Stable tag: 2.2.11
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -294,6 +294,23 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.2.11 =
+* Fix: Content Sync refuses a connection to the site itself, and an address without WordPress gets a clear message instead of "error status 405".
+* Fix: the Content Sync sites list and the post screens no longer send the stored API keys of connected sites to the browser.
+* Fix: Edit Site says that an empty API key keeps the current one, Test Connection no longer changes "Last Sync", and Escape closes the dialog.
+* Fix: "Sync This Post" in the block editor saves your unsaved changes before it pushes; a pull over unsaved changes asks first.
+* Fix: the WooCommerce orders screen with HPOS order storage has the Export button.
+* Fix: the results of pulling terms, users, comments, menus, attributes and reviews, and of Media Sync, stay visible after the page reloads. Media Sync says how many files were copied and how many were already there.
+* Fix: pushing a reply whose parent comment is not on the other site no longer fails; the reply arrives as a top-level comment. Push errors are shown in the push dialog.
+* Fix: on multisite, deleting a site also removes the plugin's tables of that site. Before, they stayed and a new site with the same ID inherited them.
+* Fix: Content Migration shows readable content names, names the package after the site and the date, explains why a ZIP file cannot be read, and enables "Start migration" only for a prepared package.
+* Fix: choosing Custom Post Types or MySQL Database Table on the export screen no longer logs an error, and the Taxonomy Terms count waits for a taxonomy.
+* Fix: the Jobs Log fits the screen without hiding the action buttons, and Job Details shows the file name instead of the server path.
+* Fix: Restart in the Jobs Log runs a Content Sync again. Before, it created a job that waited forever. Product syncs are logged as products.
+* Fix: Notifications keep your choices when an email address is not valid.
+* Change: MySQL table export and import work with every table of the site, including the WordPress core tables.
+* Change: FTP / SFTP Servers moved from the Jobs Log to Plugin Options.
+
 = 2.2.10 =
 * Fix: WP-CLI and AI agent imports of WordPress export (WXR) files now map titles, content, custom fields and terms. Before, such an import created nothing.
 * Fix: WXR imports keep post passwords, the sticky flag and comment/ping settings, and the custom fields of every item (not only of the first previewed items). Several values of one custom field are all kept.
@@ -463,14 +480,3 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 = 2.1.47 =
 * Fixed: XML feeds with header elements before the list of records (for example `<updated>` or `<source>` next to `<stockists>`) are now imported. The preview showed 0 rows for such files.
-
-= 2.1.46 =
-* Fixed: in Content Sync, a post pushed with "Create New Post" no longer overwrites a different post on the other site that has the same slug. The post is created as a new post with its own slug, and pushing it again updates that copy.
-* Fixed: a Content Migration import no longer stops when the source site is missing one media file. That file is counted as failed, the rest of the package is imported, and the summary says how many media files could not be downloaded. If the source site can't be reached at all, the import still stops.
-* Fixed: in Content Sync, the Yoast SEO and Rank Math primary category of a pushed or pulled post now points to the same category on the receiving site.
-* Improved: the WooCommerce Orders export (PRO 2.1.11) lists checkout fields and other order meta as Custom Fields, each in its own column.
-
-= 2.1.45 =
-* Fixed: when importing into a custom post type (PRO), ACF fields now appear in the field mapping after you choose the post type, and Auto Map matches them.
-* Fixed: in XLSX exports, prices and totals such as 13.80 or 40.00 are now numbers shown with two decimals, so Excel and Google Sheets can sum them. Importing the file back reads 13.80 exactly.
-* Fixed: when an import matches existing posts by slug, a draft without a slug now matches the post with the same title and date. Importing the same file again, or restoring a Content Migration package, no longer adds a copy of every draft.

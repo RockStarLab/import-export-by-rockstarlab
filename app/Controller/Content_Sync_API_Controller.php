@@ -2504,11 +2504,12 @@ class Content_Sync_API_Controller {
 		if ( is_wp_error( $users ) ) {
 			return $users;
 		}
-		$plan = $this->standalone_comment_importer()->prepare( $comments, $post_mapping, $target_post_id );
+		$detach = filter_var( $request->get_param( 'detach_missing_parents' ), FILTER_VALIDATE_BOOLEAN );
+		$plan   = $this->standalone_comment_importer()->prepare( $comments, $post_mapping, $target_post_id, $detach );
 		if ( is_wp_error( $plan ) ) {
 			return $plan; }
 		$comments = $this->replace_comment_acf_media_references( $comments, '', '', $image_map, $image_sources );
-		$result   = $this->standalone_comment_importer()->import( $comments, $post_mapping, $target_post_id, $request->get_param( 'comment_user_mapping' ) );
+		$result   = $this->standalone_comment_importer()->import( $comments, $post_mapping, $target_post_id, $request->get_param( 'comment_user_mapping' ), $detach );
 		if ( is_wp_error( $result ) ) {
 			return $result; }
 

@@ -60,7 +60,7 @@ class Remote_Server_Controller extends Base_Controller {
 
 	/** Hidden page reached from the Jobs Log tabs. */
 	public function register_page() {
-		add_submenu_page( null, __( 'Servers', 'import-export-by-rockstarlab' ), __( 'Servers', 'import-export-by-rockstarlab' ), 'manage_options', self::PAGE, [ $this, 'display' ] );
+		add_submenu_page( null, __( 'FTP / SFTP Servers', 'import-export-by-rockstarlab' ), __( 'FTP / SFTP Servers', 'import-export-by-rockstarlab' ), 'manage_options', self::PAGE, [ $this, 'display' ] );
 		remove_submenu_page( '', self::PAGE );
 	}
 
@@ -83,7 +83,7 @@ class Remote_Server_Controller extends Base_Controller {
 	 */
 	public function submenu_file( $submenu ) {
 		global $plugin_page;
-		return self::PAGE === $plugin_page ? 'rsl-ie-jobs-log' : $submenu;
+		return self::PAGE === $plugin_page ? 'rsl-ie-plugin-settings' : $submenu;
 	}
 
 	/** Render the screen. */

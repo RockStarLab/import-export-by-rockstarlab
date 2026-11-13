@@ -488,7 +488,14 @@ const getActionNonce = ( action ) =>
 			$button
 				.prop( 'disabled', ids.length === 0 )
 				.attr( 'aria-disabled', ids.length === 0 ? 'true' : 'false' )
-				.text( ids.length > 0 ? `Export (${ ids.length })` : 'Export' );
+				.text(
+					ids.length > 0
+						? (
+								rslIePostSyncData?.i18n?.exportCount ||
+								'Export (%s)'
+						  ).replace( '%s', ids.length )
+						: rslIePostSyncData?.i18n?.export || 'Export'
+				);
 		},
 
 		/**
@@ -650,6 +657,54 @@ const getActionNonce = ( action ) =>
 					'No posts selected';
 				alert( message );
 				return;
+			}
+
+			// Block editor with unsaved changes: a push sent the last saved version without a
+			// word, and a pull reloaded the page over the edits. Save before a push; ask before a pull.
+			const editor = window.wp?.data?.select?.( 'core/editor' );
+			if (
+				! this.unsavedHandled &&
+				editor &&
+				typeof editor.isEditedPostDirty === 'function' &&
+				editor.isEditedPostDirty()
+			) {
+				if ( 'pull' === direction ) {
+					const ask =
+						rslIePostSyncData?.i18n?.pullOverUnsaved ||
+						'This post has unsaved changes. Pulling replaces it with the version from the other site and the changes are lost. Continue?';
+					// eslint-disable-next-line no-alert
+					if ( ! window.confirm( ask ) ) {
+						return;
+					}
+				} else {
+					Promise.resolve(
+						window.wp.data.dispatch( 'core/editor' ).savePost()
+					)
+						.then( () => {
+							if (
+								typeof editor.didPostSaveRequestSucceed ===
+									'function' &&
+								! editor.didPostSaveRequestSucceed()
+							) {
+								alert(
+									rslIePostSyncData?.i18n
+										?.saveBeforePushFailed ||
+										'The post could not be saved, so it was not pushed. Save it and try again.'
+								);
+								return;
+							}
+							this.unsavedHandled = true;
+							this.syncContent( direction );
+							this.unsavedHandled = false;
+						} )
+						.catch( () => {
+							alert(
+								rslIePostSyncData?.i18n?.saveBeforePushFailed ||
+									'The post could not be saved, so it was not pushed. Save it and try again.'
+							);
+						} );
+					return;
+				}
 			}
 
 			// Store sync direction and open mapping modal

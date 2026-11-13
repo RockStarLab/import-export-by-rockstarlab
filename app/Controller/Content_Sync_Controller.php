@@ -276,6 +276,9 @@ class Content_Sync_Controller extends Base_Controller {
 		// Add sync button and modal to post list screens
 		add_action( 'restrict_manage_posts', array( $this, 'render_sync_button' ) );
 		add_action( 'admin_footer-edit.php', array( $this, 'render_sync_modal' ) );
+		// WooCommerce orders in HPOS storage are listed on admin.php?page=wc-orders, which has no
+		// restrict_manage_posts: the Export button of the orders screen was missing there.
+		add_action( 'woocommerce_order_list_table_restrict_manage_orders', array( $this, 'render_order_list_button' ), 10, 2 );
 
 		// Add sync button to post edit screen
 		add_action( 'post_submitbox_misc_actions', array( $this, 'render_post_edit_sync_button' ) );
@@ -293,6 +296,12 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Enqueue assets for post list screens
 	 */
 	public function enqueue_post_list_assets( $hook_suffix ) {
+		// The HPOS orders list behaves as the shop_order post list.
+		$hpos_orders = 'woocommerce_page_wc-orders' === $hook_suffix && ! $this->is_order_edit_screen();
+		if ( $hpos_orders ) {
+			$hook_suffix = 'edit.php';
+		}
+
 		// Load on edit.php (post list) and post.php/post-new.php (edit post)
 		if ( ! in_array( $hook_suffix, array( 'edit.php', 'post.php', 'post-new.php' ) ) ) {
 			return;
@@ -310,7 +319,9 @@ class Content_Sync_Controller extends Base_Controller {
 		global $post;
 		$current_post_type = '';
 
-		if ( 'edit.php' === $hook_suffix ) {
+		if ( $hpos_orders ) {
+			$current_post_type = 'shop_order';
+		} elseif ( 'edit.php' === $hook_suffix ) {
 			$current_post_type = $this->get_current_admin_post_type();
 		} elseif ( in_array( $hook_suffix, array( 'post.php', 'post-new.php' ), true ) ) {
 			// On post.php, $post may not yet be populated during admin_enqueue_scripts.
@@ -355,8 +366,8 @@ class Content_Sync_Controller extends Base_Controller {
 			$sites_map[ $site['id'] ] = array(
 				'id'         => $site['id'],
 				'name'       => $site['name'],
+				// The other site's key stays on the server: remote calls go through admin-ajax.
 				'remote_url' => $site['remote_url'],
-				'api_key'    => $site['api_key'], // Needed for remote API calls
 			);
 		}
 
@@ -378,6 +389,11 @@ class Content_Sync_Controller extends Base_Controller {
 					'pleaseSavePost'          => __( 'Please save the post first', 'import-export-by-rockstarlab' ),
 					'pleaseSelectSite'        => __( 'Please select a site', 'import-export-by-rockstarlab' ),
 					'noPostsSelected'         => __( 'No posts selected', 'import-export-by-rockstarlab' ),
+					'pullOverUnsaved'         => __( 'This post has unsaved changes. Pulling replaces it with the version from the other site and the changes are lost. Continue?', 'import-export-by-rockstarlab' ),
+					'saveBeforePushFailed'    => __( 'The post could not be saved, so it was not pushed. Save it and try again.', 'import-export-by-rockstarlab' ),
+					'export'                  => __( 'Export', 'import-export-by-rockstarlab' ),
+					/* translators: %s: number of selected items. */
+					'exportCount'             => __( 'Export (%s)', 'import-export-by-rockstarlab' ),
 					'failedLoadRemotePosts'   => __( 'Failed to load remote posts', 'import-export-by-rockstarlab' ),
 					'unknownError'            => __( 'Unknown error', 'import-export-by-rockstarlab' ),
 					'failedConnectRemote'     => __( 'Failed to connect to remote site', 'import-export-by-rockstarlab' ),
@@ -505,6 +521,38 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		require RSL_IE_PATH . '/app/View/sync/sync-button.php';
+	}
+
+	/**
+	 * Export button above the HPOS orders list (orders are synced by their own workflow).
+	 *
+	 * @param string $order_type Order type of the list.
+	 * @param string $which      "top" or "bottom".
+	 * @return void
+	 */
+	public function render_order_list_button( $order_type = 'shop_order', $which = 'top' ) {
+		if ( 'top' !== $which || 'shop_order' !== $order_type ) {
+			return;
+		}
+		if ( ! \RockStarLab\ImportExport\Helper\Button_Location_Settings::is_export_enabled( 'post_type:shop_order' ) ) {
+			return;
+		}
+		?>
+		<button type="button" id="rsl-ie-export-selected-btn" class="button action" style="margin-left: 5px;" disabled aria-disabled="true" data-post-type="shop_order">
+			<?php esc_html_e( 'Export', 'import-export-by-rockstarlab' ); ?>
+		</button>
+		<?php
+	}
+
+	/**
+	 * Whether the current wc-orders request edits or creates one order (not the list).
+	 *
+	 * @return bool
+	 */
+	private function is_order_edit_screen() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
+		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
+		return in_array( $action, array( 'edit', 'new' ), true );
 	}
 
 		/**
@@ -758,6 +806,32 @@ class Content_Sync_Controller extends Base_Controller {
 		$this->send_success( $result );
 	}
 
+	/**
+	 * Post type of a comment sync from the Comments / Reviews screens. Those screens send no
+	 * post_type, and the sync policy refused every such push or pull ("The selected sync
+	 * domain, records or destinations are invalid or unavailable").
+	 *
+	 * @param array $comment_ids Local comments being pushed.
+	 * @param int   $post_id     Local post that receives pulled comments.
+	 * @return string
+	 */
+	private function comment_sync_post_type( $comment_ids, $post_id ) {
+		$requested = sanitize_key( (string) $this->get_request_param( 'post_type', '' ) );
+		if ( '' !== $requested ) {
+			return $requested;
+		}
+		if ( $post_id > 0 ) {
+			return (string) get_post_type( $post_id );
+		}
+		foreach ( (array) $comment_ids as $comment_id ) {
+			$comment = get_comment( absint( $comment_id ) );
+			if ( $comment ) {
+				return (string) get_post_type( (int) $comment->comment_post_ID );
+			}
+		}
+		return '';
+	}
+
 	/** AJAX adapter for push_comments. */
 	public function push_comments() {
 		$verify = $this->verify_request();
@@ -772,7 +846,8 @@ class Content_Sync_Controller extends Base_Controller {
 			'comment_type'   => $this->get_request_param( 'comment_type', '' ),
 			'migration'      => $this->get_request_param( 'migration', false ),
 		);
-		$result = ( new \RockStarLab\ImportExport\Service\Content_Sync_Service() )->execute( 'push_comments', $input );
+		$input['post_type'] = $this->comment_sync_post_type( $input['comment_ids'], 0 );
+		$result             = ( new \RockStarLab\ImportExport\Service\Content_Sync_Service() )->execute( 'push_comments', $input );
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result->get_error_message() );
 			return;
@@ -795,7 +870,13 @@ class Content_Sync_Controller extends Base_Controller {
 			'comment_type'   => $this->get_request_param( 'comment_type', '' ),
 			'language'       => $this->get_request_param( 'language', '' ),
 		);
-		$result = ( new \RockStarLab\ImportExport\Service\Content_Sync_Service() )->execute( 'pull_comments', $input );
+		$pull_target = absint( $input['target_post_id'] );
+		$pull_map    = is_string( $input['post_mapping'] ) ? json_decode( wp_unslash( $input['post_mapping'] ), true ) : $input['post_mapping'];
+		if ( ! $pull_target && is_array( $pull_map ) && $pull_map ) {
+			$pull_target = absint( reset( $pull_map ) );
+		}
+		$input['post_type'] = $this->comment_sync_post_type( array(), $pull_target );
+		$result             = ( new \RockStarLab\ImportExport\Service\Content_Sync_Service() )->execute( 'pull_comments', $input );
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result->get_error_message() );
 			return;

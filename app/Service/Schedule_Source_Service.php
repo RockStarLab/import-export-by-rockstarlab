@@ -129,7 +129,11 @@ class Schedule_Source_Service {
 							}
 						}
 						$types           = array_unique( array_map( 'get_post_type', $local ) );
-						$in['post_type'] = 1 === count( $types ) && in_array( reset( $types ), [ 'post', 'page' ], true ) ? reset( $types ) : $job->data_type;
+						$in['post_type'] = 1 === count( $types ) && reset( $types ) ? reset( $types ) : $job->data_type;
+						// Older rows logged product pushes from the admin screens as free "post" syncs.
+						if ( ! in_array( $in['post_type'], [ 'post', 'page' ], true ) ) {
+							$params['edition'] = 'pro';
+						}
 					}
 					$params['input'] = $in;
 				}

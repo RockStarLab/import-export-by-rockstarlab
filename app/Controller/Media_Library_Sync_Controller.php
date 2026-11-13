@@ -145,6 +145,8 @@ class Media_Library_Sync_Controller {
 						'syncComplete'     => __( 'Sync completed successfully.', 'import-export-by-rockstarlab' ),
 						/* translators: %s: number of files. */
 						'syncCompleteMissing' => __( 'Sync completed. %s file(s) could not be copied because the file is missing on the source site.', 'import-export-by-rockstarlab' ),
+						/* translators: 1: number of copied files, 2: number of files that were already there. */
+						'syncCompleteSkipped' => __( 'Sync completed. Copied: %1$s. Skipped, already there: %2$s.', 'import-export-by-rockstarlab' ),
 						/* translators: 1: batch number, 2: number of batches. */
 						'batchOf'          => __( 'batch %1$s of %2$s', 'import-export-by-rockstarlab' ),
 						'syncFailed'       => __( 'Sync failed.', 'import-export-by-rockstarlab' ),

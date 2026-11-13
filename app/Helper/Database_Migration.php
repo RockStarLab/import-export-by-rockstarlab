@@ -640,10 +640,40 @@ class Database_Migration {
 	public static function drop_tables() {
 		global $wpdb;
 
-		$prefix = $wpdb->prefix;
+		foreach ( self::site_tables( $wpdb->prefix ) as $table ) {
+			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Dropping plugin-owned custom tables during cleanup.
+		}
 
-		// Drop tables in reverse order (respect foreign keys)
-		$tables = [
+		// Delete DB version option
+		delete_option( self::DB_VERSION_OPTION );
+
+		do_action( 'rsl_ie_tables_dropped' );
+	}
+
+	/**
+	 * wpmu_drop_tables: drop this plugin's tables together with a deleted network site.
+	 *
+	 * @param string[] $tables  Tables WordPress drops.
+	 * @param int      $blog_id Deleted site.
+	 * @return string[]
+	 */
+	public static function add_site_tables_to_drop( $tables, $blog_id = 0 ) {
+		global $wpdb;
+		$blog_id = (int) $blog_id;
+		if ( $blog_id <= 1 || ! is_multisite() ) {
+			return $tables;
+		}
+		return array_values( array_unique( array_merge( (array) $tables, self::site_tables( $wpdb->get_blog_prefix( $blog_id ) ) ) ) );
+	}
+
+	/**
+	 * The plugin's tables of one site, children before parents.
+	 *
+	 * @param string $prefix Table prefix of the site.
+	 * @return string[]
+	 */
+	public static function site_tables( $prefix ) {
+		return [
 			"{$prefix}rsl_ie_job_schedules",
 			"{$prefix}rsl_ie_job_logs",
 			"{$prefix}rsl_ie_migration_sources",
@@ -659,15 +689,6 @@ class Database_Migration {
 			"{$prefix}rsl_ie_field_maps",
 			"{$prefix}rsl_ie_jobs",
 		];
-
-		foreach ( $tables as $table ) {
-			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Dropping plugin-owned custom tables during cleanup.
-		}
-
-		// Delete DB version option
-		delete_option( self::DB_VERSION_OPTION );
-
-		do_action( 'rsl_ie_tables_dropped' );
 	}
 
 	/**

@@ -70,6 +70,10 @@ class App {
 			}
 		}
 
+		// Deleting a network site dropped only the WordPress tables: the plugin's tables stayed
+		// and a new site with the same ID inherited its jobs, connections and keys.
+		add_filter( 'wpmu_drop_tables', array( \RockStarLab\ImportExport\Helper\Database_Migration::class, 'add_site_tables_to_drop' ), 10, 2 );
+
 		// Initialize Media Hash helper to add MD5 hashes to all uploads
 		\RockStarLab\ImportExport\Helper\Media_Hash::init();
 

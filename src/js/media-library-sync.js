@@ -442,23 +442,35 @@ import syncButtonBusy from './utils/sync-button-busy';
 					const done = state.status === 'completed' || partial;
 					if ( done ) {
 						summary.failed += Number( state.result?.failed || 0 );
+						summary.skipped =
+							Number( summary.skipped || 0 ) +
+							Number( state.result?.skipped || 0 );
+						summary.created =
+							Number( summary.created || 0 ) +
+							Number( state.result?.created || 0 );
 					}
 					if ( done && ! isLast ) {
 						finished.resolve( state );
 					} else if ( done ) {
 						$progress.addClass( 'is-complete' );
-						$progress
-							.find( '.rsl-ie-media-progress-label' )
-							.text(
-								summary.failed
-									? (
-											config.i18n?.syncCompleteMissing ||
-											'Sync completed. %s file(s) could not be copied because the file is missing on the source site.'
-									  ).replace( '%s', summary.failed )
-									: config.i18n?.syncComplete ||
-											'Sync completed successfully.'
-							);
-						if ( summary.failed ) {
+						$progress.find( '.rsl-ie-media-progress-label' ).text(
+							summary.failed
+								? (
+										config.i18n?.syncCompleteMissing ||
+										'Sync completed. %s file(s) could not be copied because the file is missing on the source site.'
+								  ).replace( '%s', summary.failed )
+								: summary.skipped
+								? // "Completed successfully" after copying nothing read like a copy.
+								  (
+										config.i18n?.syncCompleteSkipped ||
+										'Sync completed. Copied: %1$s. Skipped, already there: %2$s.'
+								  )
+										.replace( '%1$s', summary.created || 0 )
+										.replace( '%2$s', summary.skipped )
+								: config.i18n?.syncComplete ||
+								  'Sync completed successfully.'
+						);
+						if ( summary.failed || summary.skipped ) {
 							// Keep the message on screen; closing it reloads the library.
 							$modal.on(
 								'click',

@@ -162,7 +162,7 @@ class Workflow_Catalog {
 		);
 		$add(
 			'remote-servers',
-			'List the FTP, FTPS and SFTP servers saved in Import Export > Settings > Servers (no passwords). Use a server address (rsl-remote://<id>/<path>) with upload-from-url to import a file from it, or as export options.remote_destination to upload a finished export to it. Servers are added by an administrator in the settings screen.',
+			'List the FTP, FTPS and SFTP servers saved in Content Sync, Import, Export > Plugin Options > FTP / SFTP Servers (no passwords). Use a server address (rsl-remote://<id>/<path>) with upload-from-url to import a file from it, or as export options.remote_destination to upload a finished export to it. Servers are added by an administrator in the settings screen.',
 			Schema_Registry::empty_input(),
 			Workflow_Schemas::object( [ 'servers' => Workflow_Schemas::items( $server ) ], [ 'servers' ] ),
 			true

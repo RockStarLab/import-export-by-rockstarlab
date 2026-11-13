@@ -197,11 +197,32 @@ const SiteMigration = {
 							: step.key.replace( /[_:]/g, ' ' ),
 			  } ) )
 			: this.expandSteps( this.plan );
+		// Content families had raw names ("media", "post", "Woo Product") next to
+		// "Product Categories (product_cat)"; show the names used in the WordPress admin.
+		const i18n = ( 'undefined' !== typeof window && window.rslIeData?.i18n ) || {};
+		const familyLabels = {
+			media: i18n.migrationMedia || 'Media',
+			post: i18n.migrationPosts || 'Posts',
+			page: i18n.migrationPages || 'Pages',
+			comment: i18n.migrationComments || 'Comments',
+			user: i18n.migrationUsers || 'Users',
+			menu: i18n.migrationMenus || 'Menus',
+			woo_attribute: i18n.migrationAttributes || 'Product attributes',
+			woo_product: i18n.migrationProducts || 'Products',
+			woo_coupon: i18n.migrationCoupons || 'Coupons',
+			woo_customer: i18n.migrationCustomers || 'Customers',
+			woo_order: i18n.migrationOrders || 'Orders',
+			woo_refund: i18n.migrationRefunds || 'Refunds',
+			woo_review: i18n.migrationReviews || 'Product reviews',
+		};
 		this.contentChoices = leaves.map( ( leaf ) => ( {
 			...leaf,
-			label: leaf.label.replace( /(^|\s)\S/g, ( letter ) =>
-				letter.toUpperCase()
-			),
+			label:
+				familyLabels[ leaf.key ] ||
+				String( leaf.label || leaf.key || '' ).replace(
+					/(^|\s)\S/g,
+					( letter ) => letter.toUpperCase()
+				),
 			requires: [],
 		} ) );
 		const groups = [
@@ -531,7 +552,11 @@ const SiteMigration = {
 		} finally {
 			if ( this.selectedFile === file ) {
 				this.preparingPackage = false;
-				jQuery( '.rsl-ie-migration-start' ).prop( 'disabled', false );
+				// A package that could not be read left "Start migration" enabled.
+				jQuery( '.rsl-ie-migration-start' ).prop(
+					'disabled',
+					! this.preparedPackage
+				);
 			}
 		}
 	},

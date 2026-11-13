@@ -92,11 +92,25 @@ class Notification_Controller extends Base_Controller {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You cannot change notifications on this site.', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] );
 		}
-		$service = new Job_Notification_Service();
+		$service  = new Job_Notification_Service();
+		$settings = $service->public_settings();
+		$draft    = get_transient( 'rsl_ie_notify_draft_' . get_current_user_id() );
+		if ( is_array( $draft ) ) {
+			delete_transient( 'rsl_ie_notify_draft_' . get_current_user_id() );
+			$settings['enabled']             = ! empty( $draft['enabled'] );
+			$settings['when']                = in_array( $draft['when'] ?? '', [ 'errors', 'always' ], true ) ? $draft['when'] : $settings['when'];
+			$settings['job_types']           = (array) ( $draft['job_types'] ?? [] );
+			$settings['email']['enabled']    = ! empty( $draft['email']['enabled'] );
+			$settings['email']['recipients'] = array_values( array_filter( array_map( 'trim', explode( ',', (string) ( $draft['email']['recipients'] ?? '' ) ) ) ) );
+			$settings['slack']['enabled']    = ! empty( $draft['slack']['enabled'] );
+			$settings['webhook']['enabled']  = ! empty( $draft['webhook']['enabled'] );
+			$settings['subject']             = (string) ( $draft['subject'] ?? $settings['subject'] );
+			$settings['message']             = (string) ( $draft['message'] ?? $settings['message'] );
+		}
 		rsl_ie()->View->load(
 			'settings/notifications',
 			[
-				'rsl_ie_notifications' => $service->public_settings(),
+				'rsl_ie_notifications' => $settings,
 				'rsl_ie_notify_log'    => $service->log_entries(),
 			]
 		);
@@ -136,7 +150,12 @@ class Notification_Controller extends Base_Controller {
 		$result = ( new Job_Notification_Service() )->update( $input );
 		$args   = [ 'page' => self::PAGE ];
 		if ( is_wp_error( $result ) ) {
-			set_transient( 'rsl_ie_notify_notice_' . get_current_user_id(), [ 'error', $result->get_error_message() ], 120 );
+			set_transient( 'rsl_ie_notify_notice_' . get_current_user_id(), [ 'error', $result->get_error_message() . ' ' . __( 'Nothing was saved. Fix this and save again.', 'import-export-by-rockstarlab' ) ], 120 );
+			// Show the form again as it was sent, so a typo does not wipe the other choices.
+			// Slack and webhook URLs are never echoed back into the page.
+			$draft = $input;
+			unset( $draft['slack']['url'], $draft['webhook']['url'], $draft['slack']['clear_url'], $draft['webhook']['clear_url'], $draft['regenerate_secret'] );
+			set_transient( 'rsl_ie_notify_draft_' . get_current_user_id(), $draft, 120 );
 		} else {
 			$notice = __( 'Notification settings saved.', 'import-export-by-rockstarlab' );
 			if ( ! empty( $result['webhook_secret'] ) ) {
