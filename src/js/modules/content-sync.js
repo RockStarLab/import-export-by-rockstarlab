@@ -44,6 +44,13 @@ const ContentSyncModule = {
 			}
 		} );
 
+		// Close the open connection modal on Escape, like the other plugin dialogs.
+		$( document ).on( 'keydown.rslIeSiteModal', ( e ) => {
+			if ( 'Escape' === e.key ) {
+				$( '#rsl-ie-site-modal:visible' ).hide();
+			}
+		} );
+
 		// Toggle my site info
 		$( '#rsl-ie-toggle-my-site' ).on( 'click', () =>
 			this.toggleMySiteInfo()
@@ -240,7 +247,13 @@ const ContentSyncModule = {
 		);
 		$( '#rsl-ie-site-form' )[ 0 ].reset();
 		$( '#rsl-ie-site-id' ).val( '' );
-		$( '#rsl-ie-site-api-key' ).prop( 'required', true );
+		$( '#rsl-ie-site-api-key' )
+			.prop( 'required', true )
+			.attr( 'placeholder', '' );
+		$( '#rsl-ie-site-api-key' )
+			.closest( '.rsl-ie-form-row' )
+			.find( '.required' )
+			.show();
 		this.hideModalNotice();
 		$( '#rsl-ie-site-modal' ).show();
 	},
@@ -261,7 +274,19 @@ const ContentSyncModule = {
 		$( '#rsl-ie-site-id' ).val( siteId );
 		$( '#rsl-ie-site-name' ).val( site.name );
 		$( '#rsl-ie-site-url' ).val( site.url );
-		$( '#rsl-ie-site-api-key' ).prop( 'required', false ).val( '' );
+		// The stored key is not sent to the browser: an empty field keeps it.
+		$( '#rsl-ie-site-api-key' )
+			.prop( 'required', false )
+			.val( '' )
+			.attr(
+				'placeholder',
+				window.rslIeData.i18n.keepCurrentKey ||
+					'Leave empty to keep the current key'
+			);
+		$( '#rsl-ie-site-api-key' )
+			.closest( '.rsl-ie-form-row' )
+			.find( '.required' )
+			.hide();
 		this.hideModalNotice();
 		$( '#rsl-ie-site-modal' ).show();
 	},

@@ -1236,10 +1236,9 @@
 
 .rsl-ie-row-filter-row {
 	display: grid;
-	grid-template-columns: minmax(160px, 1fr) minmax(170px, auto) minmax(
-			160px,
-			1fr
-		) auto;
+	grid-template-columns:
+		minmax(160px, 1fr) minmax(170px, auto) minmax(160px, 1fr)
+		auto;
 	gap: 10px;
 	align-items: center;
 
@@ -1491,14 +1490,18 @@
 }
 
 #rsl-ie-servers {
-	.rsl-ie-servers-intro {
-		margin: 16px 0 12px;
-		max-width: 900px;
+	.rsl-ie-servers-table {
+		margin-bottom: 16px;
 	}
 
-	.rsl-ie-servers-table {
-		max-width: 1000px;
-		margin-bottom: 16px;
+	.rsl-ie-servers-empty {
+		margin: 0 0 16px;
+	}
+
+	.rsl-ie-settings-section-body > p:last-child,
+	.rsl-ie-server-form .submit {
+		margin-bottom: 0;
+		padding-bottom: 0;
 	}
 
 	.rsl-ie-server-actions {

@@ -924,6 +924,28 @@ const ExportModule = {
 
 			this.applySelectionPrefillToOptions( options, contentType );
 
+			// Nothing to count before the post type / table is chosen: the request was refused
+			// with a 403 ("premium content type … not available") in the console every time.
+			const hasPostTypeFilter = ( options.filters || [] ).some(
+				( filter ) => filter.field === 'post_type' && filter.value
+			);
+			// Taxonomy terms showed the category count (89) while Next stayed disabled
+			// until a taxonomy was chosen.
+			const hasTaxonomyFilter = ( options.filters || [] ).some(
+				( filter ) => filter.field === 'taxonomy' && filter.value
+			);
+			if (
+				( contentType === 'custom_post_types' &&
+					! options.post_type &&
+					! hasPostTypeFilter ) ||
+				( contentType === 'taxonomy' && ! hasTaxonomyFilter ) ||
+				( contentType === 'database_table' && ! options.table_name )
+			) {
+				$count.text( '-' );
+				this.updateStep2NextButton();
+				return;
+			}
+
 			if ( contentType === 'form_entries' ) {
 				const selection = this.getFormEntrySelection();
 				if ( ! selection ) {

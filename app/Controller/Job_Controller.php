@@ -178,6 +178,18 @@ class Job_Controller extends Base_Controller {
 			// Can retry: any job
 			$job->can_retry   = true;
 			$job->can_restart = true;
+			if ( in_array( $job->type, [ 'content_sync_push', 'content_sync_pull' ], true ) ) {
+				// History rows of immediate syncs: only Restart runs them again (see restart_job).
+				$job->can_restart = in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true );
+				$job->can_retry   = false;
+				$job->can_resume  = false;
+			}
+			if ( 'migration_sources' === $job->type && ! empty( json_decode( (string) $job->parameters, true )['variation_workflow_version'] ) ) {
+				// Variation transfer of a product sync: its parent sync runs it, it cannot run alone.
+				$job->can_restart = false;
+				$job->can_retry   = false;
+				$job->can_resume  = false;
+			}
 			if ( self::is_special_managed_job( $job ) || Job_Service::supports( $job ) || \RockStarLab\ImportExport\Service\Media_Folder_Service::supports( $job ) || \RockStarLab\ImportExport\Service\Sync_Job_Service::supports( $job ) || \RockStarLab\ImportExport\Service\Migration_Service::supports( $job ) || ( $job && ! empty( json_decode( $job->parameters, true )['migration_parent_id'] ) ) ) {
 				$snapshot         = ( new Job_Service() )->get( $job->id );
 				$actions          = is_wp_error( $snapshot ) ? [] : $snapshot['allowed_actions'];
@@ -502,6 +514,25 @@ class Job_Controller extends Base_Controller {
 	 * Restart job (create new job with same settings)
 	 */
 	public function restart_job() {
+		$source = rsl_ie()->Model->job->find( (int) $this->get_request_param( 'job_id' ) );
+		if ( $source && in_array( $source->type, [ 'content_sync_push', 'content_sync_pull' ], true ) ) {
+			// Immediate syncs keep only a history row; run them again through the queued sync
+			// workflow that schedules use. A plain copy of the row would stay pending forever.
+			$permission = $this->verify_request();
+			if ( is_wp_error( $permission ) ) {
+				$this->send_error( $permission, null, 403 );
+				return; }
+			$result = ( new \RockStarLab\ImportExport\Service\Schedule_Source_Service() )->execute( (int) $source->id, 'restart:' . (int) $source->id . ':' . wp_generate_uuid4() );
+			if ( is_wp_error( $result ) ) {
+				$this->send_error( $result, null, $result->get_error_data()['status'] ?? 400 );
+				return; }
+			$job = is_array( $result ) && ! empty( $result['job_id'] ) ? rsl_ie()->Model->job->find( (int) $result['job_id'] ) : null;
+			if ( $job ) {
+				$result['type']      = $job->type;
+				$result['data_type'] = $job->data_type; }
+			$this->send_success( $result );
+			return;
+		}
 		if ( $this->managed_request() ) {
 			$permission = $this->verify_request();
 			if ( is_wp_error( $permission ) ) {

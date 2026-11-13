@@ -972,12 +972,19 @@ import syncButtonBusy from './utils/sync-button-busy';
 		} )
 			.done( ( data ) => {
 				$( `#${ modalId }, #${ browseModalId }` ).hide();
-				showMessage(
+				const doneMessage =
 					data.message ||
-						config.i18n?.termsSynced ||
-						'Terms synced successfully.',
-					'success'
-				);
+					config.i18n?.termsSynced ||
+					'Terms synced successfully.';
+				showMessage( doneMessage, 'success' );
+				// The message was shown in the closed dialog and the page reloaded 0.3 s later,
+				// so a pull ended without any visible result. Show it after the reload.
+				try {
+					window.sessionStorage.setItem(
+						'rslIeTermsNotice',
+						String( doneMessage )
+					);
+				} catch ( e ) {}
 				window.setTimeout( () => {
 					window.location.reload();
 				}, 300 );
@@ -992,6 +999,25 @@ import syncButtonBusy from './utils/sync-button-busy';
 					.text( config.i18n?.pullSelected || 'Pull selected terms' );
 			} );
 	}
+
+	// Result of a pull from before the reload.
+	try {
+		const pendingNotice =
+			window.sessionStorage.getItem( 'rslIeTermsNotice' );
+		if ( pendingNotice ) {
+			window.sessionStorage.removeItem( 'rslIeTermsNotice' );
+			const $notice = $(
+				'<div class="notice notice-success is-dismissible"><p></p></div>'
+			);
+			$notice.find( 'p' ).text( pendingNotice );
+			const $anchor = $( '.wrap .wp-header-end, .wrap h1' ).first();
+			if ( $anchor.length ) {
+				$anchor.after( $notice );
+			} else {
+				$( '.wrap' ).first().prepend( $notice );
+			}
+		}
+	} catch ( e ) {}
 
 	$( document ).on(
 		'change',

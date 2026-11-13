@@ -558,7 +558,8 @@ class Migration_Service {
 				'blog_id'    => get_current_blog_id(),
 				'purpose'    => 'export',
 				'status'     => 'ready',
-				'file_name'  => 'migration.zip',
+				// Every package downloaded as "migration.zip": several sites or dates could not be told apart.
+				'file_name'  => sanitize_file_name( sanitize_title( (string) wp_parse_url( home_url(), PHP_URL_HOST ) . ( (string) wp_parse_url( home_url(), PHP_URL_PATH ) ) ) . '-content-migration-' . wp_date( 'Y-m-d-His' ) . '.zip' ),
 				'format'     => 'zip',
 				'path'       => $path,
 				'file_size'  => filesize( $path ),

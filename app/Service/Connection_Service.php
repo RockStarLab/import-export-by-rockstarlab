@@ -55,7 +55,7 @@ class Connection_Service {
 	 * @return array|\WP_Error
 	 */
 	private function get_sites() {
-		$sites = Connected_Site::get_all();
+		$sites = array_map( array( self::class, 'without_key' ), (array) Connected_Site::get_all() );
 		$stats = Connected_Site::get_stats();
 
 		return $this->success(
@@ -64,6 +64,20 @@ class Connection_Service {
 				'stats' => $stats,
 			)
 		);
+	}
+
+	/**
+	 * A connection as the admin screen may see it: the other site's key stays on the server
+	 * (the sites list sent every stored key to the browser).
+	 *
+	 * @param array|mixed $site Connection row.
+	 * @return array|mixed
+	 */
+	public static function without_key( $site ) {
+		if ( is_array( $site ) ) {
+			unset( $site['api_key'] );
+		}
+		return $site;
 	}
 
 	/**
@@ -102,6 +116,10 @@ class Connection_Service {
 			return $this->error( __( 'This site is already connected', 'import-export-by-rockstarlab' ) );
 		}
 
+		if ( self::is_this_site( $remote_url ) ) {
+			return $this->error( __( 'This is the address of this site. Enter the address of the other WordPress site you want to sync with.', 'import-export-by-rockstarlab' ) );
+		}
+
 		$validation_result = $this->validate_remote_site( $remote_url, $api_key );
 		if ( is_wp_error( $validation_result ) ) {
 			return $this->check_error( $validation_result );
@@ -131,7 +149,7 @@ class Connection_Service {
 		return $this->success(
 			array(
 				'message' => __( 'Site connection added successfully', 'import-export-by-rockstarlab' ),
-				'site'    => $site,
+				'site'    => self::without_key( $site ),
 			)
 		);
 	}
@@ -180,6 +198,10 @@ class Connection_Service {
 				return $this->error( __( 'This site is already connected', 'import-export-by-rockstarlab' ) );
 			}
 
+			if ( self::is_this_site( $remote_url ) ) {
+				return $this->error( __( 'This is the address of this site. Enter the address of the other WordPress site you want to sync with.', 'import-export-by-rockstarlab' ) );
+			}
+
 			$data['remote_url'] = $remote_url;
 		}
 
@@ -215,7 +237,7 @@ class Connection_Service {
 			return $this->success(
 				array(
 					'message' => __( 'No changes were made', 'import-export-by-rockstarlab' ),
-					'site'    => $site,
+					'site'    => self::without_key( $site ),
 				)
 			);
 		}
@@ -254,7 +276,7 @@ class Connection_Service {
 		return $this->success(
 			array(
 				'message' => $message,
-				'site'    => $updated_site,
+				'site'    => self::without_key( $updated_site ),
 			)
 		);
 	}
@@ -337,6 +359,22 @@ class Connection_Service {
 	}
 
 	/**
+	 * Whether an address is this site (any scheme, "www." or letter case). A connection to itself
+	 * was accepted with this site's own key, although syncing a site with itself has no use.
+	 *
+	 * @param string $url Normalized site address.
+	 * @return bool
+	 */
+	public static function is_this_site( $url ) {
+		$key = static function ( $address ) {
+			$address = strtolower( untrailingslashit( (string) preg_replace( '#^[a-z][a-z0-9+.-]*://#i', '', (string) $address ) ) );
+			return (string) preg_replace( '#^www\.#', '', $address );
+		};
+		$url = $key( $url );
+		return '' !== $url && in_array( $url, [ $key( home_url() ), $key( site_url() ) ], true );
+	}
+
+	/**
 	 * Connection check failures are written by this plugin, so callers may show them.
 	 *
 	 * @param \WP_Error $error Check result.
@@ -372,14 +410,14 @@ class Connection_Service {
 		$validation_result = $this->validate_remote_site( $site['remote_url'], $site['api_key'] );
 
 		if ( is_wp_error( $validation_result ) ) {
-			Connected_Site::update_last_sync( $site_id, $validation_result->get_error_message() );
+			Connected_Site::update_last_sync( $site_id, $validation_result->get_error_message(), false );
 			// Update status to error.
 			Connected_Site::update( $site_id, array( 'status' => 'error' ) );
 			return $this->check_error( $validation_result );
 		}
 
 		// Connection successful - update last sync and status.
-		Connected_Site::update_last_sync( $site_id );
+		Connected_Site::update_last_sync( $site_id, null, false );
 		Connected_Site::update( $site_id, array( 'status' => 'active' ) );
 
 		return $this->success(
@@ -484,14 +522,14 @@ class Connection_Service {
 			if ( 'rsl_ie_sync_key_setup_required' === $code ) {
 				return new \WP_Error(
 					'invalid_api_key',
-					__( 'The key is right, but the remote site has not activated it yet: an administrator there must open Import Export > Content Sync once. The key does not change.', 'import-export-by-rockstarlab' )
+					__( 'The key is right, but the remote site has not activated it yet: an administrator there must open Content Sync, Import, Export > Content Sync once. The key does not change.', 'import-export-by-rockstarlab' )
 				);
 			}
 			// Our own endpoint rejected the key.
 			if ( 0 === strpos( $code, 'rsl_ie_' ) ) {
 				return new \WP_Error(
 					'invalid_api_key',
-					__( 'Invalid API key. Copy the key again from Import Export > Content Sync on the remote site.', 'import-export-by-rockstarlab' )
+					__( 'Invalid API key. Copy the key again from Content Sync, Import, Export > Content Sync on the remote site.', 'import-export-by-rockstarlab' )
 				);
 			}
 			if ( '' !== (string) wp_remote_retrieve_header( $response, 'www-authenticate' ) ) {
@@ -511,6 +549,19 @@ class Connection_Service {
 				'firewall_blocked',
 				/* translators: %d: HTTP status code */
 				sprintf( __( 'A firewall or security service on the remote site refused the request (HTTP %d). Allow requests to /wp-json/rsl-ie/v1/ from this site.', 'import-export-by-rockstarlab' ), $status_code )
+			);
+		}
+
+		// An HTML error page (405, 500 of a site without WordPress at this address) said only
+		// "Remote site returned error status: 405", which told the user nothing.
+		if ( ( $status_code < 200 || $status_code >= 300 ) && ! $is_json ) {
+			return new \WP_Error(
+				'rest_not_found',
+				sprintf(
+					/* translators: %d: HTTP status code */
+					__( 'No WordPress REST API answered at this address (HTTP %d). Check the site URL: use the home address of the site, without /wp-admin or other paths.', 'import-export-by-rockstarlab' ),
+					$status_code
+				)
 			);
 		}
 

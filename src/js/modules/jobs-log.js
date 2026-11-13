@@ -928,7 +928,13 @@ const JobsLogModule = {
 						job.file_path
 							? `<tr>
 						<th>${ window.rslIeData.i18n.jobFile || 'File' }:</th>
-						<td class="job-file-path">${ this.escapeHtml( job.file_path ) }</td>
+						<td class="job-file-path" title="${ this.escapeHtml(
+							job.file_path
+						) }">${ this.escapeHtml(
+							// The private storage path (/var/tmp/rsl-ie-<hash>/file_…/) meant nothing
+							// to the reader; the file name is what identifies the file.
+							String( job.file_path ).split( /[\\/]/ ).pop()
+						) }</td>
 					</tr>`
 							: ''
 					}
@@ -1153,6 +1159,13 @@ const JobsLogModule = {
 			migration_sync_push: 'Content Migration - Sync Push',
 			migration_sync_pull: 'Content Migration - Sync Pull',
 		};
+		// Variation transfers of a product sync run as their own child jobs.
+		if ( 'migration_sources' === type && 'product' === dataType ) {
+			return (
+				window.rslIeData.i18n.typeContentSyncVariations ||
+				'Content Sync - Product Variations'
+			);
+		}
 		return labels[ type ] || type;
 	},
 
@@ -1219,7 +1232,8 @@ const JobsLogModule = {
 			database_table: 'MySQL Database Table',
 		};
 
-		return labels[ dataType ] || dataType || '-';
+		const postTypes = window.rslIeData.postTypeLabels || {};
+		return labels[ dataType ] || postTypes[ dataType ] || dataType || '-';
 	},
 
 	/**

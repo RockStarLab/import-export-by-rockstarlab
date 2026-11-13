@@ -168,9 +168,10 @@ class Connected_Site {
 	 *
 	 * @param int    $id         Site ID.
 	 * @param string $error      Optional error message.
+	 * @param bool   $synced     False for a connection test: keep the last sync time.
 	 * @return bool True on success, false on failure
 	 */
-	public static function update_last_sync( $id, $error = null ) {
+	public static function update_last_sync( $id, $error = null, $synced = true ) {
 		global $wpdb;
 		$table = $wpdb->prefix . self::$table_name;
 
@@ -178,6 +179,10 @@ class Connected_Site {
 			'last_sync_at' => current_time( 'mysql' ),
 			'updated_at'   => current_time( 'mysql' ),
 		);
+		// A connection test only sets the status: "Last Sync" showed the time of the test.
+		if ( ! $synced ) {
+			unset( $data['last_sync_at'] );
+		}
 
 		if ( null !== $error ) {
 			$data['last_error'] = $error;

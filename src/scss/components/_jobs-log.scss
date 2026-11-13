@@ -203,10 +203,40 @@
 				}
 			}
 
+			// Long names and type badges kept the table wider than a 1440 px screen, so
+			// Restart, Download and Delete were hidden behind a horizontal scroll.
 			.rsl-ie-job-name-text {
-				overflow: hidden;
-				text-overflow: ellipsis;
-				white-space: nowrap;
+				overflow-wrap: anywhere;
+				white-space: normal;
+			}
+
+			td.column-job-name,
+			td.column-type {
+				white-space: normal;
+
+				.job-type-badge,
+				[class*="job-type-"] {
+					white-space: normal;
+				}
+			}
+
+			td.column-actions {
+				min-width: 200px;
+
+				.job-actions {
+					flex-wrap: wrap;
+				}
+			}
+
+			// Elapsed holds "3s" / "12m 5s": its 150 px pushed the four action buttons onto two lines.
+			th.column-elapsed,
+			td.column-elapsed {
+				width: 70px;
+			}
+
+			th.column-created,
+			td.column-created {
+				width: 140px;
 			}
 
 			.rsl-ie-job-name-form {
