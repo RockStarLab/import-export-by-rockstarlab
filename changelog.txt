@@ -1,5 +1,13 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.8 =
+* Fix: Content Sync could leave the old site's media ID on Cover blocks with a fixed or repeated background, on images inside ACF WYSIWYG fields and on gallery images. The image the page shows now decides.
+* Fix: repeating a sync or an import moved comment dates by the site's time zone offset every time.
+* Fix: imports and site migrations that carry both the local and the GMT date of a post keep both, like the WordPress importer. Before, posts could show another date and time on the new site.
+* Fix: Gallery blocks keep pointing at their images after a file import or a site migration.
+* Fix: media files with non-Latin names (for example Cyrillic) keep their names in site migrations and media imports.
+* Fix: importing comments after a Content Sync no longer adds the synced comments a second time.
+
 = 2.2.7 =
 * Fix: Excel (XLSX) and LibreOffice (ODS) exports cut every cell at 32,767 characters, the spreadsheet limit. Elementor pages and other long content lost their design and custom fields when such a file was imported. Longer values now continue in extra "…__part2" columns, which the import joins back.
 * Fix: XML exports of pages built with Elementor stopped with "Export stopped unexpectedly", and keys with characters such as ":" or spaces were changed in XML files. Every key is now written so that it reads back exactly.

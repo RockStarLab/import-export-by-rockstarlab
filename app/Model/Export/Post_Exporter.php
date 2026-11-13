@@ -4775,7 +4775,9 @@ class Post_Exporter extends Abstract_Exporter {
 			$raw_meta = get_post_meta( $variation_id );
 			$meta     = [];
 			foreach ( $raw_meta as $vk => $vv ) {
-				if ( ! isset( $vv[0] ) ) {
+				// This site's own bookkeeping (where a variation came from, edit locks) is not
+				// content: carried in the file, it made the import match the wrong variations.
+				if ( ! isset( $vv[0] ) || preg_match( '/^(_rsl_ie_|_aie_|_edit_lock$|_edit_last$)/', (string) $vk ) ) {
 					continue;
 				}
 				$meta[ $vk ] = $this->portable_post_meta_value( maybe_unserialize( $vv[0] ), (int) $variation_id );

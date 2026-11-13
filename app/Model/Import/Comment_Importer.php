@@ -371,7 +371,7 @@ class Comment_Importer extends Abstract_Importer {
 		$duplicate_check     = $this->get_option( 'duplicate_check', 'comment_ID' );
 
 		if ( in_array( $duplicate_check, [ 'comment_ID', 'source_comment_id', '_aie_source_comment_id' ], true ) ) {
-			$existing_comment_id = $this->find_existing_comment_by_source_id( $source_comment_id );
+			$existing_comment_id = $this->find_existing_comment_by_source_id( $source_comment_id, $post_id );
 			if ( ! $existing_comment_id ) {
 				$existing_comment_id = $this->find_existing_comment_by_local_id( $source_comment_id, $post_id, $item );
 			}
@@ -480,7 +480,7 @@ class Comment_Importer extends Abstract_Importer {
 		$comment_data['comment_ID'] = $comment_id;
 
 		// wp_update_comment returns 1 on success, 0 on failure, or WP_Error
-		$result = wp_update_comment( wp_slash( $comment_data ), true );
+		$result = \RockStarLab\ImportExport\Helper\Comment_Update::update( wp_slash( $comment_data ), true );
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
@@ -585,7 +585,7 @@ class Comment_Importer extends Abstract_Importer {
 	 * @param int $source_comment_id Source site comment_ID.
 	 * @return int|null Target comment ID or null.
 	 */
-	private function find_existing_comment_by_source_id( $source_comment_id ) {
+	private function find_existing_comment_by_source_id( $source_comment_id, $post_id = 0 ) {
 		$source_comment_id = absint( $source_comment_id );
 		if ( $source_comment_id <= 0 ) {
 			return null;
@@ -603,7 +603,28 @@ class Comment_Importer extends Abstract_Importer {
 			]
 		);
 
-		return ! empty( $comment_ids[0] ) ? absint( $comment_ids[0] ) : null;
+		if ( ! empty( $comment_ids[0] ) ) {
+			return absint( $comment_ids[0] );
+		}
+
+		// A comment that came here by Content Sync carries the same source ID under the sync
+		// key; without this, importing a file after a sync added every comment a second time.
+		$comment_ids = get_comments( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Targeted lookup by the sync key.
+			[
+				'number'     => 2,
+				'orderby'    => 'comment_ID',
+				'order'      => 'ASC',
+				'fields'     => 'ids',
+				'status'     => 'any',
+				'meta_key'   => '_rsl_ie_original_comment_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_value' => (string) $source_comment_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			]
+		);
+		if ( 1 !== count( $comment_ids ) ) {
+			return null;
+		}
+		$found = get_comment( (int) $comment_ids[0] );
+		return $found && ( ! $post_id || (int) $found->comment_post_ID === (int) $post_id ) ? absint( $comment_ids[0] ) : null;
 	}
 
 	/**
@@ -662,7 +683,7 @@ class Comment_Importer extends Abstract_Importer {
 			( '' === $item['comment_author'] && '' === $item['comment_author_email'] ) ) {
 			return null;
 		}
-		$parent = $source_parent ? $this->find_existing_comment_by_source_id( $source_parent ) : 0;
+		$parent = $source_parent ? $this->find_existing_comment_by_source_id( $source_parent, $post_id ) : 0;
 		if ( $source_parent && ! $parent ) {
 			return null;
 		}
