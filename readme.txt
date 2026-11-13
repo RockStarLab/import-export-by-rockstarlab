@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, site-migration
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.2.11
+Stable tag: 2.2.12
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -293,6 +293,14 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.2.12 =
+* Fix: Yoast SEO and Rank Math data (titles, robots, social images, primary category, category SEO) arrive complete through Content Sync and file export/import.
+* Fix: the same image is no longer downloaded twice when its name has non-Latin letters.
+* Fix: Content Sync to a multisite subsite keeps correct social image URLs.
+* Fix: a clear message when the other site's PRO is not licensed.
+* Fix: when the other site cannot be reached or its connection check failed, Content Sync says why and what to do instead of a raw cURL error; a file the other site refuses (for example SVG) is named in the message, and Job Details shows why a background sync failed.
+* Fix: Trigger sources show readable content names; Debug Site Info shows the PRO version.
 
 = 2.2.11 =
 * Fix: Content Sync refuses a connection to the site itself, and an address without WordPress gets a clear message instead of "error status 405".

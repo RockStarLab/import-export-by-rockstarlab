@@ -1,5 +1,13 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.12 =
+* Fix: Yoast SEO and Rank Math data (titles, robots, social images, primary category, category SEO) arrive complete through Content Sync and file export/import.
+* Fix: the same image is no longer downloaded twice when its name has non-Latin letters.
+* Fix: Content Sync to a multisite subsite keeps correct social image URLs.
+* Fix: a clear message when the other site's PRO is not licensed.
+* Fix: when the other site cannot be reached or its connection check failed, Content Sync says why and what to do instead of a raw cURL error; a file the other site refuses (for example SVG) is named in the message, and Job Details shows why a background sync failed.
+* Fix: Trigger sources show readable content names; Debug Site Info shows the PRO version.
+
 = 2.2.11 =
 * Fix: Content Sync refuses a connection to the site itself, and an address without WordPress gets a clear message instead of "error status 405".
 * Fix: the Content Sync sites list and the post screens no longer send the stored API keys of connected sites to the browser.

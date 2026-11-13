@@ -1251,7 +1251,7 @@ class ACF_Fields {
 			self::store_imported_media_identity( $cached_id, $source_url, $source_attachment_id );
 			return $cached_id;
 		}
-		$existing_by_source = self::attachment_id_from_source_hash( $source_hash );
+		$existing_by_source = Content_Sync_Media::attachment_by_source_url_hash( $source_url );
 		if ( $existing_by_source > 0 ) {
 			self::store_imported_media_identity( $existing_by_source, $source_url, $source_attachment_id );
 			$url_to_attachment_cache[ $source_hash ] = $existing_by_source;
@@ -1381,30 +1381,6 @@ class ACF_Fields {
 			$allowed_mimes[ $extension ] = $mimes[ $extension ];
 			return $allowed_mimes;
 		};
-	}
-
-	/**
-	 * Find an attachment previously imported from the same source URL hash.
-	 *
-	 * @param string $source_hash Source URL hash.
-	 * @return int Attachment ID or 0.
-	 */
-	private static function attachment_id_from_source_hash( $source_hash ) {
-		global $wpdb;
-
-		if ( '' === $source_hash ) {
-			return 0;
-		}
-
-		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-			$wpdb->prepare(
-				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = %s LIMIT 1",
-				'rsl_ie_source_url_hash',
-				$source_hash
-			)
-		);
-
-		return $attachment_id ? absint( $attachment_id ) : 0;
 	}
 
 	private static function store_imported_media_identity( int $attachment_id, string $source_url = '', int $source_attachment_id = 0 ): void {

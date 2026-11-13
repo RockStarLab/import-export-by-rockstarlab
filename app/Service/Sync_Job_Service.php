@@ -473,7 +473,9 @@ class Sync_Job_Service {
 					$state['uncertain']  = true;
 					return $this->save( $id, $state, [ 'status' => 'paused' ] );
 				}
-				return $this->fail( $id, $result->get_error_code(), $this->uncertain_state( $state ) );
+				// Messages of these codes are written by this plugin (never remote text).
+				$own = in_array( $result->get_error_code(), [ 'rsl_ie_sync_failed', 'rsl_ie_connection_unavailable', 'rsl_ie_remote_pro_inactive' ], true ) ? $result->get_error_message() : '';
+				return $this->fail( $id, $result->get_error_code(), $this->uncertain_state( $state ), $own );
 			}
 			return $result;
 		} catch ( \Throwable $exception ) {
@@ -781,14 +783,26 @@ class Sync_Job_Service {
 	 * @param int    $id Queue ID.
 	 * @param string $code Safe stable failure code.
 	 * @param bool   $uncertain Transfer may already have changed content.
+	 * @param string $own_message Readable reason written by this plugin, if known.
 	 * @return array|\WP_Error
 	 */
-	private function fail( $id, $code, $uncertain ) {
+	private function fail( $id, $code, $uncertain, $own_message = '' ) {
 		$job                 = rsl_ie()->Model->job->find( $id );
 		$state               = json_decode( $job->settings, true );
 		$state['stage']      = 'failed';
 		$state['error_code'] = sanitize_key( $code );
 		$state['uncertain']  = $uncertain || ! empty( $state['uncertain'] );
+		// The Jobs Log showed only "Failed": say why, in text this plugin writes.
+		$reasons = [
+			'rsl_ie_sync_job_connection_changed' => __( 'The connection was edited or its address changed after the job started, so nothing was sent. Start the sync again.', 'import-export-by-rockstarlab' ),
+			'rsl_ie_connection_unavailable'      => __( 'The connection is not active or does not allow this direction. Fix it in Content Sync and start the sync again.', 'import-export-by-rockstarlab' ),
+			'rsl_ie_sync_job_worker_interrupted' => __( 'The job was interrupted by the server.', 'import-export-by-rockstarlab' ),
+		];
+		$message = '' !== (string) $own_message ? (string) $own_message : $reasons[ $state['error_code'] ] ?? sprintf( /* translators: %s: error code. */ __( 'The sync failed (%s).', 'import-export-by-rockstarlab' ), $state['error_code'] );
+		if ( $state['uncertain'] && '' === (string) $own_message ) {
+			$message .= ' ' . __( 'Some content may already have changed on the other site: check it before you start the sync again.', 'import-export-by-rockstarlab' );
+		}
+		Job_Log::write( (int) $id, 'error', $message );
 		return $this->save(
 			$id,
 			$state,

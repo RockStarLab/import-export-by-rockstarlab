@@ -2150,6 +2150,7 @@ class Content_Sync_API_Controller {
 			foreach ( $meta as $key => $values ) {
 				$data['meta'][ $key ] = isset( $values[0] ) ? maybe_unserialize( $values[0] ) : '';
 			}
+			$data['yoast_seo'] = \RockStarLab\ImportExport\Helper\Seo_Fields::export_yoast_term( (int) $term->term_id, $taxonomy );
 
 			if ( class_exists( ACF_Fields::class ) ) {
 				$acf_fields = $this->get_term_acf_fields_for_sync( (int) $term->term_id, $taxonomy );

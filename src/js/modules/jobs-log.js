@@ -111,6 +111,15 @@ const JobsLogModule = {
 		jQuery( document ).on( 'click', '.rsl-ie-modal-overlay', () =>
 			this.closeModal()
 		);
+		// Escape closes Job Details like the other dialogs.
+		jQuery( document ).on( 'keydown.rslIeJobsLog', ( e ) => {
+			if (
+				'Escape' === e.key &&
+				jQuery( '.rsl-ie-modal:visible' ).length
+			) {
+				this.closeModal();
+			}
+		} );
 
 		// Confirm delete
 		jQuery( document ).on( 'click', '.rsl-ie-confirm-delete', () =>
@@ -833,6 +842,27 @@ const JobsLogModule = {
 				} catch ( logError ) {
 					response.warnings = [];
 				}
+				// Why a job failed is written to the log as an error.
+				if (
+					'failed' === response.status ||
+					'paused' === response.status
+				) {
+					try {
+						const errors = await Utils.ajax(
+							'rsl_ie_job_get_logs',
+							{
+								job_id: jobId,
+								level: 'error',
+								limit: 20,
+							}
+						);
+						response.log_errors = Array.isArray( errors?.logs )
+							? errors.logs
+							: [];
+					} catch ( logError ) {
+						response.log_errors = [];
+					}
+				}
 				this.showJobDetailsModal( response );
 			}
 		} catch ( error ) {
@@ -984,9 +1014,21 @@ const JobsLogModule = {
 	 * @return {string} HTML.
 	 */
 	renderJobWarnings( job ) {
+		const errors = Array.isArray( job.log_errors ) ? job.log_errors : [];
+		const errorHtml = errors.length
+			? `<h3>${ window.rslIeData.i18n.jobErrors || 'Errors' }</h3>
+			<ul class="job-warnings job-errors">${ errors
+				.map(
+					( log ) =>
+						`<li>${ this.escapeHtml(
+							String( log.message || '' )
+						) }</li>`
+				)
+				.join( '' ) }</ul>`
+			: '';
 		const warnings = Array.isArray( job.warnings ) ? job.warnings : [];
 		if ( ! warnings.length ) {
-			return '';
+			return errorHtml;
 		}
 		const items = warnings
 			.map(
@@ -996,7 +1038,7 @@ const JobsLogModule = {
 					) }</li>`
 			)
 			.join( '' );
-		return `
+		return `${ errorHtml }
 			<h3>${ window.rslIeData.i18n.jobWarnings || 'Warnings' } (${
 				warnings.length
 			})</h3>

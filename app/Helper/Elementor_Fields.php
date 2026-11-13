@@ -590,7 +590,7 @@ class Elementor_Fields {
 			return true;
 		}
 
-		return self::get_source_url_hash( $existing_source_url ) === self::get_source_url_hash( $source_url );
+		return Content_Sync_Media::same_source_url( $existing_source_url, $source_url );
 	}
 
 	/**
@@ -600,20 +600,7 @@ class Elementor_Fields {
 	 * @return int
 	 */
 	private static function find_attachment_by_source_url( $url ) {
-		global $wpdb;
-
-		$hash = self::get_source_url_hash( (string) $url );
-		if ( '' === $hash ) {
-			return 0;
-		}
-		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact source URL hash lookup avoids duplicate sideloads.
-			$wpdb->prepare(
-				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = 'rsl_ie_source_url_hash' AND meta_value = %s LIMIT 1",
-				$hash
-			)
-		);
-
-		return $attachment_id ? absint( $attachment_id ) : 0;
+		return Content_Sync_Media::attachment_by_source_url_hash( (string) $url );
 	}
 
 	/**

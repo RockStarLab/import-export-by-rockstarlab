@@ -631,7 +631,16 @@ class Trigger_Service {
 	 */
 	public static function source_label( $job ) {
 		$object = post_type_exists( (string) $job->data_type ) ? get_post_type_object( (string) $job->data_type ) : null;
-		$what   = $object ? $object->labels->name : ucwords( str_replace( [ 'woo_', '_' ], [ 'WooCommerce ', ' ' ], (string) $job->data_type ) );
+		$names  = [
+			'urls'           => __( 'All Site URLs', 'import-export-by-rockstarlab' ),
+			'taxonomy'       => __( 'Taxonomy Terms', 'import-export-by-rockstarlab' ),
+			'comment'        => __( 'Comments', 'import-export-by-rockstarlab' ),
+			'user'           => __( 'Users', 'import-export-by-rockstarlab' ),
+			'menu'           => __( 'Menus', 'import-export-by-rockstarlab' ),
+			'media'          => __( 'Media', 'import-export-by-rockstarlab' ),
+			'database_table' => __( 'MySQL Database Table', 'import-export-by-rockstarlab' ),
+		];
+		$what   = $object ? $object->labels->name : ( $names[ (string) $job->data_type ] ?? ucwords( str_replace( [ 'woo_', '_' ], [ 'WooCommerce ', ' ' ], (string) $job->data_type ) ) );
 		$label  = sprintf( '#%d %s · %s', (int) $job->id, 'export' === $job->type ? __( 'Export', 'import-export-by-rockstarlab' ) : __( 'Import', 'import-export-by-rockstarlab' ), $what );
 		return '' !== (string) $job->job_name ? $label . ' — ' . $job->job_name : $label;
 	}

@@ -991,17 +991,9 @@ class Media_Importer extends Abstract_Importer {
 
 		global $wpdb;
 
-		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-			$wpdb->prepare(
-				"SELECT post_id FROM {$wpdb->postmeta}
-				 WHERE meta_key = 'rsl_ie_source_url_hash'
-				   AND meta_value = %s
-				 LIMIT 1",
-				$this->get_source_url_hash( $source_url )
-			)
-		);
+		$attachment_id = Content_Sync_Media::attachment_by_source_url_hash( $this->normalize_source_url( $source_url ) );
 
-		return $attachment_id && 'attachment' === get_post_type( (int) $attachment_id ) ? (int) $attachment_id : null;
+		return $attachment_id > 0 ? $attachment_id : null;
 	}
 
 	/**

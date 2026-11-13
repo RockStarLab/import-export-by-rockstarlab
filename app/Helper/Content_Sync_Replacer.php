@@ -602,6 +602,8 @@ class Content_Sync_Replacer {
 	 * @return array Modified meta
 	 */
 	private static function replace_in_meta( $meta, $source_domain, $target_domain, $image_map = array(), $image_sources = array() ) {
+		// Values as sent: a social image ID may already be translated when its URL key is reached.
+		$source_meta = $meta;
 		foreach ( $meta as $key => &$value ) {
 			// Skip internal WordPress meta that shouldn't be replaced
 			if ( in_array( $key, array( '_edit_lock', '_edit_last', '_wp_old_slug' ), true ) ) {
@@ -643,14 +645,15 @@ class Content_Sync_Replacer {
 				continue;
 			}
 
-			if ( ! empty( $image_map ) && in_array( $key, array( 'rank_math_facebook_image_id', 'rank_math_twitter_image_id' ), true ) && isset( $image_map[ (int) $value ] ) ) {
-				$value = $image_map[ (int) $value ];
+			$social_images = Seo_Fields::social_image_pairs();
+			if ( ! empty( $image_map ) && in_array( $key, $social_images, true ) && isset( $image_map[ (int) $value ] ) ) {
+				$value = (string) $image_map[ (int) $value ];
 				continue;
 			}
 
-			if ( ! empty( $image_map ) && in_array( $key, array( 'rank_math_facebook_image', 'rank_math_twitter_image' ), true ) ) {
-				$companion_id_key = $key . '_id';
-				$source_id        = isset( $meta[ $companion_id_key ] ) ? (int) $meta[ $companion_id_key ] : 0;
+			if ( ! empty( $image_map ) && isset( $social_images[ $key ] ) ) {
+				$companion_id_key = $social_images[ $key ];
+				$source_id        = isset( $source_meta[ $companion_id_key ] ) ? (int) ( is_array( $source_meta[ $companion_id_key ] ) ? reset( $source_meta[ $companion_id_key ] ) : $source_meta[ $companion_id_key ] ) : 0;
 				if ( $source_id > 0 && isset( $image_map[ $source_id ] ) ) {
 					$new_url = wp_get_attachment_url( (int) $image_map[ $source_id ] );
 					if ( $new_url ) {

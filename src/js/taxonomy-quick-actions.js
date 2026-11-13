@@ -599,10 +599,11 @@ import syncButtonBusy from './utils/sync-button-busy';
 				return response.data || response;
 			},
 			( jqXHR, textStatus, errorThrown ) => {
+				// The server's message first: errorThrown is only the HTTP status text ("Bad Request").
 				const message = getErrorMessage(
-					errorThrown || jqXHR,
+					jqXHR?.responseJSON || null,
 					getErrorMessage(
-						jqXHR,
+						errorThrown || jqXHR,
 						textStatus || config.i18n?.syncFailed || 'Sync failed.'
 					)
 				);

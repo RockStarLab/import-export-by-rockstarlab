@@ -477,11 +477,7 @@ class Connection_Service {
 		if ( is_wp_error( $response ) ) {
 			return new \WP_Error(
 				'connection_failed',
-				sprintf(
-					/* translators: %s: error message */
-					__( 'Cannot connect to remote site: %s', 'import-export-by-rockstarlab' ),
-					$response->get_error_message()
-				)
+				\RockStarLab\ImportExport\Helper\Remote_API::failure_message( $response )
 			);
 		}
 

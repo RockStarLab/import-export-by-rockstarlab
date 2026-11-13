@@ -4341,7 +4341,8 @@ class Post_Exporter extends Abstract_Exporter {
 			// Skip internal WordPress meta, but KEEP ACF reference keys
 			// (e.g. `_my_field` = `field_abc123`) so imports can restore ACF fields
 			// even when a field name is empty or when only meta_* columns are mapped.
-			if ( '_' === substr( $key, 0, 1 ) ) {
+			// Yoast SEO keeps its post settings in "_yoast_wpseo_*" meta: keep those too.
+			if ( '_' === substr( $key, 0, 1 ) && 0 !== strpos( (string) $key, '_yoast_wpseo_' ) ) {
 				if ( 1 === count( $values ) && is_string( $values[0] ) && 0 === strpos( $values[0], 'field_' ) ) {
 					$meta[ $key ] = $values[0];
 				}
@@ -4365,6 +4366,21 @@ class Post_Exporter extends Abstract_Exporter {
 					),
 				];
 			}
+		}
+
+		// Primary terms of SEO plugins are stored as term IDs of this site: carry the slugs
+		// so the import can point them at the same terms on another site.
+		$primary = [];
+		foreach ( $meta as $key => $value ) {
+			if ( is_scalar( $value ) && is_numeric( $value ) && preg_match( '/^(?:_yoast_wpseo_primary_|rank_math_primary_)(.+)$/', (string) $key, $m ) ) {
+				$term = get_term( (int) $value, $m[1] );
+				if ( $term && ! is_wp_error( $term ) ) {
+					$primary[ $key ] = $term->slug;
+				}
+			}
+		}
+		if ( $primary ) {
+			$meta['_rsl_ie_primary_terms'] = $primary;
 		}
 
 		// Synced patterns and navigation menus are referenced by ID ("ref") and Query Loop /
