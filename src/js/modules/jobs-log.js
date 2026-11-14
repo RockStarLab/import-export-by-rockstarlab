@@ -1271,7 +1271,15 @@ const JobsLogModule = {
 			woo_product: 'WooCommerce Products',
 			woo_order: 'WooCommerce Orders',
 			woo_coupon: 'WooCommerce Coupons',
+			woo_attribute: 'WooCommerce Attributes',
+			woo_review: 'WooCommerce Reviews',
+			woo_refund: 'WooCommerce Refunds',
+			woo_customer: 'WooCommerce Customers',
+			woo_shipping_zone: 'WooCommerce Shipping Zones',
+			custom_post_types: 'Custom Post Types',
+			form_entries: 'Form Entries',
 			database_table: 'MySQL Database Table',
+			table: 'MySQL Database Table',
 		};
 
 		const postTypes = window.rslIeData.postTypeLabels || {};

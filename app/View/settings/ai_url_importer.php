@@ -33,22 +33,12 @@ $rsl_ie_is_wp7_plus = \RockStarLab\ImportExport\Helper\OpenAI_API_Key::is_wp7_pl
 			<div class="rsl-ie-premium-notice-content">
 				<h3><?php esc_html_e( 'AI Provider Required', 'import-export-by-rockstarlab' ); ?></h3>
 				<?php if ( $rsl_ie_is_wp7_plus ) : ?>
-					<p><?php esc_html_e( 'To use AI URL Importer, configure a text-generation provider in WordPress AI Client or add an API key in Plugin Options.', 'import-export-by-rockstarlab' ); ?></p>
+					<p><?php esc_html_e( 'To use AI URL Importer, configure a text-generation provider in Settings → Connectors.', 'import-export-by-rockstarlab' ); ?></p>
 					<a href="<?php echo esc_url( admin_url( 'options-connectors.php' ) ); ?>" class="button button-primary button-large">
 						<span class="dashicons dashicons-admin-generic"></span>
 						<?php esc_html_e( 'Open Settings → Connectors', 'import-export-by-rockstarlab' ); ?>
 					</a>
-					<p class="description" style="margin-top: 10px;">
-						<?php
-						echo wp_kses_post(
-							sprintf(
-								/* translators: %s: plugin options URL */
-								__( 'If you prefer, you can also configure a key in <a href="%s">Plugin Options</a>.', 'import-export-by-rockstarlab' ),
-								esc_url( admin_url( 'admin.php?page=rsl-ie-plugin-options' ) )
-							)
-						);
-						?>
-					</p>
+					
 				<?php else : ?>
 					<p><?php esc_html_e( 'To use AI URL Importer, you need to configure your OpenAI API key. The AI uses GPT-4o-mini model to extract clean content from web pages.', 'import-export-by-rockstarlab' ); ?></p>
 					<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-plugin-options' ) ); ?>" class="button button-primary button-large">

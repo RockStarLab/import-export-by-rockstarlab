@@ -276,9 +276,11 @@ const MediaSyncModule = {
 					);
 				}
 			} )
-			.fail( () => {
+			.fail( ( xhr ) => {
 				Utils.showNotice(
-					window.rslIeData.i18n.requestFailed,
+					xhr?.responseJSON?.message ||
+						xhr?.responseJSON?.data?.message ||
+						window.rslIeData.i18n.requestFailed,
 					'error'
 				);
 			} )
@@ -968,6 +970,14 @@ const MediaSyncModule = {
 								: ''
 						}
 					</div>
+					${
+						skipped > 0
+							? `<p style="font-size: 13px; color: #646970; margin: 15px 0 0;">${ Utils.escapeHtml(
+									window.rslIeData.i18n.mediaSkippedExplain ||
+										'Skipped files are already in the Media Library, so they were not imported again.'
+							  ) }</p>`
+							: ''
+					}
 				</div>
 			`;
 		} else if ( data.status === 'failed' ) {
@@ -1236,6 +1246,13 @@ const MediaSyncModule = {
 	openFolderBrowser() {
 		jQuery( '#rsl-ie-folder-browser-modal' ).fadeIn( 200 );
 		jQuery( 'body' ).addClass( 'rsl-ie-modal-open' );
+		jQuery( document )
+			.off( 'keydown.rslIeFolderBrowser' )
+			.on( 'keydown.rslIeFolderBrowser', ( e ) => {
+				if ( 'Escape' === e.key ) {
+					this.closeFolderBrowser();
+				}
+			} );
 
 		// Load current folder from input or start from root
 		const currentFolder = jQuery( '#rsl-ie-folder-path' ).val().trim();
@@ -1248,6 +1265,7 @@ const MediaSyncModule = {
 	closeFolderBrowser() {
 		jQuery( '#rsl-ie-folder-browser-modal' ).fadeOut( 200 );
 		jQuery( 'body' ).removeClass( 'rsl-ie-modal-open' );
+		jQuery( document ).off( 'keydown.rslIeFolderBrowser' );
 		// Don't clear selected path - it's just a temporary selection within modal
 		jQuery( '#rsl-ie-choose-folder-btn' ).prop( 'disabled', true );
 		jQuery( '.rsl-ie-folder-item' ).removeClass( 'selected' );

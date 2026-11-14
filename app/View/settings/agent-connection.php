@@ -32,7 +32,7 @@ $rsl_ie_credentials        = $rsl_ie_connected && $data['application_passwords_a
 		<ul class="rsl-agent-brands" aria-label="<?php esc_attr_e( 'Popular MCP-compatible AI agents', 'import-export-by-rockstarlab' ); ?>">
 			<?php
 			foreach ( [
-				[ 'openai', 'CodexGPT' ],
+				[ 'openai', 'Codex' ],
 				[ 'claude', 'Claude Code' ],
 				[ 'claude', 'Claude Desktop' ],
 				[ 'cursor', 'Cursor' ],

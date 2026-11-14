@@ -207,13 +207,25 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 						<span class="dashicons dashicons-chart-area"></span>
 						<h3><?php esc_html_e( 'Pricing & Tokens', 'import-export-by-rockstarlab' ); ?></h3>
 						<p>
-							<?php esc_html_e( 'AI features use OpenAI GPT-4o-mini model. Typical costs:', 'import-export-by-rockstarlab' ); ?>
+							<?php
+							if ( $rsl_ie_is_wp7_plus ) {
+								esc_html_e( 'AI features use the text-generation provider set in Settings → Connectors. Typical costs with a small model:', 'import-export-by-rockstarlab' );
+							} else {
+								esc_html_e( 'AI features use OpenAI GPT-4o-mini model. Typical costs:', 'import-export-by-rockstarlab' );
+							}
+							?>
 						</p>
 						<ul style="list-style: disc; margin: 10px 0; padding-left: 20px; font-size: 0.95em;">
 							<li><?php esc_html_e( 'URL import: ~$0.001-0.005 per page', 'import-export-by-rockstarlab' ); ?></li>
 						</ul>
 						<p style="font-size: 0.9em; color: #666;">
-							<?php esc_html_e( 'You pay OpenAI directly based on usage. Monitor costs in your OpenAI dashboard.', 'import-export-by-rockstarlab' ); ?>
+							<?php
+							if ( $rsl_ie_is_wp7_plus ) {
+								esc_html_e( 'You pay your AI provider directly based on usage. Monitor costs in the provider dashboard.', 'import-export-by-rockstarlab' );
+							} else {
+								esc_html_e( 'You pay OpenAI directly based on usage. Monitor costs in your OpenAI dashboard.', 'import-export-by-rockstarlab' );
+							}
+							?>
 						</p>
 					</div>
 				</div>
@@ -224,6 +236,13 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 						<?php esc_html_e( 'Need Help?', 'import-export-by-rockstarlab' ); ?>
 					</h3>
 					<ul>
+						<?php if ( $rsl_ie_is_wp7_plus ) : ?>
+						<li>
+							<a href="<?php echo esc_url( admin_url( 'options-connectors.php' ) ); ?>">
+								<?php esc_html_e( 'Manage AI providers in Settings → Connectors', 'import-export-by-rockstarlab' ); ?>
+							</a>
+						</li>
+						<?php else : ?>
 						<li>
 							<a href="https://platform.openai.com/account/api-keys" target="_blank">
 								<?php esc_html_e( 'Manage API Keys', 'import-export-by-rockstarlab' ); ?>
@@ -239,6 +258,7 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 								<?php esc_html_e( 'OpenAI API Documentation', 'import-export-by-rockstarlab' ); ?>
 							</a>
 						</li>
+						<?php endif; ?>
 					</ul>
 				</div>
 			</div>

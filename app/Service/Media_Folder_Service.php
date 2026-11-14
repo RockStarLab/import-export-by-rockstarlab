@@ -793,6 +793,9 @@ class Media_Folder_Service {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $status ) {
+		if ( 'invalid_path' === $code ) {
+			return new \WP_Error( 'rsl_ie_media_' . $code, __( 'Folder not found in the uploads directory. Enter a folder name relative to uploads (for example ftp-import) or pick one with Browse.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
+		}
 		if ( 'rml_unavailable' === $code ) {
 			return new \WP_Error( 'rsl_ie_media_' . $code, __( 'Real Media Library is unavailable. Activate the plugin or turn off Real Media Library integration and start sync again.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
 		}

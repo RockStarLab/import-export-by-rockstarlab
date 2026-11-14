@@ -507,12 +507,23 @@
 		align-items: flex-start;
 	}
 
-	.rsl-ie-button-location-table-head {
-		display: none;
+	.rsl-ie-button-location-table-head,
+	.rsl-ie-button-location-row {
+		grid-template-columns: minmax(0, 1fr) 64px 64px;
+		gap: 8px;
 	}
 
-	.rsl-ie-button-location-row {
-		grid-template-columns: 1fr auto auto;
-		gap: 14px;
+	.rsl-ie-button-location-table-head {
+		padding: 10px 12px;
+
+		.rsl-ie-button-location-toggle-all {
+			flex-direction: column;
+			gap: 4px;
+			justify-self: center;
+		}
+	}
+
+	.rsl-ie-button-location-check {
+		justify-self: center;
 	}
 }

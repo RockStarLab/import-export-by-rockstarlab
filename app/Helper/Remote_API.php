@@ -100,7 +100,7 @@ class Remote_API {
 		if ( preg_match( '/cURL error (6|7|28|35|52|56)\b|resolve host|connect to server|timed out|Connection refused/i', $detail, $m ) ) {
 			$text = ( isset( $m[1] ) && '28' === $m[1] ) || false !== stripos( $detail, 'timed out' )
 				? __( 'The other site did not answer in time. It may be busy or offline; try again in a few minutes.', 'import-export-by-rockstarlab' )
-				: __( 'The other site could not be reached. It may be offline, or the address of this connection is wrong (check it with Edit in Content Sync).', 'import-export-by-rockstarlab' );
+				: __( 'The other site could not be reached. It may be offline, or the site address is wrong.', 'import-export-by-rockstarlab' );
 			/* translators: 1: explanation, 2: technical error. */
 			return sprintf( __( '%1$s Details: %2$s', 'import-export-by-rockstarlab' ), $text, $detail );
 		}

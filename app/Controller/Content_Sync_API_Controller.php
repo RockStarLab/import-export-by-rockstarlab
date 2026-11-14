@@ -1817,7 +1817,7 @@ class Content_Sync_API_Controller {
 				'success' => true,
 				'message' => sprintf(
 					/* translators: %d: number of posts */
-					__( 'Found %d post(s)', 'import-export-by-rockstarlab' ),
+					_n( 'Found %d post', 'Found %d posts', count( $posts_data ), 'import-export-by-rockstarlab' ),
 					count( $posts_data )
 				),
 				'data'    => array(
