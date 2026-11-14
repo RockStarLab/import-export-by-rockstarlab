@@ -150,6 +150,17 @@ class Post_Exporter extends Abstract_Exporter {
 			'variations',
 			// WooCommerce: parent SKU of a variation row (empty for other products)
 			'parent_sku',
+			// WooCommerce: variation options ("Size: S | Color: Navy", Option 1–3 name and value)
+			// and the title and slug of the product a row belongs to (the parent's on variation rows).
+			'product_title',
+			'product_slug',
+			'variation_attributes',
+			'option1_name',
+			'option1_value',
+			'option2_name',
+			'option2_value',
+			'option3_name',
+			'option3_value',
 			// WooCommerce: product attribute configuration and assigned terms (JSON)
 			'product_attributes',
 			// WooCommerce: grouped product child references (JSON)
@@ -601,6 +612,12 @@ class Post_Exporter extends Abstract_Exporter {
 			if ( in_array( 'parent_sku', $fields, true ) ) {
 				$item['parent_sku'] = '';
 			}
+			if ( 'product' === $post->post_type && array_intersect( self::option_column_fields(), $fields ) && function_exists( 'wc_get_product' ) ) {
+				$wc_product = wc_get_product( $post->ID );
+				if ( $wc_product ) {
+					$item = array_merge( $item, array_intersect_key( self::product_option_columns( $wc_product ), array_flip( $fields ) ) );
+				}
+			}
 			// Product feeds (Google Merchant Center, catalogs) list each variation as its own item.
 			if ( ! empty( $options['variation_rows'] ) && 'product' === $post->post_type && function_exists( 'wc_get_product' ) ) {
 				$wc_product = wc_get_product( $post->ID );
@@ -619,6 +636,66 @@ class Post_Exporter extends Abstract_Exporter {
 		wp_reset_postdata();
 
 		return $data;
+	}
+
+	/**
+	 * Columns with a product's variation options: "Size: S | Color: Navy" and Option 1–3 name/value pairs,
+	 * the way catalogs and other shop systems (Shopify, Google Merchant Center) expect them.
+	 *
+	 * @return string[]
+	 */
+	public static function option_column_fields() {
+		return [ 'product_title', 'product_slug', 'variation_attributes', 'option1_name', 'option1_value', 'option2_name', 'option2_value', 'option3_name', 'option3_value' ];
+	}
+
+	/**
+	 * Option columns of a product.
+	 *
+	 * A variation gets the names of its parent's variation attributes and its own values; a variable
+	 * product gets the names only; other products get empty columns.
+	 *
+	 * @param \WC_Product      $product Product or variation.
+	 * @param \WC_Product|null $parent  Parent of a variation, if already loaded.
+	 * @return array
+	 */
+	public static function product_option_columns( $product, $parent = null ) {
+		$columns = array_fill_keys( self::option_column_fields(), '' );
+		if ( ! $product || ! is_object( $product ) ) {
+			return $columns;
+		}
+		$is_variation = $product->is_type( 'variation' );
+		if ( $is_variation && ! $parent ) {
+			$parent = wc_get_product( $product->get_parent_id() );
+		}
+		$source = $is_variation ? $parent : $product;
+		// The slug of the product a row belongs to: the same on every row of a variable product
+		// (the "Handle" of shop systems such as Shopify).
+		$columns['product_slug']  = $source ? (string) get_post_field( 'post_name', $source->get_id() ) : '';
+		$columns['product_title'] = $source ? (string) get_post_field( 'post_title', $source->get_id(), 'raw' ) : '';
+		if ( ! $source || ! $source->is_type( 'variable' ) ) {
+			return $columns;
+		}
+		$pairs = [];
+		$index = 0;
+		foreach ( $source->get_attributes() as $attribute ) {
+			if ( ! is_object( $attribute ) || ! $attribute->get_variation() ) {
+				continue;
+			}
+			++$index;
+			$name  = wc_attribute_label( $attribute->get_name(), $source );
+			$value = '';
+			if ( $is_variation ) {
+				// Empty means "Any": the variation is sold with every option of this attribute.
+				$value   = (string) $product->get_attribute( $attribute->get_name() );
+				$pairs[] = $name . ': ' . ( '' !== $value ? $value : __( 'Any', 'import-export-by-rockstarlab' ) );
+			}
+			if ( $index <= 3 ) {
+				$columns[ 'option' . $index . '_name' ]  = $name;
+				$columns[ 'option' . $index . '_value' ] = $value;
+			}
+		}
+		$columns['variation_attributes'] = implode( ' | ', $pairs );
+		return $columns;
 	}
 
 	/**
@@ -755,6 +832,11 @@ class Post_Exporter extends Abstract_Exporter {
 				$own['post_content'] = $variation->get_description( 'edit' );
 			}
 			foreach ( $own as $field => $value ) {
+				if ( array_key_exists( $field, $row ) ) {
+					$row[ $field ] = $value;
+				}
+			}
+			foreach ( self::product_option_columns( $variation, $parent ) as $field => $value ) {
 				if ( array_key_exists( $field, $row ) ) {
 					$row[ $field ] = $value;
 				}

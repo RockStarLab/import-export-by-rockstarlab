@@ -1835,6 +1835,16 @@ class Post_Importer extends Abstract_Importer {
 			}
 		}
 
+		// A JSON file shows the parts of an object as extra columns ("settings.colors" next to
+		// "settings"). When the whole object is imported, those parts are not meta of their own.
+		foreach ( array_keys( $meta ) as $meta_key ) {
+			$meta_key = (string) $meta_key;
+			$dot      = strpos( $meta_key, '.' );
+			if ( false !== $dot && $dot > 0 && array_key_exists( substr( $meta_key, 0, $dot ), $meta ) ) {
+				unset( $meta[ $meta_key ] );
+			}
+		}
+
 		$has_acf = function_exists( 'update_field' );
 
 		// When importing ACF fields via update_field(), ACF will manage its own

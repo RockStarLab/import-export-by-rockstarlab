@@ -4213,6 +4213,41 @@ const ImportModule = {
 			];
 		}
 
+		if ( contentType === 'woo_shipping_zone' ) {
+			return [
+				{
+					label: 'Shipping Zone',
+					options: [
+						{
+							value: 'zone_id',
+							label: 'Zone ID (reference, 0 = Locations not covered by your other zones)',
+							type: 'number',
+						},
+						{
+							value: 'zone_name',
+							label: 'Zone Name (matches zones on import)',
+							type: 'string',
+						},
+						{
+							value: 'zone_order',
+							label: 'Zone Order',
+							type: 'number',
+						},
+						{
+							value: 'zone_locations',
+							label: 'Zone Regions (country:DE, state:US:CA, postcode:90210)',
+							type: 'string',
+						},
+						{
+							value: 'shipping_methods',
+							label: 'Shipping Methods JSON',
+							type: 'json',
+						},
+					],
+				},
+			];
+		}
+
 		if ( contentType === 'woo_customer' ) {
 			return [
 				{
@@ -7931,7 +7966,10 @@ const ImportModule = {
 			return true;
 		}
 		// A PHP fatal error or a host's error page: no JSON from the plugin.
-		return ! error.json && ( 500 === status || 'parsererror' === error.textStatus );
+		return (
+			! error.json &&
+			( 500 === status || 'parsererror' === error.textStatus )
+		);
 	},
 
 	/**
@@ -7952,7 +7990,8 @@ const ImportModule = {
 		this.batchRetryCount = attempt;
 		const seconds = Math.min( 60, 5 * 2 ** ( attempt - 1 ) );
 		const reason = error.status
-			? String( error.status ) + ( error.message ? ' ' + error.message : '' )
+			? String( error.status ) +
+			  ( error.message ? ' ' + error.message : '' )
 			: error.message || error.textStatus || '';
 		const template =
 			window.rslIeData?.i18n?.importBatchRetry ||
@@ -7967,7 +8006,9 @@ const ImportModule = {
 			$note = jQuery(
 				'<div class="notice notice-warning inline rsl-ie-batch-retry"><p></p></div>'
 			);
-			jQuery( '.rsl-ie-step-6 .rsl-ie-progress-container' ).first().prepend( $note );
+			jQuery( '.rsl-ie-step-6 .rsl-ie-progress-container' )
+				.first()
+				.prepend( $note );
 		}
 		$note.find( 'p' ).text( text );
 		$note.show();
@@ -8691,6 +8732,7 @@ const ImportModule = {
 			'woo_review',
 			'woo_refund',
 			'woo_customer',
+			'woo_shipping_zone',
 		];
 
 		if (
@@ -8778,6 +8820,7 @@ const ImportModule = {
 			'woo_review',
 			'woo_refund',
 			'woo_customer',
+			'woo_shipping_zone',
 		];
 
 		if (
@@ -8866,6 +8909,7 @@ const ImportModule = {
 			'woo_review',
 			'woo_refund',
 			'woo_customer',
+			'woo_shipping_zone',
 		];
 
 		if (
@@ -9042,6 +9086,7 @@ const ImportModule = {
 				'parent_order_number',
 			],
 			woo_customer: [ 'email', 'username', 'customer_id', 'user_id' ],
+			woo_shipping_zone: [ 'zone_name', 'zone_id' ],
 			database_table: [ 'ID', 'id', 'uuid', 'slug', 'name', 'email' ],
 		};
 
@@ -9103,6 +9148,8 @@ const ImportModule = {
 			refunds: 'woo_refund',
 			customer: 'woo_customer',
 			customers: 'woo_customer',
+			shipping_zone: 'woo_shipping_zone',
+			shipping_zones: 'woo_shipping_zone',
 		};
 
 		return aliases[ contentType ] || contentType || '';

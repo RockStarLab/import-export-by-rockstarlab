@@ -127,7 +127,9 @@ const Utils = {
 			let failure = { status: 200, textStatus: '', json: true };
 			const reject = ( message ) =>
 				rejectWith(
-					detailed ? { ...failure, message: String( message ) } : message
+					detailed
+						? { ...failure, message: String( message ) }
+						: message
 				);
 			const clientData = getClientData();
 
