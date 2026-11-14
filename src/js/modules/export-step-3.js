@@ -959,7 +959,10 @@ export default class ExportStep3 {
 		}
 
 		// Load custom fields for post types, and user meta for users
-		if ( ! nonPostTypes.includes( contentType ) || 'user' === contentType ) {
+		if (
+			! nonPostTypes.includes( contentType ) ||
+			'user' === contentType
+		) {
 			this.prepareDynamicCategory(
 				'.rsl-ie-custom-fields-category',
 				'.rsl-ie-custom-fields-grid',
@@ -1011,6 +1014,7 @@ export default class ExportStep3 {
 			'woo_review',
 			'woo_refund',
 			'woo_customer',
+			'woo_shipping_zone',
 		];
 		if (
 			this.isIntegrationActive( 'yoast' ) &&

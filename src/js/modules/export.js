@@ -1557,6 +1557,7 @@ const ExportModule = {
 			woo_review: null,
 			woo_refund: null,
 			woo_customer: null,
+			woo_shipping_zone: null,
 			custom_table: null, // Not a post type
 		};
 
@@ -4518,6 +4519,45 @@ const ExportModule = {
 							type: 'string',
 						},
 						{
+							value: 'product_title',
+							label:
+								window.rslIeData.i18n.fieldProductTitle ||
+								'Product Title (parent on variation rows)',
+							type: 'string',
+						},
+						{
+							value: 'product_slug',
+							label:
+								window.rslIeData.i18n.fieldProductSlug ||
+								'Product Slug (parent on variation rows)',
+							type: 'string',
+						},
+						{
+							value: 'variation_attributes',
+							label:
+								window.rslIeData.i18n.fieldVariationOptions ||
+								'Variation Options',
+							type: 'string',
+						},
+						...[ 1, 2, 3 ].flatMap( ( n ) => [
+							{
+								value: `option${ n }_name`,
+								label: (
+									window.rslIeData.i18n.fieldOptionName ||
+									'Option %d Name'
+								).replace( '%d', n ),
+								type: 'string',
+							},
+							{
+								value: `option${ n }_value`,
+								label: (
+									window.rslIeData.i18n.fieldOptionValue ||
+									'Option %d Value'
+								).replace( '%d', n ),
+								type: 'string',
+							},
+						] ),
+						{
 							value: 'product_url',
 							label: 'External Product URL',
 							type: 'url',
@@ -5491,6 +5531,46 @@ const ExportModule = {
 							type: 'json',
 						},
 						{ value: 'meta', label: 'Meta JSON', type: 'json' },
+					],
+				},
+			];
+		}
+
+		if ( contentType === 'woo_shipping_zone' ) {
+			return [
+				{
+					label: 'Shipping Zone',
+					options: [
+						{
+							value: 'zone_id',
+							label: 'Zone ID (reference, 0 = Locations not covered by your other zones)',
+							type: 'number',
+						},
+						{
+							value: 'zone_name',
+							label: 'Zone Name (matches zones on import)',
+							type: 'string',
+						},
+						{
+							value: 'zone_order',
+							label: 'Zone Order',
+							type: 'number',
+						},
+						{
+							value: 'zone_locations',
+							label: 'Zone Regions (country:DE, state:US:CA, postcode:90210)',
+							type: 'string',
+						},
+						{
+							value: 'shipping_methods',
+							label: 'Shipping Methods JSON',
+							type: 'json',
+						},
+						{
+							value: 'shipping_methods_summary',
+							label: 'Shipping Methods (summary)',
+							type: 'string',
+						},
 					],
 				},
 			];

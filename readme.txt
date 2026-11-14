@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.2.13
+Stable tag: 2.2.14
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -294,6 +294,11 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.2.14 =
+* New: product exports have Product Title and Product Slug columns (the parent's on variation rows), a Variation Options column such as "Size: S | Color: Navy", and Option 1–3 Name and Value columns for Shopify and other shop systems.
+* New: Shipping Zones on the export and import screens (with PRO) and the WP-CLI type shipping-zone.
+* Fix: importing a JSON file with a whole settings object (such as Elementor site settings) no longer also saves its parts as separate custom fields.
+
 = 2.2.13 =
 * New: Import from URL accepts a Google Sheets link as you copy it from the browser or the Share dialog and downloads the sheet (the open tab) as CSV; a sheet that is not shared gets a message that explains how to share it.
 * New: the AI Agent Connection wizard sets up Claude Desktop (configuration block or one command).
@@ -485,7 +490,3 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 = 2.1.51 =
 * Fixed: when Browse on the import screen cannot reach an FTP or SFTP server, it now shows the reason (for example a wrong host name or password) instead of only "Error".
 * Fixed: the FTP, FTPS and SFTP choices on the Servers screen have space between them.
-
-= 2.1.50 =
-* Fixed: the bundled spreadsheet libraries now match the plugin's minimum PHP version 7.4. Two of them needed PHP 8.0 and 8.3, so Excel (XLSX) and ODS exports and imports could fail on older PHP versions.
-

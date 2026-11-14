@@ -265,6 +265,14 @@ class Pro_Addon {
 							? __( 'Import WooCommerce customers', 'import-export-by-rockstarlab' )
 							: __( 'Export WooCommerce customers', 'import-export-by-rockstarlab' ),
 					];
+					$cards[] = [
+						'value'       => 'woo_shipping_zone',
+						'icon'        => 'dashicons-location-alt',
+						'title'       => __( 'WooCommerce Shipping Zones', 'import-export-by-rockstarlab' ),
+						'description' => $is_import
+							? __( 'Import shipping zones with regions and methods', 'import-export-by-rockstarlab' )
+							: __( 'Export shipping zones with regions and methods', 'import-export-by-rockstarlab' ),
+					];
 				}
 
 				$cards[] = [

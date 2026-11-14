@@ -429,6 +429,8 @@ class Cli_Helper {
 			'order'     => 'woo_order',
 			'coupon'    => 'woo_coupon',
 			'customer'  => 'woo_customer',
+			'shipping-zone' => 'woo_shipping_zone',
+			'shipping_zone' => 'woo_shipping_zone',
 			'review'    => 'woo_review',
 			'refund'    => 'woo_refund',
 			'attribute' => 'woo_attribute',

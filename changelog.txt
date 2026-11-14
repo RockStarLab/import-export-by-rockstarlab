@@ -1,5 +1,10 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.14 =
+* New: product exports have Product Title and Product Slug columns (the parent's on variation rows), a Variation Options column such as "Size: S | Color: Navy", and Option 1–3 Name and Value columns for Shopify and other shop systems.
+* New: Shipping Zones on the export and import screens (with PRO) and the WP-CLI type shipping-zone.
+* Fix: importing a JSON file with a whole settings object (such as Elementor site settings) no longer also saves its parts as separate custom fields.
+
 = 2.2.13 =
 * New: Import from URL accepts a Google Sheets link as you copy it from the browser or the Share dialog and downloads the sheet (the open tab) as CSV; a sheet that is not shared gets a message that explains how to share it.
 * New: the AI Agent Connection wizard sets up Claude Desktop (configuration block or one command).
@@ -135,6 +140,65 @@
 * Fixed: export. Comment type filter, parent page filter, stable order of items with the same date, large JSON/XML/Excel exports no longer run out of memory, the Jobs Log shows the real export duration.
 * Fixed: admin. "[object Object]" error notices; an error on the ACF Categories/Tags screens; empty browser tab titles on some plugin screens; a "-1-day free trial" banner on sites that skipped opt-in.
 * Fixed: Content Sync dialog. The success message stays on screen (no more empty dialog with only its title); a push from the block editor no longer reloads the editor; posts synced before (also drafts) show "Update" instead of "Create New Post".
+
+= 2.2.1 =
+* New: importing taxonomy terms (PRO) has a Taxonomy option in step 5, for example Product categories. Rows of a file without a taxonomy column are imported into it, so a plain spreadsheet with names, descriptions and images can update WooCommerce product categories. Needs Import Export PRO 2.1.20.
+* Fixed: Auto Map no longer matches the comment columns of a WordPress export (WXR) file, such as wp:comment/wp:comment_author_email, or the feed columns link, guid, pubDate and description, to post fields. Before, the comment author email could be mapped to the post author email and the link column to a custom field named link.
+* Fixed: a term import whose Parent column names the parent category (for example Accessories) instead of giving its ID now sets the parent. Before, the term was created at the top level.
+* Fixed: in a WordPress export (WXR) file, tags are no longer imported as categories. The category column now holds only the categories, tags are in a new tag column (Auto Map sends it to the post tags), and other taxonomies are in category:<taxonomy> columns. The column list also includes columns that only later items of the file have.
+* Fixed: an ACF Relationship or Post Object cell can name a draft by its slug. Drafts have no saved slug, so the slug their title would get is used. Before, the field stayed empty when the referenced post was imported as a draft.
+
+= 2.2.0 =
+* New: the plugin's screens follow your WordPress admin color scheme (Users → Profile → Admin Color Scheme). Buttons, links, tabs, step numbers, badges and highlights use the scheme's colors in all nine built-in schemes; the Default scheme uses WordPress blue. Custom color schemes keep the plugin's purple colors.
+* New: import only some rows of a file. Import, step 5, Filter Rows: keep the rows where a column equals, contains, starts with, is one of, is greater or less than a value (numbers and YYYY-MM-DD dates), or is empty. Combine conditions with all or any. Works with CSV, Excel, JSON and XML files, including WordPress export (WXR) files, for example only the posts of one category or only the items published after a date. The job log says how many rows were left out. AI agents pass the same conditions as options.row_filters.
+* New: import option "Dates in the File" for numeric dates: Detect automatically, Day first (DD/MM/YYYY) or Month first (MM/DD/YYYY). AI agents use options.date_order.
+* Fixed: a post date such as 15/03/2024 (day first) is now imported as 15 March 2024. Before, the row was not imported.
+* Fixed: an ACF Relationship or Post Object cell whose post is not found (yet) leaves the field empty instead of saving post ID 0. The reference is still filled in when that post is imported later in the file.
+* New: the WooCommerce Customers export (PRO) offers the "Last Order Date" column and filter, for example "Last Order Date less than 2026-05-01" for customers who have not ordered for six months. Needs Import Export PRO 2.1.19.
+
+= 2.1.61 =
+* New: the WooCommerce Coupons export (PRO) offers the "Used By (Array)" column: the billing email or user ID of each customer who used the coupon. You can also filter on it, for example to find the coupons one customer used.
+* Improved: the WooCommerce Coupons export (PRO) can now filter on Discount Type, Coupon Amount, Usage Count, Usage Limit, Minimum and Maximum Spend, Free Shipping and Allowed Emails, for example "Usage Count equals 0" for codes nobody used.
+* Changed: the "Abilities API & AI agents guide" link in the What's new box of the plugin's start screen opens the AI agents video tutorials.
+
+= 2.1.60 =
+* New: the Media export has a "File Hash (MD5)" column. Identical files get the same hash whatever their names, so you can sort the export by this column to find duplicate images and documents in the Media Library. Build the index first in Import Export → Tools → Media Hash Index.
+
+= 2.1.59 =
+* Fixed: `wp rsl-ie job get` and `wp rsl-ie job wait` now work for Content Sync jobs (push, pull, comments and media) started with `wp rsl-ie ability sync-push-start` and the other sync abilities. They print the created, updated, skipped and failed counts and exit with 0, or 1 when the job failed, so a CI script can push content and check the result. Before, both commands stopped with "job_runner_unavailable".
+
+= 2.1.58 =
+* Improved: Media Library sync (Media → Sync) pushes or pulls any number of selected files in batches of 50, one batch after the other, and shows which batch is running. Before, a selection of more than 50 files stopped with an error.
+* Fixed: a media file whose file is missing on the source site no longer stops the whole media sync. The file is reported as not copied and the other files continue.
+* Fixed: the list of remote media now loads more files when you drag the scrollbar or scroll with the keyboard, not only with the mouse wheel.
+
+= 2.1.57 =
+* Fixed: when content moves through more than two sites (for example dev > staging > production), the push or pull mapping no longer suggests a post on the chosen site only because it has the same ID as the post on the site the content came from. A remembered post is suggested only when the chosen site lists it with the same type and slug; otherwise the row is matched by title or set to Create New Post.
+
+= 2.1.56 =
+* Fixed: WooCommerce reviews synced from the Reviews screen (push or pull) now update the average rating and review count of the product. Before, the product could show the new review with an average rating of 0.
+* Fixed: lists and searches of the other site no longer fail with "This connection is already in use" when a new search starts while the previous one is still running, for example while you type in the "Map to remote post" field.
+
+= 2.1.55 =
+* Fixed: when you pull a post or page that was synced before and its title was changed on this site, the mapping keeps the remote post it came from. Before, the automatic title matching cleared the row and the pull stopped with "Please select at least one remote post to pull". The row now shows the title of the remote post.
+* Fixed: a pull started from the Pages screen can be the source job of a schedule, for example to reset a demo site every night. Before, saving the schedule failed with "outside the allowed content scope".
+
+= 2.1.54 =
+* Fixed: completes the 2.1.53 fix. When the pushed WooCommerce product has no stock settings saved, the receiving store now also keeps stock management turned on, so its stock quantity stays after the push.
+
+= 2.1.53 =
+* Fixed: when you push a WooCommerce product with Content Sync and the product on the site you push from has no stock settings saved, the receiving store now keeps its own tracked stock quantity. Before, the quantity could be removed.
+
+= 2.1.52 =
+* Fixed: XML files exported from WordPress or WordPress.com (WXR) are read item by item, so each post or page in the file becomes a row. Before, the list of tags at the top of the file was taken as the records.
+* Improved: Auto Map recognizes the columns of WordPress export files: content:encoded, excerpt:encoded, wp:post_date, wp:post_name, wp:status and dc:creator.
+
+= 2.1.51 =
+* Fixed: when Browse on the import screen cannot reach an FTP or SFTP server, it now shows the reason (for example a wrong host name or password) instead of only "Error".
+* Fixed: the FTP, FTPS and SFTP choices on the Servers screen have space between them.
+
+= 2.1.50 =
+* Fixed: the bundled spreadsheet libraries now match the plugin's minimum PHP version 7.4. Two of them needed PHP 8.0 and 8.3, so Excel (XLSX) and ODS exports and imports could fail on older PHP versions.
 
 = 2.1.38 =
 * Fixed: when the file of a "file changes" trigger changed again while the trigger's previous job was still running, the change could be skipped. The next hourly check now starts the import.

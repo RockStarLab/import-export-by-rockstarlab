@@ -685,6 +685,13 @@ class Init {
 					'enterColumnValue'                  => __( 'Value for every row (optional):', 'import-export-by-rockstarlab' ),
 					'renameColumn'                      => __( 'Rename column', 'import-export-by-rockstarlab' ),
 					'fieldParentSku'                    => __( 'Parent SKU', 'import-export-by-rockstarlab' ),
+					'fieldProductTitle'                 => __( 'Product Title (parent on variation rows)', 'import-export-by-rockstarlab' ),
+					'fieldProductSlug'                  => __( 'Product Slug (parent on variation rows)', 'import-export-by-rockstarlab' ),
+					'fieldVariationOptions'             => __( 'Variation Options', 'import-export-by-rockstarlab' ),
+					/* translators: %d: option number, 1 to 3. */
+					'fieldOptionName'                   => __( 'Option %d Name', 'import-export-by-rockstarlab' ),
+					/* translators: %d: option number, 1 to 3. */
+					'fieldOptionValue'                  => __( 'Option %d Value', 'import-export-by-rockstarlab' ),
 					'renameColumnPrompt'                => __( 'Column name in the exported file:', 'import-export-by-rockstarlab' ),
 					'noFieldsSelected'                  => __( 'No Fields Selected', 'import-export-by-rockstarlab' ),
 					'pleaseSelectFieldMessage'          => __( 'Please select at least one field to continue with the export.', 'import-export-by-rockstarlab' ),
