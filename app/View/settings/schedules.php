@@ -97,7 +97,7 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 				<table class="form-table" role="presentation">
 					<tr>
 						<th scope="row"><label for="schedule-name"><?php esc_html_e( 'Name', 'import-export-by-rockstarlab' ); ?></label></th>
-						<td><input id="schedule-name" name="schedule_name" type="text" class="regular-text" value="<?php echo esc_attr( $rsl_ie_selected ? $rsl_ie_selected->name : '' ); ?>" <?php disabled( $rsl_ie_readonly ); ?>></td>
+						<td><input id="schedule-name" name="schedule_name" type="text" class="regular-text" placeholder="<?php esc_attr_e( 'Optional — defaults to "Schedule for Job #ID"', 'import-export-by-rockstarlab' ); ?>" value="<?php echo esc_attr( $rsl_ie_selected ? $rsl_ie_selected->name : '' ); ?>" <?php disabled( $rsl_ie_readonly ); ?>></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="source-job-id"><?php esc_html_e( 'Source Job', 'import-export-by-rockstarlab' ); ?></label></th>
@@ -177,6 +177,7 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 	</div>
 
 	<h2 style="margin-top: 30px;"><?php esc_html_e( 'Existing schedules', 'import-export-by-rockstarlab' ); ?></h2>
+	<div class="rsl-ie-table-scroll">
 	<table class="widefat striped">
 		<thead><tr>
 			<th><?php esc_html_e( 'Name', 'import-export-by-rockstarlab' ); ?></th>
@@ -283,4 +284,5 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 		<?php endif; ?>
 		</tbody>
 	</table>
+	</div>
 </div>

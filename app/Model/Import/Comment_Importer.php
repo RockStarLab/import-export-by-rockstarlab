@@ -534,7 +534,10 @@ class Comment_Importer extends Abstract_Importer {
 		}
 
 		$source_comment_id = absint( $source_comment_id );
-		if ( $source_comment_id > 0 ) {
+		$current_source    = absint( get_comment_meta( $comment_id, self::SOURCE_ID_META_KEY, true ) );
+		// A row exported from this site points at the comment itself; keep the link to its original source.
+		$self_reference = $comment_id === $source_comment_id && $current_source > 0 && $current_source !== $source_comment_id;
+		if ( $source_comment_id > 0 && ! $self_reference ) {
 			update_comment_meta( $comment_id, self::SOURCE_ID_META_KEY, (string) $source_comment_id );
 		}
 
@@ -654,9 +657,11 @@ class Comment_Importer extends Abstract_Importer {
 		// Destination auto-increment IDs can collide with later rows from the source.
 		// Never treat a comment already imported from another source ID as a clone.
 		$stored_source_id = absint( get_comment_meta( $comment_id, self::SOURCE_ID_META_KEY, true ) );
-		if ( $stored_source_id > 0 ) {
-			return $stored_source_id === $comment_id ? $comment_id : null;
+		if ( $stored_source_id > 0 && $stored_source_id === $comment_id ) {
+			return $comment_id;
 		}
+		// A comment imported earlier from another source ID is only the same comment when
+		// every field below matches (a file exported from this site carries its local ID).
 
 		// An unmarked clone must match the source, not merely its numeric ID/post.
 		foreach ( [ 'comment_content', 'comment_author', 'comment_author_email', 'comment_date', 'comment_type' ] as $field ) {

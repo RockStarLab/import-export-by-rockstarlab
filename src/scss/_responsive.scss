@@ -47,3 +47,60 @@
 .rsl-ie-table-selection-section + .rsl-ie-filter-summary-top {
 	margin-top: 20px;
 }
+
+// Narrow screens: wide data tables scroll inside their box instead of being cut off,
+// and form controls never push the page wider than the screen.
+@media screen and (max-width: 782px) {
+	.rsl-ie-sites-table-wrapper,
+	.rsl-ie-jobs-table-wrapper,
+	.rsl-ie-table-scroll {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.wp-list-table.rsl-ie-sites-table,
+	.wp-list-table.rsl-ie-jobs-table,
+	#rsl-ie-schedules table.widefat {
+		min-width: 640px;
+		table-layout: auto;
+
+		thead th,
+		tbody td {
+			display: table-cell !important;
+			position: static !important;
+			width: auto !important;
+			padding: 8px 10px !important;
+			vertical-align: middle;
+			word-break: normal;
+			overflow-wrap: normal;
+		}
+
+		.column-job-name {
+			min-width: 200px;
+		}
+
+		tbody td::before {
+			display: none !important;
+		}
+
+		tr {
+			display: table-row !important;
+		}
+	}
+
+	#rsl-ie-schedules {
+		.card {
+			max-width: 100% !important;
+			box-sizing: border-box;
+		}
+
+		.form-table input[type="text"],
+		.form-table input[type="datetime-local"],
+		.form-table select:not(.select2-hidden-accessible),
+		.select2-container {
+			max-width: 100% !important;
+			width: 100% !important;
+			box-sizing: border-box;
+		}
+	}
+}

@@ -499,6 +499,7 @@ const SiteMigration = {
 				'Reading package contents…'
 			);
 			let prepared = upload.data;
+			const started = Date.now();
 			while ( prepared.pending ) {
 				prepared = await Utils.ajax( 'migration_prepare_package', {
 					file_id: prepared.package_file_id,
@@ -506,6 +507,16 @@ const SiteMigration = {
 				if ( this.selectedFile !== file ) {
 					return;
 				}
+				// Large packages take a while: show that work is moving.
+				const read = parseInt( prepared.total_steps, 10 ) || 0;
+				const secs = Math.round( ( Date.now() - started ) / 1000 );
+				jQuery( '.rsl-ie-package-activity-text' ).text(
+					read > 0
+						? `Reading package contents… ${ read } ${
+								1 === read ? 'part' : 'parts'
+						  } read (${ secs } s)`
+						: `Reading package contents… (${ secs } s)`
+				);
 			}
 			const steps = [ ...prepared.steps ];
 			while ( ! prepared.complete ) {

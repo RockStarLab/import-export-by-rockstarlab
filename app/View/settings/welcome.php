@@ -31,7 +31,7 @@ $rsl_ie_pro_active     = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_acti
 				<div class="rsl-ie-agent-hero-copy">
 					<span class="rsl-ie-agent-hero-eyebrow"><?php esc_html_e( 'YOUR WORDPRESS. YOUR AI AGENT.', 'import-export-by-rockstarlab' ); ?></span>
 					<h2 id="rsl-ie-agent-hero-title"><?php esc_html_e( 'Powerful data workflows.', 'import-export-by-rockstarlab' ); ?><br><span><?php esc_html_e( 'Just ask.', 'import-export-by-rockstarlab' ); ?></span></h2>
-					<p><?php esc_html_e( 'Bring your AI agent to WordPress. Connect CodexGPT, Claude, Cursor, GitHub Copilot or Gemini CLI to import, export and sync content just by asking.', 'import-export-by-rockstarlab' ); ?></p>
+					<p><?php esc_html_e( 'Bring your AI agent to WordPress. Connect Codex, Claude, Cursor, GitHub Copilot or Gemini CLI to import, export and sync content just by asking.', 'import-export-by-rockstarlab' ); ?></p>
 					<a class="rsl-ie-agent-hero-cta" href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-agent-connection' ) ); ?>"><?php esc_html_e( 'Connect your AI agent', 'import-export-by-rockstarlab' ); ?><span aria-hidden="true">↗</span></a>
 					<span class="rsl-ie-agent-hero-note"><?php esc_html_e( 'Your tools. A whole new way to use them.', 'import-export-by-rockstarlab' ); ?></span>
 				</div>
@@ -241,20 +241,21 @@ Temporarily hidden: Active Development card.
 						</h2>
 					</div>
 					<div class="rsl-ie-card__body">
-						<span class="rsl-ie-notice-badge"><?php esc_html_e( 'Version 2.0.0', 'import-export-by-rockstarlab' ); ?></span>
+						<span class="rsl-ie-notice-badge"><?php echo esc_html( sprintf( /* translators: %s: plugin version. */ __( 'Version %s', 'import-export-by-rockstarlab' ), RSL_IE_VERSION ) ); ?></span>
 						<ul class="rsl-ie-release-notes">
-							<li><strong><?php esc_html_e( 'Connect your AI agents', 'import-export-by-rockstarlab' ); ?></strong><span><?php esc_html_e( 'Connect CodexGPT, Claude, Cursor, GitHub Copilot or Gemini CLI to work with your WordPress data.', 'import-export-by-rockstarlab' ); ?></span></li>
-							<li><strong><?php esc_html_e( 'AI URL Importer & Media Sync', 'import-export-by-rockstarlab' ); ?></strong><span><?php esc_html_e( 'Now available on the Import screen.', 'import-export-by-rockstarlab' ); ?></span></li>
-							<li><strong><?php esc_html_e( 'Content Migration Tool Improvements', 'import-export-by-rockstarlab' ); ?></strong><span><?php esc_html_e( 'Improved content migration functionality.', 'import-export-by-rockstarlab' ); ?></span></li>
+							<li><strong><?php esc_html_e( 'Connect your AI agents', 'import-export-by-rockstarlab' ); ?></strong><span><?php esc_html_e( 'Connect Codex, Claude, Cursor, GitHub Copilot or Gemini CLI to work with your WordPress data.', 'import-export-by-rockstarlab' ); ?></span></li>
+							<li><strong><?php esc_html_e( 'Triggers and notifications', 'import-export-by-rockstarlab' ); ?></strong><span><?php esc_html_e( 'Run a saved import or export from a webhook, a new post or order, or a changed file, and get an email or webhook when it finishes.', 'import-export-by-rockstarlab' ); ?></span></li>
+							<li><strong><?php esc_html_e( 'FTP / SFTP servers', 'import-export-by-rockstarlab' ); ?></strong><span><?php esc_html_e( 'Import files from a server and upload finished exports to it.', 'import-export-by-rockstarlab' ); ?></span></li>
+							<li><strong><?php esc_html_e( 'Product columns for other shops', 'import-export-by-rockstarlab' ); ?></strong><span><?php esc_html_e( 'Product exports include Variation Options and Option 1–3 columns for Shopify and other shop systems.', 'import-export-by-rockstarlab' ); ?></span></li>
 						</ul>
 						<div class="rsl-ie-notice-links">
 							<a href="https://wpimportexport.com/import-export-video-tutorials-for-wordpress/ai-agents/" target="_blank" rel="noopener noreferrer" class="rsl-ie-notice-link">
 								<span class="dashicons dashicons-book-alt" aria-hidden="true"></span>
 								<?php esc_html_e( 'Abilities API & AI agents guide', 'import-export-by-rockstarlab' ); ?>
 							</a>
-							<a href="https://wpimportexport.com/whats-new-in-import-export-by-rockstarlab-2-0-0/" target="_blank" rel="noopener noreferrer" class="rsl-ie-notice-link">
+							<a href="https://wordpress.org/plugins/import-export-by-rockstarlab/#developers" target="_blank" rel="noopener noreferrer" class="rsl-ie-notice-link">
 								<span class="dashicons dashicons-megaphone" aria-hidden="true"></span>
-								<?php esc_html_e( 'Read what’s new in 2.0.0', 'import-export-by-rockstarlab' ); ?>
+								<?php esc_html_e( 'Read the full changelog', 'import-export-by-rockstarlab' ); ?>
 							</a>
 						</div>
 					</div>

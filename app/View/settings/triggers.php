@@ -158,7 +158,7 @@ $rsl_ie_has_url = (bool) array_filter( $rsl_ie_srcs, static fn( $s ) => $s['from
 
 	<h2><?php esc_html_e( 'New trigger', 'import-export-by-rockstarlab' ); ?></h2>
 	<?php if ( ! $rsl_ie_srcs ) : ?>
-		<p class="description"><?php esc_html_e( 'Run an import or export once first. A trigger repeats a finished job.', 'import-export-by-rockstarlab' ); ?></p>
+		<p class="description"><?php esc_html_e( 'No job can be repeated yet. A trigger repeats a finished import or export whose file is still available, so run one first.', 'import-export-by-rockstarlab' ); ?></p>
 	<?php else : ?>
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="rsl-ie-trigger-form">
 		<input type="hidden" name="action" value="rsl_ie_create_trigger">

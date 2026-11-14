@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.2.14
+Stable tag: 2.2.15
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -15,7 +15,7 @@ Push and pull posts, pages, media and ACF between WordPress sites. Import and ex
 
 Pick the posts or pages you changed and push them to the live site, or pull them back. Images and featured images, ACF fields (repeaters, groups, flexible content, galleries, clones), Elementor and Gutenberg layouts, synced patterns, categories, authors and comments come along. Links and media addresses are rewritten for the target site, and nothing else on it is touched.
 
-https://www.youtube.com/watch?v=3flWPACMyuU
+https://www.youtube.com/watch?v=TxXZFWFtX1k
 
 Need files instead? Import and export posts, pages, comments and media as CSV, XML (including WordPress export files), JSON, XLSX or ODS, with field mapping, previews and background jobs. Move a whole site's content with Content Migration, or register files uploaded by FTP in the Media Library with Media Folder Sync.
 
@@ -294,6 +294,15 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.2.15 =
+* Fix: re-importing a Content Migration package on the site it came from with "skip existing" no longer creates duplicate comments or terms.
+* Fix: term slugs with Cyrillic and other non-Latin letters are kept on import.
+* Fix: the import wizard stops at the preview step when a file has column names but no data rows.
+* Fix: confirmation dialogs show real line breaks instead of "\n".
+* Fix: the Content Sync, Jobs Log, Schedules and Export / Sync Buttons tables fit phone screens.
+* Tweak: on WordPress 7 and later the AI screens point to Settings → Connectors instead of OpenAI API keys.
+* Tweak: clearer messages in Media Sync (unknown folder, skipped files), Content Migration (progress while a package is read), Triggers and Content Sync; Esc closes the Media Sync folder browser.
+
 = 2.2.14 =
 * New: product exports have Product Title and Product Slug columns (the parent's on variation rows), a Variation Options column such as "Size: S | Color: Navy", and Option 1–3 Name and Value columns for Shopify and other shop systems.
 * New: Shipping Zones on the export and import screens (with PRO) and the WP-CLI type shipping-zone.
@@ -472,21 +481,3 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 = 2.1.56 =
 * Fixed: WooCommerce reviews synced from the Reviews screen (push or pull) now update the average rating and review count of the product. Before, the product could show the new review with an average rating of 0.
 * Fixed: lists and searches of the other site no longer fail with "This connection is already in use" when a new search starts while the previous one is still running, for example while you type in the "Map to remote post" field.
-
-= 2.1.55 =
-* Fixed: when you pull a post or page that was synced before and its title was changed on this site, the mapping keeps the remote post it came from. Before, the automatic title matching cleared the row and the pull stopped with "Please select at least one remote post to pull". The row now shows the title of the remote post.
-* Fixed: a pull started from the Pages screen can be the source job of a schedule, for example to reset a demo site every night. Before, saving the schedule failed with "outside the allowed content scope".
-
-= 2.1.54 =
-* Fixed: completes the 2.1.53 fix. When the pushed WooCommerce product has no stock settings saved, the receiving store now also keeps stock management turned on, so its stock quantity stays after the push.
-
-= 2.1.53 =
-* Fixed: when you push a WooCommerce product with Content Sync and the product on the site you push from has no stock settings saved, the receiving store now keeps its own tracked stock quantity. Before, the quantity could be removed.
-
-= 2.1.52 =
-* Fixed: XML files exported from WordPress or WordPress.com (WXR) are read item by item, so each post or page in the file becomes a row. Before, the list of tags at the top of the file was taken as the records.
-* Improved: Auto Map recognizes the columns of WordPress export files: content:encoded, excerpt:encoded, wp:post_date, wp:post_name, wp:status and dc:creator.
-
-= 2.1.51 =
-* Fixed: when Browse on the import screen cannot reach an FTP or SFTP server, it now shows the reason (for example a wrong host name or password) instead of only "Error".
-* Fixed: the FTP, FTPS and SFTP choices on the Servers screen have space between them.

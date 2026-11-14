@@ -455,6 +455,22 @@ const ImportModule = {
 					}
 				}
 				break;
+			case 3:
+				if (
+					this.fileData &&
+					! this.fileData.hasError &&
+					Number( this.fileData.total_rows ) === 0 &&
+					( ! Array.isArray( this.fileData.preview ) ||
+						this.fileData.preview.length === 0 )
+				) {
+					Utils.showNotice(
+						rslIeData.i18n.fileHasNoRows ||
+							'The file has no data rows, only column names. Add at least one row and upload the file again.',
+						'error'
+					);
+					return false;
+				}
+				break;
 			case 4:
 				// Validate post type selection for custom post types
 				const contentType = jQuery(

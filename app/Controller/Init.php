@@ -554,7 +554,7 @@ class Init {
 					'newApiKey'                         => __( 'New API Key: ', 'import-export-by-rockstarlab' ),
 					'failedRegenerateKey'               => __( 'Failed to regenerate key', 'import-export-by-rockstarlab' ),
 					'apiKeyCopied'                      => __( 'API key copied to clipboard', 'import-export-by-rockstarlab' ),
-					'confirmRegenerateMyKey'            => __( 'Are you sure you want to regenerate your API key?\n\nThis will invalidate the current key and all remote sites will need to update their connection settings with the new key.', 'import-export-by-rockstarlab' ),
+					'confirmRegenerateMyKey'            => __( 'Are you sure you want to regenerate your API key?', 'import-export-by-rockstarlab' ) . "\n\n" . __( 'This will invalidate the current key and all remote sites will need to update their connection settings with the new key.', 'import-export-by-rockstarlab' ),
 					// translators: %s = content placeholder.
 					'failedRegenerateApiKey'            => __( 'Failed to regenerate API key', 'import-export-by-rockstarlab' ),
 
@@ -583,7 +583,7 @@ class Init {
 					'syncPaused'                        => __( 'Sync paused', 'import-export-by-rockstarlab' ),
 					// translators: %s = content placeholder.
 					'syncResumed'                       => __( 'Sync resumed', 'import-export-by-rockstarlab' ),
-					'confirmCancelSync'                 => __( 'Are you sure you want to cancel the synchronization?\n\nThis will stop the process and you\'ll need to start over.', 'import-export-by-rockstarlab' ),
+					'confirmCancelSync'                 => __( 'Are you sure you want to cancel the synchronization?', 'import-export-by-rockstarlab' ) . "\n\n" . __( 'This will stop the process and you\'ll need to start over.', 'import-export-by-rockstarlab' ),
 					'syncCancelled'                     => __( 'Sync cancelled', 'import-export-by-rockstarlab' ),         // Post Sync
 					'selectAtLeastOnePost'              => __( 'Please select at least one post', 'import-export-by-rockstarlab' ),
 					'selectSite'                        => __( 'Please select a site', 'import-export-by-rockstarlab' ),
@@ -592,7 +592,7 @@ class Init {
 					'pushTo'                            => __( 'push to', 'import-export-by-rockstarlab' ),
 					'pullFrom'                          => __( 'pull from', 'import-export-by-rockstarlab' ),
 					// translators: %1$s is a dynamic value, %2$s is a dynamic value, %3$s is a dynamic value.
-					'confirmSyncAction'                 => __( 'Are you sure you want to %1$s %2$s?\n\nThis will affect %3$s post(s).', 'import-export-by-rockstarlab' ),
+					'confirmSyncAction'                 => __( 'Are you sure you want to %1$s %2$s?', 'import-export-by-rockstarlab' ) . "\n\n" . __( 'This will affect %3$s post(s).', 'import-export-by-rockstarlab' ),
 					'preparingToPush'                   => __( 'Preparing to push content...', 'import-export-by-rockstarlab' ),
 					'preparingToPull'                   => __( 'Preparing to pull content...', 'import-export-by-rockstarlab' ),
 					// translators: %s = content placeholder.
@@ -737,6 +737,7 @@ class Init {
 					'hasAllTermsAnd'                    => __( 'Has All Terms - AND', 'import-export-by-rockstarlab' ),
 					'pleaseSelectFieldToExport'         => __( 'Please select at least one field to export', 'import-export-by-rockstarlab' ),
 					'pleaseUploadFile'                  => __( 'Please upload a file', 'import-export-by-rockstarlab' ),
+					'fileHasNoRows'                     => __( 'The file has no data rows, only column names. Add at least one row and upload the file again.', 'import-export-by-rockstarlab' ),
 					'pleaseEnterCustomDelimiter'        => __( 'Please enter a custom delimiter', 'import-export-by-rockstarlab' ),
 					'pleaseSelectPostType'              => __( 'Please select a post type', 'import-export-by-rockstarlab' ),
 					'exportFailed'                      => __( 'Export failed', 'import-export-by-rockstarlab' ),
@@ -1097,7 +1098,9 @@ class Init {
 					// translators: %s = content placeholder.
 					'serverErrorUnableToTest'           => __( 'Server error: Unable to test transformation. Check the browser console for details.', 'import-export-by-rockstarlab' ),
 					'testFailed'                        => __( 'Test failed', 'import-export-by-rockstarlab' ),
-					'apiKeyNotConfigured'               => __( 'OpenAI API key is not configured. Please configure it in Settings → Connectors (WordPress 7+) or in Plugin Options.\n\nDo you want to go to Plugin Options now?', 'import-export-by-rockstarlab' ),
+					'apiKeyNotConfigured'               => \RockStarLab\ImportExport\Helper\OpenAI_API_Key::is_wp7_plus()
+						? __( 'No AI provider is set up. Add a text-generation provider in Settings → Connectors to generate functions with AI.', 'import-export-by-rockstarlab' ) . "\n\n" . __( 'Open Settings → Connectors now?', 'import-export-by-rockstarlab' )
+						: __( 'OpenAI API key is not configured. Please configure it in Plugin Options.', 'import-export-by-rockstarlab' ) . "\n\n" . __( 'Do you want to go to Plugin Options now?', 'import-export-by-rockstarlab' ),
 					'badgeLibrary'                      => __( 'Library', 'import-export-by-rockstarlab' ),
 					'badgeCustom'                       => __( 'Custom', 'import-export-by-rockstarlab' ),
 					'badgeActive'                       => __( 'Active', 'import-export-by-rockstarlab' ),
@@ -1130,6 +1133,7 @@ class Init {
 
 					// Completion messages
 					'syncCompleteTitle'                 => __( 'Synchronization Complete!', 'import-export-by-rockstarlab' ),
+					'mediaSkippedExplain'               => __( 'Skipped files are already in the Media Library, so they were not imported again.', 'import-export-by-rockstarlab' ),
 					// translators: %s is a dynamic value.
 					'successfullyProcessed'             => __( 'Successfully processed %s file', 'import-export-by-rockstarlab' ),
 					// translators: %s is a dynamic value.

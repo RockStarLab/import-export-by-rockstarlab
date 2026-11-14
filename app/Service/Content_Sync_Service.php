@@ -1814,7 +1814,7 @@ class Content_Sync_Service {
 			array(
 				'message'       => sprintf(
 					/* translators: %d: number of posts */
-					__( 'Successfully pushed %d post(s) to remote site', 'import-export-by-rockstarlab' ),
+					_n( 'Successfully pushed %d post to the remote site', 'Successfully pushed %d posts to the remote site', count( $posts_data ), 'import-export-by-rockstarlab' ),
 					count( $posts_data )
 				),
 				'images_synced' => count( $image_map ),
