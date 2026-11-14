@@ -116,10 +116,19 @@ const Utils = {
 	 * @param {string} action AJAX action name
 	 * @param {Object} data Data to send
 	 * @param {string} method HTTP method (GET|POST)
+	 * @param {Object} options { detailed: true } rejects with { message, status, textStatus, json }
+	 *                         instead of the message string, so callers can tell a server
+	 *                         error from a gateway timeout.
 	 * @returns {Promise}
 	 */
-	ajax( action, data = {}, method = 'POST' ) {
-		return new Promise( ( resolve, reject ) => {
+	ajax( action, data = {}, method = 'POST', options = {} ) {
+		const detailed = !! options?.detailed;
+		return new Promise( ( resolve, rejectWith ) => {
+			let failure = { status: 200, textStatus: '', json: true };
+			const reject = ( message ) =>
+				rejectWith(
+					detailed ? { ...failure, message: String( message ) } : message
+				);
 			const clientData = getClientData();
 
 			const normalizedAction = normalizeAjaxAction( action );
@@ -148,6 +157,11 @@ const Utils = {
 					}
 				} )
 				.fail( ( jqXHR, textStatus, errorThrown ) => {
+					failure = {
+						status: jqXHR?.status || 0,
+						textStatus: textStatus || '',
+						json: !! jqXHR?.responseJSON,
+					};
 					// Try to parse error response
 					let errorMessage = 'Request failed';
 

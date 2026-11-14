@@ -1,5 +1,21 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.13 =
+* New: Import from URL accepts a Google Sheets link as you copy it from the browser or the Share dialog and downloads the sheet (the open tab) as CSV; a sheet that is not shared gets a message that explains how to share it.
+* New: the AI Agent Connection wizard sets up Claude Desktop (configuration block or one command).
+* New: user exports have a Custom Fields group (one column per profile field) and a User Meta (JSON) column.
+* Fix: Content Sync to a site in a subfolder keeps cover image addresses correct.
+* Fix: Content Sync waits for a connection that is busy instead of failing with "already in use".
+* Fix: product categories and brands keep their images, upsells and cross-sells point to the right products, and downloadable files are copied with the product through Content Sync.
+* Fix: Remote Comments show Pending, Spam or Trash next to comments that are not approved.
+* Fix: the Primary Category column of Yoast SEO and Rank Math holds the category slug, and the import accepts a slug, a name or an ID of the receiving site.
+* Fix: Yoast SEO shows imported category and tag titles and descriptions right away.
+* Fix: changing a custom field filter condition in Export works again.
+* Fix: images downloaded from post content by the import get the alt text of their image tag in the Media Library, when they have none yet.
+* Fix: an import no longer stops with "Gateway Timeout" when one request times out (504, 502, 503, a dropped connection or a host error page): the wizard waits and tries again, up to six times, and the import continues where it stopped.
+* Fix: the "Import failed" notice no longer shows "%s" before the error.
+* Fix: Auto Map of an RSS feed maps pubDate to the post date and description to the excerpt (or to the content when the feed has no full text), and no longer maps link and guid to unrelated custom fields.
+
 = 2.2.12 =
 * Fix: Yoast SEO and Rank Math data (titles, robots, social images, primary category, category SEO) arrive complete through Content Sync and file export/import.
 * Fix: the same image is no longer downloaded twice when its name has non-Latin letters.

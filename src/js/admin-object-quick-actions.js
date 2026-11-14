@@ -2023,6 +2023,17 @@ import 'select2/dist/css/select2.min.css';
 					item.comment_parent
 				}`;
 			}
+			// Show moderation state, so pending or spam comments are not pulled by mistake.
+			const approved = String( item.comment_approved ?? '1' );
+			if ( approved !== '1' ) {
+				const label =
+					{
+						0: config.i18n?.commentPending || 'Pending',
+						spam: config.i18n?.commentSpam || 'Spam',
+						trash: config.i18n?.commentTrash || 'Trash',
+					}[ approved ] || approved;
+				meta += ` · ${ label }`;
+			}
 		}
 
 		return `

@@ -32,12 +32,13 @@ $rsl_ie_credentials        = $rsl_ie_connected && $data['application_passwords_a
 		<ul class="rsl-agent-brands" aria-label="<?php esc_attr_e( 'Popular MCP-compatible AI agents', 'import-export-by-rockstarlab' ); ?>">
 			<?php
 			foreach ( [
-				'openai'        => 'CodexGPT',
-				'claude'        => 'Claude Code',
-				'cursor'        => 'Cursor',
-				'githubcopilot' => 'GitHub Copilot',
-				'googlegemini'  => 'Gemini CLI',
-			] as $rsl_ie_agent_icon => $rsl_ie_agent_name ) :
+				[ 'openai', 'CodexGPT' ],
+				[ 'claude', 'Claude Code' ],
+				[ 'claude', 'Claude Desktop' ],
+				[ 'cursor', 'Cursor' ],
+				[ 'githubcopilot', 'GitHub Copilot' ],
+				[ 'googlegemini', 'Gemini CLI' ],
+			] as list( $rsl_ie_agent_icon, $rsl_ie_agent_name ) ) :
 				?>
 				<li><img src="<?php echo esc_url( RSL_IE_URL . 'assets/images/agents/' . $rsl_ie_agent_icon . '.svg' ); ?>" width="24" height="24" alt="" aria-hidden="true"><span><?php echo esc_html( $rsl_ie_agent_name ); ?></span></li>
 			<?php endforeach; ?>

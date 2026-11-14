@@ -134,7 +134,7 @@ class File_Service {
 		if ( Remote_File_Service::is_remote( $url ) ) {
 			return $this->from_remote( trim( (string) $url ), $options );
 		}
-		$url    = esc_url_raw( trim( (string) $url ), [ 'http', 'https' ] );
+		$url    = self::google_sheets_download_url( esc_url_raw( trim( (string) $url ), [ 'http', 'https' ] ) );
 		$host   = (string) wp_parse_url( $url, PHP_URL_HOST );
 		$is_dev = (bool) preg_match( '/\.(local|test|localhost)$/i', $host );
 		if ( '' === $url || '' === $host || ( ! $is_dev && ! wp_http_validate_url( $url ) ) ) {
@@ -178,7 +178,50 @@ class File_Service {
 				}
 			}
 		}
+		if ( 'docs.google.com' === strtolower( $host ) && ! in_array( $extension, [ 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ], true ) ) {
+			wp_delete_file( $tmp );
+			return new \WP_Error( 'rsl_ie_url_not_a_file', __( 'Google Sheets returned a page instead of the sheet. In Google Sheets, click Share and set General access to "Anyone with the link", or use File > Share > Publish to web, then paste the link again.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+		}
 		return $this->adopt_download( $tmp, $name, $extension, $url, $options );
+	}
+
+	/**
+	 * Turn a Google Sheets link copied from the browser or the Share dialog into the
+	 * address that returns the sheet as CSV.
+	 *
+	 * ".../spreadsheets/d/<id>/edit#gid=<tab>" becomes ".../export?format=csv&gid=<tab>",
+	 * and a "Publish to web" page link (".../d/e/<id>/pubhtml") becomes ".../pub?output=csv".
+	 * Download links (export, pub with output) and other addresses are returned unchanged.
+	 *
+	 * @param string $url URL.
+	 * @return string
+	 */
+	public static function google_sheets_download_url( $url ) {
+		$url   = (string) $url;
+		$parts = wp_parse_url( $url );
+		if ( ! is_array( $parts ) || 'docs.google.com' !== strtolower( (string) ( $parts['host'] ?? '' ) ) ) {
+			return $url;
+		}
+		$path = (string) ( $parts['path'] ?? '' );
+		$gid  = '';
+		foreach ( [ (string) ( $parts['query'] ?? '' ), (string) ( $parts['fragment'] ?? '' ) ] as $chunk ) {
+			if ( '' === $gid && preg_match( '/(?:^|[&#?])gid=(\d+)/', $chunk, $match ) ) {
+				$gid = $match[1];
+			}
+		}
+		// Published to the web: /spreadsheets/d/e/<published id>/pubhtml or /pub without output.
+		if ( preg_match( '#^(/spreadsheets/d/e/[A-Za-z0-9_-]+)/(pubhtml|pub)/?$#', $path, $match ) ) {
+			parse_str( (string) ( $parts['query'] ?? '' ), $query );
+			if ( 'pub' === $match[2] && ! empty( $query['output'] ) ) {
+				return $url;
+			}
+			return 'https://docs.google.com' . $match[1] . '/pub?output=csv' . ( '' !== $gid ? '&gid=' . $gid : '' );
+		}
+		// A sheet shared with a link: /spreadsheets/d/<id>/edit, /view, /htmlview or no suffix.
+		if ( preg_match( '#^(/spreadsheets/d/(?!e/)[A-Za-z0-9_-]+)(?:/(edit|view|htmlview|preview|copy))?/?$#', $path, $match ) ) {
+			return 'https://docs.google.com' . $match[1] . '/export?format=csv' . ( '' !== $gid ? '&gid=' . $gid : '' );
+		}
+		return $url;
 	}
 
 	/**

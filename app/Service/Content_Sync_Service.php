@@ -148,10 +148,10 @@ class Content_Sync_Service {
 			}
 		}
 		$site_id = absint( $input['site_id'] ?? 0 );
-		// Lists and searches only read the other site. A dropdown sends a new search
+		// Lists, searches and title matching only read the other site. A dropdown sends a new search
 		// while the previous one is still running, so wait briefly for it instead of
 		// failing with "connection busy". Writes still fail fast.
-		$wait    = in_array( $action, [ 'get_remote_posts', 'search_remote_posts', 'get_children_posts', 'get_remote_comments' ], true ) ? 10 : 0;
+		$wait    = in_array( $action, [ 'get_remote_posts', 'search_remote_posts', 'get_children_posts', 'get_remote_comments', 'auto_map_by_title', 'get_remote_terms' ], true ) ? 10 : 0;
 		$lock    = $site_id ? Job_Lock::acquire_resource( 'connection', $site_id, $wait ) : null;
 		if ( false === $lock || is_wp_error( $lock ) ) {
 			return new \WP_Error( 'rsl_ie_connection_busy', __( 'This connection is already in use. Try again later.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
@@ -4014,6 +4014,11 @@ class Content_Sync_Service {
 		}
 		if ( ! empty( $term_info['acf'] ) && is_array( $term_info['acf'] ) ) {
 			$image_ids = array_merge( $image_ids, $this->extract_term_acf_images( $term_info['acf'] ) );
+		}
+		// The term image of WooCommerce product categories and brands (and plugins that use the
+		// same key) is an attachment ID: send the file so the other site can point at its copy.
+		if ( ! empty( $term_info['meta']['thumbnail_id'] ) && wp_attachment_is_image( absint( $term_info['meta']['thumbnail_id'] ) ) ) {
+			$image_ids[] = absint( $term_info['meta']['thumbnail_id'] );
 		}
 		// Social images of SEO plugins (Yoast keeps a URL, Rank Math a URL and an ID).
 		$social = array();

@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || exit;
 <p><?php esc_html_e( 'Choose your AI app and connection method, then paste the Application Password from step 3. Generate and copy the result, then follow the instructions below.', 'import-export-by-rockstarlab' ); ?></p>
 <form data-agent-generator autocomplete="off">
 	<div class="rsl-agent-generator-grid">
-		<label><?php esc_html_e( 'AI app', 'import-export-by-rockstarlab' ); ?><select data-client><option value="codex">Codex</option><option value="cursor">Cursor</option><option value="claude">Claude Code</option><option value="copilot">GitHub Copilot (VS Code)</option><option value="gemini">Gemini CLI</option></select></label>
+		<label><?php esc_html_e( 'AI app', 'import-export-by-rockstarlab' ); ?><select data-client><option value="codex">Codex</option><option value="cursor">Cursor</option><option value="claude">Claude Code</option><option value="claude-desktop">Claude Desktop</option><option value="copilot">GitHub Copilot (VS Code)</option><option value="gemini">Gemini CLI</option></select></label>
 		<label><?php esc_html_e( 'Connection method', 'import-export-by-rockstarlab' ); ?><select data-method><option value="command"><?php esc_html_e( 'One command', 'import-export-by-rockstarlab' ); ?></option><option value="config" selected><?php esc_html_e( 'Custom config', 'import-export-by-rockstarlab' ); ?></option></select></label>
 		<label data-shell-field hidden><?php esc_html_e( 'Terminal', 'import-export-by-rockstarlab' ); ?><select data-shell><option value="posix">Mac / Linux (Bash or Zsh)</option><option value="powershell">Windows (PowerShell 7.3+)</option></select></label>
 		<label><?php esc_html_e( 'MCP server', 'import-export-by-rockstarlab' ); ?><select data-endpoint>
@@ -28,6 +28,7 @@ defined( 'ABSPATH' ) || exit;
 		<p data-command-client="codex"><?php esc_html_e( 'Requires Python 3.11 or newer. This command adds WordPress to your personal Codex config (using CODEX_HOME if set). It keeps existing settings and stops if WordPress already exists. Close Codex before running it; use Custom config to update an existing connection.', 'import-export-by-rockstarlab' ); ?></p>
 		<p data-command-client="cursor" hidden><?php esc_html_e( 'Requires Python 3. This command adds WordPress to ~/.cursor/mcp.json and keeps other settings. Close Cursor before running it. If WordPress already exists, or your file uses comments or trailing commas, use Custom config instead.', 'import-export-by-rockstarlab' ); ?></p>
 		<p data-command-client="claude" hidden><?php esc_html_e( 'Requires the claude command in your terminal. Adds a user-level WordPress server with an HTTP authorization header.', 'import-export-by-rockstarlab' ); ?></p>
+		<p data-command-client="claude-desktop" hidden><?php esc_html_e( 'Requires Python 3. This command adds WordPress to claude_desktop_config.json and keeps your other servers. Quit Claude Desktop before running it. If WordPress already exists, or the file is not valid JSON, use Custom config instead. Claude Desktop also needs Node.js 22 or newer for the npx bridge.', 'import-export-by-rockstarlab' ); ?></p>
 		<p data-command-client="gemini" hidden><?php esc_html_e( 'Requires the gemini command in your terminal. Adds a user-level WordPress server with an HTTP authorization header.', 'import-export-by-rockstarlab' ); ?></p>
 		<p data-command-client="copilot" hidden><?php esc_html_e( 'Requires the code command in your terminal. Adds WordPress to your VS Code user profile. On macOS, install the code shell command from the VS Code Command Palette first.', 'import-export-by-rockstarlab' ); ?></p>
 	</div>
@@ -56,6 +57,12 @@ defined( 'ABSPATH' ) || exit;
 			<li><?php esc_html_e( 'Save the settings as wordpress-mcp.json in your home folder using a plain-text editor.', 'import-export-by-rockstarlab' ); ?></li>
 			<li><?php esc_html_e( 'In your terminal, outside a Claude conversation, run the command for your system:', 'import-export-by-rockstarlab' ); ?><p>Mac / Linux</p><pre>claude mcp add-json --scope user WordPress "$(cat "$HOME/wordpress-mcp.json")"</pre><p>Windows PowerShell</p><pre>claude mcp add-json --scope user WordPress (Get-Content -Raw "$env:USERPROFILE\wordpress-mcp.json")</pre></li>
 			<li><?php esc_html_e( 'Restart Claude Code and enter /mcp to check WordPress. Send the first request below. After importing the settings, delete the temporary wordpress-mcp.json file.', 'import-export-by-rockstarlab' ); ?></li>
+		</ol></div>
+		<div data-instructions="claude-desktop" hidden><h3><?php esc_html_e( 'Finish in Claude Desktop', 'import-export-by-rockstarlab' ); ?></h3><ol>
+			<li><?php esc_html_e( 'Install Node.js 22 or newer if you do not have it. Claude Desktop runs the npx bridge from Automattic, which forwards requests to this site.', 'import-export-by-rockstarlab' ); ?></li>
+			<li><?php esc_html_e( 'In Claude Desktop, open Settings → Developer and click Edit Config. This opens claude_desktop_config.json (Mac: ~/Library/Application Support/Claude; Windows: %APPDATA%\\Claude).', 'import-export-by-rockstarlab' ); ?></li>
+			<li><?php esc_html_e( 'For an empty file, paste the complete settings. Otherwise, add only the wordpress entry inside the existing mcpServers object, separating entries with a comma. Do not overwrite other servers.', 'import-export-by-rockstarlab' ); ?></li>
+			<li><?php esc_html_e( 'Save, quit Claude Desktop completely and open it again. Send the first request below in a new chat and allow the WordPress tools when Claude asks.', 'import-export-by-rockstarlab' ); ?></li>
 		</ol></div>
 		<div data-instructions="copilot" hidden><h3><?php esc_html_e( 'Finish in GitHub Copilot (VS Code)', 'import-export-by-rockstarlab' ); ?></h3><ol>
 			<li><?php esc_html_e( 'In VS Code, open the Command Palette (Command+Shift+P on Mac, Ctrl+Shift+P on Windows/Linux). Run MCP: Open User Configuration to open your personal mcp.json.', 'import-export-by-rockstarlab' ); ?></li>

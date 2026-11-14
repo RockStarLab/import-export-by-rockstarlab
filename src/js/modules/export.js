@@ -2706,8 +2706,9 @@ const ExportModule = {
 			// Handle condition change to show/hide value input
 			$row.find( '.rsl-ie-custom-field-condition' ).on(
 				'change',
-				function () {
-					const condition = jQuery( this ).val();
+				function ( event ) {
+					// `this` is bound to the wizard, so read the select from the event.
+					const condition = jQuery( event.currentTarget ).val();
 					const $valueGroup = $row.find(
 						'.rsl-ie-custom-field-value-group'
 					);

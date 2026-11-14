@@ -38,7 +38,7 @@ defined( 'ABSPATH' ) || exit;
 					<input type="url" id="rsl-ie-file-url" class="regular-text" placeholder="https://example.com/products.csv">
 					<button type="button" class="button button-secondary" id="rsl-ie-fetch-url"><?php esc_html_e( 'Fetch File', 'import-export-by-rockstarlab' ); ?></button>
 				</div>
-				<p class="description"><?php esc_html_e( 'A direct link to a CSV, XML, JSON, XLSX or ODS file, such as a supplier price list or product feed. When you schedule this import, the file is downloaded again on every run.', 'import-export-by-rockstarlab' ); ?></p>
+				<p class="description"><?php esc_html_e( 'A direct link to a CSV, XML, JSON, XLSX or ODS file, such as a supplier price list or product feed, or the link of a Google Sheet shared with "Anyone with the link". When you schedule this import, the file is downloaded again on every run.', 'import-export-by-rockstarlab' ); ?></p>
 			</div>
 
 			<!-- Import from a saved FTP/SFTP server -->
