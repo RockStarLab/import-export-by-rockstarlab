@@ -2786,6 +2786,15 @@ class Post_Exporter extends Abstract_Exporter {
 					continue;
 				}
 
+				// Primary category of Yoast / Rank Math: stored as a term ID of this site.
+				// The slug reads in a spreadsheet and finds the same term on another site.
+				if ( preg_match( '/^(?:_yoast_wpseo_primary_|rank_math_primary_)(.+)$/', (string) $field, $m ) && taxonomy_exists( $m[1] ) ) {
+					$primary_id     = (int) get_post_meta( $post->ID, $field, true );
+					$primary_term   = $primary_id > 0 ? get_term( $primary_id, $m[1] ) : null;
+					$data[ $field ] = $primary_term && ! is_wp_error( $primary_term ) ? $primary_term->slug : '';
+					continue;
+				}
+
 				// Rank Math stores Schema Builder entries as duplicate-capable postmeta rows
 				// (rank_math_schema_{Type}), so export them through a portable aggregate.
 				if ( 'rank_math_schemas' === $field ) {

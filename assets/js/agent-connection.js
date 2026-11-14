@@ -80,13 +80,21 @@
 			// These clients have no native add command accepting our Basic auth header.
 			// Parse before writing; never overwrite an existing WordPress connection.
 			const codex = client.value === 'codex';
+			const desktop = client.value === 'claude-desktop';
 			const payload = base64( codex ? config : JSON.stringify( entry ) );
+			let target = 'Path.home()/".cursor"/"mcp.json"';
+			if ( codex ) {
+				target = 'Path(os.environ.get("CODEX_HOME") or Path.home()/".codex")/"config.toml"';
+			} else if ( desktop ) {
+				// Claude Desktop's config folder per system.
+				target = '(Path(os.environ["APPDATA"])/"Claude" if os.name=="nt" else Path.home()/"Library"/"Application Support"/"Claude" if sys.platform=="darwin" else Path.home()/".config"/"Claude")/"claude_desktop_config.json"';
+			}
 			const script = [
 				'import os,sys,json,base64,tempfile',
 				codex ? 'sys.version_info >= (3,11) or sys.exit("Codex One command requires Python 3.11 or newer. Choose Custom config to connect without Python, or run this command with Python 3.11+.")' : '',
 				codex ? 'import tomllib' : '',
 				'from pathlib import Path',
-				'p=' + ( codex ? 'Path(os.environ.get("CODEX_HOME") or Path.home()/".codex")/"config.toml"' : 'Path.home()/".cursor"/"mcp.json"' ),
+				'p=' + target,
 				'old=p.read_text(encoding="utf-8") if p.exists() else ""',
 				'd=' + ( codex ? 'tomllib.loads(old)' : 'json.loads(old) if p.exists() else {}' ),
 				'm=' + JSON.stringify( codex ? 'mcp_servers' : 'mcpServers' ),
@@ -120,8 +128,16 @@
 			}
 			const bytes = new TextEncoder().encode( name + ':' + secret );
 			const auth = 'Basic ' + btoa( Array.from( bytes, function ( byte ) { return String.fromCharCode( byte ); } ).join( '' ) );
-			const entry = { url: endpoint.value, headers: { Authorization: auth } };
-			if ( client.value === 'codex' ) {
+			let entry = { url: endpoint.value, headers: { Authorization: auth } };
+			if ( client.value === 'claude-desktop' ) {
+				// Claude Desktop starts local (stdio) servers only; Automattic's bridge forwards to the site.
+				entry = {
+					command: 'npx',
+					args: [ '-y', '@automattic/mcp-wordpress-remote' ],
+					env: { WP_API_URL: endpoint.value, WP_API_USERNAME: name, WP_API_PASSWORD: secret }
+				};
+				output.value = JSON.stringify( { mcpServers: { wordpress: entry } }, null, 2 );
+			} else if ( client.value === 'codex' ) {
 				output.value = '[mcp_servers.wordpress]\nurl = ' + JSON.stringify( endpoint.value ) + '\nhttp_headers = { Authorization = ' + JSON.stringify( auth ) + ' }';
 			} else if ( client.value === 'claude' ) {
 				entry.type = 'http';

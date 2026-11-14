@@ -751,6 +751,11 @@ class Export_Controller extends Base_Controller {
 			return;
 		}
 
+		if ( 'user' === $post_type ) {
+			$this->send_success( [ 'fields' => self::user_meta_fields( $limit ) ] );
+			return;
+		}
+
 		// Get unique meta keys for this post type
 		// phpcs:disable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery -- \\_% is a valid SQL LIKE escape pattern, not a printf-style placeholder.
 		$meta_keys = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
@@ -778,6 +783,60 @@ class Export_Controller extends Base_Controller {
 		}
 
 		$this->send_success( [ 'fields' => $fields ] );
+	}
+
+	/**
+	 * User meta keys offered as custom field columns of the user export (meta_<key>).
+	 *
+	 * Columns the user export already has, ACF fields (their own group), roles,
+	 * sessions and per-site screen settings are left out.
+	 *
+	 * @param int $limit Maximum number of keys.
+	 * @return array<int,array{name:string,label:string}>
+	 */
+	public static function user_meta_fields( $limit ) {
+		global $wpdb;
+		$prefix = $wpdb->get_blog_prefix();
+		// phpcs:disable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Distinct keys need a direct query; \\_% is a LIKE escape.
+		$keys = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT DISTINCT meta_key FROM {$wpdb->usermeta}
+				WHERE meta_key NOT LIKE '\\_%%' AND meta_value <> ''
+				ORDER BY meta_key ASC LIMIT %d",
+				$limit
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$skip = [
+			'first_name', 'last_name', 'nickname', 'description', 'locale', 'admin_color', 'rich_editing', 'avatar_url',
+			'facebook', 'instagram', 'linkedin', 'myspace', 'pinterest', 'soundcloud', 'tumblr', 'wikipedia', 'twitter', 'youtube',
+			'syntax_highlighting', 'comment_shortcuts', 'use_ssl', 'show_admin_bar_front', 'show_welcome_panel', 'dismissed_wp_pointers',
+			'session_tokens', 'community-events-location', 'default_password_nag', 'wp_persisted_preferences', 'last_update',
+		];
+		$acf = [];
+		if ( function_exists( 'acf_get_field_groups' ) ) {
+			foreach ( (array) acf_get_field_groups( [ 'user_form' => 'all' ] ) as $group ) {
+				foreach ( (array) acf_get_fields( $group ) as $acf_field ) {
+					if ( ! empty( $acf_field['name'] ) ) {
+						$acf[] = (string) $acf_field['name'];
+					}
+				}
+			}
+		}
+		$fields = [];
+		foreach ( (array) $keys as $key ) {
+			$key = (string) $key;
+			// Admin screen settings, plugin notices, sessions and per-site WooCommerce counters.
+			if ( in_array( $key, $skip, true ) || in_array( $key, $acf, true ) || 0 === strpos( $key, $wpdb->base_prefix ) || 0 === strpos( $key, $prefix )
+				|| preg_match( '/^(?:closedpostboxes_|metaboxhidden_|meta-box-order_|screen_layout_|manage.*columnshidden|.*_per_page$|elementor_|mcp_adapter_|rsl_ie_|nav_menu_recently_edited$|infinite_scrolling$|wc_last_active$|wc_.*_' . preg_quote( rtrim( $prefix, '_' ), '/' ) . '$)/', $key ) ) {
+				continue;
+			}
+			$fields[] = [
+				'name'  => $key,
+				'label' => $key,
+			];
+		}
+		return $fields;
 	}
 
 	/**

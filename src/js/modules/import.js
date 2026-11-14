@@ -6248,6 +6248,29 @@ const ImportModule = {
 					( alias ) => ( commentAliases[ alias ] = targetKey )
 				)
 			);
+			// RSS feeds: item columns are title, link, pubDate, description, content:encoded...
+			// pubDate is the publish date; description is a summary when the feed also has the
+			// full text in content:encoded, otherwise it is the text itself.
+			const sourceNames = jQuery( '.rsl-ie-field-card' )
+				.toArray()
+				.map( ( card ) =>
+					String( jQuery( card ).data( 'source-field' ) || '' )
+						.trim()
+						.toLowerCase()
+				);
+			const isFeedFile =
+				sourceNames.includes( 'pubdate' ) &&
+				( sourceNames.includes( 'link' ) ||
+					sourceNames.includes( 'guid' ) ) &&
+				! sourceNames.includes( 'wp:post_type' );
+			const feedAliases = isFeedFile
+				? {
+						pubdate: 'post_date',
+						description: sourceNames.includes( 'content:encoded' )
+							? 'post_excerpt'
+							: 'post_content',
+				  }
+				: {};
 			const aliasLookup = new Map();
 			Object.keys( headerAliases ).forEach( ( targetKey ) => {
 				headerAliases[ targetKey ].forEach( ( alias ) => {
@@ -6278,6 +6301,9 @@ const ImportModule = {
 						: undefined ) ||
 					( 'comment' === checkedType
 						? commentAliases[ normalizedSource ]
+						: undefined ) ||
+					( [ 'post', 'page' ].includes( checkedType )
+						? feedAliases[ normalizedSource ]
 						: undefined ) ||
 					aliasLookup.get( normalizedSource );
 				if ( ! aliasTarget ) {
@@ -6392,7 +6418,18 @@ const ImportModule = {
 						String( jQuery( card ).data( 'source-field' ) ) ===
 						'wp:post_type'
 				);
-			if ( isWxr ) {
+			// RSS feeds have the same feed columns, plus comment links and counts.
+			const isFeed =
+				! isWxr &&
+				$wxrCards
+					.toArray()
+					.some(
+						( card ) =>
+							String(
+								jQuery( card ).data( 'source-field' ) || ''
+							).toLowerCase() === 'pubdate'
+					);
+			if ( isWxr || isFeed ) {
 				$wxrCards.removeClass( 'rsl-ie-no-auto' );
 				$wxrCards.not( '.used' ).each( ( i, card ) => {
 					const field = String(
@@ -6406,6 +6443,9 @@ const ImportModule = {
 							'guid@ispermalink',
 							'pubdate',
 							'description',
+							'comments',
+							'wfw:commentrss',
+							'slash:comments',
 						].includes( field )
 					) {
 						jQuery( card ).addClass( 'rsl-ie-no-auto' );
@@ -7756,13 +7796,19 @@ const ImportModule = {
 		this.isBatchProcessing = true;
 
 		try {
-			const response = await Utils.ajax( 'rsl_ie_import_process_batch', {
-				job_id: this.jobId,
-			} );
+			const response = await Utils.ajax(
+				'rsl_ie_import_process_batch',
+				{
+					job_id: this.jobId,
+				},
+				'POST',
+				{ detailed: true }
+			);
 
 			if ( this.isCancellingImport || ! this.jobId ) {
 				return;
 			}
+			this.clearBatchRetry();
 
 			// Transform batch response to progress bar format
 			const elapsedSec = this.importStartTime
@@ -7839,12 +7885,106 @@ const ImportModule = {
 			if ( this.isCancellingImport || ! this.jobId ) {
 				return;
 			}
+			if ( this.scheduleBatchRetry( error ) ) {
+				return;
+			}
+			const gaveUp = this.isTransientBatchError( error );
+			this.clearBatchRetry();
+			const gaveUpText =
+				window.rslIeData?.i18n?.importBatchGaveUp ||
+				'The server did not answer after several attempts. The import may still finish in the background: check it in Jobs and click Continue there if it stopped.';
 			this.onImportFailed( {
-				error: error?.message || String( error ),
+				error:
+					( error?.message || String( error ) ) +
+					( gaveUp ? '. ' + gaveUpText : '' ),
 			} );
 		} finally {
 			this.isBatchProcessing = false;
 		}
+	},
+
+	/**
+	 * Whether a failed batch request is worth repeating: the server or a proxy in
+	 * front of it gave up (502/503/504, Cloudflare 52x, 408/429), the connection
+	 * dropped, or the server answered with an HTML error page instead of the
+	 * plugin's JSON. The job keeps its position on the server and a batch still
+	 * running there holds the job lock, so a repeated request is safe.
+	 *
+	 * @param {Object|string} error Rejection from Utils.ajax( ..., { detailed: true } ).
+	 * @return {boolean} True for a transient failure.
+	 */
+	isTransientBatchError( error ) {
+		if ( ! error || 'object' !== typeof error ) {
+			return false;
+		}
+		const status = Number( error.status ) || 0;
+		if ( 'abort' === error.textStatus ) {
+			return false;
+		}
+		if ( 0 === status || 'timeout' === error.textStatus ) {
+			return true;
+		}
+		if ( [ 408, 429, 502, 503, 504 ].includes( status ) ) {
+			return true;
+		}
+		if ( status >= 520 && status <= 527 ) {
+			return true;
+		}
+		// A PHP fatal error or a host's error page: no JSON from the plugin.
+		return ! error.json && ( 500 === status || 'parsererror' === error.textStatus );
+	},
+
+	/**
+	 * Repeat the batch request after a transient failure, waiting longer each time.
+	 *
+	 * @param {Object|string} error Rejection from Utils.ajax( ..., { detailed: true } ).
+	 * @return {boolean} True when a retry was scheduled.
+	 */
+	scheduleBatchRetry( error ) {
+		const maxAttempts = 6;
+		if ( ! this.isTransientBatchError( error ) ) {
+			return false;
+		}
+		const attempt = ( this.batchRetryCount || 0 ) + 1;
+		if ( attempt > maxAttempts ) {
+			return false;
+		}
+		this.batchRetryCount = attempt;
+		const seconds = Math.min( 60, 5 * 2 ** ( attempt - 1 ) );
+		const reason = error.status
+			? String( error.status ) + ( error.message ? ' ' + error.message : '' )
+			: error.message || error.textStatus || '';
+		const template =
+			window.rslIeData?.i18n?.importBatchRetry ||
+			'The server did not answer in time (%1$s). The import continues where it stopped: trying again in %2$d seconds, attempt %3$d of %4$d.';
+		const text = template
+			.replace( '%1$s', reason )
+			.replace( '%2$d', String( seconds ) )
+			.replace( '%3$d', String( attempt ) )
+			.replace( '%4$d', String( maxAttempts ) );
+		let $note = jQuery( '.rsl-ie-step-6 .rsl-ie-batch-retry' );
+		if ( ! $note.length ) {
+			$note = jQuery(
+				'<div class="notice notice-warning inline rsl-ie-batch-retry"><p></p></div>'
+			);
+			jQuery( '.rsl-ie-step-6 .rsl-ie-progress-container' ).first().prepend( $note );
+		}
+		$note.find( 'p' ).text( text );
+		$note.show();
+		clearTimeout( this.batchTimeout );
+		this.batchTimeout = setTimeout( () => {
+			this.batchTimeout = null;
+			this.startBatchProcessing();
+		}, seconds * 1000 );
+		return true;
+	},
+
+	/**
+	 * Reset the retry counter and hide the retry note after a batch got through.
+	 */
+	clearBatchRetry() {
+		this.batchRetryCount = 0;
+		jQuery( '.rsl-ie-step-6 .rsl-ie-batch-retry' ).remove();
 	},
 
 	/**
@@ -8263,8 +8403,11 @@ const ImportModule = {
 			response?.error ||
 			response?.status ||
 			'Unknown error';
+		const failedLabel = rslIeData.i18n.importFailed || 'Import failed';
 		Utils.showNotice(
-			( rslIeData.i18n.importFailed || 'Import failed' ) + ': ' + message,
+			failedLabel.includes( '%s' )
+				? failedLabel.replace( '%s', message )
+				: failedLabel + ': ' + message,
 			'error'
 		);
 

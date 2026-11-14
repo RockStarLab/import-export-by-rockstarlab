@@ -120,6 +120,32 @@ class Seo_Fields {
 		$all = is_array( $all ) ? $all : [];
 		$all[ $taxonomy ][ (int) $term_id ] = $clean;
 		update_option( 'wpseo_taxonomy_meta', $all );
+		self::refresh_yoast_term_indexable( (int) $term_id );
+	}
+
+	/**
+	 * Rebuild Yoast's indexable of a term after its settings changed.
+	 *
+	 * Yoast builds the indexable on edited_term, which runs before the settings are saved
+	 * here, so without a rebuild the front end keeps the old title and description.
+	 *
+	 * @param int $term_id Term ID.
+	 * @return void
+	 */
+	private static function refresh_yoast_term_indexable( $term_id ) {
+		$watcher = 'Yoast\\WP\\SEO\\Integrations\\Watchers\\Indexable_Term_Watcher';
+		if ( $term_id <= 0 || ! function_exists( 'YoastSEO' ) || ! class_exists( $watcher ) ) {
+			return;
+		}
+		try {
+			$instance = YoastSEO()->classes->get( $watcher );
+			if ( $instance && method_exists( $instance, 'build_indexable' ) ) {
+				$instance->build_indexable( $term_id );
+			}
+		} catch ( \Throwable $e ) {
+			// Yoast rebuilds the indexable on the next term save.
+			unset( $e );
+		}
 	}
 
 	/**

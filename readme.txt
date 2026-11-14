@@ -1,9 +1,9 @@
 === Content Sync, Media Sync, Import, Export with AI Agents Support ===
 Contributors: RockstarLab
-Tags: content-migration, content-sync, ai-agents, abilities, site-migration
+Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.2.12
+Stable tag: 2.2.13
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -294,6 +294,22 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.2.13 =
+* New: Import from URL accepts a Google Sheets link as you copy it from the browser or the Share dialog and downloads the sheet (the open tab) as CSV; a sheet that is not shared gets a message that explains how to share it.
+* New: the AI Agent Connection wizard sets up Claude Desktop (configuration block or one command).
+* New: user exports have a Custom Fields group (one column per profile field) and a User Meta (JSON) column.
+* Fix: Content Sync to a site in a subfolder keeps cover image addresses correct.
+* Fix: Content Sync waits for a connection that is busy instead of failing with "already in use".
+* Fix: product categories and brands keep their images, upsells and cross-sells point to the right products, and downloadable files are copied with the product through Content Sync.
+* Fix: Remote Comments show Pending, Spam or Trash next to comments that are not approved.
+* Fix: the Primary Category column of Yoast SEO and Rank Math holds the category slug, and the import accepts a slug, a name or an ID of the receiving site.
+* Fix: Yoast SEO shows imported category and tag titles and descriptions right away.
+* Fix: changing a custom field filter condition in Export works again.
+* Fix: images downloaded from post content by the import get the alt text of their image tag in the Media Library, when they have none yet.
+* Fix: an import no longer stops with "Gateway Timeout" when one request times out (504, 502, 503, a dropped connection or a host error page): the wizard waits and tries again, up to six times, and the import continues where it stopped.
+* Fix: the "Import failed" notice no longer shows "%s" before the error.
+* Fix: Auto Map of an RSS feed maps pubDate to the post date and description to the excerpt (or to the content when the feed has no full text), and no longer maps link and guid to unrelated custom fields.
+
 = 2.2.12 =
 * Fix: Yoast SEO and Rank Math data (titles, robots, social images, primary category, category SEO) arrive complete through Content Sync and file export/import.
 * Fix: the same image is no longer downloaded twice when its name has non-Latin letters.
@@ -473,18 +489,3 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 = 2.1.50 =
 * Fixed: the bundled spreadsheet libraries now match the plugin's minimum PHP version 7.4. Two of them needed PHP 8.0 and 8.3, so Excel (XLSX) and ODS exports and imports could fail on older PHP versions.
 
-= 2.1.49 =
-* New: FTP, FTPS and SFTP servers. Save a server once in Jobs Log > Servers (the password is stored encrypted and never shown again), then import a file from it (Import, step 2: pick the server, Browse and click the file) and upload finished exports to a folder on it (Export, Upload to a server). Scheduled imports download the current file on every run, scheduled exports upload a new file every time, and File changed triggers watch files on the server. SFTP works without PHP extensions.
-* New: AI agents can list saved servers (rsl-ie/remote-servers), list a folder (rsl-ie/remote-browse), import a file from a server with upload-from-url and an rsl-remote:// address, and upload an export with options.remote_destination.
-* New: JSON files whose records are nested deeper, such as a Ghost export, are imported: the plugin finds the list of records, shows where it found it, and each record becomes a row. Auto Map also recognizes the Ghost columns html, published_at, custom_excerpt and feature_image.
-* New: the export screen has the option One row per order item for WooCommerce orders (needs Import Export PRO 2.1.13).
-* Fixed: a Content Sync push of pages started from the Pages screen can now be scheduled in Schedules. Before, the schedule was rejected with "The sync selection or destination is outside the allowed content scope".
-* Fixed: the export preview for AI agents shows at most ten rows when one product or order gives several rows.
-
-= 2.1.48 =
-* Fixed: updating comments from a file now changes only the columns in the file. A sheet with just the Comment ID and Status works for bulk moderation, and replies keep their thread, author email and IP. The status also accepts the words approved and pending.
-* Fixed: uploading a JSON file whose top level is an object through the Abilities API (AI agents) no longer fails with an invalid output error.
-* Fixed: the Sync Content button no longer appears on the WooCommerce Coupons and Orders screens, where it could only fail; these are synced through their own workflows.
-
-= 2.1.47 =
-* Fixed: XML feeds with header elements before the list of records (for example `<updated>` or `<source>` next to `<stockists>`) are now imported. The preview showed 0 rows for such files.

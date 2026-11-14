@@ -66,6 +66,19 @@ class Content_Sync_Media {
 		$woocommerce_gallery_images = self::get_woocommerce_product_gallery_images( $post_id );
 		$images                     = array_merge( $images, $woocommerce_gallery_images );
 
+		// 8. Files of downloadable products: the customer's download link must work on the other store.
+		$downloads = 'product' === get_post_type( $post_id ) ? get_post_meta( $post_id, '_downloadable_files', true ) : array();
+		foreach ( is_array( $downloads ) ? $downloads : array() as $download ) {
+			$url = is_array( $download ) && ! empty( $download['file'] ) && is_string( $download['file'] ) ? $download['file'] : '';
+			$id  = '' !== $url ? self::attachment_url_to_original_postid( $url ) : 0;
+			if ( $id > 0 ) {
+				$data = self::prepare_image_data( $id, 'woo_download' );
+				if ( $data ) {
+					$images[] = $data;
+				}
+			}
+		}
+
 		// Remove duplicates based on attachment ID
 		$images = self::remove_duplicate_images( $images );
 

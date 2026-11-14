@@ -531,6 +531,14 @@ class Content_Sync_Replacer {
 		$local = strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
 		$port  = wp_parse_url( home_url(), PHP_URL_PORT );
 		$local = $local . ( $port ? ':' . $port : '' );
+		// A site in a subdirectory (multisite /cafe, WordPress in /blog) changes the folder in front of
+		// wp-content when the domain is replaced: also match the file by its path from /wp-content/ on.
+		foreach ( $moved as $path => $target ) {
+			$at = strpos( $path, '/wp-content/' );
+			if ( $at > 0 && ! isset( $moved[ substr( $path, $at ) ] ) ) {
+				$moved[ substr( $path, $at ) ] = $target;
+			}
+		}
 		$paths = array_keys( $moved );
 		usort(
 			$paths,
@@ -548,9 +556,12 @@ class Content_Sync_Replacer {
 			)
 		);
 		$result = preg_replace_callback(
-			'#(?:https?:)?\\\\?/\\\\?/([a-z0-9.-]+(?::\d+)?)(' . $alternation . ')(?![\w.-])#i',
+			'#(?:https?:)?\\\\?/\\\\?/([a-z0-9.-]+(?::\d+)?)((?:\\\\?/[\w.~-]+)*?)(' . $alternation . ')(?![\w.-])#i',
 			static function ( $m ) use ( $moved, $local ) {
-				$path = str_replace( '\\/', '/', $m[2] );
+				$path = str_replace( '\\/', '/', $m[3] );
+				if ( '' !== $m[2] && 0 !== strpos( $path, '/wp-content/' ) ) {
+					return $m[0];
+				}
 				$host = strtolower( $m[1] );
 				if ( ! isset( $moved[ $path ] ) || ( $host !== $local && $host !== $moved[ $path ]['host'] ) ) {
 					return $m[0];

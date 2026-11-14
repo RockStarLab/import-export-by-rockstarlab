@@ -958,8 +958,8 @@ export default class ExportStep3 {
 			this.hideDynamicCategory( '.rsl-ie-taxonomies-category' );
 		}
 
-		// Load custom fields only for actual post types
-		if ( ! nonPostTypes.includes( contentType ) ) {
+		// Load custom fields for post types, and user meta for users
+		if ( ! nonPostTypes.includes( contentType ) || 'user' === contentType ) {
 			this.prepareDynamicCategory(
 				'.rsl-ie-custom-fields-category',
 				'.rsl-ie-custom-fields-grid',
@@ -1299,6 +1299,25 @@ export default class ExportStep3 {
 				],
 			};
 		}
+		// Users: all custom fields of a user in one JSON column (filters list it under Custom Filters).
+		if (
+			options.some( ( option ) => 'user_registered' === option.value ) &&
+			! options.some( ( option ) => 'user_meta' === option.value )
+		) {
+			return {
+				...group,
+				options: [
+					...options,
+					{
+						value: 'user_meta',
+						label:
+							( window.rslIeData.i18n || {} ).fieldUserMetaJson ||
+							'User Meta (JSON)',
+						type: 'object',
+					},
+				],
+			};
+		}
 		if (
 			! options.some( ( option ) => 'post_name' === option.value ) ||
 			options.some( ( option ) => 'permalink' === option.value )
@@ -1511,7 +1530,10 @@ export default class ExportStep3 {
 			data: {
 				action: 'rsl_ie_get_custom_fields',
 				nonce: rslIeData.nonce,
-				post_type: this.selectedPostType,
+				post_type:
+					'user' === this.getCurrentRealContentType()
+						? 'user'
+						: this.selectedPostType,
 			},
 			success: ( response ) => {
 				if (

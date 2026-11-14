@@ -713,6 +713,8 @@ class Content_Sync_API_Controller {
 		}
 
 		foreach ( array_unique( $product_post_ids ) as $product_post_id ) {
+			$this->remap_linked_product_ids( (int) $product_post_id, $source_to_local_map );
+			$this->fix_downloadable_file_urls( (int) $product_post_id, (array) $image_map, (array) $image_sources );
 			$this->refresh_woocommerce_product_after_sync( $product_post_id );
 		}
 
@@ -1074,6 +1076,140 @@ class Content_Sync_API_Controller {
 		);
 
 		return ! empty( $posts ) ? (int) $posts[0] : false;
+	}
+
+	/**
+	 * Downloadable product files are URLs. The files were sent with the product; point each URL at
+	 * the copy on this site (another folder or name than on the sending site).
+	 *
+	 * @param int   $product_id    Local product.
+	 * @param array $image_map     Source attachment ID => local attachment ID.
+	 * @param array $image_sources Source media payload.
+	 * @return void
+	 */
+	private function fix_downloadable_file_urls( $product_id, array $image_map, array $image_sources ) {
+		$files = get_post_meta( $product_id, '_downloadable_files', true );
+		if ( ! is_array( $files ) || ! $files || ! $image_map ) {
+			return;
+		}
+		$changed = false;
+		foreach ( $files as $key => $file ) {
+			if ( ! is_array( $file ) || empty( $file['file'] ) || ! is_string( $file['file'] ) ) {
+				continue;
+			}
+			$fixed = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content( $file['file'], $image_map, $image_sources );
+			if ( is_string( $fixed ) ) {
+				$fixed = $this->move_download_to_approved_directory( $fixed );
+			}
+			if ( is_string( $fixed ) && $fixed !== $file['file'] ) {
+				$files[ $key ]['file'] = $fixed;
+				$changed               = true;
+			}
+		}
+		if ( $changed ) {
+			update_post_meta( $product_id, '_downloadable_files', $files );
+		}
+	}
+
+	/**
+	 * WooCommerce only serves downloads from approved directories (by default woocommerce_uploads).
+	 * A downloadable file copied into the regular uploads folder would be refused at download time,
+	 * so move a non-image copy into woocommerce_uploads/<same year/month> and return its new URL.
+	 *
+	 * @param string $url Local file URL.
+	 * @return string URL to store.
+	 */
+	private function move_download_to_approved_directory( $url ) {
+		$register = '\\Automattic\\WooCommerce\\Internal\\ProductDownloads\\ApprovedDirectories\\Register';
+		if ( ! function_exists( 'wc_get_container' ) || ! class_exists( $register ) ) {
+			return $url;
+		}
+		try {
+			$approved = wc_get_container()->get( $register );
+			if ( $approved::MODE_ENABLED !== $approved->get_mode() ) {
+				return $url;
+			}
+			$valid = $approved->is_valid_path( $url );
+		} catch ( \Throwable $e ) {
+			return $url;
+		}
+		$id = (int) \RockStarLab\ImportExport\Helper\Content_Sync_Media::attachment_url_to_original_postid( $url );
+		if ( $id <= 0 || wp_attachment_is_image( $id ) ) {
+			return $url;
+		}
+		$relative = (string) get_post_meta( $id, '_wp_attached_file', true );
+		$uploads  = wp_upload_dir();
+		$source   = trailingslashit( $uploads['basedir'] ) . $relative;
+		if ( 0 === strpos( $relative, 'woocommerce_uploads/' ) ) {
+			// Moved on an earlier push; previews generated after that move still sit in the old folder.
+			$base = trailingslashit( $uploads['basedir'] );
+			$this->move_attachment_sizes( $id, dirname( $base . substr( $relative, strlen( 'woocommerce_uploads/' ) ) ), dirname( $base . $relative ) );
+			return $url;
+		}
+		if ( $valid || '' === $relative || ! is_file( $source ) ) {
+			return $url;
+		}
+		$target_relative = 'woocommerce_uploads/' . ltrim( $relative, '/' );
+		$target          = trailingslashit( $uploads['basedir'] ) . $target_relative;
+		if ( ! wp_mkdir_p( dirname( $target ) ) || file_exists( $target ) || ! @rename( $source, $target ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors, WordPress.WP.AlternativeFunctions.rename_rename -- Same-filesystem move inside uploads.
+			return $url;
+		}
+		update_post_meta( $id, '_wp_attached_file', $target_relative );
+		$this->move_attachment_sizes( $id, dirname( $source ), dirname( $target ) );
+		$new_url = trailingslashit( $uploads['baseurl'] ) . $target_relative;
+		return $approved->is_valid_path( $new_url ) ? $new_url : $url;
+	}
+
+	/**
+	 * Move the generated sizes of an attachment (PDF previews) from one folder to another.
+	 *
+	 * @param int    $id   Attachment ID.
+	 * @param string $from Absolute source folder.
+	 * @param string $to   Absolute target folder.
+	 * @return void
+	 */
+	private function move_attachment_sizes( $id, $from, $to ) {
+		$meta = wp_get_attachment_metadata( $id );
+		if ( ! is_array( $meta ) || empty( $meta['sizes'] ) || ! is_array( $meta['sizes'] ) || $from === $to ) {
+			return;
+		}
+		foreach ( $meta['sizes'] as $size ) {
+			$name = is_array( $size ) && ! empty( $size['file'] ) ? wp_basename( (string) $size['file'] ) : '';
+			if ( '' !== $name && is_file( $from . '/' . $name ) && ! file_exists( $to . '/' . $name ) ) {
+				@rename( $from . '/' . $name, $to . '/' . $name ); // phpcs:ignore WordPress.PHP.NoSilencedErrors, WordPress.WP.AlternativeFunctions.rename_rename -- Same-filesystem move inside uploads.
+			}
+		}
+	}
+
+	/**
+	 * Upsells and cross-sells store product IDs of the sending site. Point them at the local
+	 * copies (from this push, or synced earlier); drop IDs with no local copy instead of
+	 * linking whatever product happens to have that ID here.
+	 *
+	 * @param int   $product_id         Local product.
+	 * @param array $source_to_local_map Source post ID => local post ID of this push.
+	 * @return void
+	 */
+	private function remap_linked_product_ids( $product_id, array $source_to_local_map ) {
+		foreach ( array( '_upsell_ids', '_crosssell_ids' ) as $key ) {
+			$ids = get_post_meta( $product_id, $key, true );
+			if ( ! is_array( $ids ) || ! $ids ) {
+				continue;
+			}
+			$local = array();
+			foreach ( $ids as $source_id ) {
+				$source_id = absint( $source_id );
+				$mapped    = (int) ( $source_to_local_map[ $source_id ] ?? 0 );
+				if ( ! $mapped ) {
+					$mapped = (int) $this->find_existing_post_by_source_meta( $source_id, 'product' );
+				}
+				if ( $mapped > 0 && $mapped !== $product_id ) {
+					$local[] = $mapped;
+				}
+			}
+			$local = array_values( array_unique( $local ) );
+			update_post_meta( $product_id, $key, $local );
+		}
 	}
 
 	/**

@@ -1748,13 +1748,42 @@ class Post_Importer extends Abstract_Importer {
 		if ( is_string( $meta ) ) {
 			$meta = json_decode( $meta, true );
 		}
-		$map = is_array( $meta ) ? ( $meta['_rsl_ie_primary_terms'] ?? null ) : null;
+		if ( ! is_array( $meta ) || $post_id <= 0 ) {
+			return;
+		}
+		$map = $meta['_rsl_ie_primary_terms'] ?? null;
 		if ( is_string( $map ) ) {
 			$map = json_decode( $map, true );
 		}
-		if ( ! is_array( $map ) || $post_id <= 0 ) {
-			return;
+		$map = is_array( $map ) ? $map : [];
+
+		// A Primary Category column holds a slug, a name or a term ID (import_post_meta skips
+		// it). Save the term of this site only if the post has it; an empty cell clears it,
+		// anything else leaves the current primary category as it is.
+		foreach ( $meta as $key => $value ) {
+			if ( isset( $map[ $key ] ) || ! is_scalar( $value ) || ! preg_match( '/^(?:_yoast_wpseo_primary_|rank_math_primary_)(.+)$/', (string) $key, $m ) || ! taxonomy_exists( $m[1] ) ) {
+				continue;
+			}
+			$value = trim( (string) $value );
+			if ( '' === $value ) {
+				delete_post_meta( $post_id, (string) $key );
+				continue;
+			}
+			$term = null;
+			if ( ctype_digit( $value ) ) {
+				$term = get_term( (int) $value, $m[1] );
+			}
+			if ( ! $term || is_wp_error( $term ) ) {
+				$term = get_term_by( 'slug', sanitize_title( $value ), $m[1] );
+			}
+			if ( ! $term ) {
+				$term = get_term_by( 'name', $value, $m[1] );
+			}
+			if ( $term && ! is_wp_error( $term ) && has_term( (int) $term->term_id, $m[1], $post_id ) ) {
+				update_post_meta( $post_id, (string) $key, (string) $term->term_id );
+			}
 		}
+
 		foreach ( $map as $key => $slug ) {
 			if ( ! is_string( $slug ) || ! preg_match( '/^(?:_yoast_wpseo_primary_|rank_math_primary_)(.+)$/', (string) $key, $m ) || ! taxonomy_exists( $m[1] ) ) {
 				continue;
@@ -1951,6 +1980,11 @@ class Post_Importer extends Abstract_Importer {
 			}
 
 			if ( $this->maybe_import_rank_math_media_field( (int) $post_id, (string) $key, $value ) ) {
+				continue;
+			}
+
+			// Primary category: set after the terms are imported (restore_primary_terms).
+			if ( is_string( $key ) && preg_match( '/^(?:_yoast_wpseo_primary_|rank_math_primary_)./', $key ) ) {
 				continue;
 			}
 
@@ -4934,6 +4968,8 @@ class Post_Importer extends Abstract_Importer {
 			);
 		}
 
+		$this->fill_imported_media_alt_from_content( (int) $post_id );
+
 		// Log summary (files attached by the earlier HTML pass count as imported too).
 		$imported_count = max( $imported_count, $this->count_post_attachments( $post_id ) - $children_before );
 		$this->log_info(
@@ -4947,6 +4983,55 @@ class Post_Importer extends Abstract_Importer {
 		);
 	}
 
+
+	/**
+	 * Give media files downloaded from post content the alt text of their <img> tag.
+	 *
+	 * Only files this plugin downloaded (they carry rsl_ie_source_url) and that have no
+	 * alt text yet are changed, so alt text written on this site is never overwritten.
+	 *
+	 * @param int $post_id Post ID.
+	 */
+	private function fill_imported_media_alt_from_content( int $post_id ): void {
+		$content = (string) get_post_field( 'post_content', $post_id, 'raw' );
+		if ( '' === $content || false === stripos( $content, '<img' ) ) {
+			return;
+		}
+		if ( ! preg_match_all( '/<img\b[^>]*>/i', $content, $tags ) ) {
+			return;
+		}
+		$done = [];
+		foreach ( $tags[0] as $tag ) {
+			if ( ! preg_match( '/\salt\s*=\s*("([^"]*)"|\'([^\']*)\')/i', $tag, $alt_match ) ) {
+				continue;
+			}
+			$alt = trim( html_entity_decode( (string) ( '' !== ( $alt_match[2] ?? '' ) ? $alt_match[2] : ( $alt_match[3] ?? '' ) ), ENT_QUOTES, 'UTF-8' ) );
+			if ( '' === $alt ) {
+				continue;
+			}
+			$attachment_id = 0;
+			if ( preg_match( '/wp-image-(\d+)/', $tag, $id_match ) ) {
+				$attachment_id = (int) $id_match[1];
+			} elseif ( preg_match( '/\ssrc\s*=\s*["\']([^"\']+)["\']/i', $tag, $src_match ) ) {
+				$src           = html_entity_decode( $src_match[1], ENT_QUOTES, 'UTF-8' );
+				$attachment_id = (int) attachment_url_to_postid( $src );
+				if ( ! $attachment_id ) {
+					$attachment_id = (int) attachment_url_to_postid( (string) preg_replace( '/-\d+x\d+(?=\.[a-z0-9]+$)/i', '', $src ) );
+				}
+			}
+			if ( $attachment_id <= 0 || isset( $done[ $attachment_id ] ) || 'attachment' !== get_post_type( $attachment_id ) ) {
+				continue;
+			}
+			$done[ $attachment_id ] = true;
+			if ( '' === (string) get_post_meta( $attachment_id, 'rsl_ie_source_url', true ) ) {
+				continue;
+			}
+			if ( '' !== trim( (string) get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ) {
+				continue;
+			}
+			update_post_meta( $attachment_id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
+		}
+	}
 
 	/**
 	 * Whether a JSON string found in a meta value should be turned back into an array.
