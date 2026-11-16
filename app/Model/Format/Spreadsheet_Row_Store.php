@@ -14,7 +14,7 @@ class Spreadsheet_Row_Store {
 		$this->width      = $width;
 		$this->directory  = $directory ?? rtrim( get_temp_dir(), '/\\' ) . '/rsl-sheet-rows-' . bin2hex( random_bytes( 16 ) );
 		if ( is_link( $this->directory ) || ( ! is_dir( $this->directory ) && ! mkdir( $this->directory, 0700 ) ) ) {
-			throw new \RuntimeException( 'Cannot create spreadsheet row store.' ); }
+			throw new \RuntimeException( __( 'Cannot create spreadsheet row store.', 'import-export-by-rockstarlab' ) ); }
 	}
 
 	public function append( array $cell ) {
@@ -22,15 +22,15 @@ class Spreadsheet_Row_Store {
 		$column = $cell['column'];
 		$value  = $cell['value'];
 		if ( ! is_int( $row ) || ! is_int( $column ) || $row < 1 || $column < 1 || ! is_string( $value ) ) {
-			throw new \RuntimeException( 'Invalid spreadsheet cell record.' ); }
+			throw new \RuntimeException( __( 'Invalid spreadsheet cell record.', 'import-export-by-rockstarlab' ) ); }
 		$path      = $this->path( $row );
 		$directory = dirname( $path );
 		if ( ! is_dir( $directory ) && ! mkdir( $directory, 0700, true ) ) {
-			throw new \RuntimeException( 'Cannot create row shard.' ); }
+			throw new \RuntimeException( __( 'Cannot create row shard.', 'import-export-by-rockstarlab' ) ); }
 		$data   = serialize( [ $column, $value, ! empty( $cell['preserve_existing'] ) ] );
 		$record = sprintf( '%020d', strlen( $data ) ) . $data;
 		if ( strlen( $record ) !== file_put_contents( $path, $record, FILE_APPEND ) ) {
-			throw new \RuntimeException( 'Cannot store spreadsheet cell.' ); }
+			throw new \RuntimeException( __( 'Cannot store spreadsheet cell.', 'import-export-by-rockstarlab' ) ); }
 		$this->width = max( $this->width, $column );
 	}
 
@@ -61,26 +61,26 @@ class Spreadsheet_Row_Store {
 			return $values; }
 		$input = fopen( $path, 'rb' );
 		if ( ! $input ) {
-			throw new \RuntimeException( 'Cannot read spreadsheet row.' ); }
+			throw new \RuntimeException( __( 'Cannot read spreadsheet row.', 'import-export-by-rockstarlab' ) ); }
 		try {
 			while ( ! feof( $input ) ) {
 				$header = fread( $input, 20 );
 				if ( '' === $header && feof( $input ) ) {
 					break; }
 				if ( false === $header || strlen( $header ) !== 20 || ! ctype_digit( $header ) ) {
-					throw new \RuntimeException( 'Invalid spreadsheet row index.' ); }
+					throw new \RuntimeException( __( 'Invalid spreadsheet row index.', 'import-export-by-rockstarlab' ) ); }
 				$remaining = (int) $header;
 				$data      = '';
 				while ( $remaining > 0 ) {
 					$chunk = fread( $input, min( 65536, $remaining ) );
 					if ( false === $chunk || '' === $chunk ) {
-						throw new \RuntimeException( 'Incomplete spreadsheet row.' ); }
+						throw new \RuntimeException( __( 'Incomplete spreadsheet row.', 'import-export-by-rockstarlab' ) ); }
 					$data      .= $chunk;
 					$remaining -= strlen( $chunk );
 				}
 				$cell = unserialize( $data, [ 'allowed_classes' => false ] );
 				if ( ! is_array( $cell ) || count( $cell ) !== 3 || ! is_int( $cell[0] ) || $cell[0] < 1 || $cell[0] > $this->width || ! is_string( $cell[1] ) ) {
-					throw new \RuntimeException( 'Invalid stored spreadsheet cell.' ); }
+					throw new \RuntimeException( __( 'Invalid stored spreadsheet cell.', 'import-export-by-rockstarlab' ) ); }
 				if ( ! $cell[2] ) {
 					$values[ $cell[0] - 1 ] = $cell[1]; }
 			}

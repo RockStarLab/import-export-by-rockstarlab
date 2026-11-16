@@ -99,7 +99,7 @@ class Comment_Importer extends Abstract_Importer {
 		return [
 			'duplicate_mode'       => 'How to handle duplicates: skip, update, create',
 			'duplicate_check'      => 'Field to check for duplicates: comment_ID, comment_content',
-			'default_status'       => 'Default comment status if not specified: 0 (pending), 1 (approved), spam, trash',
+			'default_status'       => __( 'Default comment status if not specified: 0 (pending), 1 (approved), spam, trash', 'import-export-by-rockstarlab' ),
 			'default_type'         => 'Default comment type: comment, pingback, trackback',
 			'update_existing'      => 'Update existing comments: true, false',
 			'import_acf'           => 'Import ACF fields: true, false',
@@ -217,7 +217,7 @@ class Comment_Importer extends Abstract_Importer {
 		// Only the WordPress export marker counts: comment rows of this plugin's own exports carry
 		// _rsl_ie_source_post_type too (the type of their post), and were all skipped in 2.2.4-2.2.5.
 		if ( is_array( $item ) && ! empty( $item['_rsl_ie_wxr_item'] ) ) {
-			$this->log_skip_once( 'wxr', 'The rows of a WordPress export are posts, with their comments inside them: they are skipped here. Import the file as Posts or Pages; their comments come along.' );
+			$this->log_skip_once( 'wxr', __( 'The rows of a WordPress export are posts, with their comments inside them: they are skipped here. Import the file as Posts or Pages; their comments come along.', 'import-export-by-rockstarlab' ) );
 			return 'skipped';
 		}
 
@@ -569,7 +569,7 @@ class Comment_Importer extends Abstract_Importer {
 		$value = Post_Importer::normalize_numeric_date( $value, (string) $this->get_option( 'date_order', 'auto' ) );
 		$probe = date_parse( $value );
 		if ( ! is_array( $probe ) || ! empty( $probe['error_count'] ) || ! empty( $probe['warning_count'] ) || false === $probe['year'] || ! checkdate( (int) $probe['month'], (int) $probe['day'], (int) $probe['year'] ) ) {
-			$this->log_warning( sprintf( 'Comment date "%s" is not a date; the import date was used.', mb_substr( $value, 0, 40 ) ) );
+			$this->log_warning( sprintf( /* translators: %s: mb substr. */ __( 'Comment date "%s" is not a date; the import date was used.', 'import-export-by-rockstarlab' ), mb_substr( $value, 0, 40 ) ) );
 			return '';
 		}
 		try {
@@ -986,7 +986,7 @@ class Comment_Importer extends Abstract_Importer {
 		}
 		$this->log_warning(
 			sprintf(
-				'No post matched "%1$s", so the draft post "%2$s" (ID %3$d) was created for its comments.',
+				/* translators: %1$s: hint, %2$s: post title, %3$d: new post id. */ __( 'No post matched "%1$s", so the draft post "%2$s" (ID %3$d) was created for its comments.', 'import-export-by-rockstarlab' ),
 				$hint,
 				$post_title,
 				(int) $new_post_id

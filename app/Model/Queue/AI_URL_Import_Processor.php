@@ -68,7 +68,7 @@ class AI_URL_Import_Processor {
 			$job = $this->job_model->find( $job_id );
 
 			if ( ! $job ) {
-				throw new \Exception( sprintf( 'Job #%d not found', $job_id ) );
+				throw new \Exception( sprintf( /* translators: %d: job id. */ __( 'Job #%d not found', 'import-export-by-rockstarlab' ), $job_id ) );
 			}
 
 			// Check if job is paused or cancelled
@@ -93,7 +93,7 @@ class AI_URL_Import_Processor {
 			// Parse parameters
 			$parameters = json_decode( $job->parameters, true );
 			if ( ! $parameters ) {
-				throw new \Exception( 'Invalid job parameters' );
+				throw new \Exception( __( 'Invalid job parameters', 'import-export-by-rockstarlab' ) );
 			}
 
 			$urls           = $parameters['urls'] ?? [];
@@ -176,7 +176,7 @@ class AI_URL_Import_Processor {
 				if ( $import_images && ! empty( ( $extracted_data['featured_image'] ?? '' ) ) ) {
 					$image_id = $this->ai_extractor->import_image(
 						$extracted_data['featured_image'],
-						$extracted_data['title'] ?? 'Featured Image'
+						$extracted_data['title'] ?? __( 'Featured Image', 'import-export-by-rockstarlab' )
 					);
 
 					if ( ! is_wp_error( $image_id ) ) {
@@ -254,7 +254,7 @@ class AI_URL_Import_Processor {
 					'url'       => $url,
 					'status'    => 'success',
 					'post_id'   => $post_id,
-					'message'   => sprintf( 'Successfully imported: %s', $extracted_data['title'] ?? 'Post' ),
+					'message'   => sprintf( /* translators: %s: extracted  post. */ __( 'Successfully imported: %s', 'import-export-by-rockstarlab' ), $extracted_data['title'] ?? 'Post' ),
 					'timestamp' => current_time( 'mysql' ),
 				];
 

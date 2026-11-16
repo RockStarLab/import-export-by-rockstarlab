@@ -13,7 +13,7 @@ class ODS_Row_Stream {
 					foreach ( $parts->nodes( $name ) as $node ) {
 					}
 				} catch ( \RuntimeException $error ) {
-					if ( 'styles.xml' !== $name || 'Invalid spreadsheet XML.' !== $error->getMessage() ) {
+					if ( 'styles.xml' !== $name || __( 'Invalid spreadsheet XML.', 'import-export-by-rockstarlab' ) !== $error->getMessage() ) {
 						throw $error; }
 				} finally {
 					$parts->release( $name ); }

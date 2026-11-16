@@ -8,6 +8,7 @@ import TabProgress from '../utils/tab-progress';
 import Utils from './utils';
 import ExportStep3 from './export-step-3';
 
+import { __, sprintf } from '@wordpress/i18n';
 const ExportModule = {
 	currentStep: 1,
 	totalSteps: 5,
@@ -1026,7 +1027,12 @@ const ExportModule = {
 		}
 
 		$container.html(
-			'<p class="description">Loading URL content types...</p>'
+			'<p class="description">' +
+				__(
+					'Loading URL content types...',
+					'import-export-by-rockstarlab'
+				) +
+				'</p>'
 		);
 
 		try {
@@ -1038,7 +1044,12 @@ const ExportModule = {
 
 			if ( ! types.length ) {
 				$container.html(
-					'<p class="description">No public URL content types found.</p>'
+					'<p class="description">' +
+						__(
+							'No public URL content types found.',
+							'import-export-by-rockstarlab'
+						) +
+						'</p>'
 				);
 				this.urlTypesLoaded = true;
 				this.updateStep2NextButton();
@@ -1051,7 +1062,12 @@ const ExportModule = {
 			this.refreshCount( false );
 		} catch ( error ) {
 			$container.html(
-				'<p class="description">Could not load URL content types.</p>'
+				'<p class="description">' +
+					__(
+						'Could not load URL content types.',
+						'import-export-by-rockstarlab'
+					) +
+					'</p>'
 			);
 			this.updateStep2NextButton();
 		}
@@ -1081,8 +1097,11 @@ const ExportModule = {
 					<div class="rsl-ie-url-export-group-header">
 						<span class="dashicons dashicons-admin-site-alt3"></span>
 						<div>
-							<h4>Standard WordPress URLs</h4>
-							<p>Homepage, archives, feeds, search and REST URLs</p>
+							<h4>${ __( 'Standard WordPress URLs', 'import-export-by-rockstarlab' ) }</h4>
+							<p>${ __(
+								'Homepage, archives, feeds, search and REST URLs',
+								'import-export-by-rockstarlab'
+							) }</p>
 						</div>
 					</div>
 					<div class="rsl-ie-url-export-group-items">
@@ -1115,7 +1134,10 @@ const ExportModule = {
 							<span class="dashicons dashicons-admin-post"></span>
 							<div>
 								<h4>${ this.escapeHtml( postType.label ) }</h4>
-								<p>Single URLs, archives, feeds, REST endpoint and related taxonomies</p>
+								<p>${ __(
+									'Single URLs, archives, feeds, REST endpoint and related taxonomies',
+									'import-export-by-rockstarlab'
+								) }</p>
 							</div>
 						</div>
 						<div class="rsl-ie-url-export-group-items">
@@ -1123,7 +1145,10 @@ const ExportModule = {
 							${
 								relatedTypes.length
 									? `
-										<div class="rsl-ie-url-export-taxonomies-label">Related URL sources</div>
+										<div class="rsl-ie-url-export-taxonomies-label">${ __(
+											'Related URL sources',
+											'import-export-by-rockstarlab'
+										) }</div>
 										${ relatedTypes
 											.map( ( type ) =>
 												this.renderUrlExportTypeCard(
@@ -1155,8 +1180,11 @@ const ExportModule = {
 						<div class="rsl-ie-url-export-group-header">
 							<span class="dashicons dashicons-category"></span>
 							<div>
-								<h4>Other URL sources</h4>
-								<p>Sources not attached to the visible post type groups</p>
+								<h4>${ __( 'Other URL sources', 'import-export-by-rockstarlab' ) }</h4>
+								<p>${ __(
+									'Sources not attached to the visible post type groups',
+									'import-export-by-rockstarlab'
+								) }</p>
 							</div>
 						</div>
 						<div class="rsl-ie-url-export-group-items">
@@ -1176,19 +1204,43 @@ const ExportModule = {
 
 	renderUrlExportBulkControls() {
 		const controls = [
-			{ category: 'posts', label: 'Posts' },
-			{ category: 'taxonomies', label: 'Taxonomies' },
-			{ category: 'rest', label: 'REST API Endpoints' },
-			{ category: 'rss_feeds', label: 'RSS Feeds' },
-			{ category: 'atom_feeds', label: 'Atom Feeds' },
-			{ category: 'comments_feeds', label: 'Comments Feeds' },
+			{
+				category: 'posts',
+				label: __( 'Posts', 'import-export-by-rockstarlab' ),
+			},
+			{
+				category: 'taxonomies',
+				label: __( 'Taxonomies', 'import-export-by-rockstarlab' ),
+			},
+			{
+				category: 'rest',
+				label: __(
+					'REST API Endpoints',
+					'import-export-by-rockstarlab'
+				),
+			},
+			{
+				category: 'rss_feeds',
+				label: __( 'RSS Feeds', 'import-export-by-rockstarlab' ),
+			},
+			{
+				category: 'atom_feeds',
+				label: __( 'Atom Feeds', 'import-export-by-rockstarlab' ),
+			},
+			{
+				category: 'comments_feeds',
+				label: __( 'Comments Feeds', 'import-export-by-rockstarlab' ),
+			},
 		];
 
 		return `
 			<div class="rsl-ie-url-export-bulk-controls">
 				<div>
-					<h4>Bulk select URL groups</h4>
-					<p>Quickly select or deselect matching sources across all registered content types.</p>
+					<h4>${ __( 'Bulk select URL groups', 'import-export-by-rockstarlab' ) }</h4>
+					<p>${ __(
+						'Quickly select or deselect matching sources across all registered content types.',
+						'import-export-by-rockstarlab'
+					) }</p>
 				</div>
 				<div class="rsl-ie-url-export-bulk-list">
 					${ controls
@@ -1223,17 +1275,30 @@ const ExportModule = {
 
 	getUrlSourceKindLabel( kind ) {
 		const labels = {
-			post_type: 'Post type',
-			taxonomy: 'Taxonomy',
-			standard: 'Standard',
-			feed: 'Feed',
-			rest: 'REST endpoint',
-			post_type_archive: 'Post type archive',
-			post_type_feed: 'Post type feed',
-			rest_post_type: 'REST endpoint',
+			post_type: __( 'Post type', 'import-export-by-rockstarlab' ),
+			taxonomy: __( 'Taxonomy', 'import-export-by-rockstarlab' ),
+			standard: __( 'Standard', 'import-export-by-rockstarlab' ),
+			feed: __( 'Feed', 'import-export-by-rockstarlab' ),
+			rest: __( 'REST endpoint', 'import-export-by-rockstarlab' ),
+			post_type_archive: __(
+				'Post type archive',
+				'import-export-by-rockstarlab'
+			),
+			post_type_feed: __(
+				'Post type feed',
+				'import-export-by-rockstarlab'
+			),
+			rest_post_type: __(
+				'REST endpoint',
+				'import-export-by-rockstarlab'
+			),
 		};
 
-		return labels[ kind ] || kind || 'URL source';
+		return (
+			labels[ kind ] ||
+			kind ||
+			__( 'URL source', 'import-export-by-rockstarlab' )
+		);
 	},
 
 	renderUrlExportTypeCard( type, isChild = false ) {
@@ -1425,10 +1490,14 @@ const ExportModule = {
 		) {
 			isDisabled = true;
 			tooltipTitle =
-				window.rslIeData.i18n.formRequired || 'Select a form';
+				window.rslIeData.i18n.formRequired ||
+				__( 'Select a form', 'import-export-by-rockstarlab' );
 			tooltipMessage =
 				window.rslIeData.i18n.pleaseSelectForm ||
-				'Please choose the form whose entries you want to export.';
+				__(
+					'Please choose the form whose entries you want to export.',
+					'import-export-by-rockstarlab'
+				);
 		}
 
 		if (
@@ -1436,8 +1505,14 @@ const ExportModule = {
 			this.getSelectedUrlContentTypes().length === 0
 		) {
 			isDisabled = true;
-			tooltipTitle = 'Select URL types';
-			tooltipMessage = 'Please select at least one public content type.';
+			tooltipTitle = __(
+				'Select URL types',
+				'import-export-by-rockstarlab'
+			);
+			tooltipMessage = __(
+				'Please select at least one public content type.',
+				'import-export-by-rockstarlab'
+			);
 		}
 
 		// Disable if count is 0, NaN, or '-'
@@ -2050,7 +2125,10 @@ const ExportModule = {
 			).trim();
 			if ( ! customExportFileName ) {
 				Utils.showNotice(
-					'Please enter a custom export file name.',
+					__(
+						'Please enter a custom export file name.',
+						'import-export-by-rockstarlab'
+					),
 					'error'
 				);
 				jQuery( '[name="custom_export_file_name"]' ).focus();
@@ -2144,7 +2222,10 @@ const ExportModule = {
 				if ( ! selection ) {
 					Utils.showNotice(
 						window.rslIeData.i18n.pleaseSelectForm ||
-							'Please choose a form.',
+							__(
+								'Please choose a form.',
+								'import-export-by-rockstarlab'
+							),
 						'error'
 					);
 					this.setStartExportButtonLoading( $button, false );
@@ -2157,7 +2238,10 @@ const ExportModule = {
 				const contentTypes = this.getSelectedUrlContentTypes();
 				if ( contentTypes.length === 0 ) {
 					Utils.showNotice(
-						'Please select at least one URL content type.',
+						__(
+							'Please select at least one URL content type.',
+							'import-export-by-rockstarlab'
+						),
 						'error'
 					);
 					this.setStartExportButtonLoading( $button, false );
@@ -2220,7 +2304,10 @@ const ExportModule = {
 				'success'
 			);
 		} catch ( error ) {
-			Utils.handleError( error, 'Start export' );
+			Utils.handleError(
+				error,
+				__( 'Start export', 'import-export-by-rockstarlab' )
+			);
 		} finally {
 			this.setStartExportButtonLoading( $button, false );
 		}
@@ -2436,8 +2523,14 @@ const ExportModule = {
 							? i18n.remoteUploaded
 							: i18n.remoteUploadFailed ) ||
 						( ok
-							? 'Uploaded to %1$s: %2$s'
-							: 'Upload to %1$s failed: %2$s' )
+							? __(
+									'Uploaded to %1$s: %2$s',
+									'import-export-by-rockstarlab'
+							  )
+							: __(
+									'Upload to %1$s failed: %2$s',
+									'import-export-by-rockstarlab'
+							  ) )
 					)
 						.replace( '%1$s', upload.server || '' )
 						.replace(
@@ -2503,7 +2596,10 @@ const ExportModule = {
 				Utils.downloadFile( response.download_url, response.filename );
 			}
 		} catch ( error ) {
-			Utils.handleError( error, 'Download file' );
+			Utils.handleError(
+				error,
+				__( 'Download file', 'import-export-by-rockstarlab' )
+			);
 		} finally {
 			setTimeout( () => {
 				this.setDownloadButtonLoading( $button, false );
@@ -2559,7 +2655,10 @@ const ExportModule = {
 			Utils.showNotice( window.rslIeData.i18n.exportCancelled, 'info' );
 			this.resetWizard();
 		} catch ( error ) {
-			Utils.handleError( error, 'Cancel export' );
+			Utils.handleError(
+				error,
+				__( 'Cancel export', 'import-export-by-rockstarlab' )
+			);
 		}
 	},
 
@@ -2670,7 +2769,13 @@ const ExportModule = {
 			$valueWrap.html( `
 				<div class="rsl-ie-custom-field-inputs">
 					<div class="rsl-ie-input-group">
-						<label>${ window.rslIeData.i18n.customFieldName || 'Custom field name' }</label>
+						<label>${
+							window.rslIeData.i18n.customFieldName ||
+							__(
+								'Custom field name',
+								'import-export-by-rockstarlab'
+							)
+						}</label>
 						<input type="text" class="rsl-ie-custom-field-name" placeholder="${
 							window.rslIeData.i18n.enterCustomFieldName
 						}" />
@@ -2743,11 +2848,13 @@ const ExportModule = {
 			$valueWrap.html( `
 				<div class="rsl-ie-taxonomy-filter-inputs">
 					<div class="rsl-ie-input-group">
-						<label>Taxonomy Name</label>
-						<input type="text" class="rsl-ie-taxonomy-name" placeholder="${ window.rslIeData.i18n.taxonomyPlaceholderExamples }" />
+						<label>${ __( 'Taxonomy Name', 'import-export-by-rockstarlab' ) }</label>
+						<input type="text" class="rsl-ie-taxonomy-name" placeholder="${
+							window.rslIeData.i18n.taxonomyPlaceholderExamples
+						}" />
 					</div>
 					<div class="rsl-ie-input-group">
-						<label>Condition</label>
+						<label>${ __( 'Condition', 'import-export-by-rockstarlab' ) }</label>
 						<select class="rsl-ie-taxonomy-condition rsl-ie-filter-condition">
 							<option value="in">${ window.rslIeData.i18n.hasTermsIn }</option>
 							<option value="not_in">${ window.rslIeData.i18n.doesNotHaveTermsNotIn }</option>
@@ -2755,8 +2862,10 @@ const ExportModule = {
 						</select>
 					</div>
 					<div class="rsl-ie-input-group">
-						<label>Terms</label>
-						<input type="text" class="rsl-ie-taxonomy-terms rsl-ie-filter-value" placeholder="${ window.rslIeData.i18n.enterTermSlugs }" />
+						<label>${ __( 'Terms', 'import-export-by-rockstarlab' ) }</label>
+						<input type="text" class="rsl-ie-taxonomy-terms rsl-ie-filter-value" placeholder="${
+							window.rslIeData.i18n.enterTermSlugs
+						}" />
 						<small>${ window.rslIeData.i18n.enterTermSlugs }</small>
 					</div>
 				</div>
@@ -3229,13 +3338,27 @@ const ExportModule = {
 						.val( '' )
 						.text(
 							forms.length
-								? i18n.selectForm || 'Select a form...'
-								: i18n.noForms || 'No forms found'
+								? i18n.selectForm ||
+										__(
+											'Select a form...',
+											'import-export-by-rockstarlab'
+										)
+								: i18n.noForms ||
+										__(
+											'No forms found',
+											'import-export-by-rockstarlab'
+										)
 						)
 				);
 				const groups = {
-					gravityforms: 'Gravity Forms',
-					flamingo: 'Contact Form 7 (Flamingo)',
+					gravityforms: __(
+						'Gravity Forms',
+						'import-export-by-rockstarlab'
+					),
+					flamingo: __(
+						'Contact Form 7 (Flamingo)',
+						'import-export-by-rockstarlab'
+					),
 				};
 				Object.keys( groups ).forEach( ( source ) => {
 					const items = forms.filter( ( f ) => f.source === source );
@@ -3261,7 +3384,10 @@ const ExportModule = {
 				$select.empty().append(
 					jQuery( '<option>' )
 						.val( '' )
-						.text( ( error && error.message ) || 'Error' )
+						.text(
+							( error && error.message ) ||
+								__( 'Error', 'import-export-by-rockstarlab' )
+						)
 				);
 			} )
 			.finally( () => {
@@ -3319,13 +3445,18 @@ const ExportModule = {
 		if ( ! fields.length ) {
 			return [
 				{
-					label: i18n.fieldGroupFormEntry || 'Entry',
+					label:
+						i18n.fieldGroupFormEntry ||
+						__( 'Entry', 'import-export-by-rockstarlab' ),
 					options: [
 						{
 							value: '_select_form',
 							label:
 								i18n.pleaseSelectForm ||
-								'Please choose a form first.',
+								__(
+									'Please choose a form first.',
+									'import-export-by-rockstarlab'
+								),
 							type: 'info',
 						},
 					],
@@ -3346,13 +3477,17 @@ const ExportModule = {
 		} );
 		return [
 			{
-				label: i18n.fieldGroupFormEntry || 'Entry',
+				label:
+					i18n.fieldGroupFormEntry ||
+					__( 'Entry', 'import-export-by-rockstarlab' ),
 				options: fields
 					.filter( ( f ) => entry.includes( f.name ) )
 					.map( toOption ),
 			},
 			{
-				label: i18n.fieldGroupFormFields || 'Form fields',
+				label:
+					i18n.fieldGroupFormFields ||
+					__( 'Form fields', 'import-export-by-rockstarlab' ),
 				options: fields
 					.filter(
 						( f ) =>
@@ -3362,7 +3497,9 @@ const ExportModule = {
 					.map( toOption ),
 			},
 			{
-				label: i18n.fieldGroupFormVisitor || 'Visitor',
+				label:
+					i18n.fieldGroupFormVisitor ||
+					__( 'Visitor', 'import-export-by-rockstarlab' ),
 				options: fields
 					.filter( ( f ) => visitor.includes( f.name ) )
 					.map( toOption ),
@@ -3438,39 +3575,54 @@ const ExportModule = {
 			{
 				label:
 					window.rslIeData.i18n.fieldGroupFeaturedImage ||
-					'Featured Image',
+					__( 'Featured Image', 'import-export-by-rockstarlab' ),
 				options: [
 					{
 						value: 'featured_image_id',
 						label:
 							window.rslIeData.i18n.fieldFeaturedImageId ||
-							'Featured Image ID',
+							__(
+								'Featured Image ID',
+								'import-export-by-rockstarlab'
+							),
 						type: 'number',
 					},
 					{
 						value: 'featured_image_url',
 						label:
 							window.rslIeData.i18n.fieldFeaturedImageUrl ||
-							'Featured Image URL',
+							__(
+								'Featured Image URL',
+								'import-export-by-rockstarlab'
+							),
 						type: 'url',
 					},
 					{
 						value: 'featured_image_title',
 						label:
 							window.rslIeData.i18n.fieldFeaturedImageTitle ||
-							'Featured Image Title',
+							__(
+								'Featured Image Title',
+								'import-export-by-rockstarlab'
+							),
 						type: 'string',
 					},
 					{
 						value: 'featured_image_caption',
 						label:
 							window.rslIeData.i18n.fieldFeaturedImageCaption ||
-							'Featured Image Caption',
+							__(
+								'Featured Image Caption',
+								'import-export-by-rockstarlab'
+							),
 						type: 'string',
 					},
 					{
 						value: 'featured_image_alt',
-						label: 'Featured Image Alt Text',
+						label: __(
+							'Featured Image Alt Text',
+							'import-export-by-rockstarlab'
+						),
 						type: 'string',
 					},
 				],
@@ -3487,12 +3639,14 @@ const ExportModule = {
 						value: 'menu_order',
 						label:
 							window.rslIeData.i18n.fieldMenuOrder ||
-							'Menu Order',
+							__( 'Menu Order', 'import-export-by-rockstarlab' ),
 						type: 'number',
 					},
 					{
 						value: 'is_sticky',
-						label: window.rslIeData.i18n.fieldSticky || 'Sticky',
+						label:
+							window.rslIeData.i18n.fieldSticky ||
+							__( 'Sticky', 'import-export-by-rockstarlab' ),
 						type: 'boolean',
 					},
 					{
@@ -3504,7 +3658,10 @@ const ExportModule = {
 						value: 'post_password',
 						label:
 							window.rslIeData.i18n.fieldPostPassword ||
-							'Post Password',
+							__(
+								'Post Password',
+								'import-export-by-rockstarlab'
+							),
 						type: 'string',
 					},
 					{
@@ -3544,7 +3701,9 @@ const ExportModule = {
 					options: [
 						{
 							value: 'ID',
-							label: window.rslIeData.i18n.fieldId || 'ID',
+							label:
+								window.rslIeData.i18n.fieldId ||
+								__( 'ID', 'import-export-by-rockstarlab' ),
 							type: 'number',
 						},
 						{
@@ -3703,7 +3862,10 @@ const ExportModule = {
 					options: [
 						{
 							value: 'term_id',
-							label: 'Source Menu ID',
+							label: __(
+								'Source Menu ID',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
@@ -3714,9 +3876,16 @@ const ExportModule = {
 						{
 							value: 'menu_items',
 							label:
-								'Menu Items Portable JSON ' +
+								__(
+									'Menu Items Portable JSON',
+									'import-export-by-rockstarlab'
+								) +
+								' ' +
 								( window.rslIeData.i18n.includesAcfFields ||
-									'(includes ACF fields)' ),
+									__(
+										'(includes ACF fields)',
+										'import-export-by-rockstarlab'
+									) ),
 							type: 'array',
 						},
 					],
@@ -3757,26 +3926,36 @@ const ExportModule = {
 					options: [
 						{
 							value: 'ID',
-							label: window.rslIeData.i18n.fieldId || 'ID',
+							label:
+								window.rslIeData.i18n.fieldId ||
+								__( 'ID', 'import-export-by-rockstarlab' ),
 							type: 'number',
 						},
 						{
 							value: 'user_login',
 							label:
 								window.rslIeData.i18n.fieldUsername ||
-								'Username',
+								__(
+									'Username',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'user_email',
-							label: window.rslIeData.i18n.fieldEmail || 'Email',
+							label:
+								window.rslIeData.i18n.fieldEmail ||
+								__( 'Email', 'import-export-by-rockstarlab' ),
 							type: 'string',
 						},
 						{
 							value: 'display_name',
 							label:
 								window.rslIeData.i18n.fieldDisplayName ||
-								'Display name',
+								__(
+									'Display name',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
@@ -3812,7 +3991,8 @@ const ExportModule = {
 						{
 							value: 'user_url',
 							label:
-								window.rslIeData.i18n.fieldWebsite || 'Website',
+								window.rslIeData.i18n.fieldWebsite ||
+								__( 'Website', 'import-export-by-rockstarlab' ),
 							type: 'string',
 						},
 						{
@@ -3825,76 +4005,106 @@ const ExportModule = {
 				{
 					label:
 						window.rslIeData.i18n.fieldGroupSocialMedia ||
-						'Social Media',
+						__( 'Social Media', 'import-export-by-rockstarlab' ),
 					options: [
 						{
 							value: 'facebook',
 							label:
 								window.rslIeData.i18n.fieldFacebook ||
-								'Facebook profile URL',
+								__(
+									'Facebook profile URL',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'instagram',
 							label:
 								window.rslIeData.i18n.fieldInstagram ||
-								'Instagram profile URL',
+								__(
+									'Instagram profile URL',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'linkedin',
 							label:
 								window.rslIeData.i18n.fieldLinkedIn ||
-								'LinkedIn profile URL',
+								__(
+									'LinkedIn profile URL',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'myspace',
 							label:
 								window.rslIeData.i18n.fieldMySpace ||
-								'MySpace profile URL',
+								__(
+									'MySpace profile URL',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'pinterest',
 							label:
 								window.rslIeData.i18n.fieldPinterest ||
-								'Pinterest profile URL',
+								__(
+									'Pinterest profile URL',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'soundcloud',
 							label:
 								window.rslIeData.i18n.fieldSoundCloud ||
-								'SoundCloud profile URL',
+								__(
+									'SoundCloud profile URL',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'tumblr',
 							label:
 								window.rslIeData.i18n.fieldTumblr ||
-								'Tumblr profile URL',
+								__(
+									'Tumblr profile URL',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'wikipedia',
 							label:
 								window.rslIeData.i18n.fieldWikipedia ||
-								'Wikipedia page about you',
+								__(
+									'Wikipedia page about you',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'twitter',
 							label:
 								window.rslIeData.i18n.fieldTwitter ||
-								'X username',
+								__(
+									'X username',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'youtube',
 							label:
 								window.rslIeData.i18n.fieldYouTube ||
-								'YouTube profile URL',
+								__(
+									'YouTube profile URL',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 					],
@@ -3909,7 +4119,9 @@ const ExportModule = {
 						},
 						{
 							value: 'roles',
-							label: window.rslIeData.i18n.fieldRoles || 'Roles',
+							label:
+								window.rslIeData.i18n.fieldRoles ||
+								__( 'Roles', 'import-export-by-rockstarlab' ),
 							type: 'array',
 						},
 						{
@@ -3926,7 +4138,10 @@ const ExportModule = {
 							value: 'locale',
 							label:
 								window.rslIeData.i18n.fieldLanguage ||
-								'Language',
+								__(
+									'Language',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
@@ -3963,7 +4178,10 @@ const ExportModule = {
 							value: 'user_meta',
 							label:
 								window.rslIeData.i18n.fieldUserMeta ||
-								'User meta',
+								__(
+									'User meta',
+									'import-export-by-rockstarlab'
+								),
 							type: 'object',
 						},
 						{
@@ -3984,41 +4202,62 @@ const ExportModule = {
 					options: [
 						{
 							value: 'comment_ID',
-							label: 'Comment ID (local/source reference)',
+							label: __(
+								'Comment ID (local/source reference)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'source_comment_id',
-							label: 'Source Comment ID (for updates)',
+							label: __(
+								'Source Comment ID (for updates)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'comment_post_ID',
-							label: 'Post ID (source/local fallback)',
+							label: __(
+								'Post ID (source/local fallback)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'source_post_id',
-							label: 'Source Post ID (matches imported posts)',
+							label: __(
+								'Source Post ID (matches imported posts)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'post_permalink',
 							label:
 								window.rslIeData.i18n.fieldPermalink ||
-								'Post Permalink (matching hint)',
+								__(
+									'Post Permalink (matching hint)',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'post_type',
 							label:
 								window.rslIeData.i18n.fieldPostType ||
-								'Post type',
+								__(
+									'Post type',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'post_slug',
-							label: 'Post Slug (recommended matching)',
+							label: __(
+								'Post Slug (recommended matching)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
@@ -4064,14 +4303,18 @@ const ExportModule = {
 						{
 							value: 'user_id',
 							label:
-								window.rslIeData.i18n.fieldUserId || 'User ID',
+								window.rslIeData.i18n.fieldUserId ||
+								__( 'User ID', 'import-export-by-rockstarlab' ),
 							type: 'number',
 						},
 						{
 							value: 'comment_agent',
 							label:
 								window.rslIeData.i18n.fieldUserAgent ||
-								'User agent',
+								__(
+									'User agent',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 					],
@@ -4106,12 +4349,18 @@ const ExportModule = {
 					options: [
 						{
 							value: 'comment_parent',
-							label: 'Parent Comment ID (source reference)',
+							label: __(
+								'Parent Comment ID (source reference)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'source_comment_parent_id',
-							label: 'Source Parent Comment ID (for threaded comments)',
+							label: __(
+								'Source Parent Comment ID (for threaded comments)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
@@ -4128,7 +4377,10 @@ const ExportModule = {
 							value: 'comment_meta',
 							label:
 								window.rslIeData.i18n.fieldCommentMeta ||
-								'Comment meta',
+								__(
+									'Comment meta',
+									'import-export-by-rockstarlab'
+								),
 							type: 'object',
 						},
 						{
@@ -4231,7 +4483,8 @@ const ExportModule = {
 						{
 							value: 'is_sticky',
 							label:
-								window.rslIeData.i18n.fieldSticky || 'Sticky',
+								window.rslIeData.i18n.fieldSticky ||
+								__( 'Sticky', 'import-export-by-rockstarlab' ),
 							type: 'boolean',
 						},
 						{
@@ -4242,34 +4495,48 @@ const ExportModule = {
 					],
 				},
 				{
-					label: window.rslIeData.i18n.fieldGroupMedia || 'Media',
+					label:
+						window.rslIeData.i18n.fieldGroupMedia ||
+						__( 'Media', 'import-export-by-rockstarlab' ),
 					options: [
 						{
 							value: 'featured_image',
 							label:
 								window.rslIeData.i18n.fieldFeaturedImage ||
-								'Featured Image',
+								__(
+									'Featured Image',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'featured_image_id',
 							label:
 								window.rslIeData.i18n.fieldFeaturedImageId ||
-								'Featured Image ID',
+								__(
+									'Featured Image ID',
+									'import-export-by-rockstarlab'
+								),
 							type: 'number',
 						},
 						{
 							value: 'featured_image_url',
 							label:
 								window.rslIeData.i18n.fieldFeaturedImageUrl ||
-								'Featured Image URL',
+								__(
+									'Featured Image URL',
+									'import-export-by-rockstarlab'
+								),
 							type: 'url',
 						},
 						{
 							value: 'featured_image_title',
 							label:
 								window.rslIeData.i18n.fieldFeaturedImageTitle ||
-								'Featured Image Title',
+								__(
+									'Featured Image Title',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
@@ -4282,7 +4549,10 @@ const ExportModule = {
 						},
 						{
 							value: 'featured_image_alt',
-							label: 'Featured Image Alt Text',
+							label: __(
+								'Featured Image Alt Text',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 					],
@@ -4337,17 +4607,26 @@ const ExportModule = {
 						},
 						{
 							value: 'taxonomy',
-							label: 'Taxonomy',
+							label: __(
+								'Taxonomy',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'term_taxonomy_id',
-							label: 'Term Taxonomy ID',
+							label: __(
+								'Term Taxonomy ID',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'term_group',
-							label: 'Term Group',
+							label: __(
+								'Term Group',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
@@ -4367,7 +4646,10 @@ const ExportModule = {
 						},
 						{
 							value: 'parent_slug',
-							label: 'Parent Slug',
+							label: __(
+								'Parent Slug',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
@@ -4378,21 +4660,30 @@ const ExportModule = {
 					],
 				},
 				{
-					label: 'Image',
+					label: __( 'Image', 'import-export-by-rockstarlab' ),
 					options: [
 						{
 							value: 'image_url',
-							label: 'Image URL',
+							label: __(
+								'Image URL',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Custom Fields (Term Meta)',
+					label: __(
+						'Custom Fields (Term Meta)',
+						'import-export-by-rockstarlab'
+					),
 					options: [
 						{
 							value: 'term_meta',
-							label: 'Term Meta (JSON)',
+							label: __(
+								'Term Meta (JSON)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'object',
 						},
 					],
@@ -4515,28 +4806,40 @@ const ExportModule = {
 							value: 'parent_sku',
 							label:
 								window.rslIeData.i18n.fieldParentSku ||
-								'Parent SKU',
+								__(
+									'Parent SKU',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'product_title',
 							label:
 								window.rslIeData.i18n.fieldProductTitle ||
-								'Product Title (parent on variation rows)',
+								__(
+									'Product Title (parent on variation rows)',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'product_slug',
 							label:
 								window.rslIeData.i18n.fieldProductSlug ||
-								'Product Slug (parent on variation rows)',
+								__(
+									'Product Slug (parent on variation rows)',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
 							value: 'variation_attributes',
 							label:
 								window.rslIeData.i18n.fieldVariationOptions ||
-								'Variation Options',
+								__(
+									'Variation Options',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						...[ 1, 2, 3 ].flatMap( ( n ) => [
@@ -4544,7 +4847,10 @@ const ExportModule = {
 								value: `option${ n }_name`,
 								label: (
 									window.rslIeData.i18n.fieldOptionName ||
-									'Option %d Name'
+									__(
+										'Option %d Name',
+										'import-export-by-rockstarlab'
+									)
 								).replace( '%d', n ),
 								type: 'string',
 							},
@@ -4552,19 +4858,28 @@ const ExportModule = {
 								value: `option${ n }_value`,
 								label: (
 									window.rslIeData.i18n.fieldOptionValue ||
-									'Option %d Value'
+									__(
+										'Option %d Value',
+										'import-export-by-rockstarlab'
+									)
 								).replace( '%d', n ),
 								type: 'string',
 							},
 						] ),
 						{
 							value: 'product_url',
-							label: 'External Product URL',
+							label: __(
+								'External Product URL',
+								'import-export-by-rockstarlab'
+							),
 							type: 'url',
 						},
 						{
 							value: 'button_text',
-							label: 'External Button Text',
+							label: __(
+								'External Button Text',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
@@ -4612,27 +4927,36 @@ const ExportModule = {
 				{
 					label:
 						window.rslIeData.i18n.fieldGroupFeaturedImage ||
-						'Featured Image',
+						__( 'Featured Image', 'import-export-by-rockstarlab' ),
 					options: [
 						{
 							value: 'featured_image_id',
 							label:
 								window.rslIeData.i18n.fieldFeaturedImageId ||
-								'Featured Image ID',
+								__(
+									'Featured Image ID',
+									'import-export-by-rockstarlab'
+								),
 							type: 'number',
 						},
 						{
 							value: 'featured_image_url',
 							label:
 								window.rslIeData.i18n.fieldFeaturedImageUrl ||
-								'Featured Image URL',
+								__(
+									'Featured Image URL',
+									'import-export-by-rockstarlab'
+								),
 							type: 'url',
 						},
 						{
 							value: 'featured_image_title',
 							label:
 								window.rslIeData.i18n.fieldFeaturedImageTitle ||
-								'Featured Image Title',
+								__(
+									'Featured Image Title',
+									'import-export-by-rockstarlab'
+								),
 							type: 'string',
 						},
 						{
@@ -4645,7 +4969,10 @@ const ExportModule = {
 						},
 						{
 							value: 'featured_image_alt',
-							label: 'Featured Image Alt Text',
+							label: __(
+								'Featured Image Alt Text',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 					],
@@ -4662,17 +4989,26 @@ const ExportModule = {
 							value: 'variations',
 							label:
 								window.rslIeData.i18n.fieldVariations ||
-								'Variations (JSON)',
+								__(
+									'Variations (JSON)',
+									'import-export-by-rockstarlab'
+								),
 							type: 'json',
 						},
 						{
 							value: 'product_attributes',
-							label: 'Product Attributes (JSON)',
+							label: __(
+								'Product Attributes (JSON)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'json',
 						},
 						{
 							value: 'grouped_products',
-							label: 'Grouped Products (JSON)',
+							label: __(
+								'Grouped Products (JSON)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'json',
 						},
 					],
@@ -4692,7 +5028,10 @@ const ExportModule = {
 						},
 						{
 							value: 'product_brand',
-							label: 'Brands',
+							label: __(
+								'Brands',
+								'import-export-by-rockstarlab'
+							),
 							type: 'json',
 						},
 					],
@@ -4833,22 +5172,34 @@ const ExportModule = {
 						},
 						{
 							value: 'cart_tax',
-							label: 'Cart Tax',
+							label: __(
+								'Cart Tax',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'shipping_tax',
-							label: 'Shipping Tax',
+							label: __(
+								'Shipping Tax',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'total_tax',
-							label: 'Total Tax',
+							label: __(
+								'Total Tax',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'tax_lines',
-							label: 'Tax Lines (Array)',
+							label: __(
+								'Tax Lines (Array)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 					],
@@ -4873,12 +5224,18 @@ const ExportModule = {
 						},
 						{
 							value: 'customer_ip_address',
-							label: 'Customer IP Address',
+							label: __(
+								'Customer IP Address',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'customer_user_agent',
-							label: 'Customer User Agent',
+							label: __(
+								'Customer User Agent',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 					],
@@ -4998,42 +5355,66 @@ const ExportModule = {
 						},
 						{
 							value: 'item_name',
-							label: 'Item Name',
+							label: __(
+								'Item Name',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'item_sku',
-							label: 'Item SKU',
+							label: __(
+								'Item SKU',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'item_quantity',
-							label: 'Item Quantity',
+							label: __(
+								'Item Quantity',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'item_subtotal',
-							label: 'Item Subtotal',
+							label: __(
+								'Item Subtotal',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'item_total',
-							label: 'Item Total',
+							label: __(
+								'Item Total',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'item_tax',
-							label: 'Item Tax',
+							label: __(
+								'Item Tax',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'item_product_id',
-							label: 'Item Product ID',
+							label: __(
+								'Item Product ID',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'item_variation_id',
-							label: 'Item Variation ID',
+							label: __(
+								'Item Variation ID',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
@@ -5043,17 +5424,26 @@ const ExportModule = {
 						},
 						{
 							value: 'shipping_lines',
-							label: 'Shipping Lines',
+							label: __(
+								'Shipping Lines',
+								'import-export-by-rockstarlab'
+							),
 							type: 'array',
 						},
 						{
 							value: 'fee_lines',
-							label: 'Fee Lines',
+							label: __(
+								'Fee Lines',
+								'import-export-by-rockstarlab'
+							),
 							type: 'array',
 						},
 						{
 							value: 'coupon_lines',
-							label: 'Coupon Lines',
+							label: __(
+								'Coupon Lines',
+								'import-export-by-rockstarlab'
+							),
 							type: 'array',
 						},
 					],
@@ -5099,7 +5489,10 @@ const ExportModule = {
 						},
 						{
 							value: 'date_modified',
-							label: 'Date Modified',
+							label: __(
+								'Date Modified',
+								'import-export-by-rockstarlab'
+							),
 							type: 'date',
 						},
 						{
@@ -5126,12 +5519,18 @@ const ExportModule = {
 							value: 'refunds',
 							label:
 								window.rslIeData.i18n.fieldRefundsArray ||
-								'Refunds (Array)',
+								__(
+									'Refunds (Array)',
+									'import-export-by-rockstarlab'
+								),
 							type: 'array',
 						},
 						{
 							value: 'order_meta',
-							label: 'Order Meta',
+							label: __(
+								'Order Meta',
+								'import-export-by-rockstarlab'
+							),
 							type: 'array',
 						},
 					],
@@ -5278,7 +5677,10 @@ const ExportModule = {
 						},
 						{
 							value: 'limit_usage_to_x_items',
-							label: 'Limit Usage to X Items',
+							label: __(
+								'Limit Usage to X Items',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						// Customers who used the coupon (billing email or user ID), one entry per use.
@@ -5286,7 +5688,10 @@ const ExportModule = {
 							value: 'used_by',
 							label:
 								window.rslIeData.i18n.fieldUsedBy ||
-								'Used By (Array)',
+								__(
+									'Used By (Array)',
+									'import-export-by-rockstarlab'
+								),
 							type: 'array',
 						},
 					],
@@ -5388,78 +5793,131 @@ const ExportModule = {
 		if ( contentType === 'woo_review' ) {
 			return [
 				{
-					label: 'Review',
+					label: __( 'Review', 'import-export-by-rockstarlab' ),
 					options: [
 						{
 							value: 'comment_ID',
-							label: 'Review ID (local/source reference)',
+							label: __(
+								'Review ID (local/source reference)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'source_comment_id',
-							label: 'Source Review ID (for updates)',
+							label: __(
+								'Source Review ID (for updates)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'product_id',
-							label: 'Product ID (source/local fallback)',
+							label: __(
+								'Product ID (source/local fallback)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'source_product_id',
-							label: 'Source Product ID (matches imported products)',
+							label: __(
+								'Source Product ID (matches imported products)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'product_title',
-							label: 'Product Title (fallback matching)',
+							label: __(
+								'Product Title (fallback matching)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'product_slug',
-							label: 'Product Slug (recommended matching)',
+							label: __(
+								'Product Slug (recommended matching)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'product_sku',
-							label: 'Product SKU (best matching)',
+							label: __(
+								'Product SKU (best matching)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'comment_author',
-							label: 'Author',
+							label: __(
+								'Author',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'comment_author_email',
-							label: 'Author Email',
+							label: __(
+								'Author Email',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'comment_content',
-							label: 'Content',
+							label: __(
+								'Content',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'comment_approved',
-							label: 'Status',
+							label: __(
+								'Status',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'comment_parent',
-							label: 'Parent Review ID',
+							label: __(
+								'Parent Review ID',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
-						{ value: 'rating', label: 'Rating', type: 'number' },
+						{
+							value: 'rating',
+							label: __(
+								'Rating',
+								'import-export-by-rockstarlab'
+							),
+							type: 'number',
+						},
 						{
 							value: 'verified',
-							label: 'Verified Owner',
+							label: __(
+								'Verified Owner',
+								'import-export-by-rockstarlab'
+							),
 							type: 'boolean',
 						},
-						{ value: 'comment_date', label: 'Date', type: 'date' },
+						{
+							value: 'comment_date',
+							label: __( 'Date', 'import-export-by-rockstarlab' ),
+							type: 'date',
+						},
 						{
 							value: 'comment_meta',
-							label: 'Review Meta',
+							label: __(
+								'Review Meta',
+								'import-export-by-rockstarlab'
+							),
 							type: 'array',
 						},
 					],
@@ -5470,67 +5928,128 @@ const ExportModule = {
 		if ( contentType === 'woo_refund' ) {
 			return [
 				{
-					label: 'Refund',
+					label: __( 'Refund', 'import-export-by-rockstarlab' ),
 					options: [
 						{
 							value: 'refund_id',
-							label: 'Refund ID (local/source reference)',
+							label: __(
+								'Refund ID (local/source reference)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'source_refund_id',
-							label: 'Source Refund ID (for updates)',
+							label: __(
+								'Source Refund ID (for updates)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'parent_order_id',
-							label: 'Parent Order ID (source/local fallback)',
+							label: __(
+								'Parent Order ID (source/local fallback)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'source_parent_order_id',
-							label: 'Source Parent Order ID (matches imported orders)',
+							label: __(
+								'Source Parent Order ID (matches imported orders)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'parent_order_key',
-							label: 'Parent Order Key (best matching)',
+							label: __(
+								'Parent Order Key (best matching)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'parent_order_number',
-							label: 'Parent Order Number',
+							label: __(
+								'Parent Order Number',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
-						{ value: 'status', label: 'Status', type: 'string' },
+						{
+							value: 'status',
+							label: __(
+								'Status',
+								'import-export-by-rockstarlab'
+							),
+							type: 'string',
+						},
 						{
 							value: 'date_created',
-							label: 'Date Created',
+							label: __(
+								'Date Created',
+								'import-export-by-rockstarlab'
+							),
 							type: 'date',
 						},
 						{
 							value: 'date_modified',
-							label: 'Date Modified',
+							label: __(
+								'Date Modified',
+								'import-export-by-rockstarlab'
+							),
 							type: 'date',
 						},
-						{ value: 'amount', label: 'Amount', type: 'number' },
-						{ value: 'reason', label: 'Reason', type: 'string' },
+						{
+							value: 'amount',
+							label: __(
+								'Amount',
+								'import-export-by-rockstarlab'
+							),
+							type: 'number',
+						},
+						{
+							value: 'reason',
+							label: __(
+								'Reason',
+								'import-export-by-rockstarlab'
+							),
+							type: 'string',
+						},
 						{
 							value: 'refunded_by',
-							label: 'Refunded By User ID',
+							label: __(
+								'Refunded By User ID',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'currency',
-							label: 'Currency',
+							label: __(
+								'Currency',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'line_items',
-							label: 'Line Items JSON',
+							label: __(
+								'Line Items JSON',
+								'import-export-by-rockstarlab'
+							),
 							type: 'json',
 						},
-						{ value: 'meta', label: 'Meta JSON', type: 'json' },
+						{
+							value: 'meta',
+							label: __(
+								'Meta JSON',
+								'import-export-by-rockstarlab'
+							),
+							type: 'json',
+						},
 					],
 				},
 			];
@@ -5539,36 +6058,57 @@ const ExportModule = {
 		if ( contentType === 'woo_shipping_zone' ) {
 			return [
 				{
-					label: 'Shipping Zone',
+					label: __(
+						'Shipping Zone',
+						'import-export-by-rockstarlab'
+					),
 					options: [
 						{
 							value: 'zone_id',
-							label: 'Zone ID (reference, 0 = Locations not covered by your other zones)',
+							label: __(
+								'Zone ID (reference, 0 = Locations not covered by your other zones)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'zone_name',
-							label: 'Zone Name (matches zones on import)',
+							label: __(
+								'Zone Name (matches zones on import)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'zone_order',
-							label: 'Zone Order',
+							label: __(
+								'Zone Order',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'zone_locations',
-							label: 'Zone Regions (country:DE, state:US:CA, postcode:90210)',
+							label: __(
+								'Zone Regions (country:DE, state:US:CA, postcode:90210)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'shipping_methods',
-							label: 'Shipping Methods JSON',
+							label: __(
+								'Shipping Methods JSON',
+								'import-export-by-rockstarlab'
+							),
 							type: 'json',
 						},
 						{
 							value: 'shipping_methods_summary',
-							label: 'Shipping Methods (summary)',
+							label: __(
+								'Shipping Methods (summary)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 					],
@@ -5579,92 +6119,140 @@ const ExportModule = {
 		if ( contentType === 'woo_customer' ) {
 			return [
 				{
-					label: 'Customer',
+					label: __( 'Customer', 'import-export-by-rockstarlab' ),
 					options: [
 						{
 							value: 'customer_id',
-							label: 'Customer ID (reference)',
+							label: __(
+								'Customer ID (reference)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'source_customer_id',
-							label: 'Source Customer ID (reference)',
+							label: __(
+								'Source Customer ID (reference)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'user_id',
-							label: 'User ID (reference)',
+							label: __(
+								'User ID (reference)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'source_user_id',
-							label: 'Source User ID (reference)',
+							label: __(
+								'Source User ID (reference)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'email',
-							label: 'Email (matches customers on import)',
+							label: __(
+								'Email (matches customers on import)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'username',
-							label: 'Username',
+							label: __(
+								'Username',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'first_name',
-							label: 'First Name',
+							label: __(
+								'First Name',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'last_name',
-							label: 'Last Name',
+							label: __(
+								'Last Name',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'display_name',
-							label: 'Display Name',
+							label: __(
+								'Display Name',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'date_created',
-							label: 'Date Created',
+							label: __(
+								'Date Created',
+								'import-export-by-rockstarlab'
+							),
 							type: 'date',
 						},
 						{
 							value: 'date_modified',
-							label: 'Date Modified',
+							label: __(
+								'Date Modified',
+								'import-export-by-rockstarlab'
+							),
 							type: 'date',
 						},
 						{
 							value: 'is_paying_customer',
-							label: 'Paying Customer',
+							label: __(
+								'Paying Customer',
+								'import-export-by-rockstarlab'
+							),
 							type: 'boolean',
 						},
 						{
 							value: 'order_count',
-							label: 'Order Count',
+							label: __(
+								'Order Count',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'total_spent',
-							label: 'Total Spent',
+							label: __(
+								'Total Spent',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'last_order_id',
-							label: 'Last Order ID',
+							label: __(
+								'Last Order ID',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'last_order_date',
-							label: 'Last Order Date',
+							label: __(
+								'Last Order Date',
+								'import-export-by-rockstarlab'
+							),
 							type: 'date',
 						},
 					],
 				},
 				{
-					label: 'Billing',
+					label: __( 'Billing', 'import-export-by-rockstarlab' ),
 					options: [
 						'billing_first_name',
 						'billing_last_name',
@@ -5686,7 +6274,7 @@ const ExportModule = {
 					} ) ),
 				},
 				{
-					label: 'Shipping',
+					label: __( 'Shipping', 'import-export-by-rockstarlab' ),
 					options: [
 						'shipping_first_name',
 						'shipping_last_name',
@@ -5707,11 +6295,14 @@ const ExportModule = {
 					} ) ),
 				},
 				{
-					label: 'Meta',
+					label: __( 'Meta', 'import-export-by-rockstarlab' ),
 					options: [
 						{
 							value: 'meta',
-							label: 'Customer Meta JSON',
+							label: __(
+								'Customer Meta JSON',
+								'import-export-by-rockstarlab'
+							),
 							type: 'json',
 						},
 					],
@@ -5780,7 +6371,8 @@ const ExportModule = {
 
 		// Groups to always exclude
 		const excludedLabels = [
-			window.rslIeData.i18n.fieldGroupFeaturedImage || 'Featured Image',
+			window.rslIeData.i18n.fieldGroupFeaturedImage ||
+				__( 'Featured Image', 'import-export-by-rockstarlab' ),
 		];
 
 		// For woo_coupon, product restrictions (lists of product references) and custom

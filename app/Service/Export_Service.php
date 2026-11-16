@@ -74,7 +74,7 @@ class Export_Service {
 	 */
 	public function start( array $input, $migration_parent_id = 0 ) {
 		if ( $migration_parent_id && ! Migration_Service::running( $migration_parent_id ) ) {
-			return new \WP_Error( 'rsl_ie_migration_parent_required', 'Run the parent migration.', [ 'status' => 409 ] ); }
+			return new \WP_Error( 'rsl_ie_migration_parent_required', __( 'Run the parent migration.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] ); }
 		$request = Export_Request::normalize( $input );
 		if ( is_wp_error( $request ) ) {
 			return $request;
@@ -129,7 +129,7 @@ class Export_Service {
 		}
 		$parent = json_decode( $job->parameters, true )['migration_parent_id'] ?? 0;
 		if ( $parent && ! Migration_Service::running( $parent ) ) {
-			return new \WP_Error( 'rsl_ie_migration_parent_required', 'Run the parent migration.', [ 'status' => 409 ] ); }
+			return new \WP_Error( 'rsl_ie_migration_parent_required', __( 'Run the parent migration.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] ); }
 		$lock = Job_Lock::acquire( $job->id );
 		if ( is_wp_error( $lock ) ) {
 			return $this->fail( $job->id, $lock );
@@ -366,7 +366,7 @@ class Export_Service {
 		return ( static function () use ( $path ) {
 			$handle = fopen( $path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Local generated spool.
 			if ( ! $handle ) {
-				throw new \RuntimeException( 'Export spool unreadable.' );
+				throw new \RuntimeException( __( 'Export spool unreadable.', 'import-export-by-rockstarlab' ) );
 			}
 			try {
 				while ( false !== ( $line = fgets( $handle ) ) ) { // phpcs:ignore WordPress.CodeAnalysis.AssignmentInCondition
@@ -376,7 +376,7 @@ class Export_Service {
 					}
 					$row = json_decode( $line, true );
 					if ( ! is_array( $row ) ) {
-						throw new \RuntimeException( 'Export spool row is malformed.' );
+						throw new \RuntimeException( __( 'Export spool row is malformed.', 'import-export-by-rockstarlab' ) );
 					}
 					yield $row;
 				}
@@ -400,7 +400,7 @@ class Export_Service {
 			return $legacy; }
 		$info = File_Service::export_target( $job_id, 'spool.jsonl' );
 		if ( is_wp_error( $info ) ) {
-			throw new \RuntimeException( 'Private export storage is unavailable.' ); }
+			throw new \RuntimeException( __( 'Private export storage is unavailable.', 'import-export-by-rockstarlab' ) ); }
 		return $info['path'];
 	}
 

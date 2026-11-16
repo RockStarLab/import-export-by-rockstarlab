@@ -188,6 +188,7 @@ class Migration_History_Service {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $status ) {
-		return new \WP_Error( 'rsl_ie_' . $code, 'Migration history operation failed: ' . $code . '.', [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_' . $code, /* translators: %s: error code. */
+			sprintf( __( 'Migration history operation failed: %s.', 'import-export-by-rockstarlab' ), $code ), [ 'status' => $status ] );
 	}
 }

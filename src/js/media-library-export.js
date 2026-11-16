@@ -1,3 +1,4 @@
+import { __, sprintf } from '@wordpress/i18n';
 /**
  * Media Library Export Shortcut
  *
@@ -96,7 +97,10 @@
 			'aria-disabled': 'true',
 			title:
 				config.disabledTitle ||
-				'Select one or more media files to enable export.',
+				__(
+					'Select one or more media files to enable export.',
+					'import-export-by-rockstarlab'
+				),
 		} );
 
 		insertButton( $toolbar, $button );
@@ -105,8 +109,12 @@
 	function getButtonLabel( count = 0 ) {
 		const label =
 			count > 0
-				? `${ config.exportLabel || 'Export' } (${ count })`
-				: config.exportLabel || 'Export';
+				? `${
+						config.exportLabel ||
+						__( 'Export', 'import-export-by-rockstarlab' )
+				  } (${ count })`
+				: config.exportLabel ||
+				  __( 'Export', 'import-export-by-rockstarlab' );
 
 		return label;
 	}

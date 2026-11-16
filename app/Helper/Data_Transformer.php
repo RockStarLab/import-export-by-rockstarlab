@@ -80,7 +80,7 @@ class Data_Transformer {
 
 		foreach ( $required_fields as $field ) {
 			if ( ! isset( $data[ $field ] ) || empty( $data[ $field ] ) ) {
-				$errors[] = sprintf( 'Field "%s" is required', $field );
+				$errors[] = sprintf( /* translators: %s: field. */ __( 'Field "%s" is required', 'import-export-by-rockstarlab' ), $field );
 			}
 		}
 

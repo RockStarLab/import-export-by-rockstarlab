@@ -36,7 +36,7 @@ class Schedule_Controller {
 	 */
 	public function search_source_jobs() {
 		if ( ! check_ajax_referer( Ajax_Security::nonce_action( 'rsl_ie_schedule_search_source_jobs' ), 'nonce', false ) ) {
-			wp_send_json_error( [ 'message' => 'Security check failed.' ], 403 );
+			wp_send_json_error( [ 'message' => __( 'Security check failed.', 'import-export-by-rockstarlab' ) ], 403 );
 		}
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce checked above.
 		$input  = [

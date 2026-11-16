@@ -78,7 +78,7 @@ class Migration_Import_Service extends Migration_Service {
 				'type'        => 'migration_import',
 				'data_type'   => 'site_migration',
 				'file_format' => 'zip',
-				'job_name'    => 'Content Migration Import',
+				'job_name'    => __( 'Content Migration Import', 'import-export-by-rockstarlab' ),
 				'status'      => 'pending',
 				'user_id'     => get_current_user_id(),
 				'parameters'  => wp_json_encode(

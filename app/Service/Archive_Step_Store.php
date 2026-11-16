@@ -6,31 +6,31 @@ defined( 'ABSPATH' ) || exit;
 class Archive_Step_Store {
 	private static function path( array $reference, $index ) {
 		if ( ! is_int( $index ) || $index < 0 || ! preg_match( '/\A(public|job-[0-9]+)\z/', $reference['scope'] ?? '' ) ) {
-			throw new \RuntimeException( 'Invalid archive step reference.' ); }
+			throw new \RuntimeException( __( 'Invalid archive step reference.', 'import-export-by-rockstarlab' ) ); }
 		$dir = File_Store::directory( $reference['file_id'] );
 		if ( is_wp_error( $dir ) ) {
-			throw new \RuntimeException( 'Archive storage unavailable.' ); }
+			throw new \RuntimeException( __( 'Archive storage unavailable.', 'import-export-by-rockstarlab' ) ); }
 		$path = $dir . '/steps-' . $reference['scope'] . '-' . $index . '.json';
 		if ( is_link( $path ) || is_link( $path . '.tmp' ) ) {
-			throw new \RuntimeException( 'Unsafe archive step.' ); }
+			throw new \RuntimeException( __( 'Unsafe archive step.', 'import-export-by-rockstarlab' ) ); }
 		return $path;
 	}
 	public static function put( array $reference, $index, array $record ) {
 		$path = self::path( $reference, $index );
 		$json = wp_json_encode( $record );
 		if ( false === $json ) {
-			throw new \RuntimeException( 'Invalid archive step.' ); }
+			throw new \RuntimeException( __( 'Invalid archive step.', 'import-export-by-rockstarlab' ) ); }
 		$bytes = hash( 'sha256', $json ) . "\n" . $json;
 		if ( strlen( $bytes ) !== file_put_contents( $path . '.tmp', $bytes ) || ! rename( $path . '.tmp', $path ) ) {
-			throw new \RuntimeException( 'Cannot save archive step.' ); }
+			throw new \RuntimeException( __( 'Cannot save archive step.', 'import-export-by-rockstarlab' ) ); }
 	}
 	public static function get( array $reference, $index ) {
 		$bytes = file_get_contents( self::path( $reference, $index ) );
 		if ( ! is_string( $bytes ) || strlen( $bytes ) < 66 || ! hash_equals( substr( $bytes, 0, 64 ), hash( 'sha256', substr( $bytes, 65 ) ) ) ) {
-			throw new \RuntimeException( 'Archive step unavailable or changed.' ); }
+			throw new \RuntimeException( __( 'Archive step unavailable or changed.', 'import-export-by-rockstarlab' ) ); }
 		$record = json_decode( substr( $bytes, 65 ), true );
 		if ( ! is_array( $record ) ) {
-			throw new \RuntimeException( 'Invalid archive step.' ); }
+			throw new \RuntimeException( __( 'Invalid archive step.', 'import-export-by-rockstarlab' ) ); }
 		return $record;
 	}
 	public static function rows( array $reference ) {

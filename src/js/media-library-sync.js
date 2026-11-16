@@ -1,4 +1,5 @@
 import syncButtonBusy from './utils/sync-button-busy';
+import { __, sprintf } from '@wordpress/i18n';
 /**
  * PRO Media Library Sync quick action.
  */
@@ -46,7 +47,11 @@ import syncButtonBusy from './utils/sync-button-busy';
 
 	function getErrorMessage( error, fallback ) {
 		if ( ! error ) {
-			return fallback || config.i18n?.syncFailed || 'Sync failed.';
+			return (
+				fallback ||
+				config.i18n?.syncFailed ||
+				__( 'Sync failed.', 'import-export-by-rockstarlab' )
+			);
 		}
 
 		if ( typeof error === 'string' ) {
@@ -84,7 +89,11 @@ import syncButtonBusy from './utils/sync-button-busy';
 			return error.statusText;
 		}
 
-		return fallback || config.i18n?.syncFailed || 'Sync failed.';
+		return (
+			fallback ||
+			config.i18n?.syncFailed ||
+			__( 'Sync failed.', 'import-export-by-rockstarlab' )
+		);
 	}
 
 	function isImageMedia( item ) {
@@ -182,8 +191,12 @@ import syncButtonBusy from './utils/sync-button-busy';
 			$( '<button>', {
 				type: 'button',
 				class: `page-title-action ${ buttonClass }`,
-				text: config.i18n?.sync || 'Sync',
-				title: config.i18n?.syncMedia || 'Sync Media',
+				text:
+					config.i18n?.sync ||
+					__( 'Sync', 'import-export-by-rockstarlab' ),
+				title:
+					config.i18n?.syncMedia ||
+					__( 'Sync Media', 'import-export-by-rockstarlab' ),
 			} )
 		);
 	}
@@ -204,7 +217,11 @@ import syncButtonBusy from './utils/sync-button-busy';
 		const sites = config.connectedSites || {};
 		const options = [
 			`<option value="">${ escapeHtml(
-				config.i18n?.selectSite || 'Please select a site.'
+				config.i18n?.selectSite ||
+					__(
+						'Please select a site.',
+						'import-export-by-rockstarlab'
+					)
 			) }</option>`,
 		];
 
@@ -272,25 +289,43 @@ import syncButtonBusy from './utils/sync-button-busy';
 			<div id="${ modalId }" class="rsl-ie-modal rsl-ie-mapping-modal" style="display:none;">
 				<div class="rsl-ie-modal-content">
 					<div class="rsl-ie-modal-header">
-						<h2>${ escapeHtml( config.i18n?.syncMedia || 'Sync Media' ) }</h2>
+						<h2>${ escapeHtml(
+							config.i18n?.syncMedia ||
+								__(
+									'Sync Media',
+									'import-export-by-rockstarlab'
+								)
+						) }</h2>
 						<button type="button" class="rsl-ie-modal-close" aria-label="${ escapeHtml(
-							config.i18n?.close || 'Close'
+							config.i18n?.close ||
+								__( 'Close', 'import-export-by-rockstarlab' )
 						) }">&times;</button>
 					</div>
 					<div class="rsl-ie-modal-body" style="text-align:center;">
 						<div class="rsl-ie-form-group" style="max-width:360px;margin:0 auto 16px;">
 							<label for="rsl-ie-pro-media-sync-site" style="display:block;margin-bottom:6px;">${ escapeHtml(
-								config.i18n?.selectSiteLabel || 'Select Site'
+								config.i18n?.selectSiteLabel ||
+									__(
+										'Select Site',
+										'import-export-by-rockstarlab'
+									)
 							) }</label>
 							<select id="rsl-ie-pro-media-sync-site" class="rsl-ie-form-control" style="display:block;width:100%;">${ getSitesOptions() }</select>
 						</div>
 						<div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
 							<button type="button" class="button button-primary" id="rsl-ie-pro-media-push-btn" style="width:auto;flex:0 0 auto;">${ escapeHtml(
-								config.i18n?.pushMedia || 'Push selected media'
+								config.i18n?.pushMedia ||
+									__(
+										'Push selected media',
+										'import-export-by-rockstarlab'
+									)
 							) }</button>
 							<button type="button" class="button" id="rsl-ie-pro-media-browse-btn" style="width:auto;flex:0 0 auto;">${ escapeHtml(
 								config.i18n?.browseMedia ||
-									'Browse remote media'
+									__(
+										'Browse remote media',
+										'import-export-by-rockstarlab'
+									)
 							) }</button>
 						</div>
 						<div id="rsl-ie-pro-media-sync-message" style="margin-top:12px;"></div>
@@ -328,7 +363,11 @@ import syncButtonBusy from './utils/sync-button-busy';
 						.reject(
 							getErrorMessage(
 								response,
-								config.i18n?.syncFailed || 'Sync failed.'
+								config.i18n?.syncFailed ||
+									__(
+										'Sync failed.',
+										'import-export-by-rockstarlab'
+									)
 							)
 						)
 						.promise();
@@ -340,7 +379,11 @@ import syncButtonBusy from './utils/sync-button-busy';
 					.reject(
 						getErrorMessage(
 							error,
-							config.i18n?.syncFailed || 'Sync failed.'
+							config.i18n?.syncFailed ||
+								__(
+									'Sync failed.',
+									'import-export-by-rockstarlab'
+								)
 						)
 					)
 					.promise()
@@ -372,15 +415,18 @@ import syncButtonBusy from './utils/sync-button-busy';
 			$( `<div id="rsl-ie-media-progress-modal" class="rsl-ie-modal" role="dialog" aria-modal="true" aria-labelledby="rsl-ie-media-progress-title">
 			<div class="rsl-ie-modal-content">
 				<div class="rsl-ie-modal-header"><h2 id="rsl-ie-media-progress-title">${ escapeHtml(
-					config.i18n?.syncMedia || 'Sync Media'
+					config.i18n?.syncMedia ||
+						__( 'Sync Media', 'import-export-by-rockstarlab' )
 				) }</h2>
 				<button type="button" class="rsl-ie-media-progress-close" aria-label="${ escapeHtml(
-					config.i18n?.close || 'Close'
+					config.i18n?.close ||
+						__( 'Close', 'import-export-by-rockstarlab' )
 				) }">&times;</button></div>
 				<div class="rsl-ie-modal-body"><div class="rsl-ie-media-transfer-progress" role="status" aria-live="polite">
 					<div class="rsl-ie-media-progress-summary"><strong class="rsl-ie-media-progress-label"></strong><span class="rsl-ie-media-progress-percent">0%</span></div>
 					<div class="rsl-ie-progress-bar" role="progressbar" aria-label="${ escapeHtml(
-						config.i18n?.syncMedia || 'Sync Media'
+						config.i18n?.syncMedia ||
+							__( 'Sync Media', 'import-export-by-rockstarlab' )
 					) }" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="rsl-ie-progress-fill"></div></div>
 					<p class="rsl-ie-media-progress-count"></p>
 				</div></div>
@@ -397,14 +443,20 @@ import syncButtonBusy from './utils/sync-button-busy';
 			$progress.addClass( 'is-error' );
 			$progress
 				.find( '.rsl-ie-media-progress-label' )
-				.text( config.i18n?.syncFailed || 'Sync failed.' );
+				.text(
+					config.i18n?.syncFailed ||
+						__( 'Sync failed.', 'import-export-by-rockstarlab' )
+				);
 			$progress.find( '.rsl-ie-media-progress-count' ).text( message );
 			$modal.show();
 			finished.reject( message );
 		};
 		$progress
 			.find( '.rsl-ie-media-progress-label' )
-			.text( config.i18n?.loading || 'Loading...' );
+			.text(
+				config.i18n?.loading ||
+					__( 'Loading...', 'import-export-by-rockstarlab' )
+			);
 		const poll = () => {
 			request( 'pro_sync_media_step', { job_id: data.job_id } )
 				.done( ( state ) => {
@@ -428,8 +480,11 @@ import syncButtonBusy from './utils/sync-button-busy';
 					$progress
 						.find( '.rsl-ie-media-progress-label' )
 						.text(
-							( config.i18n?.syncMedia || 'Sync Media' ) +
-								( batchLabel ? ' · ' + batchLabel : '' )
+							( config.i18n?.syncMedia ||
+								__(
+									'Sync Media',
+									'import-export-by-rockstarlab'
+								) ) + ( batchLabel ? ' · ' + batchLabel : '' )
 						);
 					$progress
 						.find( '.rsl-ie-media-progress-count' )
@@ -457,18 +512,27 @@ import syncButtonBusy from './utils/sync-button-busy';
 							summary.failed
 								? (
 										config.i18n?.syncCompleteMissing ||
-										'Sync completed. %s file(s) could not be copied because the file is missing on the source site.'
+										__(
+											'Sync completed. %s file(s) could not be copied because the file is missing on the source site.',
+											'import-export-by-rockstarlab'
+										)
 								  ).replace( '%s', summary.failed )
 								: summary.skipped
 								? // "Completed successfully" after copying nothing read like a copy.
 								  (
 										config.i18n?.syncCompleteSkipped ||
-										'Sync completed. Copied: %1$s. Skipped, already there: %2$s.'
+										__(
+											'Sync completed. Copied: %1$s. Skipped, already there: %2$s.',
+											'import-export-by-rockstarlab'
+										)
 								  )
 										.replace( '%1$s', summary.created || 0 )
 										.replace( '%2$s', summary.skipped )
 								: config.i18n?.syncComplete ||
-								  'Sync completed successfully.'
+								  __(
+										'Sync completed successfully.',
+										'import-export-by-rockstarlab'
+								  )
 						);
 						if ( summary.failed || summary.skipped ) {
 							// Keep the message on screen; closing it reloads the library.
@@ -509,7 +573,9 @@ import syncButtonBusy from './utils/sync-button-busy';
 		for ( let i = 0; i < ids.length; i += MEDIA_BATCH_SIZE ) {
 			batches.push( ids.slice( i, i + MEDIA_BATCH_SIZE ) );
 		}
-		const batchText = config.i18n?.batchOf || 'batch %1$s of %2$s';
+		const batchText =
+			config.i18n?.batchOf ||
+			__( 'batch %1$s of %2$s', 'import-export-by-rockstarlab' );
 		const summary = { failed: 0 };
 		let chain = $.Deferred().resolve().promise();
 		batches.forEach( ( batch, index ) => {
@@ -537,14 +603,22 @@ import syncButtonBusy from './utils/sync-button-busy';
 		const ids = getSelectedMediaIds();
 		if ( ! siteId ) {
 			showMessage(
-				config.i18n?.selectSite || 'Please select a site.',
+				config.i18n?.selectSite ||
+					__(
+						'Please select a site.',
+						'import-export-by-rockstarlab'
+					),
 				'warning'
 			);
 			return;
 		}
 		if ( ! ids.length ) {
 			showMessage(
-				config.i18n?.selectMedia || 'Select one or more media files.',
+				config.i18n?.selectMedia ||
+					__(
+						'Select one or more media files.',
+						'import-export-by-rockstarlab'
+					),
 				'warning'
 			);
 			return;
@@ -553,12 +627,15 @@ import syncButtonBusy from './utils/sync-button-busy';
 		const $button = $( '#rsl-ie-pro-media-push-btn' );
 		const stopButtonBusy = syncButtonBusy(
 			$button,
-			config.i18n?.loading || 'Loading...'
+			config.i18n?.loading ||
+				__( 'Loading...', 'import-export-by-rockstarlab' )
 		);
 		runMediaBatches( 'pro_sync_push_media', siteId, ids, $button )
 			.fail( ( message ) => {
 				showMessage(
-					message || config.i18n?.syncFailed || 'Sync failed.',
+					message ||
+						config.i18n?.syncFailed ||
+						__( 'Sync failed.', 'import-export-by-rockstarlab' ),
 					'error'
 				);
 			} )
@@ -566,7 +643,13 @@ import syncButtonBusy from './utils/sync-button-busy';
 				stopButtonBusy();
 				$button
 					.prop( 'disabled', false )
-					.text( config.i18n?.pushMedia || 'Push selected media' );
+					.text(
+						config.i18n?.pushMedia ||
+							__(
+								'Push selected media',
+								'import-export-by-rockstarlab'
+							)
+					);
 			} );
 	}
 
@@ -579,23 +662,42 @@ import syncButtonBusy from './utils/sync-button-busy';
 			<div id="${ browseModalId }" class="rsl-ie-modal rsl-ie-browse-library-modal" style="display:none;">
 				<div class="rsl-ie-modal-content rsl-ie-modal-large">
 					<div class="rsl-ie-modal-header">
-						<h2>${ escapeHtml( config.i18n?.remoteMedia || 'Remote Media' ) }</h2>
+						<h2>${ escapeHtml(
+							config.i18n?.remoteMedia ||
+								__(
+									'Remote Media',
+									'import-export-by-rockstarlab'
+								)
+						) }</h2>
 						<button type="button" class="rsl-ie-modal-close" aria-label="${ escapeHtml(
-							config.i18n?.close || 'Close'
+							config.i18n?.close ||
+								__( 'Close', 'import-export-by-rockstarlab' )
 						) }">&times;</button>
 					</div>
 					<div class="rsl-ie-browse-search-bar">
 						<input type="search" id="rsl-ie-pro-media-search" class="regular-text" placeholder="${ escapeHtml(
-							config.i18n?.searchMedia || 'Search media...'
+							config.i18n?.searchMedia ||
+								__(
+									'Search media...',
+									'import-export-by-rockstarlab'
+								)
 						) }">
 					</div>
 					<div class="rsl-ie-browse-search-bar" style="padding-top:12px;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;">
 						<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
 							<button type="button" class="button" id="rsl-ie-pro-media-select-all">${ escapeHtml(
-								config.i18n?.selectAll || 'Select all'
+								config.i18n?.selectAll ||
+									__(
+										'Select all',
+										'import-export-by-rockstarlab'
+									)
 							) }</button>
 							<button type="button" class="button" id="rsl-ie-pro-media-deselect-all">${ escapeHtml(
-								config.i18n?.deselectAll || 'Deselect all'
+								config.i18n?.deselectAll ||
+									__(
+										'Deselect all',
+										'import-export-by-rockstarlab'
+									)
 							) }</button>
 						</div>
 						<span id="rsl-ie-pro-media-loaded-count" style="opacity:.72;line-height:30px;display:inline-flex;align-items:center;margin-left:auto;"></span>
@@ -605,16 +707,27 @@ import syncButtonBusy from './utils/sync-button-busy';
 							<div id="rsl-ie-pro-remote-media" class="rsl-ie-posts-tree" style="${ getRemoteMediaGridStyles() }"></div>
 							<div id="rsl-ie-pro-media-load-more" style="display:none;text-align:center;padding:16px;">
 								<span class="spinner is-active"></span>
-								<span>${ escapeHtml( config.i18n?.loading || 'Loading...' ) }</span>
+								<span>${ escapeHtml(
+									config.i18n?.loading ||
+										__(
+											'Loading...',
+											'import-export-by-rockstarlab'
+										)
+								) }</span>
 							</div>
 						</div>
 					</div>
 					<div class="rsl-ie-browse-footer">
 						<button type="button" class="button" id="rsl-ie-pro-media-browse-cancel">${ escapeHtml(
-							config.i18n?.cancel || 'Cancel'
+							config.i18n?.cancel ||
+								__( 'Cancel', 'import-export-by-rockstarlab' )
 						) }</button>
 						<button type="button" class="button button-primary" id="rsl-ie-pro-media-pull-selected-btn">${ escapeHtml(
-							config.i18n?.pullSelected || 'Pull selected media'
+							config.i18n?.pullSelected ||
+								__(
+									'Pull selected media',
+									'import-export-by-rockstarlab'
+								)
 						) }</button>
 					</div>
 				</div>
@@ -633,7 +746,15 @@ import syncButtonBusy from './utils/sync-button-busy';
 			.data( 'total', total )
 			.text(
 				total
-					? `Loaded: ${ loaded } / ${ total } · Selected: ${ selected }`
+					? sprintf(
+							__(
+								'Loaded: %1$s / %2$s · Selected: %3$s',
+								'import-export-by-rockstarlab'
+							),
+							loaded,
+							total,
+							selected
+					  )
 					: ''
 			);
 	}
@@ -714,7 +835,13 @@ import syncButtonBusy from './utils/sync-button-busy';
 			$list.attr( 'style', getRemoteMediaGridStyles() ).html( `
 					<div class="rsl-ie-loading-posts" style="grid-column:1 / -1;">
 						<span class="spinner is-active"></span>
-						<p>${ escapeHtml( config.i18n?.loading || 'Loading...' ) }</p>
+						<p>${ escapeHtml(
+							config.i18n?.loading ||
+								__(
+									'Loading...',
+									'import-export-by-rockstarlab'
+								)
+						) }</p>
 					</div>
 				` );
 		}
@@ -736,7 +863,13 @@ import syncButtonBusy from './utils/sync-button-busy';
 					$list.html( `
 						<div class="rsl-ie-loading-posts" style="grid-column:1 / -1;">
 							<span class="dashicons dashicons-admin-media" style="font-size:48px;opacity:.3;width:auto;height:auto;"></span>
-							<p>${ escapeHtml( config.i18n?.noItemsFound || 'No media found.' ) }</p>
+							<p>${ escapeHtml(
+								config.i18n?.noItemsFound ||
+									__(
+										'No media found.',
+										'import-export-by-rockstarlab'
+									)
+							) }</p>
 						</div>
 					` );
 					updateRemoteMediaCount( data );
@@ -790,7 +923,11 @@ import syncButtonBusy from './utils/sync-button-busy';
 		const siteId = $( '#rsl-ie-pro-media-sync-site' ).val();
 		if ( ! siteId ) {
 			showMessage(
-				config.i18n?.selectSite || 'Please select a site.',
+				config.i18n?.selectSite ||
+					__(
+						'Please select a site.',
+						'import-export-by-rockstarlab'
+					),
 				'warning'
 			);
 			return;
@@ -810,7 +947,10 @@ import syncButtonBusy from './utils/sync-button-busy';
 		if ( ! ids.length ) {
 			alert(
 				config.i18n?.selectRemoteItem ||
-					'Please select one or more remote media files.'
+					__(
+						'Please select one or more remote media files.',
+						'import-export-by-rockstarlab'
+					)
 			);
 			return;
 		}
@@ -818,13 +958,16 @@ import syncButtonBusy from './utils/sync-button-busy';
 		const $button = $( '#rsl-ie-pro-media-pull-selected-btn' );
 		const stopButtonBusy = syncButtonBusy(
 			$button,
-			config.i18n?.loading || 'Loading...'
+			config.i18n?.loading ||
+				__( 'Loading...', 'import-export-by-rockstarlab' )
 		);
 		runMediaBatches( 'pro_sync_pull_media', siteId, ids, $button )
 			.fail( ( message ) => {
 				if ( ! $( '#rsl-ie-media-progress-modal' ).is( ':visible' ) ) {
 					alert(
-						message || config.i18n?.syncFailed || 'Sync failed.'
+						message ||
+							config.i18n?.syncFailed ||
+							__( 'Sync failed.', 'import-export-by-rockstarlab' )
 					);
 				}
 			} )
@@ -832,7 +975,13 @@ import syncButtonBusy from './utils/sync-button-busy';
 				stopButtonBusy();
 				$button
 					.prop( 'disabled', false )
-					.text( config.i18n?.pullSelected || 'Pull selected media' );
+					.text(
+						config.i18n?.pullSelected ||
+							__(
+								'Pull selected media',
+								'import-export-by-rockstarlab'
+							)
+					);
 			} );
 	}
 

@@ -203,6 +203,6 @@ class Media_Chunk_Push {
 	}
 
 	private function error() {
-		return new \WP_Error( 'rsl_ie_media_chunk_checkpoint', 'The media transfer checkpoint or peer response is invalid.', [ 'status' => 409 ] );
+		return new \WP_Error( 'rsl_ie_media_chunk_checkpoint', __( 'The media transfer checkpoint or peer response is invalid.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
 	}
 }

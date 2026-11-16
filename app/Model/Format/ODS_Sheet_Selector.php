@@ -16,7 +16,7 @@ class ODS_Sheet_Selector {
 				}
 			} catch ( \RuntimeException $error ) {
 				// Legacy DOM settings loading ignores malformed XML and keeps the first sheet.
-				if ( 'Invalid spreadsheet XML.' !== $error->getMessage() ) {
+				if ( __( 'Invalid spreadsheet XML.', 'import-export-by-rockstarlab' ) !== $error->getMessage() ) {
 					throw $error; }
 				$active = null;
 				if ( $resume ) {
@@ -59,7 +59,7 @@ class ODS_Sheet_Selector {
 				return null; }
 		}
 		if ( ! $index ) {
-			throw new \RuntimeException( 'Missing ODS worksheet.' ); }
+			throw new \RuntimeException( __( 'Missing ODS worksheet.', 'import-export-by-rockstarlab' ) ); }
 		return $selected;
 	}
 }

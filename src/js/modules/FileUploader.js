@@ -1,4 +1,5 @@
 import TabProgress from '../utils/tab-progress';
+import { __, sprintf } from '@wordpress/i18n';
 /**
  * FileUploader - Handles chunked file uploads to bypass PHP upload limits
  *
@@ -49,7 +50,9 @@ export default class FileUploader {
 			// Upload chunks sequentially
 			for ( let chunk = 0; chunk < this.totalChunks; chunk++ ) {
 				if ( this.aborted ) {
-					throw new Error( 'Upload aborted' );
+					throw new Error(
+						__( 'Upload aborted', 'import-export-by-rockstarlab' )
+					);
 				}
 
 				this.currentChunk = chunk;
@@ -58,7 +61,10 @@ export default class FileUploader {
 
 			// Finalize upload
 			const result = await this.finalizeUpload();
-			if ( this.aborted ) throw new Error( 'Upload aborted' );
+			if ( this.aborted )
+				throw new Error(
+					__( 'Upload aborted', 'import-export-by-rockstarlab' )
+				);
 			TabProgress.finish( 'upload' );
 			this.onComplete( result );
 			return result;
@@ -108,7 +114,13 @@ export default class FileUploader {
 		const data = await response.json();
 
 		if ( ! data.success ) {
-			throw new Error( data.data || 'Failed to upload chunk' );
+			throw new Error(
+				data.data ||
+					__(
+						'Failed to upload chunk',
+						'import-export-by-rockstarlab'
+					)
+			);
 		}
 
 		// Update progress
@@ -172,7 +184,13 @@ export default class FileUploader {
 		const data = await response.json();
 
 		if ( ! data.success ) {
-			throw new Error( data.data || 'Failed to finalize upload' );
+			throw new Error(
+				data.data ||
+					__(
+						'Failed to finalize upload',
+						'import-export-by-rockstarlab'
+					)
+			);
 		}
 
 		return data.data;
@@ -197,7 +215,10 @@ export default class FileUploader {
 				return String( message );
 			}
 		} catch ( e ) {}
-		return `HTTP error! status: ${ response.status }`;
+		return sprintf(
+			__( 'HTTP error! status: %s', 'import-export-by-rockstarlab' ),
+			response.status
+		);
 	}
 
 	/**
@@ -252,7 +273,13 @@ export default class FileUploader {
 
 		const k = 1024;
 		const dm = decimals < 0 ? 0 : decimals;
-		const sizes = [ 'Bytes', 'KB', 'MB', 'GB', 'TB' ];
+		const sizes = [
+			__( 'Bytes', 'import-export-by-rockstarlab' ),
+			'KB',
+			'MB',
+			'GB',
+			'TB',
+		];
 
 		const i = Math.floor( Math.log( bytes ) / Math.log( k ) );
 

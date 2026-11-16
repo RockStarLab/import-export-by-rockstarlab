@@ -165,7 +165,8 @@ class Background_Processor {
 			} elseif ( 'update' === $job['type'] ) {
 				$result = $this->process_update_job( $job_id );
 			} else {
-				throw new \Exception( 'Invalid job type: ' . $job['type'] );
+				/* translators: %s: job type. */
+				throw new \Exception( sprintf( __( 'Invalid job type: %s', 'import-export-by-rockstarlab' ), $job['type'] ) );
 			}           // Check if completed or needs to continue
 			if ( ! empty( $result['error'] ) ) {
 				return;
@@ -357,7 +358,7 @@ class Background_Processor {
 			return $result;
 		}
 
-		throw new \RuntimeException( 'No Content Updater processor is registered.' );
+		throw new \RuntimeException( __( 'No Content Updater processor is registered.', 'import-export-by-rockstarlab' ) );
 	}
 
 	/**

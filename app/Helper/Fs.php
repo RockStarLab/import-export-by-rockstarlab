@@ -135,7 +135,7 @@ class FS {
 	 */
 	public static function handle_upload( $file ) {
 		if ( ! isset( $file['error'] ) || is_array( $file['error'] ) ) {
-			return new \WP_Error( 'invalid_upload', 'Invalid file upload.' );
+			return new \WP_Error( 'invalid_upload', __( 'Invalid file upload.', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Use WordPress upload handling to keep uploads within WP's checks and filters.
@@ -175,7 +175,7 @@ class FS {
 		$file_path = $result['file'] ?? '';
 
 		if ( empty( $filename ) || empty( $file_path ) ) {
-			return new \WP_Error( 'upload_failed', 'Failed to process uploaded file.' );
+			return new \WP_Error( 'upload_failed', __( 'Failed to process uploaded file.', 'import-export-by-rockstarlab' ) );
 		}
 
 		return [

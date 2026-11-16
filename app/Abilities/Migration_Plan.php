@@ -114,14 +114,14 @@ class Migration_Plan {
 		];
 		$type = $step['type'];
 		if ( 'database_table' === $type ) {
-			return new \WP_Error( 'rsl_ie_migration_scope', 'Custom database tables are not supported by Content Migration.', [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_migration_scope', __( 'Custom database tables are not supported by Content Migration.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
 		}
 		if ( isset( $free[ $type ] ) ) {
 			if ( ! empty( $step['table_suffix'] ) ) {
-				return new \WP_Error( 'rsl_ie_migration_scope', 'Unexpected migration table target.', [ 'status' => 403 ] );
+				return new \WP_Error( 'rsl_ie_migration_scope', __( 'Unexpected migration table target.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
 			}
 			if ( ! empty( $step['taxonomy'] ) || ( ! empty( $step['post_type'] ) && ( 'media' === $type ? 'attachment' : $type ) !== $step['post_type'] ) ) {
-				return new \WP_Error( 'rsl_ie_migration_scope', 'Invalid migration content scope.', [ 'status' => 403 ] );
+				return new \WP_Error( 'rsl_ie_migration_scope', __( 'Invalid migration content scope.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
 			}
 			$scope = [
 				'key'     => $type,
@@ -135,7 +135,7 @@ class Migration_Plan {
 		if ( is_wp_error( $scope ) ) {
 			return $scope; }
 		if ( ! is_array( $scope ) || ! Importer_Factory::is_supported( $type ) ) {
-			return new \WP_Error( 'rsl_ie_migration_provider', 'The migration content provider is unavailable.', [ 'status' => 403 ] ); }
+			return new \WP_Error( 'rsl_ie_migration_provider', __( 'The migration content provider is unavailable.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] ); }
 		$access = Access_Policy::check_content_type( $type, 'import', [ 'options' => $scope['options'] ] );
 		return is_wp_error( $access ) ? $access : $scope;
 	}

@@ -212,7 +212,15 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 						?>
 					</td>
 					<td>
-						<?php echo esc_html( 'recurring' === $rsl_ie_schedule->schedule_type ? ucfirst( $rsl_ie_schedule->recurrence ) : __( 'One time', 'import-export-by-rockstarlab' ) ); ?>
+						<?php
+						$rsl_ie_recurrence_labels = array(
+							'hourly'     => __( 'Hourly', 'import-export-by-rockstarlab' ),
+							'twicedaily' => __( 'Twice daily', 'import-export-by-rockstarlab' ),
+							'daily'      => __( 'Daily', 'import-export-by-rockstarlab' ),
+							'weekly'     => __( 'Weekly', 'import-export-by-rockstarlab' ),
+						);
+						echo esc_html( 'recurring' === $rsl_ie_schedule->schedule_type ? ( $rsl_ie_recurrence_labels[ $rsl_ie_schedule->recurrence ] ?? ucfirst( $rsl_ie_schedule->recurrence ) ) : __( 'One time', 'import-export-by-rockstarlab' ) );
+						?>
 						<?php if ( ! empty( get_option( 'rsl_ie_schedule_meta_' . $rsl_ie_schedule->id, [] )['changed_only'] ) ) : ?>
 							<br><span class="description"><?php esc_html_e( 'Changes only', 'import-export-by-rockstarlab' ); ?></span>
 						<?php endif; ?>
@@ -225,7 +233,13 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 						<?php endif; ?>
 					</td>
 					<td>
-						<?php echo esc_html( ucfirst( $rsl_ie_schedule->status ) ); ?>
+						<?php
+						$rsl_ie_status_labels = array(
+							'active' => __( 'Active', 'import-export-by-rockstarlab' ),
+							'paused' => __( 'Paused', 'import-export-by-rockstarlab' ),
+						);
+						echo esc_html( $rsl_ie_status_labels[ $rsl_ie_schedule->status ] ?? ucfirst( $rsl_ie_schedule->status ) );
+						?>
 						<?php
 						$rsl_ie_schedule_meta = get_option( 'rsl_ie_schedule_meta_' . $rsl_ie_schedule->id, [] );
 						if ( ! empty( $rsl_ie_schedule_meta['error_message'] ) ) :

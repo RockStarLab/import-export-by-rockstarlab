@@ -335,16 +335,16 @@ class Import_Object_Store {
 		global $wpdb;
 		$offset = $cursor ?? 0;
 		if ( ! is_int( $offset ) || $offset < 0 || $offset > $count ) {
-			throw new \RuntimeException( 'Invalid object cursor.' );
+			throw new \RuntimeException( __( 'Invalid object cursor.', 'import-export-by-rockstarlab' ) );
 		}
 		for ( ;$offset < $count;++$offset ) {
 			$row = $wpdb->get_row( $wpdb->prepare( 'SELECT key_hash,digest,payload FROM %i WHERE job_id=%d AND ordinal=%d', $wpdb->prefix . 'rsl_ie_import_objects', $job_id, $offset ) );
 			if ( ! $row ) {
-				throw new \RuntimeException( 'Missing indexed object member.' );
+				throw new \RuntimeException( __( 'Missing indexed object member.', 'import-export-by-rockstarlab' ) );
 			}
 			$value = self::decode( $row );
 			if ( is_wp_error( $value ) || ! hash_equals( $row->key_hash, hash( 'sha256', serialize( $value['key'] ) ) ) ) {
-				throw new \RuntimeException( 'Changed indexed object member.' );
+				throw new \RuntimeException( __( 'Changed indexed object member.', 'import-export-by-rockstarlab' ) );
 			}
 			$cursor = $offset + 1;
 			yield $value['value'];
@@ -356,6 +356,6 @@ class Import_Object_Store {
 	 * @return \WP_Error Storage failure.
 	 */
 	private static function error() {
-		return new \WP_Error( 'rsl_ie_object_index_unavailable', 'Import preparation index is unavailable or changed.', array( 'status' => 409 ) );
+		return new \WP_Error( 'rsl_ie_object_index_unavailable', __( 'Import preparation index is unavailable or changed.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 	}
 }

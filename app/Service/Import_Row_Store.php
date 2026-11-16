@@ -136,6 +136,6 @@ class Import_Row_Store {
 		return $result;
 	}
 	private static function error() {
-		return new \WP_Error( 'rsl_ie_import_rows_unavailable', 'Prepared import rows are unavailable or changed.', [ 'status' => 409 ] );
+		return new \WP_Error( 'rsl_ie_import_rows_unavailable', __( 'Prepared import rows are unavailable or changed.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
 	}
 }

@@ -9,6 +9,7 @@ import Utils from './utils';
 import FileUploader from './FileUploader';
 import BackupWarningModal from './BackupWarningModal';
 
+import { __ } from '@wordpress/i18n';
 const ImportModule = {
 	// Current wizard state
 	currentStep: 1,
@@ -339,12 +340,21 @@ const ImportModule = {
 					<div class="notice notice-error" style="padding: 20px; margin: 20px 0;">
 						<h3 style="margin-top: 0;">❌ ${
 							rslIeData.i18n.fileValidationFailed ||
-							'File Validation Failed'
+							__(
+								'File Validation Failed',
+								'import-export-by-rockstarlab'
+							)
 						}</h3>
 						<p style="font-size: 14px;">${ Utils.escapeHtml( this.fileData.error ) }</p>
 						<p style="margin-bottom: 0;">
 							<button type="button" class="button rsl-ie-prev-step">
-								← ${ rslIeData.i18n.goBackUploadValidFile || 'Go Back and Upload a Valid File' }
+								← ${
+									rslIeData.i18n.goBackUploadValidFile ||
+									__(
+										'Go Back and Upload a Valid File',
+										'import-export-by-rockstarlab'
+									)
+								}
 							</button>
 						</p>
 					</div>
@@ -433,7 +443,10 @@ const ImportModule = {
 				if ( ! this.uploadedFile ) {
 					Utils.showNotice(
 						rslIeData.i18n.pleaseUploadFile ||
-							'Please upload a file',
+							__(
+								'Please upload a file',
+								'import-export-by-rockstarlab'
+							),
 						'error'
 					);
 					return false;
@@ -448,7 +461,10 @@ const ImportModule = {
 					if ( customDelimiter === '' ) {
 						Utils.showNotice(
 							rslIeData.i18n.pleaseEnterCustomDelimiter ||
-								'Please enter a custom delimiter',
+								__(
+									'Please enter a custom delimiter',
+									'import-export-by-rockstarlab'
+								),
 							'error'
 						);
 						return false;
@@ -465,7 +481,10 @@ const ImportModule = {
 				) {
 					Utils.showNotice(
 						rslIeData.i18n.fileHasNoRows ||
-							'The file has no data rows, only column names. Add at least one row and upload the file again.',
+							__(
+								'The file has no data rows, only column names. Add at least one row and upload the file again.',
+								'import-export-by-rockstarlab'
+							),
 						'error'
 					);
 					return false;
@@ -483,7 +502,10 @@ const ImportModule = {
 					if ( ! selectedPostType ) {
 						Utils.showNotice(
 							rslIeData.i18n.pleaseSelectPostType ||
-								'Please select a post type',
+								__(
+									'Please select a post type',
+									'import-export-by-rockstarlab'
+								),
 							'error'
 						);
 						return false;
@@ -495,7 +517,10 @@ const ImportModule = {
 				if ( ! mappedFields || mappedFields.length === 0 ) {
 					Utils.showNotice(
 						rslIeData.i18n.mapFields ||
-							'Please map at least one field',
+							__(
+								'Please map at least one field',
+								'import-export-by-rockstarlab'
+							),
 						'error'
 					);
 					return false;
@@ -673,7 +698,10 @@ const ImportModule = {
 		if ( ! allowedExtensions.includes( fileExt ) ) {
 			Utils.showNotice(
 				rslIeData.i18n.invalidFileTypeCsv ||
-					'This type of file cannot be imported. Use a CSV, XLSX, ODS, JSON, XML or ZIP file. A tab-separated .txt file can be renamed to .csv.',
+					__(
+						'This type of file cannot be imported. Use a CSV, XLSX, ODS, JSON, XML or ZIP file. A tab-separated .txt file can be renamed to .csv.',
+						'import-export-by-rockstarlab'
+					),
 				'error'
 			);
 			return;
@@ -808,7 +836,10 @@ const ImportModule = {
 				// Show success message
 				Utils.showNotice(
 					rslIeData.i18n.fileUploadedSuccessfully ||
-						'File uploaded successfully',
+						__(
+							'File uploaded successfully',
+							'import-export-by-rockstarlab'
+						),
 					'success'
 				);
 
@@ -829,7 +860,10 @@ const ImportModule = {
 						result.converted_from === 'shopify'
 							? (
 									rslIeData.i18n.shopifyExportConverted ||
-									'Shopify product export detected: %1$s rows were combined into %2$s products with %3$s variations. Import it as WooCommerce Products and Auto Map will match every column.'
+									__(
+										'Shopify product export detected: %1$s rows were combined into %2$s products with %3$s variations. Import it as WooCommerce Products and Auto Map will match every column.',
+										'import-export-by-rockstarlab'
+									)
 							  )
 									.replace(
 										'%1$s',
@@ -845,7 +879,10 @@ const ImportModule = {
 									)
 							: (
 									rslIeData.i18n.shopifyCustomersConverted ||
-									'Shopify customer export detected: %1$s customers, %2$s without an email address. Import it as WooCommerce Customers and Auto Map will match every column.'
+									__(
+										'Shopify customer export detected: %1$s customers, %2$s without an email address. Import it as WooCommerce Customers and Auto Map will match every column.',
+										'import-export-by-rockstarlab'
+									)
 							  )
 									.replace(
 										'%1$s',
@@ -872,7 +909,10 @@ const ImportModule = {
 				) {
 					const recordsText = (
 						rslIeData.i18n.jsonRecordsFound ||
-						'The records in this JSON file are inside %1$s: %2$s records found. Each record becomes a row.'
+						__(
+							'The records in this JSON file are inside %1$s: %2$s records found. Each record becomes a row.',
+							'import-export-by-rockstarlab'
+						)
 					)
 						.replace( '%1$s', result.records_path || '' )
 						.replace(
@@ -888,7 +928,11 @@ const ImportModule = {
 			onError: ( error ) => {
 				// Upload failed
 				Utils.showNotice(
-					( rslIeData.i18n.uploadFailed || 'Upload failed' ) +
+					( rslIeData.i18n.uploadFailed ||
+						__(
+							'Upload failed',
+							'import-export-by-rockstarlab'
+						) ) +
 						': ' +
 						error.message,
 					'error'
@@ -914,7 +958,13 @@ const ImportModule = {
 			.show()
 			.html(
 				'<p class="description">' +
-					Utils.escapeHtml( i18n.remoteLoading || 'Connecting...' ) +
+					Utils.escapeHtml(
+						i18n.remoteLoading ||
+							__(
+								'Connecting...',
+								'import-export-by-rockstarlab'
+							)
+					) +
 					'</p>'
 			);
 		const body = new FormData();
@@ -940,7 +990,7 @@ const ImportModule = {
 					data.message ||
 						( data.data && data.data.message ) ||
 						( 'string' === typeof data.data ? data.data : '' ) ||
-						'Error'
+						__( 'Error', 'import-export-by-rockstarlab' )
 				);
 			}
 			const result = data.data;
@@ -987,7 +1037,11 @@ const ImportModule = {
 						? '<ul>' + rows.join( '' ) + '</ul>'
 						: '<p class="description">' +
 						  Utils.escapeHtml(
-								i18n.remoteEmpty || 'This folder is empty.'
+								i18n.remoteEmpty ||
+									__(
+										'This folder is empty.',
+										'import-export-by-rockstarlab'
+									)
 						  ) +
 						  '</p>' )
 			);
@@ -1039,7 +1093,10 @@ const ImportModule = {
 		if ( ! /^(https?|rsl-remote):\/\//i.test( url ) ) {
 			Utils.showNotice(
 				rslIeData.i18n.fileUrlInvalid ||
-					'Enter a full http:// or https:// address of the file.',
+					__(
+						'Enter a full http:// or https:// address of the file.',
+						'import-export-by-rockstarlab'
+					),
 				'error'
 			);
 			return;
@@ -1050,7 +1107,8 @@ const ImportModule = {
 		jQuery( '.rsl-ie-upload-placeholder, .rsl-ie-url-import' ).hide();
 		jQuery( '.rsl-ie-upload-progress' ).show();
 		jQuery( '.rsl-ie-upload-status-text' ).text(
-			rslIeData.i18n.fileUrlDownloading || 'Downloading the file...'
+			rslIeData.i18n.fileUrlDownloading ||
+				__( 'Downloading the file...', 'import-export-by-rockstarlab' )
 		);
 		const body = new FormData();
 		body.append( 'action', 'rsl_ie_upload_from_url' );
@@ -1066,7 +1124,10 @@ const ImportModule = {
 				throw new Error(
 					'string' === typeof data.data
 						? data.data
-						: 'Download failed'
+						: __(
+								'Download failed',
+								'import-export-by-rockstarlab'
+						  )
 				);
 			}
 			const result = data.data;
@@ -1094,7 +1155,11 @@ const ImportModule = {
 			jQuery( '.rsl-ie-file-conversion' )
 				.text(
 					(
-						rslIeData.i18n.fileUrlSource || 'Downloaded from %s'
+						rslIeData.i18n.fileUrlSource ||
+						__(
+							'Downloaded from %s',
+							'import-export-by-rockstarlab'
+						)
 					).replace( '%s', shown )
 				)
 				.show();
@@ -1106,7 +1171,8 @@ const ImportModule = {
 				false
 			);
 			Utils.showNotice(
-				rslIeData.i18n.fileUrlDownloaded || 'File downloaded',
+				rslIeData.i18n.fileUrlDownloaded ||
+					__( 'File downloaded', 'import-export-by-rockstarlab' ),
 				'success'
 			);
 		} catch ( error ) {
@@ -1116,7 +1182,8 @@ const ImportModule = {
 		} finally {
 			$button.prop( 'disabled', false );
 			jQuery( '.rsl-ie-upload-status-text' ).text(
-				rslIeData.i18n.uploading || 'Uploading...'
+				rslIeData.i18n.uploading ||
+					__( 'Uploading...', 'import-export-by-rockstarlab' )
 			);
 		}
 	},
@@ -1213,7 +1280,11 @@ const ImportModule = {
 	async loadPreview() {
 		if ( ! this.fileData ) {
 			Utils.showNotice(
-				rslIeData.i18n.noFileDataAvailable || 'No file data available',
+				rslIeData.i18n.noFileDataAvailable ||
+					__(
+						'No file data available',
+						'import-export-by-rockstarlab'
+					),
 				'error'
 			);
 			return;
@@ -1227,7 +1298,10 @@ const ImportModule = {
 		if ( ! this.fileData.preview ) {
 			Utils.showNotice(
 				rslIeData.i18n.noPreviewDataAvailable ||
-					'No preview data available',
+					__(
+						'No preview data available',
+						'import-export-by-rockstarlab'
+					),
 				'error'
 			);
 			return;
@@ -1254,7 +1328,10 @@ const ImportModule = {
 		jQuery( '.rsl-ie-preview-table-container' ).hide();
 		jQuery( '.rsl-ie-json-preview-container' ).show();
 		jQuery( '.rsl-ie-preview-note' ).text(
-			'Showing first object from JSON file'
+			__(
+				'Showing first object from JSON file',
+				'import-export-by-rockstarlab'
+			)
 		);
 
 		// Build JSON preview HTML
@@ -1556,7 +1633,10 @@ const ImportModule = {
 					let options =
 						'<option value="">-- ' +
 						( rslIeData.i18n.selectPostType ||
-							'Select Post Type' ) +
+							__(
+								'Select Post Type',
+								'import-export-by-rockstarlab'
+							) ) +
 						' --</option>';
 
 					response.data.forEach( ( postType ) => {
@@ -1638,7 +1718,10 @@ const ImportModule = {
 						jQuery( '#rsl-ie-target-fields' ).html(
 							'<div class="rsl-ie-info">' +
 								( window.rslIeData.i18n.pleaseSelectTable ||
-									'Please select a database table above to see available columns' ) +
+									__(
+										'Please select a database table above to see available columns',
+										'import-export-by-rockstarlab'
+									) ) +
 								'</div>'
 						);
 					}
@@ -1745,7 +1828,10 @@ const ImportModule = {
 							jQuery( '#rsl-ie-target-fields' ).html(
 								'<div class="rsl-ie-info">' +
 									( window.rslIeData.i18n.pleaseSelectTable ||
-										'Please select a database table above to see available columns' ) +
+										__(
+											'Please select a database table above to see available columns',
+											'import-export-by-rockstarlab'
+										) ) +
 									'</div>'
 							);
 						}
@@ -1773,7 +1859,12 @@ const ImportModule = {
 
 		if ( ! this.fileData || ! Array.isArray( this.fileData.columns ) ) {
 			$container.html(
-				'<div class="rsl-ie-info">Upload a file first to create table columns from its headers.</div>'
+				'<div class="rsl-ie-info">' +
+					__(
+						'Upload a file first to create table columns from its headers.',
+						'import-export-by-rockstarlab'
+					) +
+					'</div>'
 			);
 			return;
 		}
@@ -1782,10 +1873,15 @@ const ImportModule = {
 		html +=
 			'<div class="rsl-ie-field-group-label">' +
 			( window.rslIeData.i18n.fieldGroupTableColumns ||
-				'Table Columns' ) +
+				__( 'Table Columns', 'import-export-by-rockstarlab' ) ) +
 			'</div>';
 		html +=
-			'<div class="rsl-ie-info rsl-ie-create-table-info">New table columns will be created from the mapped file columns below. All columns are created as LONGTEXT for safe import of text, HTML, JSON, and serialized values.</div>';
+			'<div class="rsl-ie-info rsl-ie-create-table-info">' +
+			__(
+				'New table columns will be created from the mapped file columns below. All columns are created as LONGTEXT for safe import of text, HTML, JSON, and serialized values.',
+				'import-export-by-rockstarlab'
+			) +
+			'</div>';
 
 		this.fileData.columns.forEach( ( column ) => {
 			const columnName = this.normalizeDatabaseIdentifier( column );
@@ -1912,7 +2008,10 @@ const ImportModule = {
 					html +=
 						'<div class="rsl-ie-field-group-label">' +
 						( window.rslIeData.i18n.fieldGroupTableColumns ||
-							'Table Columns' ) +
+							__(
+								'Table Columns',
+								'import-export-by-rockstarlab'
+							) ) +
 						'</div>';
 
 					columns.forEach( ( column ) => {
@@ -1986,7 +2085,8 @@ const ImportModule = {
 						<div class="rsl-ie-field-info">
 							<div class="rsl-ie-field-label">${ field.label }</div>
 							<button type="button" class="rsl-ie-add-custom-field button button-small">+ ${
-								window.rslIeData.i18n.add || 'Add'
+								window.rslIeData.i18n.add ||
+								__( 'Add', 'import-export-by-rockstarlab' )
 							}</button>
 						</div>
 					</div>
@@ -1999,7 +2099,9 @@ const ImportModule = {
 					html += `
 					<div class="rsl-ie-target-field" data-target-field="${
 						field.value
-					}" data-field-type="${
+					}" data-label-en="${ Utils.escapeHtml(
+						field.labelEn || ''
+					) }" data-field-type="${
 						field.type || 'string'
 					}" data-multiple="${ field.multiple || false }">
 						<div class="rsl-ie-field-icon">
@@ -2057,13 +2159,21 @@ const ImportModule = {
 		const isMeta = fieldType === 'meta';
 
 		const title = isTaxonomy
-			? window.rslIeData.i18n.addTaxonomyField || 'Add Taxonomy Field'
-			: window.rslIeData.i18n.addCustomField || 'Add Custom Field';
+			? window.rslIeData.i18n.addTaxonomyField ||
+			  __( 'Add Taxonomy Field', 'import-export-by-rockstarlab' )
+			: window.rslIeData.i18n.addCustomField ||
+			  __( 'Add Custom Field', 'import-export-by-rockstarlab' );
 		const placeholder = isTaxonomy
 			? window.rslIeData.i18n.enterTaxonomySlug ||
-			  'Enter taxonomy slug (e.g., category, post_tag, product_cat)'
+			  __(
+					'Enter taxonomy slug (e.g., category, post_tag, product_cat)',
+					'import-export-by-rockstarlab'
+			  )
 			: window.rslIeData.i18n.enterFieldKey ||
-			  'Enter field key (e.g., _custom_price)';
+			  __(
+					'Enter field key (e.g., _custom_price)',
+					'import-export-by-rockstarlab'
+			  );
 		const icon = isTaxonomy
 			? 'dashicons-category'
 			: 'dashicons-admin-plugins';
@@ -2072,25 +2182,40 @@ const ImportModule = {
 		const taxonomyFormatField = isTaxonomy
 			? `
 			<label style="margin-top: 15px;">
-				<strong>${ window.rslIeData.i18n.dataFormat || 'Data Format' }:</strong>
+				<strong>${
+					window.rslIeData.i18n.dataFormat ||
+					__( 'Data Format', 'import-export-by-rockstarlab' )
+				}:</strong>
 				<select class="rsl-ie-taxonomy-format regular-text">
 					<option value="id">${
 						window.rslIeData.i18n.termIdFormat ||
-						'Term ID (e.g., 5, 12, 23)'
+						__(
+							'Term ID (e.g., 5, 12, 23)',
+							'import-export-by-rockstarlab'
+						)
 					}</option>
 					<option value="slug">${
 						window.rslIeData.i18n.termSlugFormat ||
-						'Term Slug (e.g., technology, news)'
+						__(
+							'Term Slug (e.g., technology, news)',
+							'import-export-by-rockstarlab'
+						)
 					}</option>
 					<option value="name" selected>${
 						window.rslIeData.i18n.termNameFormat ||
-						'Term Name (e.g., Technology, News)'
+						__(
+							'Term Name (e.g., Technology, News)',
+							'import-export-by-rockstarlab'
+						)
 					}</option>
 				</select>
 				<p class="description" style="margin-top: 5px;">
 					${
 						window.rslIeData.i18n.selectTaxonomyDataFormat ||
-						'Select the format of taxonomy data in your CSV file.'
+						__(
+							'Select the format of taxonomy data in your CSV file.',
+							'import-export-by-rockstarlab'
+						)
 					}
 				</p>
 			</label>
@@ -2115,9 +2240,15 @@ const ImportModule = {
 						<strong>${
 							isTaxonomy
 								? window.rslIeData.i18n.taxonomySlugLabel ||
-								  'Taxonomy Slug'
+								  __(
+										'Taxonomy Slug',
+										'import-export-by-rockstarlab'
+								  )
 								: window.rslIeData.i18n.metaKeyLabel ||
-								  'Meta Key'
+								  __(
+										'Meta Key',
+										'import-export-by-rockstarlab'
+								  )
 						}:</strong>
 						<input type="text" class="rsl-ie-custom-field-input regular-text" placeholder="${ placeholder }" />
 						${
@@ -2130,7 +2261,10 @@ const ImportModule = {
 								: isMeta
 								? '<p class="description" style="margin-top: 5px;">' +
 								  ( window.rslIeData.i18n.metaKeyDescription ||
-										'The meta key for the custom field (e.g., _custom_price, my_custom_field).' ) +
+										__(
+											'The meta key for the custom field (e.g., _custom_price, my_custom_field).',
+											'import-export-by-rockstarlab'
+										) ) +
 								  '</p>'
 								: ''
 						}
@@ -2139,10 +2273,12 @@ const ImportModule = {
 					</div>
 					<div class="rsl-ie-modal-footer">
 						<button type="button" class="button rsl-ie-modal-cancel">${
-							window.rslIeData.i18n.cancel || 'Cancel'
+							window.rslIeData.i18n.cancel ||
+							__( 'Cancel', 'import-export-by-rockstarlab' )
 						}</button>
 						<button type="button" class="button button-primary rsl-ie-modal-add">${
-							window.rslIeData.i18n.addField || 'Add Field'
+							window.rslIeData.i18n.addField ||
+							__( 'Add Field', 'import-export-by-rockstarlab' )
 						}</button>
 					</div>
 				</div>
@@ -2237,11 +2373,14 @@ const ImportModule = {
 		if ( isTaxonomy ) {
 			const formatLabels = {
 				id: 'ID',
-				slug: 'Slug',
-				name: 'Name',
+				slug: __( 'Slug', 'import-export-by-rockstarlab' ),
+				name: __( 'Name', 'import-export-by-rockstarlab' ),
 			};
 			label = `${ String( fieldValue ).replace( /^taxonomy_/, '' ) }`;
-			badge = `taxonomy (${ formatLabels[ taxonomyFormat ] || 'Name' })`;
+			badge = `taxonomy (${
+				formatLabels[ taxonomyFormat ] ||
+				__( 'Name', 'import-export-by-rockstarlab' )
+			})`;
 		} else {
 			label = fieldValue;
 			badge = 'meta';
@@ -2264,7 +2403,10 @@ const ImportModule = {
 				<div class="rsl-ie-field-info">
 					<div class="rsl-ie-field-label">${ label }</div>
 					<span class="rsl-ie-field-type-badge">${ badge }</span>
-					<button type="button" class="rsl-ie-remove-custom-field" title="Remove">&times;</button>
+					<button type="button" class="rsl-ie-remove-custom-field" title="${ __(
+						'Remove',
+						'import-export-by-rockstarlab'
+					) }">&times;</button>
 				</div>
 			</div>
 		`;
@@ -2307,15 +2449,46 @@ const ImportModule = {
 				label: t( 'Standard', 'Standard' ),
 				options: [
 					{ value: 'ID', label: 'ID', type: 'number' },
-					{ value: 'post_title', label: 'Title', type: 'string' },
-					{ value: 'post_content', label: 'Content', type: 'string' },
-					{ value: 'post_excerpt', label: 'Excerpt', type: 'string' },
-					{ value: 'post_date', label: 'Date', type: 'date' },
-					{ value: 'post_status', label: 'Status', type: 'string' },
-					{ value: 'post_name', label: 'Slug', type: 'string' },
+					{
+						value: 'post_title',
+						label: __( 'Title', 'import-export-by-rockstarlab' ),
+						labelEn: 'Title',
+						type: 'string',
+					},
+					{
+						value: 'post_content',
+						label: __( 'Content', 'import-export-by-rockstarlab' ),
+						labelEn: 'Content',
+						type: 'string',
+					},
+					{
+						value: 'post_excerpt',
+						label: __( 'Excerpt', 'import-export-by-rockstarlab' ),
+						labelEn: 'Excerpt',
+						type: 'string',
+					},
+					{
+						value: 'post_date',
+						label: __( 'Date', 'import-export-by-rockstarlab' ),
+						labelEn: 'Date',
+						type: 'date',
+					},
+					{
+						value: 'post_status',
+						label: __( 'Status', 'import-export-by-rockstarlab' ),
+						labelEn: 'Status',
+						type: 'string',
+					},
+					{
+						value: 'post_name',
+						label: __( 'Slug', 'import-export-by-rockstarlab' ),
+						labelEn: 'Slug',
+						type: 'string',
+					},
 					{
 						value: '_wp_page_template',
-						label: 'Template',
+						label: __( 'Template', 'import-export-by-rockstarlab' ),
+						labelEn: 'Template',
 						type: 'string',
 					},
 				],
@@ -2325,92 +2498,154 @@ const ImportModule = {
 				options: [
 					{
 						value: 'post_author',
-						label: 'Author ID',
+						label: __(
+							'Author ID',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Author ID',
 						type: 'number',
 					},
 					{
 						value: 'author_login',
-						label: 'Author Login',
+						label: __(
+							'Author Login',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Author Login',
 						type: 'string',
 					},
 					{
 						value: 'author_name',
-						label: 'Author Name',
+						label: __(
+							'Author Name',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Author Name',
 						type: 'string',
 					},
 					{
 						value: 'author_email',
-						label: 'Author Email',
+						label: __(
+							'Author Email',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Author Email',
 						type: 'email',
 					},
 				],
 			},
 			{
-				label: 'Media',
+				label: __( 'Media', 'import-export-by-rockstarlab' ),
+				labelEn: 'Media',
 				options: [
 					{
 						value: 'featured_image',
-						label: 'Featured Image (Legacy URL)',
+						label: __(
+							'Featured Image (Legacy URL)',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Featured Image (Legacy URL)',
 						type: 'string',
 					},
 					{
 						value: 'featured_image_url',
-						label: 'Featured Image URL',
+						label: __(
+							'Featured Image URL',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Featured Image URL',
 						type: 'string',
 					},
 					{
 						value: 'featured_image_id',
-						label: 'Featured Image ID',
+						label: __(
+							'Featured Image ID',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Featured Image ID',
 						type: 'number',
 					},
 					{
 						value: 'featured_image_title',
-						label: 'Featured Image Title',
+						label: __(
+							'Featured Image Title',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Featured Image Title',
 						type: 'string',
 					},
 					{
 						value: 'featured_image_caption',
-						label: 'Featured Image Caption',
+						label: __(
+							'Featured Image Caption',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Featured Image Caption',
 						type: 'string',
 					},
 					{
 						value: 'featured_image_alt',
-						label: 'Featured Image Alt Text',
+						label: __(
+							'Featured Image Alt Text',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Featured Image Alt Text',
 						type: 'string',
 					},
 				],
 			},
 			{
-				label: 'Other',
+				label: __( 'Other', 'import-export-by-rockstarlab' ),
+				labelEn: 'Other',
 				options: [
 					{
 						value: 'comment_status',
-						label: 'Comment Status',
+						label: __(
+							'Comment Status',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Comment Status',
 						type: 'string',
 					},
 					{
 						value: 'post_password',
-						label: 'Post Password',
+						label: __(
+							'Post Password',
+							'import-export-by-rockstarlab'
+						),
 						type: 'string',
 					},
 					{
 						value: 'post_modified',
-						label: 'Modified Date',
+						label: __(
+							'Modified Date',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Modified Date',
 						type: 'date',
 					},
 					{
 						value: 'menu_order',
-						label: 'Menu Order',
+						label: __(
+							'Menu Order',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Menu Order',
 						type: 'number',
 					},
 					{
 						value: 'is_sticky',
-						label: 'Sticky',
+						label: __( 'Sticky', 'import-export-by-rockstarlab' ),
+						labelEn: 'Sticky',
 						type: 'boolean',
 					},
 					{
 						value: 'post_parent',
-						label: 'Parent ID',
+						label: __(
+							'Parent ID',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Parent ID',
 						type: 'number',
 					},
 				],
@@ -2421,116 +2656,213 @@ const ImportModule = {
 		if ( contentType === 'media' ) {
 			return translateGroups( [
 				{
-					label: 'Basic',
+					label: __( 'Basic', 'import-export-by-rockstarlab' ),
+					labelEn: 'Basic',
 					options: [
 						{ value: 'ID', label: 'ID', type: 'number' },
-						{ value: 'post_title', label: 'Title', type: 'string' },
+						{
+							value: 'post_title',
+							label: __(
+								'Title',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Title',
+							type: 'string',
+						},
 						{
 							value: 'post_content',
-							label: 'Description',
+							label: __(
+								'Description',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Description',
 							type: 'string',
 						},
 						{
 							value: 'post_excerpt',
-							label: 'Caption',
+							label: __(
+								'Caption',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Caption',
 							type: 'string',
 						},
 						{
 							value: 'alt_text',
-							label: 'Alt Text',
+							label: __(
+								'Alt Text',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Alt Text',
 							type: 'string',
 						},
 						{ value: 'guid', label: 'GUID', type: 'string' },
 					],
 				},
 				{
-					label: 'File',
+					label: __( 'File', 'import-export-by-rockstarlab' ),
+					labelEn: 'File',
 					options: [
-						{ value: 'file_url', label: 'File URL', type: 'url' },
+						{
+							value: 'file_url',
+							label: __(
+								'File URL',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'File URL',
+							type: 'url',
+						},
 						{
 							value: 'file_path',
-							label: 'File Path',
+							label: __(
+								'File Path',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'File Path',
 							type: 'string',
 						},
 						{
 							value: 'file_name',
-							label: 'File Name',
+							label: __(
+								'File Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'File Name',
 							type: 'string',
 						},
 						{
 							value: 'file_extension',
-							label: 'File Extension',
+							label: __(
+								'File Extension',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'File Extension',
 							type: 'string',
 						},
 						{
 							value: 'post_mime_type',
-							label: 'MIME Type',
+							label: __(
+								'MIME Type',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'MIME Type',
 							type: 'string',
 						},
 						{
 							value: 'file_size',
-							label: 'File Size (bytes)',
+							label: __(
+								'File Size (bytes)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'File Size (bytes)',
 							type: 'number',
 						},
 					],
 				},
 				{
-					label: 'Image',
+					label: __( 'Image', 'import-export-by-rockstarlab' ),
+					labelEn: 'Image',
 					options: [
-						{ value: 'width', label: 'Width (px)', type: 'number' },
+						{
+							value: 'width',
+							label: __(
+								'Width (px)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Width (px)',
+							type: 'number',
+						},
 						{
 							value: 'height',
-							label: 'Height (px)',
+							label: __(
+								'Height (px)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Height (px)',
 							type: 'number',
 						},
 					],
 				},
 				{
-					label: 'Author',
+					label: __( 'Author', 'import-export-by-rockstarlab' ),
+					labelEn: 'Author',
 					options: [
 						{
 							value: 'post_author',
-							label: 'Author ID',
+							label: __(
+								'Author ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author ID',
 							type: 'number',
 						},
 						{
 							value: 'author_login',
-							label: 'Author Login',
+							label: __(
+								'Author Login',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author Login',
 							type: 'string',
 						},
 						{
 							value: 'author_name',
-							label: 'Author Name',
+							label: __(
+								'Author Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author Name',
 							type: 'string',
 						},
 						{
 							value: 'author_email',
-							label: 'Author Email',
+							label: __(
+								'Author Email',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author Email',
 							type: 'email',
 						},
 					],
 				},
 				{
-					label: 'Other',
+					label: __( 'Other', 'import-export-by-rockstarlab' ),
+					labelEn: 'Other',
 					options: [
 						{
 							value: 'post_date',
-							label: 'Upload Date',
+							label: __(
+								'Upload Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Upload Date',
 							type: 'date',
 						},
 						{
 							value: 'post_modified',
-							label: 'Modified Date',
+							label: __(
+								'Modified Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Modified Date',
 							type: 'date',
 						},
 						{
 							value: 'post_parent',
-							label: 'Attached To (Post ID)',
+							label: __(
+								'Attached To (Post ID)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attached To (Post ID)',
 							type: 'number',
 						},
 						{
 							value: 'attached_post_title',
-							label: 'Attached Post Title',
+							label: __(
+								'Attached Post Title',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attached Post Title',
 							type: 'string',
 						},
 					],
@@ -2546,34 +2878,77 @@ const ImportModule = {
 		) {
 			return translateGroups( [
 				{
-					label: 'Basic',
+					label: __( 'Basic', 'import-export-by-rockstarlab' ),
+					labelEn: 'Basic',
 					options: [
 						{
 							value: 'term_id',
-							label: 'Source Menu ID',
+							label: __(
+								'Source Menu ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Source Menu ID',
 							type: 'number',
 						},
-						{ value: 'name', label: 'Menu Name', type: 'string' },
-						{ value: 'slug', label: 'Menu Slug', type: 'string' },
+						{
+							value: 'name',
+							label: __(
+								'Menu Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Menu Name',
+							type: 'string',
+						},
+						{
+							value: 'slug',
+							label: __(
+								'Menu Slug',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Menu Slug',
+							type: 'string',
+						},
 						{
 							value: 'description',
-							label: 'Description',
+							label: __(
+								'Description',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Description',
 							type: 'string',
 						},
 						{
 							value: 'locations',
-							label: 'Menu Locations',
+							label: __(
+								'Menu Locations',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Menu Locations',
 							type: 'string',
 						},
-						{ value: 'count', label: 'Item Count', type: 'number' },
+						{
+							value: 'count',
+							label: __(
+								'Item Count',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Item Count',
+							type: 'number',
+						},
 					],
 				},
 				{
-					label: 'Items',
+					label: __( 'Items', 'import-export-by-rockstarlab' ),
+					labelEn: 'Items',
 					options: [
 						{
 							value: 'menu_items',
-							label: 'Menu Items Portable JSON (includes source IDs and object hints)',
+							label: __(
+								'Menu Items Portable JSON (includes source IDs and object hints)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Menu Items Portable JSON (includes source IDs and object hints)',
 							type: 'json',
 						},
 					],
@@ -2586,11 +2961,19 @@ const ImportModule = {
 			return translateGroups( [
 				...baseFields,
 				{
-					label: 'Custom Fields (Meta)',
+					label: __(
+						'Custom Fields (Meta)',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Custom Fields (Meta)',
 					options: [
 						{
 							value: 'meta',
-							label: 'Custom Field',
+							label: __(
+								'Custom Field',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Custom Field',
 							type: 'meta',
 							custom: true,
 						},
@@ -2603,160 +2986,325 @@ const ImportModule = {
 		if ( contentType === 'user' ) {
 			return [
 				{
-					label: 'Basic',
+					label: __( 'Basic', 'import-export-by-rockstarlab' ),
+					labelEn: 'Basic',
 					options: [
-						{ value: 'ID', label: 'User ID', type: 'number' },
+						{
+							value: 'ID',
+							label: __(
+								'User ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'User ID',
+							type: 'number',
+						},
 						{
 							value: 'user_login',
-							label: 'Username',
+							label: __(
+								'Username',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Username',
 							type: 'string',
 						},
-						{ value: 'user_email', label: 'Email', type: 'email' },
+						{
+							value: 'user_email',
+							label: __(
+								'Email',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Email',
+							type: 'email',
+						},
 						{
 							value: 'user_pass',
-							label: 'Password',
+							label: __(
+								'Password',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Password',
 							type: 'string',
 						},
 						{
 							value: 'display_name',
-							label: 'Display Name',
+							label: __(
+								'Display Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Display Name',
 							type: 'string',
 						},
 						{
 							value: 'user_nicename',
-							label: 'Nice Name (Slug)',
+							label: __(
+								'Nice Name (Slug)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Nice Name (Slug)',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Profile',
+					label: __( 'Profile', 'import-export-by-rockstarlab' ),
+					labelEn: 'Profile',
 					options: [
 						{
 							value: 'first_name',
-							label: 'First Name',
+							label: __(
+								'First Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'First Name',
 							type: 'string',
 						},
 						{
 							value: 'last_name',
-							label: 'Last Name',
+							label: __(
+								'Last Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Last Name',
 							type: 'string',
 						},
 						{
 							value: 'nickname',
-							label: 'Nickname',
+							label: __(
+								'Nickname',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Nickname',
 							type: 'string',
 						},
-						{ value: 'description', label: 'Bio', type: 'string' },
-						{ value: 'user_url', label: 'Website', type: 'url' },
+						{
+							value: 'description',
+							label: __( 'Bio', 'import-export-by-rockstarlab' ),
+							labelEn: 'Bio',
+							type: 'string',
+						},
+						{
+							value: 'user_url',
+							label: __(
+								'Website',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Website',
+							type: 'url',
+						},
 						{
 							value: 'avatar_url',
-							label: 'Avatar URL',
+							label: __(
+								'Avatar URL',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Avatar URL',
 							type: 'url',
 						},
 					],
 				},
 				{
-					label: 'Social Media',
+					label: __( 'Social Media', 'import-export-by-rockstarlab' ),
+					labelEn: 'Social Media',
 					options: [
 						{
 							value: 'facebook',
-							label: 'Facebook',
+							label: __(
+								'Facebook',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Facebook',
 							type: 'string',
 						},
 						{
 							value: 'instagram',
-							label: 'Instagram',
+							label: __(
+								'Instagram',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Instagram',
 							type: 'string',
 						},
 						{
 							value: 'linkedin',
-							label: 'LinkedIn',
+							label: __(
+								'LinkedIn',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
-						{ value: 'myspace', label: 'MySpace', type: 'string' },
+						{
+							value: 'myspace',
+							label: __(
+								'MySpace',
+								'import-export-by-rockstarlab'
+							),
+							type: 'string',
+						},
 						{
 							value: 'pinterest',
-							label: 'Pinterest',
+							label: __(
+								'Pinterest',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Pinterest',
 							type: 'string',
 						},
 						{
 							value: 'soundcloud',
-							label: 'SoundCloud',
+							label: __(
+								'SoundCloud',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
-						{ value: 'tumblr', label: 'Tumblr', type: 'string' },
+						{
+							value: 'tumblr',
+							label: __(
+								'Tumblr',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Tumblr',
+							type: 'string',
+						},
 						{
 							value: 'wikipedia',
-							label: 'Wikipedia',
+							label: __(
+								'Wikipedia',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Wikipedia',
 							type: 'string',
 						},
 						{
 							value: 'twitter',
-							label: 'Twitter/X',
+							label: __(
+								'Twitter/X',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
-						{ value: 'youtube', label: 'YouTube', type: 'string' },
+						{
+							value: 'youtube',
+							label: __(
+								'YouTube',
+								'import-export-by-rockstarlab'
+							),
+							type: 'string',
+						},
 					],
 				},
 				{
-					label: 'Role & Permissions',
+					label: __(
+						'Role & Permissions',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Role & Permissions',
 					options: [
-						{ value: 'role', label: 'Role', type: 'string' },
+						{
+							value: 'role',
+							label: __( 'Role', 'import-export-by-rockstarlab' ),
+							labelEn: 'Role',
+							type: 'string',
+						},
 						{
 							value: 'roles',
-							label: 'Roles (comma-separated)',
+							label: __(
+								'Roles (comma-separated)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Roles (comma-separated)',
 							type: 'string',
 						},
 						{
 							value: 'capabilities',
-							label: 'Capabilities (JSON)',
+							label: __(
+								'Capabilities (JSON)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Capabilities (JSON)',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Preferences',
+					label: __( 'Preferences', 'import-export-by-rockstarlab' ),
+					labelEn: 'Preferences',
 					options: [
-						{ value: 'locale', label: 'Language', type: 'string' },
+						{
+							value: 'locale',
+							label: __(
+								'Language',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Language',
+							type: 'string',
+						},
 						{
 							value: 'admin_color',
-							label: 'Admin Color Scheme',
+							label: __(
+								'Admin Color Scheme',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Admin Color Scheme',
 							type: 'string',
 						},
 						{
 							value: 'rich_editing',
-							label: 'Visual Editor',
+							label: __(
+								'Visual Editor',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Visual Editor',
 							type: 'boolean',
 						},
 					],
 				},
 				{
-					label: 'Stats',
+					label: __( 'Stats', 'import-export-by-rockstarlab' ),
+					labelEn: 'Stats',
 					options: [
 						{
 							value: 'posts_count',
-							label: 'Posts Count',
+							label: __(
+								'Posts Count',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'user_registered',
-							label: 'Registration Date',
+							label: __(
+								'Registration Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Registration Date',
 							type: 'date',
 						},
 					],
 				},
 				{
-					label: 'Custom Fields (User Meta)',
+					label: __(
+						'Custom Fields (User Meta)',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Custom Fields (User Meta)',
 					options: [
 						{
 							value: 'user_meta',
-							label: 'User Meta (JSON)',
+							label: __(
+								'User Meta (JSON)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'User Meta (JSON)',
 							type: 'json',
 						},
 						{
 							value: 'meta',
-							label: 'Custom Field',
+							label: __(
+								'Custom Field',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Custom Field',
 							type: 'meta',
 							custom: true,
 						},
@@ -2769,156 +3317,261 @@ const ImportModule = {
 		if ( contentType === 'comment' || contentType === 'comments' ) {
 			return [
 				{
-					label: 'Basic',
+					label: __( 'Basic', 'import-export-by-rockstarlab' ),
+					labelEn: 'Basic',
 					options: [
 						{
 							value: 'comment_ID',
-							label: 'Comment ID (local/source reference)',
+							label: __(
+								'Comment ID (local/source reference)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Comment ID (local/source reference)',
 							type: 'number',
 						},
 						{
 							value: 'source_comment_id',
-							label: 'Source Comment ID (for updates)',
+							label: __(
+								'Source Comment ID (for updates)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Source Comment ID (for updates)',
 							type: 'number',
 						},
 						{
 							value: 'comment_post_ID',
-							label: 'Post ID (source/local fallback)',
+							label: __(
+								'Post ID (source/local fallback)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 						{
 							value: 'source_post_id',
-							label: 'Source Post ID (matches imported posts)',
+							label: __(
+								'Source Post ID (matches imported posts)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Source Post ID (matches imported posts)',
 							type: 'number',
 						},
 						{
 							value: 'comment_content',
-							label: 'Comment Content',
+							label: __(
+								'Comment Content',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Comment Content',
 							type: 'string',
 						},
 						{
 							value: 'comment_approved',
-							label: 'Status (1/0/spam)',
+							label: __(
+								'Status (1/0/spam)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Status (1/0/spam)',
 							type: 'string',
 						},
 						{
 							value: 'comment_type',
-							label: 'Comment Type',
+							label: __(
+								'Comment Type',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Comment Type',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Author',
+					label: __( 'Author', 'import-export-by-rockstarlab' ),
+					labelEn: 'Author',
 					options: [
 						{
 							value: 'comment_author',
-							label: 'Author Name',
+							label: __(
+								'Author Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author Name',
 							type: 'string',
 						},
 						{
 							value: 'comment_author_email',
-							label: 'Author Email',
+							label: __(
+								'Author Email',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author Email',
 							type: 'email',
 						},
 						{
 							value: 'comment_author_url',
-							label: 'Author URL',
+							label: __(
+								'Author URL',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author URL',
 							type: 'url',
 						},
 						{
 							value: 'comment_author_IP',
-							label: 'Author IP',
+							label: __(
+								'Author IP',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author IP',
 							type: 'string',
 						},
 						{
 							value: 'user_id',
-							label: 'User ID (local fallback; email is preferred)',
+							label: __(
+								'User ID (local fallback; email is preferred)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'User ID (local fallback; email is preferred)',
 							type: 'number',
 						},
 						{
 							value: 'comment_agent',
-							label: 'User Agent',
+							label: __(
+								'User Agent',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'User Agent',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Related Post',
+					label: __( 'Related Post', 'import-export-by-rockstarlab' ),
+					labelEn: 'Related Post',
 					options: [
 						{
 							value: 'post_permalink',
-							label: 'Post Permalink (matching hint)',
+							label: __(
+								'Post Permalink (matching hint)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'url',
 						},
 						{
 							value: 'post_type',
-							label: 'Post Type',
+							label: __(
+								'Post Type',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'post_slug',
-							label: 'Post Slug (recommended matching)',
+							label: __(
+								'Post Slug (recommended matching)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'post_title',
-							label: 'Post Title (fallback matching)',
+							label: __(
+								'Post Title (fallback matching)',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'post_author',
-							label: 'Post Author ID',
+							label: __(
+								'Post Author ID',
+								'import-export-by-rockstarlab'
+							),
 							type: 'number',
 						},
 					],
 				},
 				{
-					label: 'Dates',
+					label: __( 'Dates', 'import-export-by-rockstarlab' ),
+					labelEn: 'Dates',
 					options: [
 						{
 							value: 'comment_date',
-							label: 'Comment Date',
+							label: __(
+								'Comment Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Comment Date',
 							type: 'datetime',
 						},
 						{
 							value: 'comment_date_gmt',
-							label: 'Comment Date (GMT)',
+							label: __(
+								'Comment Date (GMT)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Comment Date (GMT)',
 							type: 'datetime',
 						},
 					],
 				},
 				{
-					label: 'Hierarchy',
+					label: __( 'Hierarchy', 'import-export-by-rockstarlab' ),
+					labelEn: 'Hierarchy',
 					options: [
 						{
 							value: 'comment_parent',
-							label: 'Parent Comment ID (source reference)',
+							label: __(
+								'Parent Comment ID (source reference)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Parent Comment ID (source reference)',
 							type: 'number',
 						},
 						{
 							value: 'source_comment_parent_id',
-							label: 'Source Parent Comment ID (for threaded comments)',
+							label: __(
+								'Source Parent Comment ID (for threaded comments)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Source Parent Comment ID (for threaded comments)',
 							type: 'number',
 						},
 						{
 							value: 'comment_karma',
-							label: 'Karma',
+							label: __(
+								'Karma',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Karma',
 							type: 'number',
 						},
 					],
 				},
 				{
-					label: 'Custom Fields (Meta)',
+					label: __(
+						'Custom Fields (Meta)',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Custom Fields (Meta)',
 					options: [
 						{
 							value: 'comment_meta',
-							label: 'Comment Meta (JSON)',
+							label: __(
+								'Comment Meta (JSON)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Comment Meta (JSON)',
 							type: 'json',
 						},
 						{
 							value: 'meta',
-							label: 'Custom Field',
+							label: __(
+								'Custom Field',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Custom Field',
 							type: 'meta',
 							custom: true,
 						},
@@ -2931,488 +3584,895 @@ const ImportModule = {
 		if ( contentType === 'product' || contentType === 'woo_product' ) {
 			return [
 				{
-					label: 'Basic Info',
+					label: __( 'Basic Info', 'import-export-by-rockstarlab' ),
+					labelEn: 'Basic Info',
 					options: [
-						{ value: 'ID', label: 'Product ID', type: 'number' },
+						{
+							value: 'ID',
+							label: __(
+								'Product ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Product ID',
+							type: 'number',
+						},
 						{
 							value: 'post_title',
-							label: 'Product Title',
+							label: __(
+								'Product Title',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Product Title',
 							type: 'string',
 						},
-						{ value: 'post_name', label: 'Slug', type: 'string' },
+						{
+							value: 'post_name',
+							label: __( 'Slug', 'import-export-by-rockstarlab' ),
+							labelEn: 'Slug',
+							type: 'string',
+						},
 						{
 							value: 'post_status',
-							label: 'Status (publish, draft, pending)',
+							label: __(
+								'Status (publish, draft, pending)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Status (publish, draft, pending)',
 							type: 'string',
 						},
 						{
 							value: 'post_author',
-							label: 'Author ID',
+							label: __(
+								'Author ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author ID',
 							type: 'number',
 						},
 						{
 							value: 'post_content',
-							label: 'Description',
+							label: __(
+								'Description',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Description',
 							type: 'string',
 						},
 						{
 							value: 'post_excerpt',
-							label: 'Short Description',
+							label: __(
+								'Short Description',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Short Description',
 							type: 'string',
 						},
 						{
 							value: 'comment_status',
-							label: 'Reviews Enabled',
+							label: __(
+								'Reviews Enabled',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Reviews Enabled',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Product Data',
+					label: __( 'Product Data', 'import-export-by-rockstarlab' ),
+					labelEn: 'Product Data',
 					options: [
 						{ value: 'sku', label: 'SKU', type: 'string' },
 						{
 							value: 'regular_price',
-							label: 'Regular Price',
+							label: __(
+								'Regular Price',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Regular Price',
 							type: 'number',
 						},
 						{
 							value: 'sale_price',
-							label: 'Sale Price',
+							label: __(
+								'Sale Price',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Sale Price',
 							type: 'number',
 						},
 						{
 							value: 'product_type',
-							label: 'Product Type (simple, variable, grouped, external)',
+							label: __(
+								'Product Type (simple, variable, grouped, external)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Product Type (simple, variable, grouped, external)',
 							type: 'string',
 						},
 						{
 							value: 'product_url',
-							label: 'External Product URL',
+							label: __(
+								'External Product URL',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'External Product URL',
 							type: 'url',
 						},
 						{
 							value: 'button_text',
-							label: 'External Button Text',
+							label: __(
+								'External Button Text',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'External Button Text',
 							type: 'string',
 						},
 						{
 							value: 'downloadable',
-							label: 'Downloadable (yes, no)',
+							label: __(
+								'Downloadable (yes, no)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Downloadable (yes, no)',
 							type: 'string',
 						},
 						{
 							value: 'virtual',
-							label: 'Virtual (yes, no)',
+							label: __(
+								'Virtual (yes, no)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Virtual (yes, no)',
 							type: 'string',
 						},
 						{
 							value: 'featured',
-							label: 'Featured (yes, no)',
+							label: __(
+								'Featured (yes, no)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Featured (yes, no)',
 							type: 'string',
 						},
 						{
 							value: 'visibility',
-							label: 'Catalog Visibility',
+							label: __(
+								'Catalog Visibility',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Catalog Visibility',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Inventory',
+					label: __( 'Inventory', 'import-export-by-rockstarlab' ),
+					labelEn: 'Inventory',
 					options: [
 						{
 							value: 'stock_quantity',
-							label: 'Stock Quantity',
+							label: __(
+								'Stock Quantity',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Stock Quantity',
 							type: 'number',
 						},
 						{
 							value: 'stock_status',
-							label: 'Stock Status (instock, outofstock, onbackorder)',
+							label: __(
+								'Stock Status (instock, outofstock, onbackorder)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Stock Status (instock, outofstock, onbackorder)',
 							type: 'string',
 						},
 						{
 							value: 'manage_stock',
-							label: 'Manage Stock (yes, no)',
+							label: __(
+								'Manage Stock (yes, no)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Manage Stock (yes, no)',
 							type: 'string',
 						},
 						{
 							value: 'backorders',
-							label: 'Backorders (yes, no, notify)',
+							label: __(
+								'Backorders (yes, no, notify)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Backorders (yes, no, notify)',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Tax',
+					label: __( 'Tax', 'import-export-by-rockstarlab' ),
+					labelEn: 'Tax',
 					options: [
 						{
 							value: 'tax_status',
-							label: 'Tax Status (taxable, shipping, none)',
+							label: __(
+								'Tax Status (taxable, shipping, none)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Tax Status (taxable, shipping, none)',
 							type: 'string',
 						},
 						{
 							value: 'tax_class',
-							label: 'Tax Class',
+							label: __(
+								'Tax Class',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Tax Class',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Shipping',
+					label: __( 'Shipping', 'import-export-by-rockstarlab' ),
+					labelEn: 'Shipping',
 					options: [
-						{ value: 'weight', label: 'Weight', type: 'number' },
-						{ value: 'length', label: 'Length', type: 'number' },
-						{ value: 'width', label: 'Width', type: 'number' },
-						{ value: 'height', label: 'Height', type: 'number' },
+						{
+							value: 'weight',
+							label: __(
+								'Weight',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Weight',
+							type: 'number',
+						},
+						{
+							value: 'length',
+							label: __(
+								'Length',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Length',
+							type: 'number',
+						},
+						{
+							value: 'width',
+							label: __(
+								'Width',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Width',
+							type: 'number',
+						},
+						{
+							value: 'height',
+							label: __(
+								'Height',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Height',
+							type: 'number',
+						},
 						{
 							value: 'shipping_class',
-							label: 'Shipping Class',
+							label: __(
+								'Shipping Class',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Shipping Class',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Variations & Extra Data (WooCommerce CSV)',
+					label: __(
+						'Variations & Extra Data (WooCommerce CSV)',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Variations & Extra Data (WooCommerce CSV)',
 					options: [
 						{
 							value: 'parent_sku',
-							label: 'Parent (SKU or id:N) - for variation rows',
+							label: __(
+								'Parent (SKU or id:N) - for variation rows',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Parent (SKU or id:N) - for variation rows',
 							type: 'string',
 						},
 						{
 							value: 'upsell_skus',
-							label: 'Upsells (SKUs or id:N, comma-separated)',
+							label: __(
+								'Upsells (SKUs or id:N, comma-separated)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Upsells (SKUs or id:N, comma-separated)',
 							type: 'string',
 						},
 						{
 							value: 'crosssell_skus',
-							label: 'Cross-sells (SKUs or id:N, comma-separated)',
+							label: __(
+								'Cross-sells (SKUs or id:N, comma-separated)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Cross-sells (SKUs or id:N, comma-separated)',
 							type: 'string',
 						},
 						{
 							value: 'download_limit',
-							label: 'Download Limit',
+							label: __(
+								'Download Limit',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Download Limit',
 							type: 'number',
 						},
 						{
 							value: 'download_expiry',
-							label: 'Download Expiry (days)',
+							label: __(
+								'Download Expiry (days)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Download Expiry (days)',
 							type: 'number',
 						},
 						{
 							value: 'download_1_name',
-							label: 'Download 1 name',
+							label: __(
+								'Download 1 name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Download 1 name',
 							type: 'string',
 						},
 						{
 							value: 'download_1_url',
-							label: 'Download 1 URL',
+							label: __(
+								'Download 1 URL',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Download 1 URL',
 							type: 'url',
 						},
 						{
 							value: 'download_2_name',
-							label: 'Download 2 name',
+							label: __(
+								'Download 2 name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Download 2 name',
 							type: 'string',
 						},
 						{
 							value: 'download_2_url',
-							label: 'Download 2 URL',
+							label: __(
+								'Download 2 URL',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Download 2 URL',
 							type: 'url',
 						},
 						{
 							value: 'download_3_name',
-							label: 'Download 3 name',
+							label: __(
+								'Download 3 name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Download 3 name',
 							type: 'string',
 						},
 						{
 							value: 'download_3_url',
-							label: 'Download 3 URL',
+							label: __(
+								'Download 3 URL',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Download 3 URL',
 							type: 'url',
 						},
 						{
 							value: 'download_4_name',
-							label: 'Download 4 name',
+							label: __(
+								'Download 4 name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Download 4 name',
 							type: 'string',
 						},
 						{
 							value: 'download_4_url',
-							label: 'Download 4 URL',
+							label: __(
+								'Download 4 URL',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Download 4 URL',
 							type: 'url',
 						},
 						{
 							value: 'download_5_name',
-							label: 'Download 5 name',
+							label: __(
+								'Download 5 name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Download 5 name',
 							type: 'string',
 						},
 						{
 							value: 'download_5_url',
-							label: 'Download 5 URL',
+							label: __(
+								'Download 5 URL',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Download 5 URL',
 							type: 'url',
 						},
 						{
 							value: 'sold_individually',
-							label: 'Sold Individually (yes, no)',
+							label: __(
+								'Sold Individually (yes, no)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Sold Individually (yes, no)',
 							type: 'string',
 						},
 						{
 							value: 'purchase_note',
-							label: 'Purchase Note',
+							label: __(
+								'Purchase Note',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Purchase Note',
 							type: 'string',
 						},
 						{
 							value: 'low_stock_amount',
-							label: 'Low Stock Amount',
+							label: __(
+								'Low Stock Amount',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Low Stock Amount',
 							type: 'number',
 						},
 						{
 							value: 'menu_order',
-							label: 'Position (menu order)',
+							label: __(
+								'Position (menu order)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Position (menu order)',
 							type: 'number',
 						},
 						{
 							value: 'date_on_sale_from',
-							label: 'Sale Price Start Date',
+							label: __(
+								'Sale Price Start Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Sale Price Start Date',
 							type: 'date',
 						},
 						{
 							value: 'date_on_sale_to',
-							label: 'Sale Price End Date',
+							label: __(
+								'Sale Price End Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Sale Price End Date',
 							type: 'date',
 						},
 					],
 				},
 				{
-					label: 'Attributes (WooCommerce CSV columns)',
+					label: __(
+						'Attributes (WooCommerce CSV columns)',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Attributes (WooCommerce CSV columns)',
 					options: [
 						{
 							value: 'attribute_1_name',
-							label: 'Attribute 1 name',
+							label: __(
+								'Attribute 1 name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 1 name',
 							type: 'string',
 						},
 						{
 							value: 'attribute_1_values',
-							label: 'Attribute 1 value(s)',
+							label: __(
+								'Attribute 1 value(s)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 1 value(s)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_1_visible',
-							label: 'Attribute 1 visible (1/0)',
+							label: __(
+								'Attribute 1 visible (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 1 visible (1/0)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_1_global',
-							label: 'Attribute 1 global (1/0)',
+							label: __(
+								'Attribute 1 global (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 1 global (1/0)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_2_name',
-							label: 'Attribute 2 name',
+							label: __(
+								'Attribute 2 name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 2 name',
 							type: 'string',
 						},
 						{
 							value: 'attribute_2_values',
-							label: 'Attribute 2 value(s)',
+							label: __(
+								'Attribute 2 value(s)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 2 value(s)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_2_visible',
-							label: 'Attribute 2 visible (1/0)',
+							label: __(
+								'Attribute 2 visible (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 2 visible (1/0)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_2_global',
-							label: 'Attribute 2 global (1/0)',
+							label: __(
+								'Attribute 2 global (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 2 global (1/0)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_3_name',
-							label: 'Attribute 3 name',
+							label: __(
+								'Attribute 3 name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 3 name',
 							type: 'string',
 						},
 						{
 							value: 'attribute_3_values',
-							label: 'Attribute 3 value(s)',
+							label: __(
+								'Attribute 3 value(s)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 3 value(s)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_3_visible',
-							label: 'Attribute 3 visible (1/0)',
+							label: __(
+								'Attribute 3 visible (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 3 visible (1/0)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_3_global',
-							label: 'Attribute 3 global (1/0)',
+							label: __(
+								'Attribute 3 global (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 3 global (1/0)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_4_name',
-							label: 'Attribute 4 name',
+							label: __(
+								'Attribute 4 name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 4 name',
 							type: 'string',
 						},
 						{
 							value: 'attribute_4_values',
-							label: 'Attribute 4 value(s)',
+							label: __(
+								'Attribute 4 value(s)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 4 value(s)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_4_visible',
-							label: 'Attribute 4 visible (1/0)',
+							label: __(
+								'Attribute 4 visible (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 4 visible (1/0)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_4_global',
-							label: 'Attribute 4 global (1/0)',
+							label: __(
+								'Attribute 4 global (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 4 global (1/0)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_5_name',
-							label: 'Attribute 5 name',
+							label: __(
+								'Attribute 5 name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 5 name',
 							type: 'string',
 						},
 						{
 							value: 'attribute_5_values',
-							label: 'Attribute 5 value(s)',
+							label: __(
+								'Attribute 5 value(s)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 5 value(s)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_5_visible',
-							label: 'Attribute 5 visible (1/0)',
+							label: __(
+								'Attribute 5 visible (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 5 visible (1/0)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_5_global',
-							label: 'Attribute 5 global (1/0)',
+							label: __(
+								'Attribute 5 global (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute 5 global (1/0)',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Images',
+					label: __( 'Images', 'import-export-by-rockstarlab' ),
+					labelEn: 'Images',
 					options: [
 						{
 							value: 'featured_image_id',
-							label: 'Featured Image ID',
+							label: __(
+								'Featured Image ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Featured Image ID',
 							type: 'number',
 						},
 						{
 							value: 'featured_image_url',
-							label: 'Featured Image URL',
+							label: __(
+								'Featured Image URL',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Featured Image URL',
 							type: 'url',
 						},
 						{
 							value: 'featured_image_title',
-							label: 'Featured Image Title',
+							label: __(
+								'Featured Image Title',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Featured Image Title',
 							type: 'string',
 						},
 						{
 							value: 'featured_image_caption',
-							label: 'Featured Image Caption',
+							label: __(
+								'Featured Image Caption',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Featured Image Caption',
 							type: 'string',
 						},
 						{
 							value: 'featured_image_alt',
-							label: 'Featured Image Alt Text',
+							label: __(
+								'Featured Image Alt Text',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Featured Image Alt Text',
 							type: 'string',
 						},
 						{
 							value: 'product_images',
-							label: 'Images (comma-separated URLs: first = featured)',
+							label: __(
+								'Images (comma-separated URLs: first = featured)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Images (comma-separated URLs: first = featured)',
 							type: 'string',
 						},
 						{
 							value: 'product_gallery',
-							label: 'Gallery Image IDs (comma-separated)',
+							label: __(
+								'Gallery Image IDs (comma-separated)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Gallery Image IDs (comma-separated)',
 							type: 'string',
 						},
 						{
 							value: 'variations',
-							label: 'Variations (JSON)',
+							label: __(
+								'Variations (JSON)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Variations (JSON)',
 							type: 'json',
 						},
 						{
 							value: 'product_attributes',
-							label: 'Product Attributes (JSON)',
+							label: __(
+								'Product Attributes (JSON)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Product Attributes (JSON)',
 							type: 'json',
 						},
 						{
 							value: 'grouped_products',
-							label: 'Grouped Products (JSON)',
+							label: __(
+								'Grouped Products (JSON)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Grouped Products (JSON)',
 							type: 'json',
 						},
 						{
 							value: '_children',
-							label: 'Grouped Product Children (raw _children)',
+							label: __(
+								'Grouped Product Children (raw _children)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Grouped Product Children (raw _children)',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Categories & Tags',
+					label: __(
+						'Categories & Tags',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Categories & Tags',
 					options: [
 						{
 							value: 'product_cat',
-							label: 'Categories (comma-separated)',
+							label: __(
+								'Categories (comma-separated)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Categories (comma-separated)',
 							type: 'string',
 						},
 						{
 							value: 'product_tag',
-							label: 'Tags (comma-separated)',
+							label: __(
+								'Tags (comma-separated)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Tags (comma-separated)',
 							type: 'string',
 						},
 						{
 							value: 'product_brand',
-							label: 'Brands (JSON or comma-separated)',
+							label: __(
+								'Brands (JSON or comma-separated)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Brands (JSON or comma-separated)',
 							type: 'json',
 						},
 					],
 				},
 				{
-					label: 'Reviews',
+					label: __( 'Reviews', 'import-export-by-rockstarlab' ),
+					labelEn: 'Reviews',
 					options: [
 						{
 							value: 'average_rating',
-							label: 'Average Rating',
+							label: __(
+								'Average Rating',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Average Rating',
 							type: 'number',
 						},
 						{
 							value: 'review_count',
-							label: 'Review Count',
+							label: __(
+								'Review Count',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Review Count',
 							type: 'number',
 						},
 					],
 				},
 				{
-					label: 'Stats',
+					label: __( 'Stats', 'import-export-by-rockstarlab' ),
+					labelEn: 'Stats',
 					options: [
 						{
 							value: 'total_sales',
-							label: 'Total Sales',
+							label: __(
+								'Total Sales',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Total Sales',
 							type: 'number',
 						},
 					],
 				},
 				{
-					label: 'Dates',
+					label: __( 'Dates', 'import-export-by-rockstarlab' ),
+					labelEn: 'Dates',
 					options: [
 						{
 							value: 'post_date',
-							label: 'Created Date',
+							label: __(
+								'Created Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Created Date',
 							type: 'date',
 						},
 						{
 							value: 'post_modified',
-							label: 'Modified Date',
+							label: __(
+								'Modified Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Modified Date',
 							type: 'date',
 						},
 					],
 				},
 				{
-					label: 'Custom Fields (Product Meta)',
+					label: __(
+						'Custom Fields (Product Meta)',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Custom Fields (Product Meta)',
 					options: [
 						{
 							value: 'meta',
-							label: 'Custom Field',
+							label: __(
+								'Custom Field',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Custom Field',
 							type: 'meta',
 							custom: true,
 						},
@@ -3425,317 +4485,547 @@ const ImportModule = {
 		if ( contentType === 'woo_order' || contentType === 'order' ) {
 			return [
 				{
-					label: 'Basic',
+					label: __( 'Basic', 'import-export-by-rockstarlab' ),
+					labelEn: 'Basic',
 					options: [
-						{ value: 'ID', label: 'Order ID', type: 'number' },
+						{
+							value: 'ID',
+							label: __(
+								'Order ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Order ID',
+							type: 'number',
+						},
 						{
 							value: 'order_number',
-							label: 'Order Number',
+							label: __(
+								'Order Number',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Order Number',
 							type: 'string',
 						},
 						{
 							value: 'order_key',
-							label: 'Order Key',
+							label: __(
+								'Order Key',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Order Key',
 							type: 'string',
 						},
 						{
 							value: 'order_status',
-							label: 'Order Status (pending, processing, completed, ...)',
+							label: __(
+								'Order Status (pending, processing, completed, ...)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Order Status (pending, processing, completed, ...)',
 							type: 'string',
 						},
 						{
 							value: 'currency',
-							label: 'Currency',
+							label: __(
+								'Currency',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Currency',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Dates',
+					label: __( 'Dates', 'import-export-by-rockstarlab' ),
+					labelEn: 'Dates',
 					options: [
 						{
 							value: 'order_date',
-							label: 'Order Date',
+							label: __(
+								'Order Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Order Date',
 							type: 'datetime',
 						},
 						{
 							value: 'date_modified',
-							label: 'Modified Date',
+							label: __(
+								'Modified Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Modified Date',
 							type: 'datetime',
 						},
 						{
 							value: 'paid_date',
-							label: 'Paid Date',
+							label: __(
+								'Paid Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Paid Date',
 							type: 'datetime',
 						},
 						{
 							value: 'completed_date',
-							label: 'Completed Date',
+							label: __(
+								'Completed Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Completed Date',
 							type: 'datetime',
 						},
 					],
 				},
 				{
-					label: 'Customer',
+					label: __( 'Customer', 'import-export-by-rockstarlab' ),
+					labelEn: 'Customer',
 					options: [
 						{
 							value: 'customer_id',
-							label: 'Customer ID',
+							label: __(
+								'Customer ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Customer ID',
 							type: 'number',
 						},
 						{
 							value: 'billing_email',
-							label: 'Billing Email',
+							label: __(
+								'Billing Email',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Billing Email',
 							type: 'email',
 						},
 						{
 							value: 'billing_phone',
-							label: 'Billing Phone',
+							label: __(
+								'Billing Phone',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Billing Phone',
 							type: 'string',
 						},
 						{
 							value: 'customer_note',
-							label: 'Customer Note',
+							label: __(
+								'Customer Note',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Customer Note',
 							type: 'string',
 						},
 						{
 							value: 'customer_ip_address',
-							label: 'Customer IP Address',
+							label: __(
+								'Customer IP Address',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Customer IP Address',
 							type: 'string',
 						},
 						{
 							value: 'customer_user_agent',
-							label: 'Customer User Agent',
+							label: __(
+								'Customer User Agent',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Customer User Agent',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Billing Address',
+					label: __(
+						'Billing Address',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Billing Address',
 					options: [
 						{
 							value: 'billing_first_name',
-							label: 'First Name',
+							label: __(
+								'First Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'First Name',
 							type: 'string',
 						},
 						{
 							value: 'billing_last_name',
-							label: 'Last Name',
+							label: __(
+								'Last Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Last Name',
 							type: 'string',
 						},
 						{
 							value: 'billing_company',
-							label: 'Company',
+							label: __(
+								'Company',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Company',
 							type: 'string',
 						},
 						{
 							value: 'billing_address_1',
-							label: 'Address 1',
+							label: __(
+								'Address 1',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'billing_address_2',
-							label: 'Address 2',
+							label: __(
+								'Address 2',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'billing_city',
-							label: 'City',
+							label: __( 'City', 'import-export-by-rockstarlab' ),
+							labelEn: 'City',
 							type: 'string',
 						},
 						{
 							value: 'billing_state',
-							label: 'State',
+							label: __(
+								'State',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'State',
 							type: 'string',
 						},
 						{
 							value: 'billing_postcode',
-							label: 'Postcode',
+							label: __(
+								'Postcode',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Postcode',
 							type: 'string',
 						},
 						{
 							value: 'billing_country',
-							label: 'Country',
+							label: __(
+								'Country',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Country',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Shipping Address',
+					label: __(
+						'Shipping Address',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Shipping Address',
 					options: [
 						{
 							value: 'shipping_first_name',
-							label: 'First Name',
+							label: __(
+								'First Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'First Name',
 							type: 'string',
 						},
 						{
 							value: 'shipping_last_name',
-							label: 'Last Name',
+							label: __(
+								'Last Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Last Name',
 							type: 'string',
 						},
 						{
 							value: 'shipping_company',
-							label: 'Company',
+							label: __(
+								'Company',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Company',
 							type: 'string',
 						},
 						{
 							value: 'shipping_address_1',
-							label: 'Address 1',
+							label: __(
+								'Address 1',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'shipping_address_2',
-							label: 'Address 2',
+							label: __(
+								'Address 2',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 						{
 							value: 'shipping_city',
-							label: 'City',
+							label: __( 'City', 'import-export-by-rockstarlab' ),
+							labelEn: 'City',
 							type: 'string',
 						},
 						{
 							value: 'shipping_state',
-							label: 'State',
+							label: __(
+								'State',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'State',
 							type: 'string',
 						},
 						{
 							value: 'shipping_postcode',
-							label: 'Postcode',
+							label: __(
+								'Postcode',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Postcode',
 							type: 'string',
 						},
 						{
 							value: 'shipping_country',
-							label: 'Country',
+							label: __(
+								'Country',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Country',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Payment',
+					label: __( 'Payment', 'import-export-by-rockstarlab' ),
+					labelEn: 'Payment',
 					options: [
 						{
 							value: 'payment_method',
-							label: 'Payment Method',
+							label: __(
+								'Payment Method',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Payment Method',
 							type: 'string',
 						},
 						{
 							value: 'payment_method_title',
-							label: 'Payment Method Title',
+							label: __(
+								'Payment Method Title',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Payment Method Title',
 							type: 'string',
 						},
 						{
 							value: 'transaction_id',
-							label: 'Transaction ID',
+							label: __(
+								'Transaction ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Transaction ID',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Totals',
+					label: __( 'Totals', 'import-export-by-rockstarlab' ),
+					labelEn: 'Totals',
 					options: [
 						{
 							value: 'order_total',
-							label: 'Order Total',
+							label: __(
+								'Order Total',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Order Total',
 							type: 'number',
 						},
 						{
 							value: 'order_subtotal',
-							label: 'Subtotal',
+							label: __(
+								'Subtotal',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Subtotal',
 							type: 'number',
 						},
 						{
 							value: 'order_tax',
-							label: 'Order Tax',
+							label: __(
+								'Order Tax',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Order Tax',
 							type: 'number',
 						},
 						{
 							value: 'order_shipping',
-							label: 'Order Shipping',
+							label: __(
+								'Order Shipping',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Order Shipping',
 							type: 'number',
 						},
 						{
 							value: 'order_discount',
-							label: 'Order Discount',
+							label: __(
+								'Order Discount',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Order Discount',
 							type: 'number',
 						},
 						{
 							value: 'cart_tax',
-							label: 'Cart Tax',
+							label: __(
+								'Cart Tax',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Cart Tax',
 							type: 'number',
 						},
 						{
 							value: 'shipping_tax',
-							label: 'Shipping Tax',
+							label: __(
+								'Shipping Tax',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Shipping Tax',
 							type: 'number',
 						},
 						{
 							value: 'total_tax',
-							label: 'Total Tax',
+							label: __(
+								'Total Tax',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Total Tax',
 							type: 'number',
 						},
 						{
 							value: 'tax_lines',
-							label: 'Tax Lines (Array)',
+							label: __(
+								'Tax Lines (Array)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Tax Lines (Array)',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Lines',
+					label: __( 'Lines', 'import-export-by-rockstarlab' ),
+					labelEn: 'Lines',
 					options: [
 						{
 							value: 'order_items',
-							label: 'Order Items (JSON)',
+							label: __(
+								'Order Items (JSON)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Order Items (JSON)',
 							type: 'json',
 						},
 						{
 							value: 'item_count',
-							label: 'Item Count',
+							label: __(
+								'Item Count',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Item Count',
 							type: 'number',
 						},
 						{
 							value: 'shipping_method',
-							label: 'Shipping Method',
+							label: __(
+								'Shipping Method',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Shipping Method',
 							type: 'string',
 						},
 						{
 							value: 'shipping_lines',
-							label: 'Shipping Lines (JSON)',
+							label: __(
+								'Shipping Lines (JSON)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Shipping Lines (JSON)',
 							type: 'json',
 						},
 						{
 							value: 'fee_lines',
-							label: 'Fee Lines (JSON)',
+							label: __(
+								'Fee Lines (JSON)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Fee Lines (JSON)',
 							type: 'json',
 						},
 						{
 							value: 'coupon_lines',
-							label: 'Coupon Lines (JSON)',
+							label: __(
+								'Coupon Lines (JSON)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Coupon Lines (JSON)',
 							type: 'json',
 						},
 					],
 				},
 				{
-					label: 'Notes & Meta',
+					label: __( 'Notes & Meta', 'import-export-by-rockstarlab' ),
+					labelEn: 'Notes & Meta',
 					options: [
 						{
 							value: 'order_notes',
-							label: 'Order Notes (JSON)',
+							label: __(
+								'Order Notes (JSON)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Order Notes (JSON)',
 							type: 'json',
 						},
 						{
 							value: 'refunds',
-							label: 'Refunds (JSON)',
+							label: __(
+								'Refunds (JSON)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Refunds (JSON)',
 							type: 'json',
 						},
 						{
 							value: 'order_meta',
-							label: 'Order Meta (JSON)',
+							label: __(
+								'Order Meta (JSON)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Order Meta (JSON)',
 							type: 'json',
 						},
 						{
 							value: 'meta',
-							label: 'Custom Field',
+							label: __(
+								'Custom Field',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Custom Field',
 							type: 'meta',
 							custom: true,
 						},
@@ -3752,75 +5042,142 @@ const ImportModule = {
 		) {
 			return [
 				{
-					label: 'Basic',
+					label: __( 'Basic', 'import-export-by-rockstarlab' ),
+					labelEn: 'Basic',
 					options: [
-						{ value: 'term_id', label: 'Term ID', type: 'number' },
-						{ value: 'name', label: 'Name', type: 'string' },
-						{ value: 'slug', label: 'Slug', type: 'string' },
+						{
+							value: 'term_id',
+							label: __(
+								'Term ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Term ID',
+							type: 'number',
+						},
+						{
+							value: 'name',
+							label: __( 'Name', 'import-export-by-rockstarlab' ),
+							labelEn: 'Name',
+							type: 'string',
+						},
+						{
+							value: 'slug',
+							label: __( 'Slug', 'import-export-by-rockstarlab' ),
+							labelEn: 'Slug',
+							type: 'string',
+						},
 						{
 							value: 'description',
-							label: 'Description',
+							label: __(
+								'Description',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Description',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Taxonomy',
+					label: __( 'Taxonomy', 'import-export-by-rockstarlab' ),
+					labelEn: 'Taxonomy',
 					options: [
 						{
 							value: 'taxonomy',
-							label: 'Taxonomy',
+							label: __(
+								'Taxonomy',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Taxonomy',
 							type: 'string',
 						},
 						{
 							value: 'term_taxonomy_id',
-							label: 'Term Taxonomy ID',
+							label: __(
+								'Term Taxonomy ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Term Taxonomy ID',
 							type: 'number',
 						},
 					],
 				},
 				{
-					label: 'Hierarchy',
+					label: __( 'Hierarchy', 'import-export-by-rockstarlab' ),
+					labelEn: 'Hierarchy',
 					options: [
 						{
 							value: 'parent',
-							label: 'Parent Term ID',
+							label: __(
+								'Parent Term ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Parent Term ID',
 							type: 'number',
 						},
 						{
 							value: 'parent_slug',
-							label: 'Parent Slug or Name',
+							label: __(
+								'Parent Slug or Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Parent Slug or Name',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Image',
+					label: __( 'Image', 'import-export-by-rockstarlab' ),
+					labelEn: 'Image',
 					options: [
 						{
 							value: 'image_url',
-							label: 'Image URL',
+							label: __(
+								'Image URL',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Image URL',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Stats',
+					label: __( 'Stats', 'import-export-by-rockstarlab' ),
+					labelEn: 'Stats',
 					options: [
-						{ value: 'count', label: 'Count', type: 'number' },
+						{
+							value: 'count',
+							label: __(
+								'Count',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Count',
+							type: 'number',
+						},
 					],
 				},
 				{
-					label: 'Custom Fields (Term Meta)',
+					label: __(
+						'Custom Fields (Term Meta)',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Custom Fields (Term Meta)',
 					options: [
 						{
 							value: 'term_meta',
-							label: 'Term Meta (JSON)',
+							label: __(
+								'Term Meta (JSON)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Term Meta (JSON)',
 							type: 'json',
 						},
 						{
 							value: 'meta',
-							label: 'Custom Field',
+							label: __(
+								'Custom Field',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Custom Field',
 							type: 'meta',
 							custom: true,
 						},
@@ -3832,163 +5189,280 @@ const ImportModule = {
 		if ( contentType === 'custom_post_types' ) {
 			return [
 				{
-					label: 'Standard',
+					label: __( 'Standard', 'import-export-by-rockstarlab' ),
+					labelEn: 'Standard',
 					options: [
 						{ value: 'ID', label: 'ID', type: 'number' },
 						{
 							value: 'post_title',
-							label: 'Title',
+							label: __(
+								'Title',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Title',
 							type: 'string',
 							required: true,
 						},
 						{
 							value: 'post_content',
-							label: 'Content',
+							label: __(
+								'Content',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Content',
 							type: 'string',
 						},
 						{
 							value: 'post_excerpt',
-							label: 'Excerpt',
+							label: __(
+								'Excerpt',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Excerpt',
 							type: 'string',
 						},
 						{
 							value: 'post_status',
-							label: 'Status',
+							label: __(
+								'Status',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Status',
 							type: 'string',
 						},
 						{
 							value: 'post_type',
-							label: 'Post Type',
+							label: __(
+								'Post Type',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
-						{ value: 'post_date', label: 'Date', type: 'datetime' },
+						{
+							value: 'post_date',
+							label: __( 'Date', 'import-export-by-rockstarlab' ),
+							labelEn: 'Date',
+							type: 'datetime',
+						},
 						{
 							value: 'post_modified',
-							label: 'Modified Date',
+							label: __(
+								'Modified Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Modified Date',
 							type: 'datetime',
 						},
 						{
 							value: 'menu_order',
-							label: 'Menu Order',
+							label: __(
+								'Menu Order',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Menu Order',
 							type: 'number',
 						},
 						{
 							value: 'is_sticky',
-							label: 'Sticky',
+							label: __(
+								'Sticky',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Sticky',
 							type: 'boolean',
 						},
-						{ value: 'post_name', label: 'Slug', type: 'string' },
+						{
+							value: 'post_name',
+							label: __( 'Slug', 'import-export-by-rockstarlab' ),
+							labelEn: 'Slug',
+							type: 'string',
+						},
 						{
 							value: 'post_parent',
-							label: 'Parent ID',
+							label: __(
+								'Parent ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Parent ID',
 							type: 'number',
 						},
 						{
 							value: 'comment_status',
-							label: 'Comment Status',
+							label: __(
+								'Comment Status',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Comment Status',
 							type: 'string',
 						},
 						{
 							value: 'ping_status',
-							label: 'Ping Status',
+							label: __(
+								'Ping Status',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Ping Status',
 							type: 'string',
 						},
 						{
 							value: 'post_password',
-							label: 'Post Password',
+							label: __(
+								'Post Password',
+								'import-export-by-rockstarlab'
+							),
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Author',
+					label: __( 'Author', 'import-export-by-rockstarlab' ),
+					labelEn: 'Author',
 					options: [
 						// Keep naming consistent with the Post_Importer (expects `post_author`,
 						// plus optional `author_name`/`author_email` fallbacks).
 						{
 							value: 'post_author',
-							label: 'Author ID',
+							label: __(
+								'Author ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author ID',
 							type: 'number',
 						},
 						{
 							value: 'author_login',
-							label: 'Author Login',
+							label: __(
+								'Author Login',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author Login',
 							type: 'string',
 						},
 						{
 							value: 'author_name',
-							label: 'Author Name',
+							label: __(
+								'Author Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author Name',
 							type: 'string',
 						},
 						{
 							value: 'author_email',
-							label: 'Author Email',
+							label: __(
+								'Author Email',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author Email',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Media',
+					label: __( 'Media', 'import-export-by-rockstarlab' ),
+					labelEn: 'Media',
 					options: [
 						{
 							value: 'featured_image',
-							label: 'Featured Image (Legacy URL)',
+							label: __(
+								'Featured Image (Legacy URL)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Featured Image (Legacy URL)',
 							type: 'string',
 						},
 						{
 							value: 'featured_image_url',
-							label: 'Featured Image URL',
+							label: __(
+								'Featured Image URL',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Featured Image URL',
 							type: 'string',
 						},
 						{
 							value: 'featured_image_id',
-							label: 'Featured Image ID',
+							label: __(
+								'Featured Image ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Featured Image ID',
 							type: 'number',
 						},
 						{
 							value: 'featured_image_title',
-							label: 'Featured Image Title',
+							label: __(
+								'Featured Image Title',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Featured Image Title',
 							type: 'string',
 						},
 						{
 							value: 'featured_image_caption',
-							label: 'Featured Image Caption',
+							label: __(
+								'Featured Image Caption',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Featured Image Caption',
 							type: 'string',
 						},
 						{
 							value: 'featured_image_alt',
-							label: 'Featured Image Alt Text',
+							label: __(
+								'Featured Image Alt Text',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Featured Image Alt Text',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Other',
+					label: __( 'Other', 'import-export-by-rockstarlab' ),
+					labelEn: 'Other',
 					options: [
 						{
 							value: 'post_parent_slug',
-							label: 'Parent Slug',
+							label: __(
+								'Parent Slug',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Parent Slug',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Taxonomies',
+					label: __( 'Taxonomies', 'import-export-by-rockstarlab' ),
+					labelEn: 'Taxonomies',
 					options: [
 						{
 							value: 'taxonomy',
-							label: 'Taxonomy',
+							label: __(
+								'Taxonomy',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Taxonomy',
 							type: 'taxonomy',
 							custom: true,
 						},
 					],
 				},
 				{
-					label: 'Custom Fields',
+					label: __(
+						'Custom Fields',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Custom Fields',
 					options: [
 						{
 							value: 'meta',
-							label: 'Custom Field',
+							label: __(
+								'Custom Field',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Custom Field',
 							type: 'meta',
 							custom: true,
 						},
@@ -4001,56 +5475,93 @@ const ImportModule = {
 		if ( contentType === 'woo_attribute' ) {
 			return [
 				{
-					label: 'Basic',
+					label: __( 'Basic', 'import-export-by-rockstarlab' ),
+					labelEn: 'Basic',
 					options: [
 						{
 							value: 'attribute_id',
-							label: 'Attribute ID',
+							label: __(
+								'Attribute ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute ID',
 							type: 'number',
 						},
 						{
 							value: 'attribute_name',
-							label: 'Attribute Name / Slug (e.g. color)',
+							label: __(
+								'Attribute Name / Slug (e.g. color)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute Name / Slug (e.g. color)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_label',
-							label: 'Attribute Label (e.g. Color)',
+							label: __(
+								'Attribute Label (e.g. Color)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Attribute Label (e.g. Color)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_type',
-							label: 'Type (select, text)',
+							label: __(
+								'Type (select, text)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Type (select, text)',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Settings',
+					label: __( 'Settings', 'import-export-by-rockstarlab' ),
+					labelEn: 'Settings',
 					options: [
 						{
 							value: 'attribute_orderby',
-							label: 'Order By (menu_order, name, name_num, id)',
+							label: __(
+								'Order By (menu_order, name, name_num, id)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Order By (menu_order, name, name_num, id)',
 							type: 'string',
 						},
 						{
 							value: 'attribute_public',
-							label: 'Enable Archives (1/0)',
+							label: __(
+								'Enable Archives (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Enable Archives (1/0)',
 							type: 'boolean',
 						},
 					],
 				},
 				{
-					label: 'Terms',
+					label: __( 'Terms', 'import-export-by-rockstarlab' ),
+					labelEn: 'Terms',
 					options: [
 						{
 							value: 'attribute_terms',
-							label: 'Attribute Terms (JSON array or comma-separated names)',
+							label: __(
+								'Attribute Terms (JSON array or comma-separated names)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Attribute Terms (JSON array or comma-separated names)',
 							type: 'string',
 						},
 						{
 							value: 'term_count',
-							label: 'Term Count',
+							label: __(
+								'Term Count',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Term Count',
 							type: 'number',
 						},
 					],
@@ -4061,98 +5572,188 @@ const ImportModule = {
 		if ( contentType === 'woo_review' ) {
 			return [
 				{
-					label: 'Review',
+					label: __( 'Review', 'import-export-by-rockstarlab' ),
+					labelEn: 'Review',
 					options: [
 						{
 							value: 'comment_ID',
-							label: 'Review ID (local/source reference)',
+							label: __(
+								'Review ID (local/source reference)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Review ID (local/source reference)',
 							type: 'number',
 						},
 						{
 							value: 'source_comment_id',
-							label: 'Source Review ID (for updates)',
+							label: __(
+								'Source Review ID (for updates)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Source Review ID (for updates)',
 							type: 'string',
 						},
 						{
 							value: 'product_id',
-							label: 'Product ID (source/local fallback)',
+							label: __(
+								'Product ID (source/local fallback)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Product ID (source/local fallback)',
 							type: 'number',
 						},
 						{
 							value: 'source_product_id',
-							label: 'Source Product ID (matches imported products)',
+							label: __(
+								'Source Product ID (matches imported products)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Source Product ID (matches imported products)',
 							type: 'number',
 						},
 						{
 							value: 'product_title',
-							label: 'Product Title (fallback matching)',
+							label: __(
+								'Product Title (fallback matching)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Product Title (fallback matching)',
 							type: 'string',
 						},
 						{
 							value: 'product_slug',
-							label: 'Product Slug (recommended matching)',
+							label: __(
+								'Product Slug (recommended matching)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Product Slug (recommended matching)',
 							type: 'string',
 						},
 						{
 							value: 'product_sku',
-							label: 'Product SKU (best matching)',
+							label: __(
+								'Product SKU (best matching)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Product SKU (best matching)',
 							type: 'string',
 						},
 						{
 							value: 'comment_author',
-							label: 'Author',
+							label: __(
+								'Author',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author',
 							type: 'string',
 						},
 						{
 							value: 'comment_author_email',
-							label: 'Author Email',
+							label: __(
+								'Author Email',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author Email',
 							type: 'email',
 						},
 						{
 							value: 'comment_author_url',
-							label: 'Author URL',
+							label: __(
+								'Author URL',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author URL',
 							type: 'url',
 						},
 						{
 							value: 'comment_author_IP',
-							label: 'Author IP',
+							label: __(
+								'Author IP',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Author IP',
 							type: 'string',
 						},
 						{
 							value: 'comment_date',
-							label: 'Review Date',
+							label: __(
+								'Review Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Review Date',
 							type: 'datetime',
 						},
 						{
 							value: 'comment_content',
-							label: 'Content',
+							label: __(
+								'Content',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Content',
 							type: 'string',
 						},
 						{
 							value: 'comment_approved',
-							label: 'Status',
+							label: __(
+								'Status',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Status',
 							type: 'string',
 						},
 						{
 							value: 'comment_agent',
-							label: 'User Agent',
+							label: __(
+								'User Agent',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'User Agent',
 							type: 'string',
 						},
 						{
 							value: 'comment_parent',
-							label: 'Parent Review ID',
+							label: __(
+								'Parent Review ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Parent Review ID',
 							type: 'number',
 						},
-						{ value: 'user_id', label: 'User ID', type: 'number' },
-						{ value: 'rating', label: 'Rating', type: 'number' },
+						{
+							value: 'user_id',
+							label: __(
+								'User ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'User ID',
+							type: 'number',
+						},
+						{
+							value: 'rating',
+							label: __(
+								'Rating',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Rating',
+							type: 'number',
+						},
 						{
 							value: 'verified',
-							label: 'Verified Owner',
+							label: __(
+								'Verified Owner',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Verified Owner',
 							type: 'boolean',
 						},
 						{
 							value: 'comment_meta',
-							label: 'Review Meta JSON',
+							label: __(
+								'Review Meta JSON',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Review Meta JSON',
 							type: 'json',
 						},
 					],
@@ -4163,67 +5764,145 @@ const ImportModule = {
 		if ( contentType === 'woo_refund' ) {
 			return [
 				{
-					label: 'Refund',
+					label: __( 'Refund', 'import-export-by-rockstarlab' ),
+					labelEn: 'Refund',
 					options: [
 						{
 							value: 'refund_id',
-							label: 'Refund ID (local/source reference)',
+							label: __(
+								'Refund ID (local/source reference)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Refund ID (local/source reference)',
 							type: 'number',
 						},
 						{
 							value: 'source_refund_id',
-							label: 'Source Refund ID (for updates)',
+							label: __(
+								'Source Refund ID (for updates)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Source Refund ID (for updates)',
 							type: 'number',
 						},
 						{
 							value: 'parent_order_id',
-							label: 'Parent Order ID (source/local fallback)',
+							label: __(
+								'Parent Order ID (source/local fallback)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Parent Order ID (source/local fallback)',
 							type: 'number',
 						},
 						{
 							value: 'source_parent_order_id',
-							label: 'Source Parent Order ID (matches imported orders)',
+							label: __(
+								'Source Parent Order ID (matches imported orders)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Source Parent Order ID (matches imported orders)',
 							type: 'number',
 						},
 						{
 							value: 'parent_order_key',
-							label: 'Parent Order Key (best matching)',
+							label: __(
+								'Parent Order Key (best matching)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Parent Order Key (best matching)',
 							type: 'string',
 						},
 						{
 							value: 'parent_order_number',
-							label: 'Parent Order Number',
+							label: __(
+								'Parent Order Number',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Parent Order Number',
 							type: 'string',
 						},
-						{ value: 'status', label: 'Status', type: 'string' },
+						{
+							value: 'status',
+							label: __(
+								'Status',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Status',
+							type: 'string',
+						},
 						{
 							value: 'date_created',
-							label: 'Date Created',
+							label: __(
+								'Date Created',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Date Created',
 							type: 'datetime',
 						},
 						{
 							value: 'date_modified',
-							label: 'Date Modified',
+							label: __(
+								'Date Modified',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Date Modified',
 							type: 'datetime',
 						},
-						{ value: 'amount', label: 'Amount', type: 'number' },
-						{ value: 'reason', label: 'Reason', type: 'string' },
+						{
+							value: 'amount',
+							label: __(
+								'Amount',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Amount',
+							type: 'number',
+						},
+						{
+							value: 'reason',
+							label: __(
+								'Reason',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Reason',
+							type: 'string',
+						},
 						{
 							value: 'refunded_by',
-							label: 'Refunded By User ID',
+							label: __(
+								'Refunded By User ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Refunded By User ID',
 							type: 'number',
 						},
 						{
 							value: 'currency',
-							label: 'Currency',
+							label: __(
+								'Currency',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Currency',
 							type: 'string',
 						},
 						{
 							value: 'line_items',
-							label: 'Line Items JSON',
+							label: __(
+								'Line Items JSON',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Line Items JSON',
 							type: 'json',
 						},
-						{ value: 'meta', label: 'Meta JSON', type: 'json' },
+						{
+							value: 'meta',
+							label: __(
+								'Meta JSON',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Meta JSON',
+							type: 'json',
+						},
 					],
 				},
 			];
@@ -4232,31 +5911,57 @@ const ImportModule = {
 		if ( contentType === 'woo_shipping_zone' ) {
 			return [
 				{
-					label: 'Shipping Zone',
+					label: __(
+						'Shipping Zone',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Shipping Zone',
 					options: [
 						{
 							value: 'zone_id',
-							label: 'Zone ID (reference, 0 = Locations not covered by your other zones)',
+							label: __(
+								'Zone ID (reference, 0 = Locations not covered by your other zones)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Zone ID (reference, 0 = Locations not covered by your other zones)',
 							type: 'number',
 						},
 						{
 							value: 'zone_name',
-							label: 'Zone Name (matches zones on import)',
+							label: __(
+								'Zone Name (matches zones on import)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Zone Name (matches zones on import)',
 							type: 'string',
 						},
 						{
 							value: 'zone_order',
-							label: 'Zone Order',
+							label: __(
+								'Zone Order',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Zone Order',
 							type: 'number',
 						},
 						{
 							value: 'zone_locations',
-							label: 'Zone Regions (country:DE, state:US:CA, postcode:90210)',
+							label: __(
+								'Zone Regions (country:DE, state:US:CA, postcode:90210)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Zone Regions (country:DE, state:US:CA, postcode:90210)',
 							type: 'string',
 						},
 						{
 							value: 'shipping_methods',
-							label: 'Shipping Methods JSON',
+							label: __(
+								'Shipping Methods JSON',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Shipping Methods JSON',
 							type: 'json',
 						},
 					],
@@ -4267,87 +5972,150 @@ const ImportModule = {
 		if ( contentType === 'woo_customer' ) {
 			return [
 				{
-					label: 'Customer',
+					label: __( 'Customer', 'import-export-by-rockstarlab' ),
+					labelEn: 'Customer',
 					options: [
 						{
 							value: 'customer_id',
-							label: 'Customer ID (reference)',
+							label: __(
+								'Customer ID (reference)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Customer ID (reference)',
 							type: 'number',
 						},
 						{
 							value: 'source_customer_id',
-							label: 'Source Customer ID (reference)',
+							label: __(
+								'Source Customer ID (reference)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Source Customer ID (reference)',
 							type: 'number',
 						},
 						{
 							value: 'user_id',
-							label: 'User ID (reference)',
+							label: __(
+								'User ID (reference)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'User ID (reference)',
 							type: 'number',
 						},
 						{
 							value: 'source_user_id',
-							label: 'Source User ID (reference)',
+							label: __(
+								'Source User ID (reference)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Source User ID (reference)',
 							type: 'number',
 						},
 						{
 							value: 'email',
-							label: 'Email (required, matches existing customers)',
+							label: __(
+								'Email (required, matches existing customers)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Email (required, matches existing customers)',
 							type: 'email',
 						},
 						{
 							value: 'username',
-							label: 'Username',
+							label: __(
+								'Username',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Username',
 							type: 'string',
 						},
 						{
 							value: 'first_name',
-							label: 'First Name',
+							label: __(
+								'First Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'First Name',
 							type: 'string',
 						},
 						{
 							value: 'last_name',
-							label: 'Last Name',
+							label: __(
+								'Last Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Last Name',
 							type: 'string',
 						},
 						{
 							value: 'display_name',
-							label: 'Display Name',
+							label: __(
+								'Display Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Display Name',
 							type: 'string',
 						},
 						{
 							value: 'date_created',
-							label: 'Date Created',
+							label: __(
+								'Date Created',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Date Created',
 							type: 'datetime',
 						},
 						{
 							value: 'date_modified',
-							label: 'Date Modified',
+							label: __(
+								'Date Modified',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Date Modified',
 							type: 'datetime',
 						},
 						{
 							value: 'is_paying_customer',
-							label: 'Is Paying Customer',
+							label: __(
+								'Is Paying Customer',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Is Paying Customer',
 							type: 'boolean',
 						},
 						{
 							value: 'order_count',
-							label: 'Order Count',
+							label: __(
+								'Order Count',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Order Count',
 							type: 'number',
 						},
 						{
 							value: 'total_spent',
-							label: 'Total Spent',
+							label: __(
+								'Total Spent',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Total Spent',
 							type: 'number',
 						},
 						{
 							value: 'last_order_id',
-							label: 'Last Order ID',
+							label: __(
+								'Last Order ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Last Order ID',
 							type: 'number',
 						},
 					],
 				},
 				{
-					label: 'Billing',
+					label: __( 'Billing', 'import-export-by-rockstarlab' ),
+					labelEn: 'Billing',
 					options: [
 						'billing_first_name',
 						'billing_last_name',
@@ -4369,7 +6137,8 @@ const ImportModule = {
 					} ) ),
 				},
 				{
-					label: 'Shipping',
+					label: __( 'Shipping', 'import-export-by-rockstarlab' ),
+					labelEn: 'Shipping',
 					options: [
 						'shipping_first_name',
 						'shipping_last_name',
@@ -4390,11 +6159,16 @@ const ImportModule = {
 					} ) ),
 				},
 				{
-					label: 'Meta',
+					label: __( 'Meta', 'import-export-by-rockstarlab' ),
+					labelEn: 'Meta',
 					options: [
 						{
 							value: 'meta',
-							label: 'Customer Meta JSON',
+							label: __(
+								'Customer Meta JSON',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Customer Meta JSON',
 							type: 'json',
 						},
 					],
@@ -4406,157 +6180,282 @@ const ImportModule = {
 		if ( contentType === 'woo_coupon' ) {
 			return [
 				{
-					label: 'Basic',
+					label: __( 'Basic', 'import-export-by-rockstarlab' ),
+					labelEn: 'Basic',
 					options: [
-						{ value: 'ID', label: 'Coupon ID', type: 'number' },
+						{
+							value: 'ID',
+							label: __(
+								'Coupon ID',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Coupon ID',
+							type: 'number',
+						},
 						{
 							value: 'post_title',
-							label: 'Coupon Code',
+							label: __(
+								'Coupon Code',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Coupon Code',
 							type: 'string',
 						},
 						{
 							value: 'post_excerpt',
-							label: 'Description',
+							label: __(
+								'Description',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Description',
 							type: 'string',
 						},
 						{
 							value: 'post_status',
-							label: 'Status (publish, draft, pending)',
+							label: __(
+								'Status (publish, draft, pending)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Status (publish, draft, pending)',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Discount',
+					label: __( 'Discount', 'import-export-by-rockstarlab' ),
+					labelEn: 'Discount',
 					options: [
 						{
 							value: 'discount_type',
-							label: 'Discount Type (percent, fixed_cart, fixed_product)',
+							label: __(
+								'Discount Type (percent, fixed_cart, fixed_product)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Discount Type (percent, fixed_cart, fixed_product)',
 							type: 'string',
 						},
 						{
 							value: 'coupon_amount',
-							label: 'Amount',
+							label: __(
+								'Amount',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Amount',
 							type: 'number',
 						},
 						{
 							value: 'free_shipping',
-							label: 'Free Shipping (1/0)',
+							label: __(
+								'Free Shipping (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Free Shipping (1/0)',
 							type: 'boolean',
 						},
 					],
 				},
 				{
-					label: 'Usage Restrictions',
+					label: __(
+						'Usage Restrictions',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Usage Restrictions',
 					options: [
 						{
 							value: 'minimum_amount',
-							label: 'Minimum Spend',
+							label: __(
+								'Minimum Spend',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Minimum Spend',
 							type: 'number',
 						},
 						{
 							value: 'maximum_amount',
-							label: 'Maximum Spend',
+							label: __(
+								'Maximum Spend',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Maximum Spend',
 							type: 'number',
 						},
 						{
 							value: 'individual_use',
-							label: 'Individual Use Only (1/0)',
+							label: __(
+								'Individual Use Only (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Individual Use Only (1/0)',
 							type: 'boolean',
 						},
 						{
 							value: 'exclude_sale_items',
-							label: 'Exclude Sale Items (1/0)',
+							label: __(
+								'Exclude Sale Items (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Exclude Sale Items (1/0)',
 							type: 'boolean',
 						},
 					],
 				},
 				{
-					label: 'Product Restrictions',
+					label: __(
+						'Product Restrictions',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Product Restrictions',
 					options: [
 						{
 							value: 'product_ids',
-							label: 'Allowed Products (JSON or comma-separated IDs)',
+							label: __(
+								'Allowed Products (JSON or comma-separated IDs)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Allowed Products (JSON or comma-separated IDs)',
 							type: 'string',
 						},
 						{
 							value: 'excluded_product_ids',
-							label: 'Excluded Products (JSON or comma-separated IDs)',
+							label: __(
+								'Excluded Products (JSON or comma-separated IDs)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Excluded Products (JSON or comma-separated IDs)',
 							type: 'string',
 						},
 						{
 							value: 'product_categories',
-							label: 'Allowed Categories (JSON or comma-separated IDs)',
+							label: __(
+								'Allowed Categories (JSON or comma-separated IDs)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Allowed Categories (JSON or comma-separated IDs)',
 							type: 'string',
 						},
 						{
 							value: 'excluded_product_categories',
-							label: 'Excluded Categories (JSON or comma-separated IDs)',
+							label: __(
+								'Excluded Categories (JSON or comma-separated IDs)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn:
+								'Excluded Categories (JSON or comma-separated IDs)',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Email Restrictions',
+					label: __(
+						'Email Restrictions',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Email Restrictions',
 					options: [
 						{
 							value: 'allowed_emails',
-							label: 'Allowed Emails (JSON or comma-separated)',
+							label: __(
+								'Allowed Emails (JSON or comma-separated)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Allowed Emails (JSON or comma-separated)',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: 'Usage Limits',
+					label: __( 'Usage Limits', 'import-export-by-rockstarlab' ),
+					labelEn: 'Usage Limits',
 					options: [
 						{
 							value: 'usage_limit',
-							label: 'Usage Limit (total)',
+							label: __(
+								'Usage Limit (total)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Usage Limit (total)',
 							type: 'number',
 						},
 						{
 							value: 'usage_limit_per_user',
-							label: 'Usage Limit Per User',
+							label: __(
+								'Usage Limit Per User',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Usage Limit Per User',
 							type: 'number',
 						},
 						{
 							value: 'limit_usage_to_x_items',
-							label: 'Limit Usage to X Items',
+							label: __(
+								'Limit Usage to X Items',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Limit Usage to X Items',
 							type: 'number',
 						},
 						{
 							value: 'usage_count',
-							label: 'Usage Count',
+							label: __(
+								'Usage Count',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Usage Count',
 							type: 'number',
 						},
 					],
 				},
 				{
-					label: 'Dates',
+					label: __( 'Dates', 'import-export-by-rockstarlab' ),
+					labelEn: 'Dates',
 					options: [
 						{
 							value: 'date_expires',
-							label: 'Expiry Date (YYYY-MM-DD)',
+							label: __(
+								'Expiry Date (YYYY-MM-DD)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Expiry Date (YYYY-MM-DD)',
 							type: 'date',
 						},
 						{
 							value: 'post_date',
-							label: 'Created Date',
+							label: __(
+								'Created Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Created Date',
 							type: 'date',
 						},
 						{
 							value: 'post_modified',
-							label: 'Modified Date',
+							label: __(
+								'Modified Date',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Modified Date',
 							type: 'date',
 						},
 					],
 				},
 				{
-					label: 'Custom Fields (Meta)',
+					label: __(
+						'Custom Fields (Meta)',
+						'import-export-by-rockstarlab'
+					),
+					labelEn: 'Custom Fields (Meta)',
 					options: [
 						{
 							value: 'meta',
-							label: 'Custom Field',
+							label: __(
+								'Custom Field',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Custom Field',
 							type: 'meta',
 							custom: true,
 						},
@@ -4569,22 +6468,32 @@ const ImportModule = {
 		return translateGroups( [
 			...baseFields,
 			{
-				label: 'Taxonomies',
+				label: __( 'Taxonomies', 'import-export-by-rockstarlab' ),
+				labelEn: 'Taxonomies',
 				options: [
 					{
 						value: 'taxonomy',
-						label: 'Taxonomy',
+						label: __( 'Taxonomy', 'import-export-by-rockstarlab' ),
+						labelEn: 'Taxonomy',
 						type: 'taxonomy',
 						custom: true,
 					},
 				],
 			},
 			{
-				label: 'Custom Fields (Meta)',
+				label: __(
+					'Custom Fields (Meta)',
+					'import-export-by-rockstarlab'
+				),
+				labelEn: 'Custom Fields (Meta)',
 				options: [
 					{
 						value: 'meta',
-						label: 'Custom Field',
+						label: __(
+							'Custom Field',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Custom Field',
 						type: 'meta',
 						custom: true,
 					},
@@ -4858,7 +6767,7 @@ const ImportModule = {
 			? `
 				<button type="button" class="button button-small rsl-ie-add-function" data-source-index="${ sourceIndex }" data-target-field="${ targetField }" title="${
 					window.rslIeData.i18n.addTransformationFunction ||
-					'Add transformation'
+					__( 'Add transformation', 'import-export-by-rockstarlab' )
 				}">
 					<span class="dashicons dashicons-admin-tools"></span>
 				</button>
@@ -4880,7 +6789,8 @@ const ImportModule = {
 			<div class="rsl-ie-mapping-actions">
 				${ transformationButton }
 				<button type="button" class="button button-small rsl-ie-remove-row-mapping" data-source-index="${ sourceIndex }" data-target-field="${ targetField }" title="${
-					window.rslIeData.i18n.removeMapping || 'Remove mapping'
+					window.rslIeData.i18n.removeMapping ||
+					__( 'Remove mapping', 'import-export-by-rockstarlab' )
 				}">
 					<span class="dashicons dashicons-no-alt"></span>
 				</button>
@@ -4966,7 +6876,10 @@ const ImportModule = {
 			if ( ! response.success ) {
 				Utils.showNotice(
 					rslIeData.i18n.failedToLoadFunctions ||
-						'Failed to load transformations',
+						__(
+							'Failed to load transformations',
+							'import-export-by-rockstarlab'
+						),
 					'error'
 				);
 				return;
@@ -4976,7 +6889,10 @@ const ImportModule = {
 		} catch ( error ) {
 			Utils.showNotice(
 				( rslIeData.i18n.errorLoadingFunctions ||
-					'Error loading functions' ) +
+					__(
+						'Error loading functions',
+						'import-export-by-rockstarlab'
+					) ) +
 					': ' +
 					error.message,
 				'error'
@@ -5017,13 +6933,19 @@ const ImportModule = {
 					<!-- Field Info -->
 					<div class="rsl-ie-field-info">
 						<div class="rsl-ie-field-info-item">
-							<strong>${ window.rslIeData.i18n.field || 'Field' }:</strong>
+							<strong>${
+								window.rslIeData.i18n.field ||
+								__( 'Field', 'import-export-by-rockstarlab' )
+							}:</strong>
 							<span class="rsl-ie-current-field-label">${ Utils.escapeHtml(
 								sourceField
 							) }</span>
 						</div>
 						<div class="rsl-ie-field-info-item">
-							<strong>${ window.rslIeData.i18n.type || 'Type' }:</strong>
+							<strong>${
+								window.rslIeData.i18n.type ||
+								__( 'Type', 'import-export-by-rockstarlab' )
+							}:</strong>
 							<span class="rsl-ie-current-field-type">${ targetField }</span>
 						</div>
 					</div>
@@ -5031,7 +6953,13 @@ const ImportModule = {
 					<!-- Applied Transformations List -->
 					<div class="rsl-ie-applied-functions">
 						<h3>
-							${ window.rslIeData.i18n.appliedFunctions || 'Applied Transformations' }
+							${
+								window.rslIeData.i18n.appliedFunctions ||
+								__(
+									'Applied Transformations',
+									'import-export-by-rockstarlab'
+								)
+							}
 							<span class="rsl-ie-functions-count">(0)</span>
 						</h3>
 						
@@ -5040,7 +6968,10 @@ const ImportModule = {
 								<span class="dashicons dashicons-info"></span>
 								<p>${
 									window.rslIeData.i18n.noFunctionsApplied ||
-									'No transformations applied yet. Add transformations from the list below.'
+									__(
+										'No transformations applied yet. Add transformations from the list below.',
+										'import-export-by-rockstarlab'
+									)
 								}</p>
 							</div>
 							
@@ -5053,7 +6984,10 @@ const ImportModule = {
 							<span class="dashicons dashicons-info"></span>
 							${
 								window.rslIeData.i18n.functionsAppliedInOrder ||
-								'Transformations are applied in order from top to bottom. Drag to reorder.'
+								__(
+									'Transformations are applied in order from top to bottom. Drag to reorder.',
+									'import-export-by-rockstarlab'
+								)
 							}
 						</div>
 					</div>
@@ -5062,7 +6996,10 @@ const ImportModule = {
 					<div class="rsl-ie-available-functions">
 						<h3>${
 							window.rslIeData.i18n.availableFunctions ||
-							'Available Transformations'
+							__(
+								'Available Transformations',
+								'import-export-by-rockstarlab'
+							)
 						}</h3>
 						
 						<div class="rsl-ie-functions-search">
@@ -5072,7 +7009,10 @@ const ImportModule = {
 								class="regular-text" 
 								placeholder="${
 									window.rslIeData.i18n.searchFunctions ||
-									'Search transformations...'
+									__(
+										'Search transformations...',
+										'import-export-by-rockstarlab'
+									)
 								}"
 							>
 							<span class="dashicons dashicons-search"></span>
@@ -5082,15 +7022,27 @@ const ImportModule = {
 						<div class="rsl-ie-functions-filter">
 							<label>
 								<input type="radio" name="functions-filter" value="all" checked>
-								${ window.rslIeData.i18n.all || 'All' }
+								${ window.rslIeData.i18n.all || __( 'All', 'import-export-by-rockstarlab' ) }
 							</label>
 							<label>
 								<input type="radio" name="functions-filter" value="library">
-								${ window.rslIeData.i18n.library || 'Library' }
+								${
+									window.rslIeData.i18n.library ||
+									__(
+										'Library',
+										'import-export-by-rockstarlab'
+									)
+								}
 							</label>
 							<label>
 								<input type="radio" name="functions-filter" value="custom">
-								${ window.rslIeData.i18n.custom || 'Custom' }
+								${
+									window.rslIeData.i18n.custom ||
+									__(
+										'Custom',
+										'import-export-by-rockstarlab'
+									)
+								}
 							</label>
 						</div>
 
@@ -5099,7 +7051,10 @@ const ImportModule = {
 								<span class="spinner is-active"></span>
 								<p>${
 									window.rslIeData.i18n.loadingFunctions ||
-									'Loading transformations...'
+									__(
+										'Loading transformations...',
+										'import-export-by-rockstarlab'
+									)
 								}</p>
 							</div>
 						</div>
@@ -5108,7 +7063,13 @@ const ImportModule = {
 						<div class="rsl-ie-functions-quick-add">
 							<a href="#" class="rsl-ie-create-new-function">
 								<span class="dashicons dashicons-plus-alt"></span>
-								${ window.rslIeData.i18n.createNewFunction || 'Create New Transformation' }
+								${
+									window.rslIeData.i18n.createNewFunction ||
+									__(
+										'Create New Transformation',
+										'import-export-by-rockstarlab'
+									)
+								}
 							</a>
 						</div>
 					</div>
@@ -5117,24 +7078,45 @@ const ImportModule = {
 					<div class="rsl-ie-function-preview">
 						<h3>${
 							window.rslIeData.i18n.previewTransformation ||
-							'Preview Transformation'
+							__(
+								'Preview Transformation',
+								'import-export-by-rockstarlab'
+							)
 						}</h3>
 						
 						<div class="rsl-ie-preview-controls">
 							<div class="rsl-ie-preview-input-group">
 								<label for="rsl-ie-preview-input">
-									${ window.rslIeData.i18n.testValue || 'Test Value' }:
+									${
+										window.rslIeData.i18n.testValue ||
+										__(
+											'Test Value',
+											'import-export-by-rockstarlab'
+										)
+									}:
 								</label>
 								<input 
 									type="text" 
 									id="rsl-ie-preview-input" 
 									class="regular-text" 
-									placeholder="${ window.rslIeData.i18n.enterTestValue || 'Enter test value...' }"
+									placeholder="${
+										window.rslIeData.i18n.enterTestValue ||
+										__(
+											'Enter test value...',
+											'import-export-by-rockstarlab'
+										)
+									}"
 								>
 							</div>
 							<button type="button" class="button rsl-ie-test-pipeline">
 								<span class="dashicons dashicons-media-code"></span>
-								${ window.rslIeData.i18n.testPipeline || 'Test Pipeline' }
+								${
+									window.rslIeData.i18n.testPipeline ||
+									__(
+										'Test Pipeline',
+										'import-export-by-rockstarlab'
+									)
+								}
 							</button>
 						</div>
 
@@ -5147,11 +7129,20 @@ const ImportModule = {
 				</div>
 				<div class="rsl-ie-modal-footer">
 					<button type="button" class="button button-secondary rsl-ie-modal-cancel">
-						${ window.rslIeData.i18n.cancel || 'Cancel' }
+						${
+							window.rslIeData.i18n.cancel ||
+							__( 'Cancel', 'import-export-by-rockstarlab' )
+						}
 					</button>
 					<button type="button" class="button button-primary rsl-ie-save-field-functions">
 						<span class="dashicons dashicons-yes"></span>
-						${ window.rslIeData.i18n.applyFunctions || 'Apply Transformations' }
+						${
+							window.rslIeData.i18n.applyFunctions ||
+							__(
+								'Apply Transformations',
+								'import-export-by-rockstarlab'
+							)
+						}
 					</button>
 				</div>
 			</div>
@@ -5213,7 +7204,10 @@ const ImportModule = {
 				<span class="dashicons dashicons-info"></span>
 				<p>${
 					window.rslIeData.i18n.noFunctionsAvailableYet ||
-					'No transformations available yet.'
+					__(
+						'No transformations available yet.',
+						'import-export-by-rockstarlab'
+					)
 				}</p>
 			</div>
 		` );
@@ -5238,7 +7232,8 @@ const ImportModule = {
 					) }</span>
 				</div>
 				<button type="button" class="button button-small rsl-ie-add-function-btn">${
-					window.rslIeData.i18n.add || 'Add'
+					window.rslIeData.i18n.add ||
+					__( 'Add', 'import-export-by-rockstarlab' )
 				}</button>
 			` );
 
@@ -5394,7 +7389,10 @@ const ImportModule = {
 			if ( ! testValue ) {
 				Utils.showNotice(
 					rslIeData.i18n.enterTestValue ||
-						'Please enter a test value',
+						__(
+							'Please enter a test value',
+							'import-export-by-rockstarlab'
+						),
 					'warning'
 				);
 				return;
@@ -5410,7 +7408,10 @@ const ImportModule = {
 			if ( functions.length === 0 ) {
 				Utils.showNotice(
 					rslIeData.i18n.pleaseAddAtLeastOneFunction ||
-						'Please add at least one function to test',
+						__(
+							'Please add at least one function to test',
+							'import-export-by-rockstarlab'
+						),
 					'warning'
 				);
 				return;
@@ -5506,7 +7507,8 @@ const ImportModule = {
 				html += `
 				<div class="rsl-ie-preview-step">
 					<div class="rsl-ie-step-label">${
-						window.rslIeData.i18n.initialValue || 'Initial Value'
+						window.rslIeData.i18n.initialValue ||
+						__( 'Initial Value', 'import-export-by-rockstarlab' )
 					}:</div>
 					<div class="rsl-ie-step-value">${ Utils.escapeHtml(
 						response.data.initial || testValue
@@ -5531,7 +7533,8 @@ const ImportModule = {
 				html += `
 				<div class="rsl-ie-preview-step rsl-ie-preview-final">
 					<div class="rsl-ie-step-label">${
-						window.rslIeData.i18n.finalResult || 'Final Result'
+						window.rslIeData.i18n.finalResult ||
+						__( 'Final Result', 'import-export-by-rockstarlab' )
 					}:</div>
 					<div class="rsl-ie-step-value"><strong>${ Utils.escapeHtml(
 						response.data.final
@@ -5717,69 +7720,95 @@ const ImportModule = {
 			post: [
 				{
 					value: 'post_title',
-					label: window.rslIeData.i18n.fieldTitle || 'Title',
+					label:
+						window.rslIeData.i18n.fieldTitle ||
+						__( 'Title', 'import-export-by-rockstarlab' ),
 				},
 				{
 					value: 'post_content',
-					label: window.rslIeData.i18n.fieldContent || 'Content',
+					label:
+						window.rslIeData.i18n.fieldContent ||
+						__( 'Content', 'import-export-by-rockstarlab' ),
 				},
 				{
 					value: 'post_excerpt',
-					label: window.rslIeData.i18n.fieldExcerpt || 'Excerpt',
+					label:
+						window.rslIeData.i18n.fieldExcerpt ||
+						__( 'Excerpt', 'import-export-by-rockstarlab' ),
 				},
 				{
 					value: 'post_status',
-					label: window.rslIeData.i18n.fieldStatus || 'Status',
+					label:
+						window.rslIeData.i18n.fieldStatus ||
+						__( 'Status', 'import-export-by-rockstarlab' ),
 				},
 				{
 					value: 'post_author',
-					label: window.rslIeData.i18n.fieldAuthor || 'Author',
+					label:
+						window.rslIeData.i18n.fieldAuthor ||
+						__( 'Author', 'import-export-by-rockstarlab' ),
 				},
 				{
 					value: 'post_date',
-					label: window.rslIeData.i18n.fieldDate || 'Date',
+					label:
+						window.rslIeData.i18n.fieldDate ||
+						__( 'Date', 'import-export-by-rockstarlab' ),
 				},
 				{
 					value: 'post_name',
-					label: window.rslIeData.i18n.fieldSlug || 'Slug',
+					label:
+						window.rslIeData.i18n.fieldSlug ||
+						__( 'Slug', 'import-export-by-rockstarlab' ),
 				},
 				{
 					value: 'is_sticky',
-					label: window.rslIeData.i18n.fieldSticky || 'Sticky',
+					label:
+						window.rslIeData.i18n.fieldSticky ||
+						__( 'Sticky', 'import-export-by-rockstarlab' ),
 				},
 				{
 					value: 'categories',
 					label:
-						window.rslIeData.i18n.fieldCategories || 'Categories',
+						window.rslIeData.i18n.fieldCategories ||
+						__( 'Categories', 'import-export-by-rockstarlab' ),
 				},
 				{
 					value: 'tags',
-					label: window.rslIeData.i18n.fieldTags || 'Tags',
+					label:
+						window.rslIeData.i18n.fieldTags ||
+						__( 'Tags', 'import-export-by-rockstarlab' ),
 				},
 				{
 					value: 'featured_image',
 					label:
 						window.rslIeData.i18n.fieldFeaturedImage ||
-						'Featured Image',
+						__( 'Featured Image', 'import-export-by-rockstarlab' ),
 				},
 			],
 			media: [
 				{
 					value: 'post_title',
-					label: window.rslIeData.i18n.fieldTitle || 'Title',
+					label:
+						window.rslIeData.i18n.fieldTitle ||
+						__( 'Title', 'import-export-by-rockstarlab' ),
 				},
 				{
 					value: 'post_content',
 					label:
-						window.rslIeData.i18n.fieldDescription || 'Description',
+						window.rslIeData.i18n.fieldDescription ||
+						__( 'Description', 'import-export-by-rockstarlab' ),
 				},
 				{
 					value: 'post_excerpt',
-					label: window.rslIeData.i18n.fieldCaption || 'Caption',
+					label:
+						window.rslIeData.i18n.fieldCaption ||
+						__( 'Caption', 'import-export-by-rockstarlab' ),
 				},
 				{
 					value: 'alt_text',
-					label: window.rslIeData.i18n.fieldAltText || 'Alt Text',
+					label:
+						window.rslIeData.i18n.fieldAltText ||
+						__( 'Alt Text', 'import-export-by-rockstarlab' ),
 				},
 				{ value: 'guid', label: 'GUID' },
 			],
@@ -5841,14 +7870,16 @@ const ImportModule = {
 				.addClass( 'disabled is-loading' )
 				.html(
 					'<span class="dashicons dashicons-update rsl-ie-button-spinner"></span> ' +
-						( window.rslIeData.i18n.mappingFields || 'Mapping...' )
+						( window.rslIeData.i18n.mappingFields ||
+							__( 'Mapping...', 'import-export-by-rockstarlab' ) )
 				);
 			return;
 		}
 
 		const originalHtml =
 			$button.data( 'original-html' ) ||
-			'<span class="dashicons dashicons-admin-generic"></span> Auto Map';
+			'<span class="dashicons dashicons-admin-generic"></span> ' +
+				__( 'Auto Map', 'import-export-by-rockstarlab' );
 		$button
 			.prop( 'disabled', false )
 			.removeClass( 'disabled is-loading' )
@@ -6128,9 +8159,18 @@ const ImportModule = {
 					'wp:status',
 				],
 				product_type: [ 'type', 'product type' ],
-				stock_status: [ 'in stock?' ],
-				comment_status: [ 'allow customer reviews?' ],
-				sold_individually: [ 'sold individually?' ],
+				stock_status: [
+					__( 'in stock?', 'import-export-by-rockstarlab' ),
+				],
+				comment_status: [
+					__(
+						'allow customer reviews?',
+						'import-export-by-rockstarlab'
+					),
+				],
+				sold_individually: [
+					__( 'sold individually?', 'import-export-by-rockstarlab' ),
+				],
 				purchase_note: [ 'purchase note' ],
 				menu_order: [ 'position' ],
 				low_stock_amount: [ 'low stock amount' ],
@@ -6542,14 +8582,24 @@ const ImportModule = {
 						.find( '.rsl-ie-field-label' )
 						.text()
 						.toLowerCase();
+					// English label: file headers stay English when the admin is translated.
+					const targetLabelEn = String(
+						$targetField.data( 'label-en' ) || ''
+					).toLowerCase();
 
 					// Fuzzy matching: label match, normalized match, or partial match
 					let matchType = null;
 
-					if ( sourceFieldLower === targetLabel ) {
+					if (
+						sourceFieldLower === targetLabel ||
+						( targetLabelEn && sourceFieldLower === targetLabelEn )
+					) {
 						matchType = 'label';
 					} else if (
-						sourceFieldLower.replace( /_/g, ' ' ) === targetLabel
+						sourceFieldLower.replace( /_/g, ' ' ) === targetLabel ||
+						( targetLabelEn &&
+							sourceFieldLower.replace( /_/g, ' ' ) ===
+								targetLabelEn )
 					) {
 						matchType = 'normalized';
 					} else if (
@@ -6620,7 +8670,10 @@ const ImportModule = {
 							}" data-target-field="${ m.targetField }" title="${
 								window.rslIeData.i18n
 									.addTransformationFunction ||
-								'Add transformation'
+								__(
+									'Add transformation',
+									'import-export-by-rockstarlab'
+								)
 							}">
 								<span class="dashicons dashicons-admin-tools"></span>
 							</button>
@@ -6645,7 +8698,10 @@ const ImportModule = {
 								m.sourceIndex
 							}" data-target-field="${ m.targetField }" title="${
 								window.rslIeData.i18n.removeMapping ||
-								'Remove mapping'
+								__(
+									'Remove mapping',
+									'import-export-by-rockstarlab'
+								)
 							}">
 								<span class="dashicons dashicons-no-alt"></span>
 							</button>
@@ -6669,7 +8725,7 @@ const ImportModule = {
 
 			const message = (
 				window.rslIeData.i18n.autoMappedFields ||
-				'Auto-mapped %d fields'
+				__( 'Auto-mapped %d fields', 'import-export-by-rockstarlab' )
 			).replace( '%d', mappedCount );
 			Utils.showNotice( message, 'success' );
 			this.setAutoMapLoading( false );
@@ -6701,7 +8757,10 @@ const ImportModule = {
 				<span class="dashicons dashicons-info"></span>
 				<p>${
 					window.rslIeData.i18n.dragSourceColumns ||
-					'Drag source columns to WordPress fields to create mappings'
+					__(
+						'Drag source columns to WordPress fields to create mappings',
+						'import-export-by-rockstarlab'
+					)
 				}</p>
 			</div>
 		` );
@@ -6787,7 +8846,10 @@ const ImportModule = {
 					value: '',
 					text: this.templateText(
 						'loadingMappingTemplates',
-						'Loading templates…'
+						__(
+							'Loading templates…',
+							'import-export-by-rockstarlab'
+						)
 					),
 				} )
 			);
@@ -6813,7 +8875,10 @@ const ImportModule = {
 					value: '',
 					text: this.templateText(
 						'noMappingTemplates',
-						'— No saved templates —'
+						__(
+							'— No saved templates —',
+							'import-export-by-rockstarlab'
+						)
 					),
 				} )
 			);
@@ -6823,7 +8888,10 @@ const ImportModule = {
 					value: '',
 					text: this.templateText(
 						'chooseMappingTemplate',
-						'— Choose a template —'
+						__(
+							'— Choose a template —',
+							'import-export-by-rockstarlab'
+						)
 					),
 				} )
 			);
@@ -7006,7 +9074,10 @@ const ImportModule = {
 						class: 'rsl-ie-template-missing-note',
 						text: this.templateText(
 							'templateColumnMissing',
-							'Column "%s" is not in this file'
+							__(
+								'Column "%s" is not in this file',
+								'import-export-by-rockstarlab'
+							)
 						).replace( '%s', entry.source_field ),
 					} )
 				);
@@ -7050,21 +9121,30 @@ const ImportModule = {
 		let html = `<p><strong>${ esc(
 			this.templateText(
 				'templateApplied',
-				'Template "%1$s" loaded: %2$d fields mapped.'
+				__(
+					'Template "%1$s" loaded: %2$d fields mapped.',
+					'import-export-by-rockstarlab'
+				)
 			)
 				.replace( '%1$s', template.name )
 				.replace( '%2$d', mapped )
 		) }</strong> ${ esc(
 			this.templateText(
 				'templateOptionsNext',
-				'Its import settings are filled in on the next step.'
+				__(
+					'Its import settings are filled in on the next step.',
+					'import-export-by-rockstarlab'
+				)
 			)
 		) }</p>`;
 		if ( missing.length ) {
 			html += `<p>${ esc(
 				this.templateText(
 					'templateMissingColumns',
-					'These columns of the template are not in this file, so their fields stay empty:'
+					__(
+						'These columns of the template are not in this file, so their fields stay empty:',
+						'import-export-by-rockstarlab'
+					)
 				)
 			) } ${ missing
 				.map(
@@ -7079,7 +9159,10 @@ const ImportModule = {
 			html += `<p>${ esc(
 				this.templateText(
 					'templateMissingFields',
-					'These fields do not exist on this site and were skipped:'
+					__(
+						'These fields do not exist on this site and were skipped:',
+						'import-export-by-rockstarlab'
+					)
 				)
 			) } ${ noTarget
 				.map(
@@ -7246,7 +9329,10 @@ const ImportModule = {
 			Utils.showNotice(
 				this.templateText(
 					'templateNeedsMapping',
-					'Map at least one column before saving a template.'
+					__(
+						'Map at least one column before saving a template.',
+						'import-export-by-rockstarlab'
+					)
 				),
 				'error'
 			);
@@ -7256,7 +9342,10 @@ const ImportModule = {
 		const name = window.prompt(
 			this.templateText(
 				'templateNamePrompt',
-				'Template name (for example "Supplier price list"):'
+				__(
+					'Template name (for example "Supplier price list"):',
+					'import-export-by-rockstarlab'
+				)
 			),
 			this.activeTemplate?.name || ''
 		);
@@ -7273,7 +9362,10 @@ const ImportModule = {
 			! window.confirm(
 				this.templateText(
 					'templateReplaceConfirm',
-					'A template named "%s" already exists. Replace it?'
+					__(
+						'A template named "%s" already exists. Replace it?',
+						'import-export-by-rockstarlab'
+					)
 				).replace( '%s', existing.name )
 			)
 		) {
@@ -7314,11 +9406,17 @@ const ImportModule = {
 				( onStep5
 					? this.templateText(
 							'templateSavedWithSettings',
-							'Template "%s" saved with the field mapping and import settings.'
+							__(
+								'Template "%s" saved with the field mapping and import settings.',
+								'import-export-by-rockstarlab'
+							)
 					  )
 					: this.templateText(
 							'templateSaved',
-							'Template "%s" saved. Import settings from the next step are added when you save it there.'
+							__(
+								'Template "%s" saved. Import settings from the next step are added when you save it there.',
+								'import-export-by-rockstarlab'
+							)
 					  )
 				).replace( '%s', template.name ),
 				'success'
@@ -7340,7 +9438,10 @@ const ImportModule = {
 		}
 		// eslint-disable-next-line no-alert
 		const name = window.prompt(
-			this.templateText( 'templateRenamePrompt', 'New template name:' ),
+			this.templateText(
+				'templateRenamePrompt',
+				__( 'New template name:', 'import-export-by-rockstarlab' )
+			),
 			template.name
 		);
 		if ( name === null || ! name.trim() || name.trim() === template.name ) {
@@ -7371,7 +9472,10 @@ const ImportModule = {
 			! window.confirm(
 				this.templateText(
 					'templateDeleteConfirm',
-					'Delete the template "%s"? Imports made with it are not affected.'
+					__(
+						'Delete the template "%s"? Imports made with it are not affected.',
+						'import-export-by-rockstarlab'
+					)
 				).replace( '%s', template.name )
 			)
 		) {
@@ -7709,7 +9813,10 @@ const ImportModule = {
 			if ( ! uniqueField ) {
 				Utils.showNotice(
 					window.rslIeData.i18n.pleaseSelectUniqueField ||
-						'Please select a field to check for existing items',
+						__(
+							'Please select a field to check for existing items',
+							'import-export-by-rockstarlab'
+						),
 					'error'
 				);
 				return;
@@ -7747,15 +9854,24 @@ const ImportModule = {
 				if ( ! tableName ) {
 					throw new Error(
 						createTableIfMissing
-							? 'Please enter a new database table name.'
+							? __(
+									'Please enter a new database table name.',
+									'import-export-by-rockstarlab'
+							  )
 							: window.rslIeData.i18n.pleaseSelectTable ||
-							  'Please select a database table from the dropdown to continue.'
+							  __(
+									'Please select a database table from the dropdown to continue.',
+									'import-export-by-rockstarlab'
+							  )
 					);
 				}
 
 				if ( ! /^[A-Za-z0-9_]+$/.test( tableName ) ) {
 					throw new Error(
-						'Database table names can contain letters, numbers, and underscores only.'
+						__(
+							'Database table names can contain letters, numbers, and underscores only.',
+							'import-export-by-rockstarlab'
+						)
 					);
 				}
 
@@ -7778,12 +9894,18 @@ const ImportModule = {
 
 			Utils.showNotice(
 				rslIeData.i18n.importStartedSuccessfully ||
-					'Import started successfully',
+					__(
+						'Import started successfully',
+						'import-export-by-rockstarlab'
+					),
 				'success'
 			);
 		} catch ( error ) {
 			this.setStartImportLoading( false );
-			Utils.handleError( error, 'Start import' );
+			Utils.handleError(
+				error,
+				__( 'Start import', 'import-export-by-rockstarlab' )
+			);
 		}
 	},
 
@@ -7811,12 +9933,15 @@ const ImportModule = {
 				'dashicons dashicons-update rsl-ie-button-spinner'
 			);
 			$text.text(
-				window.rslIeData.i18n.startingImport || 'Starting import...'
+				window.rslIeData.i18n.startingImport ||
+					__( 'Starting import...', 'import-export-by-rockstarlab' )
 			);
 			return;
 		}
 
-		const originalText = $button.data( 'original-text' ) || 'Start Import';
+		const originalText =
+			$button.data( 'original-text' ) ||
+			__( 'Start Import', 'import-export-by-rockstarlab' );
 		const originalIcon =
 			$button.data( 'original-icon' ) || 'dashicons dashicons-download';
 
@@ -7943,7 +10068,10 @@ const ImportModule = {
 			this.clearBatchRetry();
 			const gaveUpText =
 				window.rslIeData?.i18n?.importBatchGaveUp ||
-				'The server did not answer after several attempts. The import may still finish in the background: check it in Jobs and click Continue there if it stopped.';
+				__(
+					'The server did not answer after several attempts. The import may still finish in the background: check it in Jobs and click Continue there if it stopped.',
+					'import-export-by-rockstarlab'
+				);
 			this.onImportFailed( {
 				error:
 					( error?.message || String( error ) ) +
@@ -8011,7 +10139,10 @@ const ImportModule = {
 			: error.message || error.textStatus || '';
 		const template =
 			window.rslIeData?.i18n?.importBatchRetry ||
-			'The server did not answer in time (%1$s). The import continues where it stopped: trying again in %2$d seconds, attempt %3$d of %4$d.';
+			__(
+				'The server did not answer in time (%1$s). The import continues where it stopped: trying again in %2$d seconds, attempt %3$d of %4$d.',
+				'import-export-by-rockstarlab'
+			);
 		const text = template
 			.replace( '%1$s', reason )
 			.replace( '%2$d', String( seconds ) )
@@ -8139,12 +10270,18 @@ const ImportModule = {
 		const $stepHeader = jQuery( '.rsl-ie-step-6 .rsl-ie-step-header' );
 		$stepHeader
 			.find( 'h2' )
-			.text( i18n.importFinishedTitle || 'Import Finished' );
+			.text(
+				i18n.importFinishedTitle ||
+					__( 'Import Finished', 'import-export-by-rockstarlab' )
+			);
 		$stepHeader
 			.find( '.description' )
 			.text(
 				i18n.importFinishedDescription ||
-					'The results of this import are shown below.'
+					__(
+						'The results of this import are shown below.',
+						'import-export-by-rockstarlab'
+					)
 			);
 
 		const failed = parseInt( result.failed, 10 ) || 0;
@@ -8156,12 +10293,18 @@ const ImportModule = {
 				.addClass( 'dashicons-warning' );
 			$title.text(
 				i18n.importWithMediaWarningsTitle ||
-					'Import Completed with Warnings'
+					__(
+						'Import Completed with Warnings',
+						'import-export-by-rockstarlab'
+					)
 			);
 			$subtitle.text(
 				(
 					i18n.importWithMediaWarningsSubtitle ||
-					'All rows were imported, but %d media files could not be downloaded, so those images will not show on this site. The addresses are listed below and in the Jobs Log.'
+					__(
+						'All rows were imported, but %d media files could not be downloaded, so those images will not show on this site. The addresses are listed below and in the Jobs Log.',
+						'import-export-by-rockstarlab'
+					)
 				).replace( '%d', mediaErrors )
 			);
 			const warnings = Array.isArray( result.media_warnings )
@@ -8182,7 +10325,11 @@ const ImportModule = {
 						jQuery( '<li></li>' ).text(
 							String( warning.url || '' ) +
 								' (' +
-								( i18n.row || 'row' ) +
+								( i18n.row ||
+									__(
+										'row',
+										'import-export-by-rockstarlab'
+									) ) +
 								' ' +
 								warning.row +
 								'): ' +
@@ -8215,19 +10362,33 @@ const ImportModule = {
 			.addClass( allFailed ? 'dashicons-dismiss' : 'dashicons-warning' );
 		$title.text(
 			allFailed
-				? i18n.importFailedTitle || 'Import Failed'
-				: i18n.importWithErrorsTitle || 'Import Completed with Errors'
+				? i18n.importFailedTitle ||
+						__( 'Import Failed', 'import-export-by-rockstarlab' )
+				: i18n.importWithErrorsTitle ||
+						__(
+							'Import Completed with Errors',
+							'import-export-by-rockstarlab'
+						)
 		);
 		$subtitle.text(
 			allFailed
 				? i18n.importFailedSubtitle ||
-						'No rows could be imported. Check the errors below and the Jobs Log.'
+						__(
+							'No rows could be imported. Check the errors below and the Jobs Log.',
+							'import-export-by-rockstarlab'
+						)
 				: 1 === failed
 				? i18n.importWithErrorsSubtitleOne ||
-				  'One row could not be imported. Check the error below and the Jobs Log.'
+				  __(
+						'One row could not be imported. Check the error below and the Jobs Log.',
+						'import-export-by-rockstarlab'
+				  )
 				: (
 						i18n.importWithErrorsSubtitle ||
-						'%d rows could not be imported. Check the errors below and the Jobs Log.'
+						__(
+							'%d rows could not be imported. Check the errors below and the Jobs Log.',
+							'import-export-by-rockstarlab'
+						)
 				  ).replace( '%d', failed )
 		);
 
@@ -8256,8 +10417,10 @@ const ImportModule = {
 				const $item = jQuery( '<li></li>' );
 				const where = rows.length
 					? ( 1 === rows.length
-							? i18n.rowLabel || 'Row'
-							: i18n.rowsLabel || 'Rows' ) +
+							? i18n.rowLabel ||
+							  __( 'Row', 'import-export-by-rockstarlab' )
+							: i18n.rowsLabel ||
+							  __( 'Rows', 'import-export-by-rockstarlab' ) ) +
 					  ' ' +
 					  rows.slice( 0, 5 ).join( ', ' ) +
 					  ( rows.length > 5 ? ', …' : '' )
@@ -8292,7 +10455,10 @@ const ImportModule = {
 					.append(
 						document.createTextNode(
 							i18n.downloadErrorRows ||
-								'Download rows with errors (CSV)'
+								__(
+									'Download rows with errors (CSV)',
+									'import-export-by-rockstarlab'
+								)
 						)
 					);
 				$download.on( 'click', async () => {
@@ -8350,15 +10516,25 @@ const ImportModule = {
 			.removeClass( 'dashicons-yes-alt' )
 			.addClass( 'dashicons-warning' );
 		$title.text(
-			i18n.importWithWarningsTitle || 'Import Completed with Warnings'
+			i18n.importWithWarningsTitle ||
+				__(
+					'Import Completed with Warnings',
+					'import-export-by-rockstarlab'
+				)
 		);
 		$subtitle.text(
 			1 === logs.length
 				? i18n.importWithWarningsSubtitleOne ||
-						'All rows were imported. One note needs your attention; it is also in the Jobs Log.'
+						__(
+							'All rows were imported. One note needs your attention; it is also in the Jobs Log.',
+							'import-export-by-rockstarlab'
+						)
 				: (
 						i18n.importWithWarningsSubtitle ||
-						'All rows were imported. %d notes need your attention; they are also in the Jobs Log.'
+						__(
+							'All rows were imported. %d notes need your attention; they are also in the Jobs Log.',
+							'import-export-by-rockstarlab'
+						)
 				  ).replace( '%d', logs.length )
 		);
 		const $list = jQuery( '<ul class="rsl-ie-complete-errors"></ul>' ).css(
@@ -8459,8 +10635,10 @@ const ImportModule = {
 			response?.result?.error ||
 			response?.error ||
 			response?.status ||
-			'Unknown error';
-		const failedLabel = rslIeData.i18n.importFailed || 'Import failed';
+			__( 'Unknown error', 'import-export-by-rockstarlab' );
+		const failedLabel =
+			rslIeData.i18n.importFailed ||
+			__( 'Import failed', 'import-export-by-rockstarlab' );
 		Utils.showNotice(
 			failedLabel.includes( '%s' )
 				? failedLabel.replace( '%s', message )
@@ -8491,7 +10669,10 @@ const ImportModule = {
 			.addClass( 'dashicons-dismiss' );
 		$card
 			.find( '.rsl-ie-complete-title' )
-			.text( i18n.importFailedTitle || 'Import Failed' );
+			.text(
+				i18n.importFailedTitle ||
+					__( 'Import Failed', 'import-export-by-rockstarlab' )
+			);
 		$card.find( '.rsl-ie-complete-subtitle' ).text( message );
 		jQuery( '.rsl-ie-cancel-import' ).hide();
 		jQuery( '.rsl-ie-new-import' ).show();
@@ -8516,14 +10697,18 @@ const ImportModule = {
 		try {
 			await Utils.ajax( 'rsl_ie_import_cancel', { job_id: this.jobId } );
 			Utils.showNotice(
-				rslIeData.i18n.importCancelled || 'Import cancelled',
+				rslIeData.i18n.importCancelled ||
+					__( 'Import cancelled', 'import-export-by-rockstarlab' ),
 				'info'
 			);
 			this.resetWizard();
 		} catch ( error ) {
 			this.isCancellingImport = false;
 			this.setCancelImportLoading( false );
-			Utils.handleError( error, 'Cancel import' );
+			Utils.handleError(
+				error,
+				__( 'Cancel import', 'import-export-by-rockstarlab' )
+			);
 		}
 	},
 
@@ -8560,12 +10745,14 @@ const ImportModule = {
 			$button.append(
 				' ' +
 					( window.rslIeData.i18n.cancellingImport ||
-						'Cancelling...' )
+						__( 'Cancelling...', 'import-export-by-rockstarlab' ) )
 			);
 			return;
 		}
 
-		const originalText = $button.data( 'original-text' ) || 'Cancel Import';
+		const originalText =
+			$button.data( 'original-text' ) ||
+			__( 'Cancel Import', 'import-export-by-rockstarlab' );
 		const originalIcon =
 			$button.data( 'original-icon' ) || 'dashicons dashicons-no';
 
@@ -8702,7 +10889,10 @@ const ImportModule = {
 
 		// Create ACF group
 		let html = `<div class="rsl-ie-field-group rsl-ie-acf-fields-group">`;
-		html += `<div class="rsl-ie-field-group-label">🔧 ACF Fields</div>`;
+		html += `<div class="rsl-ie-field-group-label">${ __(
+			'🔧 ACF Fields',
+			'import-export-by-rockstarlab'
+		) }</div>`;
 
 		fields.forEach( ( field ) => {
 			html += `
@@ -8790,7 +10980,10 @@ const ImportModule = {
 
 		// Create Yoast group
 		let html = `<div class="rsl-ie-field-group rsl-ie-yoast-fields-group">`;
-		html += `<div class="rsl-ie-field-group-label">📊 Yoast SEO</div>`;
+		html += `<div class="rsl-ie-field-group-label">${ __(
+			'📊 Yoast SEO',
+			'import-export-by-rockstarlab'
+		) }</div>`;
 
 		fields.forEach( ( field ) => {
 			// Clean up field name (remove _ prefix)
@@ -8879,7 +11072,10 @@ const ImportModule = {
 		const $container = jQuery( '#rsl-ie-target-fields' );
 
 		let html = `<div class="rsl-ie-field-group rsl-ie-rank-math-fields-group">`;
-		html += `<div class="rsl-ie-field-group-label">📈 Rank Math SEO</div>`;
+		html += `<div class="rsl-ie-field-group-label">${ __(
+			'📈 Rank Math SEO',
+			'import-export-by-rockstarlab'
+		) }</div>`;
 
 		fields.forEach( ( field ) => {
 			html += `
@@ -8893,7 +11089,10 @@ const ImportModule = {
 					</div>
 					<div class="rsl-ie-field-info">
 						<div class="rsl-ie-field-label">${ Utils.escapeHtml( field.label ) }</div>
-						<span class="rsl-ie-field-type-badge">rank math</span>
+						<span class="rsl-ie-field-type-badge">${ __(
+							'rank math',
+							'import-export-by-rockstarlab'
+						) }</span>
 					</div>
 				</div>
 			`;

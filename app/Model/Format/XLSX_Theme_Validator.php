@@ -16,13 +16,13 @@ class XLSX_Theme_Validator {
 					if ( 0 === $node->depth ) {
 						$namespace = $node->namespaceURI;
 						if ( 'theme' !== $node->localName || ! in_array( $namespace, [ 'http://schemas.openxmlformats.org/drawingml/2006/main', 'http://purl.oclc.org/ooxml/drawingml/main' ], true ) ) {
-							throw new \RuntimeException( 'Invalid spreadsheet theme.' ); }
+							throw new \RuntimeException( __( 'Invalid spreadsheet theme.', 'import-export-by-rockstarlab' ) ); }
 					}
 					if ( 1 === $node->depth && 'themeElements' === $node->localName && $namespace === $node->namespaceURI ) {
 						$has_elements = true; }
 				}
 				if ( ! $has_elements ) {
-					throw new \RuntimeException( 'Incomplete spreadsheet theme.' ); }
+					throw new \RuntimeException( __( 'Incomplete spreadsheet theme.', 'import-export-by-rockstarlab' ) ); }
 			} finally {
 				$parts->release( $path ); }
 		}

@@ -114,7 +114,7 @@ class Job_Service {
 			if ( is_wp_error( $id ) ) {
 				return $id;
 			}
-			Job_Log::write( $id, 'info', 'Job queued.' );
+			Job_Log::write( $id, 'info', __( 'Job queued.', 'import-export-by-rockstarlab' ) );
 			$scheduled = Job_Runner::schedule( $id );
 			$result    = [
 				'job_id'             => (int) $id,

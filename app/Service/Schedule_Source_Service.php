@@ -77,7 +77,7 @@ class Schedule_Source_Service {
 		}
 		$params = json_decode( (string) $job->parameters, true );
 		if ( ! is_array( $params ) || ! empty( $params['migration_parent_id'] ) || ! in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true ) ) {
-			return new \WP_Error( 'rsl_ie_schedule_source_unavailable', 'Select a terminal, independent source job.', [ 'status' => 409 ] );
+			return new \WP_Error( 'rsl_ie_schedule_source_unavailable', __( 'Select a terminal, independent source job.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
 		}
 		$start = '' !== $request_id;
 		if ( Media_Folder_Service::supports( $job ) ) {
@@ -140,7 +140,7 @@ class Schedule_Source_Service {
 			} elseif ( ! Sync_Job_Service::supports( $job ) ) {
 				$site = Connected_Site::get_by_id( $params['site_id'] ?? 0 );
 				if ( ! $site ) {
-					return new \WP_Error( 'rsl_ie_schedule_connection_missing', 'The source connection is unavailable.', [ 'status' => 409 ] );
+					return new \WP_Error( 'rsl_ie_schedule_connection_missing', __( 'The source connection is unavailable.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
 				}
 				$params = [
 					'sync_queue_version'     => 1,
@@ -210,7 +210,7 @@ class Schedule_Source_Service {
 		 * @param string $request_id Occurrence identity or empty preflight.
 		 */
 		$result = apply_filters( 'rsl_ie_schedule_source', null, $job, $request_id );
-		return null !== $result ? $result : new \WP_Error( 'rsl_ie_schedule_provider_unavailable', 'No available schedule provider supports this source.', [ 'status' => 403 ] );
+		return null !== $result ? $result : new \WP_Error( 'rsl_ie_schedule_provider_unavailable', __( 'No available schedule provider supports this source.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
 	}
 	/**
 	 * Point each mapped column at its position in another file, by column name.

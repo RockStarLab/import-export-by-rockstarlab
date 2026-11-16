@@ -611,7 +611,7 @@ class Job extends Model {
 		}
 
 		if ( 'import' === $job->type && ! \RockStarLab\ImportExport\Service\Spreadsheet_Spool::discard( $id ) ) {
-			return new \WP_Error( 'spreadsheet_cleanup_failed', 'Cannot remove spreadsheet snapshot.' );
+			return new \WP_Error( 'spreadsheet_cleanup_failed', __( 'Cannot remove spreadsheet snapshot.', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Delete job record only after schedule/file checks above have succeeded.

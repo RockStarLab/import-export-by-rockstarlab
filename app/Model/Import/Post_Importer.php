@@ -147,7 +147,7 @@ class Post_Importer extends Abstract_Importer {
 		return [
 			'duplicate_mode'       => 'How to handle duplicates: skip, update, create',
 			'post_status'          => 'Default post status: publish, draft, pending',
-			'post_type'            => 'Post type to import as: post, page, or custom type',
+			'post_type'            => __( 'Post type to import as: post, page, or custom type', 'import-export-by-rockstarlab' ),
 			'post_author'          => 'Default author ID if not specified in data',
 			'comment_status'       => 'Default comment status: open, closed',
 			'ping_status'          => 'Default ping status: open, closed',
@@ -510,11 +510,11 @@ class Post_Importer extends Abstract_Importer {
 		$row_status = strtolower( trim( (string) ( $item['post_status'] ?? '' ) ) );
 		$row_type   = strtolower( trim( (string) ( $item['post_type'] ?? $item['wp:post_type'] ?? $item['_rsl_ie_source_post_type'] ?? '' ) ) );
 		if ( 'nav_menu_item' === $row_type ) {
-			$this->log_skip_once( 'menu', sprintf( 'Menu items of the export are skipped (first: row %d). Import menus with a Menus import.', (int) $index + 1 ) );
+			$this->log_skip_once( 'menu', sprintf( /* translators: %d: int row number. */ __( 'Menu items of the export are skipped (first: row %d). Import menus with a Menus import.', 'import-export-by-rockstarlab' ), (int) $index + 1 ) );
 			return 'skipped';
 		}
 		if ( 'inherit' === $row_status || in_array( $row_type, [ 'attachment', 'revision' ], true ) ) {
-			$this->log_skip_once( 'media', sprintf( 'Media files and revisions of the export are skipped (first: row %d). Import media files with a Media import.', (int) $index + 1 ) );
+			$this->log_skip_once( 'media', sprintf( /* translators: %d: int row number. */ __( 'Media files and revisions of the export are skipped (first: row %d). Import media files with a Media import.', 'import-export-by-rockstarlab' ), (int) $index + 1 ) );
 			return 'skipped';
 		}
 		// A WordPress export mixes posts, pages and custom post types. Without a mapped post type
@@ -523,7 +523,7 @@ class Post_Importer extends Abstract_Importer {
 		$wxr_type    = sanitize_key( (string) ( $item['_rsl_ie_source_post_type'] ?? '' ) );
 		$target_type = sanitize_key( (string) $this->get_option( 'post_type', 'post' ) );
 		if ( '' !== $wxr_type && ! isset( $item['post_type'] ) && '' !== $target_type && 'any' !== $target_type && $wxr_type !== $target_type ) {
-			$this->log_skip_once( 'type-' . $wxr_type, sprintf( 'Items of type "%1$s" in the WordPress export are skipped (first: row %2$d): this import creates "%3$s" items. Import them with the matching import type.', $wxr_type, (int) $index + 1, $target_type ) );
+			$this->log_skip_once( 'type-' . $wxr_type, sprintf( /* translators: %1$s: wxr type, %2$d: int row number, %3$s: target type. */ __( 'Items of type "%1$s" in the WordPress export are skipped (first: row %2$d): this import creates "%3$s" items. Import them with the matching import type.', 'import-export-by-rockstarlab' ), $wxr_type, (int) $index + 1, $target_type ) );
 			return 'skipped';
 		}
 
@@ -926,7 +926,7 @@ class Post_Importer extends Abstract_Importer {
 		if ( $found && current_user_can( 'edit_post', $found->ID ) ) {
 			return (int) $found->ID;
 		}
-		$this->log_warning( sprintf( 'Parent "%s" was not found; the item was imported without a parent.', mb_substr( $reference, 0, 80 ) ) );
+		$this->log_warning( sprintf( /* translators: %s: mb substr. */ __( 'Parent "%s" was not found; the item was imported without a parent.', 'import-export-by-rockstarlab' ), mb_substr( $reference, 0, 80 ) ) );
 		return 0;
 	}
 
@@ -1446,7 +1446,7 @@ class Post_Importer extends Abstract_Importer {
 				$roles = array_values( array_filter( array_map( 'sanitize_key', $roles ) ) );
 				$editable = function_exists( 'get_editable_roles' ) ? get_editable_roles() : wp_roles()->roles;
 				if ( ! current_user_can( 'promote_users' ) || array_diff( $roles, array_keys( $editable ) ) ) {
-					throw new \RuntimeException( 'Cannot assign the imported author roles.' );
+					throw new \RuntimeException( __( 'Cannot assign the imported author roles.', 'import-export-by-rockstarlab' ) );
 				}
 				$base_login = sanitize_user( current( explode( '@', $email ) ), true );
 				$new_login  = '' !== $login ? sanitize_user( $login, true ) : ( $base_login ? $base_login : 'imported_user' );
@@ -1531,7 +1531,7 @@ class Post_Importer extends Abstract_Importer {
 			// Say so instead of silently giving the post to the importing administrator.
 			$this->log_warning(
 				sprintf(
-					'Author not found for "%1$s" (%2$s); the post was assigned to the default author.',
+					/* translators: %1$s: string, %2$s: implode. */ __( 'Author not found for "%1$s" (%2$s); the post was assigned to the default author.', 'import-export-by-rockstarlab' ),
 					(string) ( $item['post_title'] ?? '' ),
 					implode( ', ', array_filter( [ $login, $email, $name ], 'strlen' ) )
 				)
@@ -4188,7 +4188,7 @@ class Post_Importer extends Abstract_Importer {
 		// Excel =HYPERLINK() formula; turn them into a downloadable address first.
 		$url = $this->normalize_media_input_url( $image );
 		if ( ! Content_Sync_Media::is_valid_url( $url ) ) {
-			$this->log_warning( sprintf( 'Featured image value is not a valid URL: %s', $image ) );
+			$this->log_warning( sprintf( /* translators: %s: image. */ __( 'Featured image value is not a valid URL: %s', 'import-export-by-rockstarlab' ), $image ) );
 			$this->add_media_issue( $image, __( 'The featured image value is not a valid URL.', 'import-export-by-rockstarlab' ) );
 			return;
 		}
@@ -4202,7 +4202,7 @@ class Post_Importer extends Abstract_Importer {
 			set_post_thumbnail( $post_id, (int) $attachment_id );
 		} else {
 			$reason = $this->last_media_error ? $this->last_media_error : __( 'The featured image could not be downloaded.', 'import-export-by-rockstarlab' );
-			$this->log_warning( sprintf( 'Failed to import featured image from URL: %s (%s)', $url, $reason ) );
+			$this->log_warning( sprintf( /* translators: %1$s: url, %2$s: reason. */ __( 'Failed to import featured image from URL: %1$s (%2$s)', 'import-export-by-rockstarlab' ), $url, $reason ) );
 			$this->add_media_issue( $url, $reason );
 		}
 	}
@@ -4731,16 +4731,16 @@ class Post_Importer extends Abstract_Importer {
 		if ( $existing_attachment ) {
 			// Handle duplicate based on mode
 			if ( 'skip' === $media_duplicate_mode ) {
-				$this->log_info( sprintf( 'Skipped duplicate media: %s (using existing ID: %d)', $filename, $existing_attachment ) );
+				$this->log_info( sprintf( /* translators: %1$s: filename, %2$d: existing attachment. */ __( 'Skipped duplicate media: %1$s (using existing ID: %2$d)', 'import-export-by-rockstarlab' ), $filename, $existing_attachment ) );
 				$this->store_imported_media_source( (int) $existing_attachment, $url, $source_attachment_id );
 				$existing_for_language           = (int) $existing_attachment;
 				$url_to_attachment_cache[ $url ] = $existing_for_language;
 				return $existing_for_language;
 			} elseif ( 'replace' === $media_duplicate_mode ) {
 				wp_delete_attachment( $existing_attachment, true );
-				$this->log_info( sprintf( 'Deleted existing media for replacement: %s (ID: %d)', $filename, $existing_attachment ) );
+				$this->log_info( sprintf( /* translators: %1$s: filename, %2$d: existing attachment. */ __( 'Deleted existing media for replacement: %1$s (ID: %2$d)', 'import-export-by-rockstarlab' ), $filename, $existing_attachment ) );
 			} else {
-				$this->log_info( sprintf( 'Using existing media: %s (ID: %d)', $filename, $existing_attachment ) );
+				$this->log_info( sprintf( /* translators: %1$s: filename, %2$d: existing attachment. */ __( 'Using existing media: %1$s (ID: %2$d)', 'import-export-by-rockstarlab' ), $filename, $existing_attachment ) );
 				$this->store_imported_media_source( (int) $existing_attachment, $url, $source_attachment_id );
 				$existing_for_language           = (int) $existing_attachment;
 				$url_to_attachment_cache[ $url ] = $existing_for_language;
@@ -4760,7 +4760,7 @@ class Post_Importer extends Abstract_Importer {
 
 		if ( ! is_wp_error( $attachment_id ) && $attachment_id ) {
 			$this->store_imported_media_source( (int) $attachment_id, $url, $source_attachment_id );
-			$this->log_info( sprintf( 'Imported media: %s (new ID: %d)', $filename, $attachment_id ) );
+			$this->log_info( sprintf( /* translators: %1$s: filename, %2$d: attachment id. */ __( 'Imported media: %1$s (new ID: %2$d)', 'import-export-by-rockstarlab' ), $filename, $attachment_id ) );
 			$attachment_for_language         = (int) $attachment_id;
 			$url_to_attachment_cache[ $url ] = $attachment_for_language;
 			return $attachment_for_language;
@@ -4876,7 +4876,7 @@ class Post_Importer extends Abstract_Importer {
 				if ( '' === $original_url ) {
 					++$error_count;
 					$this->add_media_issue( $url, __( 'The file does not exist in the Media Library of this site.', 'import-export-by-rockstarlab' ) );
-					$this->log_error( sprintf( 'Media file not found on this site: %s', $url ) );
+					$this->log_error( sprintf( /* translators: %s: url. */ __( 'Media file not found on this site: %s', 'import-export-by-rockstarlab' ), $url ) );
 					continue;
 				}
 				$url = $original_url;
@@ -4924,12 +4924,12 @@ class Post_Importer extends Abstract_Importer {
 						'id'  => $existing_attachment,
 					];
 					++$skipped_count;
-					$this->log_info( sprintf( 'Skipped duplicate media: %s (using existing ID: %d)', $filename, $existing_attachment ) );
+					$this->log_info( sprintf( /* translators: %1$s: filename, %2$d: existing attachment. */ __( 'Skipped duplicate media: %1$s (using existing ID: %2$d)', 'import-export-by-rockstarlab' ), $filename, $existing_attachment ) );
 					continue;
 				} elseif ( 'replace' === $media_duplicate_mode ) {
 					// Delete existing and import new
 					wp_delete_attachment( $existing_attachment, true );
-					$this->log_info( sprintf( 'Deleted existing media for replacement: %s (ID: %d)', $filename, $existing_attachment ) );
+					$this->log_info( sprintf( /* translators: %1$s: filename, %2$d: existing attachment. */ __( 'Deleted existing media for replacement: %1$s (ID: %2$d)', 'import-export-by-rockstarlab' ), $filename, $existing_attachment ) );
 				} elseif ( 'update' === $media_duplicate_mode ) {
 					$new_url                    = wp_get_attachment_url( $existing_attachment );
 					$url_mapping[ $source_url ] = [
@@ -4937,7 +4937,7 @@ class Post_Importer extends Abstract_Importer {
 						'id'  => $existing_attachment,
 					];
 					++$skipped_count;
-					$this->log_info( sprintf( 'Updated duplicate media: %s (using existing ID: %d)', $filename, $existing_attachment ) );
+					$this->log_info( sprintf( /* translators: %1$s: filename, %2$d: existing attachment. */ __( 'Updated duplicate media: %1$s (using existing ID: %2$d)', 'import-export-by-rockstarlab' ), $filename, $existing_attachment ) );
 					continue;
 				}
 				// 'create' mode - fall through to import as new
@@ -4954,12 +4954,12 @@ class Post_Importer extends Abstract_Importer {
 					'id'  => $attachment_id,
 				];
 				++$imported_count;
-				$this->log_info( sprintf( 'Imported media: %s (new ID: %d)', $filename, $attachment_id ) );
+				$this->log_info( sprintf( /* translators: %1$s: filename, %2$d: attachment id. */ __( 'Imported media: %1$s (new ID: %2$d)', 'import-export-by-rockstarlab' ), $filename, $attachment_id ) );
 			} else {
 				++$error_count;
-				$error_message = is_wp_error( $attachment_id ) ? $attachment_id->get_error_message() : 'Unknown error';
+				$error_message = is_wp_error( $attachment_id ) ? $attachment_id->get_error_message() : __( 'Unknown error', 'import-export-by-rockstarlab' );
 				$this->add_media_issue( $url, $error_message );
-				$this->log_error( sprintf( 'Failed to import media: %s - %s', $filename, $error_message ) );
+				$this->log_error( sprintf( /* translators: %1$s: filename, %2$s: error message. */ __( 'Failed to import media: %1$s - %2$s', 'import-export-by-rockstarlab' ), $filename, $error_message ) );
 			}
 		}
 
@@ -4984,7 +4984,7 @@ class Post_Importer extends Abstract_Importer {
 		$imported_count = max( $imported_count, $this->count_post_attachments( $post_id ) - $children_before );
 		$this->log_info(
 			sprintf(
-				'Media import summary for post %d: %d imported, %d skipped, %d errors',
+				/* translators: %1$d: post id, %2$d: imported count, %3$d: skipped count, %4$d: error count. */ __( 'Media import summary for post %1$d: %2$d imported, %3$d skipped, %4$d errors', 'import-export-by-rockstarlab' ),
 				$post_id,
 				$imported_count,
 				$skipped_count,
@@ -6141,7 +6141,7 @@ class Post_Importer extends Abstract_Importer {
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		if ( $code < 200 || $code >= 300 ) {
 			@wp_delete_file( $tmp );
-			return new \WP_Error( 'rsl_ie_download_failed', sprintf( 'Download failed with HTTP %d', $code ) );
+			return new \WP_Error( 'rsl_ie_download_failed', sprintf( /* translators: %d: code. */ __( 'Download failed with HTTP %d', 'import-export-by-rockstarlab' ), $code ) );
 		}
 
 		return $tmp;
@@ -6174,7 +6174,7 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		if ( $cleaned > 0 ) {
-			$this->log_info( sprintf( 'Cleaned up %d temporary media files', $cleaned ) );
+			$this->log_info( sprintf( /* translators: %d: cleaned. */ __( 'Cleaned up %d temporary media files', 'import-export-by-rockstarlab' ), $cleaned ) );
 		}
 	}
 }

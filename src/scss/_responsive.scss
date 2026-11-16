@@ -51,6 +51,14 @@
 // Narrow screens: wide data tables scroll inside their box instead of being cut off,
 // and form controls never push the page wider than the screen.
 @media screen and (max-width: 782px) {
+	// Translated labels are longer: wide trigger tables scroll inside their box.
+	#rsl-ie-triggers table.widefat {
+		display: block;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		max-width: 100%;
+	}
+
 	.rsl-ie-sites-table-wrapper,
 	.rsl-ie-jobs-table-wrapper,
 	.rsl-ie-table-scroll {

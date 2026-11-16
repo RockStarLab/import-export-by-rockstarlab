@@ -162,7 +162,7 @@ class Import_Controller extends Base_Controller {
 		$id      = (int) $this->get_request_param( 'job_id' );
 		$job     = $service->record( $id );
 		if ( is_wp_error( $job ) || 'import' !== $job->type ) {
-			$this->send_error( is_wp_error( $job ) ? $job : 'Invalid job type', null, 400 );
+			$this->send_error( is_wp_error( $job ) ? $job : __( 'Invalid job type', 'import-export-by-rockstarlab' ), null, 400 );
 			return; }
 		$result = $service->stop( $id, 'cancel' );
 		if ( is_wp_error( $result ) ) {

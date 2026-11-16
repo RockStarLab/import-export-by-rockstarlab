@@ -7,6 +7,7 @@ import TabProgress from '../utils/tab-progress';
 
 import Utils from './utils';
 
+import { __, sprintf } from '@wordpress/i18n';
 const MediaSyncModule = {
 	jobId: null,
 	progressInterval: null,
@@ -254,7 +255,10 @@ const MediaSyncModule = {
 						this.showEmptyState();
 						Utils.showNotice(
 							window.rslIeData.i18n.noFilesFoundCriteria ||
-								'No files found matching the criteria',
+								__(
+									'No files found matching the criteria',
+									'import-export-by-rockstarlab'
+								),
 							'info'
 						);
 					} else {
@@ -262,7 +266,10 @@ const MediaSyncModule = {
 						this.displayFiles( this.scannedFiles );
 						const message = (
 							window.rslIeData.i18n.foundFilesReadyToSync ||
-							'Found %d files ready to sync'
+							__(
+								'Found %d files ready to sync',
+								'import-export-by-rockstarlab'
+							)
 						).replace( '%d', this.scannedFiles.length );
 						Utils.showNotice( message, 'success' );
 
@@ -271,7 +278,8 @@ const MediaSyncModule = {
 					}
 				} else {
 					Utils.showNotice(
-						response.data?.message || 'Scan failed',
+						response.data?.message ||
+							__( 'Scan failed', 'import-export-by-rockstarlab' ),
 						'error'
 					);
 				}
@@ -289,7 +297,8 @@ const MediaSyncModule = {
 					.prop( 'disabled', false )
 					.html(
 						`<span class="dashicons dashicons-search"></span> ${
-							window.rslIeData.i18n.scanFolder || 'Scan Folder'
+							window.rslIeData.i18n.scanFolder ||
+							__( 'Scan Folder', 'import-export-by-rockstarlab' )
 						}`
 					);
 			} );
@@ -303,29 +312,50 @@ const MediaSyncModule = {
 		$list.html( `
 			<div class="rsl-ie-empty-state">
 				<span class="dashicons dashicons-search"></span>
-				<h3>${ window.rslIeData.i18n.noFilesFoundTitle || 'No Files Found' }</h3>
+				<h3>${
+					window.rslIeData.i18n.noFilesFoundTitle ||
+					__( 'No Files Found', 'import-export-by-rockstarlab' )
+				}</h3>
 				<p>${
 					window.rslIeData.i18n.noFilesFoundDesc ||
-					'No files matching your criteria were found in the selected folder.'
+					__(
+						'No files matching your criteria were found in the selected folder.',
+						'import-export-by-rockstarlab'
+					)
 				}</p>
 				<div class="rsl-ie-empty-suggestions">
-					<strong>${ window.rslIeData.i18n.suggestions || 'Suggestions' }:</strong>
+					<strong>${
+						window.rslIeData.i18n.suggestions ||
+						__( 'Suggestions', 'import-export-by-rockstarlab' )
+					}:</strong>
 					<ul>
 						<li>${
 							window.rslIeData.i18n.checkFolderPath ||
-							'Check if the folder path is correct'
+							__(
+								'Check if the folder path is correct',
+								'import-export-by-rockstarlab'
+							)
 						}</li>
 						<li>${
 							window.rslIeData.i18n.enableScanRecursive ||
-							'Try enabling "Scan Recursive" to search in subfolders'
+							__(
+								'Try enabling "Scan Recursive" to search in subfolders',
+								'import-export-by-rockstarlab'
+							)
 						}</li>
 						<li>${
 							window.rslIeData.i18n.changeFileTypeFilter ||
-							'Change the file type filter'
+							__(
+								'Change the file type filter',
+								'import-export-by-rockstarlab'
+							)
 						}</li>
 						<li>${
 							window.rslIeData.i18n.makeSureFolderContains ||
-							'Make sure the folder contains supported media files'
+							__(
+								'Make sure the folder contains supported media files',
+								'import-export-by-rockstarlab'
+							)
 						}</li>
 					</ul>
 				</div>
@@ -367,7 +397,10 @@ const MediaSyncModule = {
 		const $list = jQuery( '#rsl-ie-file-list' );
 		const foundMessage = (
 			window.rslIeData.i18n.foundFilesReadySync ||
-			'Found %1$s files ready for synchronization (Total: %2$s)'
+			__(
+				'Found %1$s files ready for synchronization (Total: %2$s)',
+				'import-export-by-rockstarlab'
+			)
 		)
 			.replace( '%1$s', `<strong>${ files.length }</strong>` )
 			.replace(
@@ -381,10 +414,16 @@ const MediaSyncModule = {
 					<span class="dashicons dashicons-yes-alt"></span>
 				</div>
 				<div class="rsl-ie-summary-content">
-					<h3>${ window.rslIeData.i18n.scanComplete || 'Scan Complete' }</h3>
+					<h3>${
+						window.rslIeData.i18n.scanComplete ||
+						__( 'Scan Complete', 'import-export-by-rockstarlab' )
+					}</h3>
 					<p>${ foundMessage }</p>
 					<div class="rsl-ie-file-types">
-						<strong>${ window.rslIeData.i18n.fileTypes || 'File Types' }:</strong>
+						<strong>${
+							window.rslIeData.i18n.fileTypes ||
+							__( 'File Types', 'import-export-by-rockstarlab' )
+						}:</strong>
 						${ Object.entries( fileTypes )
 							.map(
 								( [ ext, count ] ) =>
@@ -396,7 +435,10 @@ const MediaSyncModule = {
 						<span class="dashicons dashicons-info"></span>
 						${
 							window.rslIeData.i18n.filesProcessedBatches ||
-							'All files will be processed in batches. Click "Start Sync" below to begin.'
+							__(
+								'All files will be processed in batches. Click "Start Sync" below to begin.',
+								'import-export-by-rockstarlab'
+							)
 						}
 					</p>
 				</div>
@@ -571,7 +613,10 @@ const MediaSyncModule = {
 		if ( selectedFiles.length === 0 ) {
 			Utils.showNotice(
 				window.rslIeData.i18n.noFilesSelected ||
-					'Please select at least one file to sync',
+					__(
+						'Please select at least one file to sync',
+						'import-export-by-rockstarlab'
+					),
 				'error'
 			);
 			return;
@@ -668,7 +713,10 @@ const MediaSyncModule = {
 					Utils.showNotice(
 						response.message ||
 							response.data?.message ||
-							'Failed to start sync',
+							__(
+								'Failed to start sync',
+								'import-export-by-rockstarlab'
+							),
 						'error'
 					);
 					$btn.prop( 'disabled', false ).html( originalText );
@@ -830,14 +878,27 @@ const MediaSyncModule = {
 
 		// Update status text (fix selector - was #rsl-ie-progress-status, should be #rsl-ie-sync-status)
 		const statusTexts = {
-			pending: window.rslIeData.i18n.starting || 'Starting...',
+			pending:
+				window.rslIeData.i18n.starting ||
+				__( 'Starting...', 'import-export-by-rockstarlab' ),
 			processing:
 				window.rslIeData.i18n.syncInProgress ||
-				'Synchronization in Progress',
-			completed: window.rslIeData.i18n.statusCompleted || 'Completed',
-			failed: window.rslIeData.i18n.statusFailed || 'Failed',
-			cancelled: window.rslIeData.i18n.statusCancelled || 'Cancelled',
-			paused: window.rslIeData.i18n.statusPaused || 'Paused',
+				__(
+					'Synchronization in Progress',
+					'import-export-by-rockstarlab'
+				),
+			completed:
+				window.rslIeData.i18n.statusCompleted ||
+				__( 'Completed', 'import-export-by-rockstarlab' ),
+			failed:
+				window.rslIeData.i18n.statusFailed ||
+				__( 'Failed', 'import-export-by-rockstarlab' ),
+			cancelled:
+				window.rslIeData.i18n.statusCancelled ||
+				__( 'Cancelled', 'import-export-by-rockstarlab' ),
+			paused:
+				window.rslIeData.i18n.statusPaused ||
+				__( 'Paused', 'import-export-by-rockstarlab' ),
 		};
 
 		const statusText = statusTexts[ status ] || 'Processing...';
@@ -877,7 +938,8 @@ const MediaSyncModule = {
 
 		if ( errors.length > 20 ) {
 			const moreErrorsMsg = (
-				window.rslIeData.i18n.andMoreErrors || '... and %d more errors'
+				window.rslIeData.i18n.andMoreErrors ||
+				__( '... and %d more errors', 'import-export-by-rockstarlab' )
 			).replace( '%d', errors.length - 20 );
 			$errorList.append( `<li>${ moreErrorsMsg }</li>` );
 		}
@@ -921,11 +983,17 @@ const MediaSyncModule = {
 				processed !== 1
 					? (
 							window.rslIeData.i18n.successfullyProcessedPlural ||
-							'Successfully processed %s files'
+							__(
+								'Successfully processed %s files',
+								'import-export-by-rockstarlab'
+							)
 					  ).replace( '%s', `<strong>${ processed }</strong>` )
 					: (
 							window.rslIeData.i18n.successfullyProcessed ||
-							'Successfully processed %s file'
+							__(
+								'Successfully processed %s file',
+								'import-export-by-rockstarlab'
+							)
 					  ).replace( '%s', `<strong>${ processed }</strong>` );
 
 			messageHtml = `
@@ -933,7 +1001,10 @@ const MediaSyncModule = {
 					<div style="font-size: 64px; margin-bottom: 15px;">🎉</div>
 					<h3 style="color: var(--rsl-brand-success, #00a32a); margin: 0 0 15px; font-size: 24px;">${
 						window.rslIeData.i18n.syncCompleteTitle ||
-						'Synchronization Complete!'
+						__(
+							'Synchronization Complete!',
+							'import-export-by-rockstarlab'
+						)
 					}</h3>
 					<p style="font-size: 16px; color: #1d2327; margin-bottom: 20px;">
 						${ processedMsg }
@@ -942,7 +1013,8 @@ const MediaSyncModule = {
 						<div style="text-align: center;">
 							<div style="font-size: 32px; color: var(--rsl-brand-success, #00a32a); font-weight: 600;">${ success }</div>
 							<div style="font-size: 12px; color: #646970; text-transform: uppercase;">✅ ${
-								window.rslIeData.i18n.imported || 'Imported'
+								window.rslIeData.i18n.imported ||
+								__( 'Imported', 'import-export-by-rockstarlab' )
 							}</div>
 						</div>
 						${
@@ -951,7 +1023,8 @@ const MediaSyncModule = {
 						<div style="text-align: center;">
 							<div style="font-size: 32px; color: #dba617; font-weight: 600;">${ skipped }</div>
 							<div style="font-size: 12px; color: #646970; text-transform: uppercase;">⏭️ ${
-								window.rslIeData.i18n.skipped || 'Skipped'
+								window.rslIeData.i18n.skipped ||
+								__( 'Skipped', 'import-export-by-rockstarlab' )
 							}</div>
 						</div>
 						`
@@ -963,7 +1036,8 @@ const MediaSyncModule = {
 						<div style="text-align: center;">
 							<div style="font-size: 32px; color: #d63638; font-weight: 600;">${ failed }</div>
 							<div style="font-size: 12px; color: #646970; text-transform: uppercase;">❌ ${
-								window.rslIeData.i18n.statusFailed || 'Failed'
+								window.rslIeData.i18n.statusFailed ||
+								__( 'Failed', 'import-export-by-rockstarlab' )
 							}</div>
 						</div>
 						`
@@ -974,7 +1048,10 @@ const MediaSyncModule = {
 						skipped > 0
 							? `<p style="font-size: 13px; color: #646970; margin: 15px 0 0;">${ Utils.escapeHtml(
 									window.rslIeData.i18n.mediaSkippedExplain ||
-										'Skipped files are already in the Media Library, so they were not imported again.'
+										__(
+											'Skipped files are already in the Media Library, so they were not imported again.',
+											'import-export-by-rockstarlab'
+										)
 							  ) }</p>`
 							: ''
 					}
@@ -986,12 +1063,18 @@ const MediaSyncModule = {
 					<div style="font-size: 64px; margin-bottom: 15px;">⚠️</div>
 					<h3 style="color: #d63638; margin: 0 0 15px; font-size: 24px;">${
 						window.rslIeData.i18n.syncFailedTitle ||
-						'Synchronization Failed'
+						__(
+							'Synchronization Failed',
+							'import-export-by-rockstarlab'
+						)
 					}</h3>
 					<p style="font-size: 16px; color: #646970;">
 						${
 							window.rslIeData.i18n.syncFailedDesc ||
-							'The synchronization process encountered an error and could not complete.'
+							__(
+								'The synchronization process encountered an error and could not complete.',
+								'import-export-by-rockstarlab'
+							)
 						}
 					</p>
 				</div>
@@ -1006,7 +1089,10 @@ const MediaSyncModule = {
 					  ).replace( '%s', `<strong>${ processed }</strong>` )
 					: (
 							window.rslIeData.i18n.processedBeforeCancellation ||
-							'Processed %s file before cancellation.'
+							__(
+								'Processed %s file before cancellation.',
+								'import-export-by-rockstarlab'
+							)
 					  ).replace( '%s', `<strong>${ processed }</strong>` );
 
 			messageHtml = `
@@ -1014,7 +1100,10 @@ const MediaSyncModule = {
 					<div style="font-size: 64px; margin-bottom: 15px;">🛑</div>
 					<h3 style="color: #dba617; margin: 0 0 15px; font-size: 24px;">${
 						window.rslIeData.i18n.syncCancelledTitle ||
-						'Synchronization Cancelled'
+						__(
+							'Synchronization Cancelled',
+							'import-export-by-rockstarlab'
+						)
 					}</h3>
 					<p style="font-size: 16px; color: #646970;">
 						${ cancelledMsg }
@@ -1210,7 +1299,8 @@ const MediaSyncModule = {
 		const $pauseBtn = jQuery( '#rsl-ie-pause-sync-btn' );
 		$pauseBtn.html(
 			`<span class="dashicons dashicons-controls-pause"></span> ${
-				window.rslIeData.i18n.pause || 'Pause'
+				window.rslIeData.i18n.pause ||
+				__( 'Pause', 'import-export-by-rockstarlab' )
 			}`
 		);
 
@@ -1221,7 +1311,10 @@ const MediaSyncModule = {
 		$header.html(
 			`<span class="dashicons dashicons-update rsl-ie-spin"></span> ${
 				window.rslIeData.i18n.syncInProgress ||
-				'Synchronization in Progress'
+				__(
+					'Synchronization in Progress',
+					'import-export-by-rockstarlab'
+				)
 			}`
 		);
 	},
@@ -1302,7 +1395,11 @@ const MediaSyncModule = {
 					);
 				} else {
 					this.showBrowserError(
-						response.data?.message || 'Failed to load folders'
+						response.data?.message ||
+							__(
+								'Failed to load folders',
+								'import-export-by-rockstarlab'
+							)
 					);
 				}
 			} )
@@ -1327,14 +1424,28 @@ const MediaSyncModule = {
 					const $html = jQuery( '<div>' ).html( jqXHR.responseText );
 					const title = $html.find( 'title' ).text();
 					if ( title ) {
-						errorMsg = 'Server Error: ' + title;
+						errorMsg = sprintf(
+							/* translators: %s: error page title from the server */
+							__(
+								'Server error: %s',
+								'import-export-by-rockstarlab'
+							),
+							title
+						);
 					} else {
 						// Show first line of error
 						const firstLine = jqXHR.responseText
 							.split( '\n' )[ 0 ]
 							.substring( 0, 100 );
 						if ( firstLine ) {
-							errorMsg = 'Server Error: ' + firstLine;
+							errorMsg = sprintf(
+								/* translators: %s: first line of the server response */
+								__(
+									'Server error: %s',
+									'import-export-by-rockstarlab'
+								),
+								firstLine
+							);
 						}
 					}
 				}
@@ -1343,7 +1454,14 @@ const MediaSyncModule = {
 					errorThrown &&
 					errorMsg === window.rslIeData.i18n.requestFailed
 				) {
-					errorMsg = 'Request failed: ' + errorThrown;
+					errorMsg = sprintf(
+						/* translators: %s: HTTP error text */
+						__(
+							'Request failed: %s',
+							'import-export-by-rockstarlab'
+						),
+						errorThrown
+					);
 				}
 
 				// Add status code to message
@@ -1388,7 +1506,7 @@ const MediaSyncModule = {
 					parentPath
 				) }" style="margin-bottom: 10px;">
 					<span class="dashicons dashicons-arrow-up-alt"></span>
-					${ window.rslIeData.i18n.goUp || 'Go Up' }
+					${ window.rslIeData.i18n.goUp || __( 'Go Up', 'import-export-by-rockstarlab' ) }
 				</button>
 			` );
 			$upButton.insertBefore( $list );
@@ -1404,7 +1522,10 @@ const MediaSyncModule = {
 				<span class="rsl-ie-folder-name">
 					<strong>${
 						window.rslIeData.i18n.useThisFolder ||
-						'. (Use this folder)'
+						__(
+							'. (Use this folder)',
+							'import-export-by-rockstarlab'
+						)
 					}</strong>
 				</span>
 			</div>

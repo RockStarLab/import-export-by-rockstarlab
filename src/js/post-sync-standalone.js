@@ -10,6 +10,7 @@ import TabProgress from './utils/tab-progress';
 import 'select2';
 import 'select2/dist/css/select2.min.css';
 
+import { __, sprintf } from '@wordpress/i18n';
 const AJAX_PREFIX = 'rsl_ie_';
 
 const normalizeAjaxAction = ( action ) => {
@@ -68,9 +69,15 @@ const getActionNonce = ( action ) =>
 		getRemotePostOptionText( postTitle, remoteId ) {
 			const template =
 				this.currentSyncDirection === 'pull'
-					? 'Pull: %1$s (ID: %2$s)'
+					? __(
+							'Pull: %1$s (ID: %2$s)',
+							'import-export-by-rockstarlab'
+					  )
 					: rslIePostSyncData?.i18n?.updatePost ||
-					  '🔄 Update: %1$s (ID: %2$s)';
+					  __(
+							'🔄 Update: %1$s (ID: %2$s)',
+							'import-export-by-rockstarlab'
+					  );
 
 			// Titles arrive HTML-encoded (&amp;); the label is always rendered as text.
 			return template
@@ -321,7 +328,10 @@ const getActionNonce = ( action ) =>
 						typeof rslIePostSyncData !== 'undefined' &&
 						rslIePostSyncData.i18n
 							? rslIePostSyncData.i18n.pleaseSavePost
-							: 'Please save the post first';
+							: __(
+									'Please save the post first',
+									'import-export-by-rockstarlab'
+							  );
 					alert( message );
 					return;
 				}
@@ -333,9 +343,11 @@ const getActionNonce = ( action ) =>
 			// Update selected count with proper text
 			const countText =
 				selectedIds.length === 1
-					? rslIePostSyncData?.i18n?.onePost || '1 post'
+					? rslIePostSyncData?.i18n?.onePost ||
+					  __( '1 post', 'import-export-by-rockstarlab' )
 					: (
-							rslIePostSyncData?.i18n?.postsCount || '%s posts'
+							rslIePostSyncData?.i18n?.postsCount ||
+							__( '%s posts', 'import-export-by-rockstarlab' )
 					  ).replace( '%s', selectedIds.length );
 			$( '#rsl-ie-selected-count' ).text( countText );
 
@@ -492,9 +504,13 @@ const getActionNonce = ( action ) =>
 					ids.length > 0
 						? (
 								rslIePostSyncData?.i18n?.exportCount ||
-								'Export (%s)'
+								__(
+									'Export (%s)',
+									'import-export-by-rockstarlab'
+								)
 						  ).replace( '%s', ids.length )
-						: rslIePostSyncData?.i18n?.export || 'Export'
+						: rslIePostSyncData?.i18n?.export ||
+								__( 'Export', 'import-export-by-rockstarlab' )
 				);
 		},
 
@@ -646,7 +662,10 @@ const getActionNonce = ( action ) =>
 			if ( ! siteId ) {
 				const message =
 					rslIePostSyncData?.i18n?.pleaseSelectSite ||
-					'Please select a site';
+					__(
+						'Please select a site',
+						'import-export-by-rockstarlab'
+					);
 				alert( message );
 				return;
 			}
@@ -654,7 +673,7 @@ const getActionNonce = ( action ) =>
 			if ( postIds.length === 0 ) {
 				const message =
 					rslIePostSyncData?.i18n?.noPostsSelected ||
-					'No posts selected';
+					__( 'No posts selected', 'import-export-by-rockstarlab' );
 				alert( message );
 				return;
 			}
@@ -671,7 +690,10 @@ const getActionNonce = ( action ) =>
 				if ( 'pull' === direction ) {
 					const ask =
 						rslIePostSyncData?.i18n?.pullOverUnsaved ||
-						'This post has unsaved changes. Pulling replaces it with the version from the other site and the changes are lost. Continue?';
+						__(
+							'This post has unsaved changes. Pulling replaces it with the version from the other site and the changes are lost. Continue?',
+							'import-export-by-rockstarlab'
+						);
 					// eslint-disable-next-line no-alert
 					if ( ! window.confirm( ask ) ) {
 						return;
@@ -700,7 +722,10 @@ const getActionNonce = ( action ) =>
 						.catch( () => {
 							alert(
 								rslIePostSyncData?.i18n?.saveBeforePushFailed ||
-									'The post could not be saved, so it was not pushed. Save it and try again.'
+									__(
+										'The post could not be saved, so it was not pushed. Save it and try again.',
+										'import-export-by-rockstarlab'
+									)
 							);
 						} );
 					return;
@@ -823,7 +848,10 @@ const getActionNonce = ( action ) =>
 									const errorMsg =
 										response.data?.message ||
 										rslIePostSyncData?.i18n?.unknownError ||
-										'Unknown error';
+										__(
+											'Unknown error',
+											'import-export-by-rockstarlab'
+										);
 									const message =
 										( rslIePostSyncData?.i18n
 											?.failedLoadRemotePosts ||
@@ -849,10 +877,16 @@ const getActionNonce = ( action ) =>
 						const errorMsg =
 							localResponse.data?.message ||
 							rslIePostSyncData?.i18n?.unknownError ||
-							'Unknown error';
+							__(
+								'Unknown error',
+								'import-export-by-rockstarlab'
+							);
 						const message =
 							( rslIePostSyncData?.i18n?.failedLoadLocalPosts ||
-								'Failed to load local posts info' ) +
+								__(
+									'Failed to load local posts info',
+									'import-export-by-rockstarlab'
+								) ) +
 							': ' +
 							errorMsg;
 						alert( message );
@@ -862,7 +896,10 @@ const getActionNonce = ( action ) =>
 				error: ( xhr ) => {
 					const message =
 						rslIePostSyncData?.i18n?.failedLoadLocalPosts ||
-						'Failed to load local posts info';
+						__(
+							'Failed to load local posts info',
+							'import-export-by-rockstarlab'
+						);
 					alert( message );
 					this.closeMappingModal();
 				},
@@ -891,7 +928,8 @@ const getActionNonce = ( action ) =>
 		createMappingRow( postId, remotePosts ) {
 			// Get local post info from AJAX response or fallback to DOM
 			const postHashText =
-				rslIePostSyncData?.i18n?.postHash || 'Post #%s';
+				rslIePostSyncData?.i18n?.postHash ||
+				__( 'Post #%s', 'import-export-by-rockstarlab' );
 			let postTitle = postHashText.replace( '%s', postId );
 			let postType = 'post';
 			let originalRemoteId = 0;
@@ -963,7 +1001,9 @@ const getActionNonce = ( action ) =>
 			const $row = $( '<tr>' ).attr( 'data-local-id', postId );
 
 			// Local post column
-			const idLabel = rslIePostSyncData?.i18n?.idLabel || 'ID:';
+			const idLabel =
+				rslIePostSyncData?.i18n?.idLabel ||
+				__( 'ID:', 'import-export-by-rockstarlab' );
 			const $localCol = $( '<td>' ).addClass( 'rsl-ie-local-post' )
 				.html( `
 				<div class="rsl-ie-local-post-info">
@@ -994,7 +1034,10 @@ const getActionNonce = ( action ) =>
 			if ( isPull ) {
 				const selectRemoteText =
 					rslIePostSyncData?.i18n?.selectRemotePostForPull ||
-					'Please select a remote post to pull.';
+					__(
+						'Please select a remote post to pull.',
+						'import-export-by-rockstarlab'
+					);
 				$select.append(
 					`<option value="" selected>${ selectRemoteText }</option>`
 				);
@@ -1002,7 +1045,7 @@ const getActionNonce = ( action ) =>
 				// Add "Create New" option for push only.
 				const createNewText =
 					rslIePostSyncData?.i18n?.createNewPost ||
-					'➕ Create New Post';
+					__( '➕ Create New Post', 'import-export-by-rockstarlab' );
 				$select.append(
 					`<option value="new" selected class="rsl-ie-option-new">${ createNewText }</option>`
 				);
@@ -1060,7 +1103,10 @@ const getActionNonce = ( action ) =>
 
 			const searchPlaceholder =
 				rslIePostSyncData?.i18n?.searchForUpdate ||
-				'Search for a %s to update...';
+				__(
+					'Search for a %s to update...',
+					'import-export-by-rockstarlab'
+				);
 			$select.select2( {
 				placeholder: searchPlaceholder.replace( '%s', postTypeLabel ),
 				allowClear: false,
@@ -1148,7 +1194,10 @@ const getActionNonce = ( action ) =>
 						) {
 							const createNewText =
 								rslIePostSyncData?.i18n?.createNewPost ||
-								'➕ Create New Post';
+								__(
+									'➕ Create New Post',
+									'import-export-by-rockstarlab'
+								);
 							formattedResults.unshift( {
 								id: 'new',
 								text: createNewText,
@@ -1315,7 +1364,8 @@ const getActionNonce = ( action ) =>
 			}
 			const originalHtml = $button.data( 'rsl-ie-original-html' );
 			const matchingText =
-				rslIePostSyncData?.i18n?.matchingByTitle || 'Matching...';
+				rslIePostSyncData?.i18n?.matchingByTitle ||
+				__( 'Matching...', 'import-export-by-rockstarlab' );
 
 			$button
 				.prop( 'disabled', true )
@@ -1477,7 +1527,10 @@ const getActionNonce = ( action ) =>
 				if ( postIdsToSync.length === 0 ) {
 					alert(
 						rslIePostSyncData?.i18n?.selectRemotePostForPull ||
-							'Please select at least one remote post to pull.'
+							__(
+								'Please select at least one remote post to pull.',
+								'import-export-by-rockstarlab'
+							)
 					);
 					return;
 				}
@@ -1513,7 +1566,8 @@ const getActionNonce = ( action ) =>
 
 			const stopButtonBusy = syncButtonBusy(
 				$( `#rsl-ie-sync-${ direction }-btn` ),
-				rslIePostSyncData?.i18n?.loading || 'Loading...'
+				rslIePostSyncData?.i18n?.loading ||
+					__( 'Loading...', 'import-export-by-rockstarlab' )
 			);
 
 			// Disable buttons
@@ -1546,7 +1600,8 @@ const getActionNonce = ( action ) =>
 					if ( response.success ) {
 						$( '.rsl-ie-progress-fill' ).css( 'width', '100%' );
 						const completedText =
-							rslIePostSyncData?.i18n?.completed || 'Completed!';
+							rslIePostSyncData?.i18n?.completed ||
+							__( 'Completed!', 'import-export-by-rockstarlab' );
 						$( '.rsl-ie-progress-text' ).text( completedText );
 
 						setTimeout( () => {
@@ -1555,7 +1610,10 @@ const getActionNonce = ( action ) =>
 								response.message ||
 								response.data?.message ||
 								rslIePostSyncData?.i18n?.syncCompletedSuccess ||
-								'Sync completed successfully';
+								__(
+									'Sync completed successfully',
+									'import-export-by-rockstarlab'
+								);
 							this.showResult( 'success', successMsg, direction );
 						}, 500 );
 					} else {
@@ -1564,7 +1622,7 @@ const getActionNonce = ( action ) =>
 							response.message ||
 							response.data?.message ||
 							rslIePostSyncData?.i18n?.syncFailed ||
-							'Sync failed';
+							__( 'Sync failed', 'import-export-by-rockstarlab' );
 						this.showResult( 'error', errorMsg );
 					}
 				},
@@ -1574,7 +1632,10 @@ const getActionNonce = ( action ) =>
 
 					let errorMessage =
 						rslIePostSyncData?.i18n?.errorDuringSync ||
-						'An error occurred during sync';
+						__(
+							'An error occurred during sync',
+							'import-export-by-rockstarlab'
+						);
 					if (
 						xhr.responseJSON?.message ||
 						xhr.responseJSON?.data?.message
@@ -1614,14 +1675,23 @@ const getActionNonce = ( action ) =>
 			const isPush = direction === 'push';
 			const preparingText = isPush
 				? rslIePostSyncData?.i18n?.preparingToPush ||
-				  'Preparing to push content...'
+				  __(
+						'Preparing to push content...',
+						'import-export-by-rockstarlab'
+				  )
 				: rslIePostSyncData?.i18n?.preparingToPull ||
-				  'Preparing to pull content...';
+				  __(
+						'Preparing to pull content...',
+						'import-export-by-rockstarlab'
+				  );
 			const activeText = isPush
 				? rslIePostSyncData?.i18n?.uploadingContent ||
-				  'Uploading content...'
+				  __( 'Uploading content...', 'import-export-by-rockstarlab' )
 				: rslIePostSyncData?.i18n?.downloadingContent ||
-				  'Downloading content...';
+				  __(
+						'Downloading content...',
+						'import-export-by-rockstarlab'
+				  );
 
 			$( '.rsl-ie-progress-fill' ).css( 'width', `${ progress }%` );
 			$( '.rsl-ie-progress-text' ).text( preparingText );
@@ -1764,7 +1834,10 @@ const getActionNonce = ( action ) =>
 			if ( typeof rslIePostSyncData === 'undefined' ) {
 				const errorMsg =
 					rslIePostSyncData?.i18n?.pluginDataNotLoaded ||
-					'Plugin data not loaded. Please refresh the page.';
+					__(
+						'Plugin data not loaded. Please refresh the page.',
+						'import-export-by-rockstarlab'
+					);
 				this.showBrowseError( errorMsg );
 				return;
 			}
@@ -1803,14 +1876,20 @@ const getActionNonce = ( action ) =>
 						const errorMsg =
 							response.data && response.data.message
 								? response.data.message
-								: 'Failed to load posts';
+								: __(
+										'Failed to load posts',
+										'import-export-by-rockstarlab'
+								  );
 						this.showBrowseError( errorMsg );
 					}
 				},
 				error: ( xhr ) => {
 					let errorMessage =
 						rslIePostSyncData?.i18n?.errorLoadingPosts ||
-						'An error occurred while loading posts';
+						__(
+							'An error occurred while loading posts',
+							'import-export-by-rockstarlab'
+						);
 					if (
 						xhr.responseJSON?.message ||
 						xhr.responseJSON?.data?.message
@@ -1830,7 +1909,8 @@ const getActionNonce = ( action ) =>
 
 			if ( ! posts || posts.length === 0 ) {
 				const noPostsText =
-					rslIePostSyncData?.i18n?.noPostsFound || 'No posts found';
+					rslIePostSyncData?.i18n?.noPostsFound ||
+					__( 'No posts found', 'import-export-by-rockstarlab' );
 				$( '#rsl-ie-browse-posts-tree' )
 					.html(
 						`
@@ -1894,7 +1974,10 @@ const getActionNonce = ( action ) =>
 						<div class="rsl-ie-post-title">${ this.escapeHtml(
 							post.post_title ||
 								rslIePostSyncData?.i18n?.noTitle ||
-								'(No title)'
+								__(
+									'(No title)',
+									'import-export-by-rockstarlab'
+								)
 						) }</div>
 						<div class="rsl-ie-post-meta">
 							<span class="rsl-ie-post-status ${ post.post_status }">${
@@ -2002,7 +2085,10 @@ const getActionNonce = ( action ) =>
 			if ( typeof rslIePostSyncData === 'undefined' ) {
 				const errorMsg =
 					rslIePostSyncData?.i18n?.pluginDataNotLoaded ||
-					'Plugin data not loaded';
+					__(
+						'Plugin data not loaded',
+						'import-export-by-rockstarlab'
+					);
 				$childrenContainer.html(
 					`<div style="padding: 10px; color: #d63638;">${ errorMsg }</div>`
 				);
@@ -2041,7 +2127,10 @@ const getActionNonce = ( action ) =>
 					} else {
 						const errorMsg =
 							rslIePostSyncData?.i18n?.failedLoadChildren ||
-							'Failed to load children';
+							__(
+								'Failed to load children',
+								'import-export-by-rockstarlab'
+							);
 						$childrenContainer.html(
 							`<div style="padding: 10px; color: #d63638;">${ errorMsg }</div>`
 						);
@@ -2050,7 +2139,10 @@ const getActionNonce = ( action ) =>
 				error: () => {
 					const errorMsg =
 						rslIePostSyncData?.i18n?.errorLoadingChildren ||
-						'Error loading children';
+						__(
+							'Error loading children',
+							'import-export-by-rockstarlab'
+						);
 					$childrenContainer.html(
 						`<div style="padding: 10px; color: #d63638;">${ errorMsg }</div>`
 					);
@@ -2134,7 +2226,10 @@ const getActionNonce = ( action ) =>
 			if ( this.browseState.selectedPosts.size === 0 ) {
 				const message =
 					rslIePostSyncData?.i18n?.pleaseSelectOnePost ||
-					'Please select at least one post';
+					__(
+						'Please select at least one post',
+						'import-export-by-rockstarlab'
+					);
 				alert( message );
 				return;
 			}
@@ -2161,7 +2256,8 @@ const getActionNonce = ( action ) =>
 			$( '#rsl-ie-sync-progress' ).show();
 			$( '.rsl-ie-progress-fill' ).css( 'width', '0%' );
 			const pullingText =
-				rslIePostSyncData?.i18n?.pullingPosts || 'Pulling posts...';
+				rslIePostSyncData?.i18n?.pullingPosts ||
+				__( 'Pulling posts...', 'import-export-by-rockstarlab' );
 			$( '.rsl-ie-progress-text' ).text( pullingText );
 			$( '#rsl-ie-sync-result' ).hide();
 

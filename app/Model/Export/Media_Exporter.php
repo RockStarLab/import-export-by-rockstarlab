@@ -309,7 +309,7 @@ class Media_Exporter extends Abstract_Exporter {
 	public function get_data( $options = [] ) {
 		$query_args = $this->build_query_args( $options );
 
-		$this->log_info( 'Querying media', $query_args );
+		$this->log_info( __( 'Querying media', 'import-export-by-rockstarlab' ), $query_args );
 
 		// Add custom ID filters via posts_where hook
 		if ( ! empty( $query_args['_custom_id_filters'] ) ) {

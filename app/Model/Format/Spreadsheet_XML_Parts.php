@@ -13,12 +13,12 @@ class Spreadsheet_XML_Parts {
 	public function __construct( $path, $directory = null ) {
 		$this->zip = new \ZipArchive();
 		if ( true !== $this->zip->open( $path ) ) {
-			throw new \RuntimeException( 'Invalid spreadsheet archive.' ); }
+			throw new \RuntimeException( __( 'Invalid spreadsheet archive.', 'import-export-by-rockstarlab' ) ); }
 		$this->persistent = null !== $directory;
 		$this->directory  = $directory ?? rtrim( get_temp_dir(), '/\\' ) . '/rsl-sheet-' . bin2hex( random_bytes( 16 ) );
 		if ( is_link( $this->directory ) || ( ! is_dir( $this->directory ) && ! mkdir( $this->directory, 0700 ) ) ) {
 			$this->zip->close();
-			throw new \RuntimeException( 'Cannot stage spreadsheet XML.' ); }
+			throw new \RuntimeException( __( 'Cannot stage spreadsheet XML.', 'import-export-by-rockstarlab' ) ); }
 	}
 
 	public function has( $name ) {
@@ -38,31 +38,31 @@ class Spreadsheet_XML_Parts {
 			$index = $this->zip->locateName( str_replace( '/', '\\', $name ), \ZipArchive::FL_NOCASE ); }
 		$stat = false === $index ? false : $this->zip->statIndex( $index );
 		if ( ! $stat ) {
-			throw new \RuntimeException( 'Missing spreadsheet part.' ); }
+			throw new \RuntimeException( __( 'Missing spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 		$input = $this->zip->getStream( $stat['name'] );
 		if ( ! $input ) {
-			throw new \RuntimeException( 'Cannot read spreadsheet part.' ); }
+			throw new \RuntimeException( __( 'Cannot read spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 		$path   = $this->directory . '/' . hash( 'sha256', $name );
 		$output = null;
 		try {
 			$output = fopen( $path, $this->persistent ? 'wb' : 'xb' );
 			if ( ! $output ) {
-				throw new \RuntimeException( 'Cannot stage spreadsheet part.' ); }
+				throw new \RuntimeException( __( 'Cannot stage spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 			$hash  = hash_init( 'crc32b' );
 			$bytes = 0;
 			while ( ! feof( $input ) ) {
 				$chunk = fread( $input, 65536 );
 				if ( false === $chunk || ( '' === $chunk && ! feof( $input ) ) ) {
-					throw new \RuntimeException( 'Unreadable spreadsheet part.' ); }
+					throw new \RuntimeException( __( 'Unreadable spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 				$bytes += strlen( $chunk );
 				if ( $bytes > $stat['size'] || strlen( $chunk ) !== fwrite( $output, $chunk ) ) {
-					throw new \RuntimeException( 'Incomplete spreadsheet part.' ); }
+					throw new \RuntimeException( __( 'Incomplete spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 				hash_update( $hash, $chunk );
 			}
 			if ( $bytes !== $stat['size'] || hash_final( $hash ) !== sprintf( '%08x', $stat['crc'] ) ) {
-				throw new \RuntimeException( 'Spreadsheet part integrity failure.' ); }
+				throw new \RuntimeException( __( 'Spreadsheet part integrity failure.', 'import-export-by-rockstarlab' ) ); }
 			if ( $this->persistent && false === file_put_contents( $path . '.ready', '1' ) ) {
-				throw new \RuntimeException( 'Cannot commit spreadsheet part.' ); }
+				throw new \RuntimeException( __( 'Cannot commit spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 			$this->paths[ $name ] = $path;
 			return $path;
 		} finally {
@@ -78,20 +78,20 @@ class Spreadsheet_XML_Parts {
 	public function stage( $name, array &$cursor ) {
 		$path = $this->directory . '/' . hash( 'sha256', $name );
 		if ( is_link( $path ) || is_link( $path . '.ready' ) ) {
-			throw new \RuntimeException( 'Unsafe spreadsheet part.' ); }
+			throw new \RuntimeException( __( 'Unsafe spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 		$index = $this->zip->locateName( $name, \ZipArchive::FL_NOCASE );
 		if ( false === $index ) {
 			$index = $this->zip->locateName( str_replace( '/', '\\', $name ), \ZipArchive::FL_NOCASE ); }
 		$stat = false === $index ? false : $this->zip->statIndex( $index );
 		if ( ! $stat ) {
-			throw new \RuntimeException( 'Missing spreadsheet part.' ); }
+			throw new \RuntimeException( __( 'Missing spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 		$result = ( new \RockStarLab\ImportExport\Service\Migration_Package_Service() )->copy_entry( $this->zip, $stat['name'], $path, $cursor );
 		if ( is_wp_error( $result ) ) {
-			throw new \RuntimeException( 'Invalid spreadsheet part.' ); }
+			throw new \RuntimeException( __( 'Invalid spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 		if ( is_array( $result ) ) {
 			return false; }
 		if ( false === file_put_contents( $path . '.ready', '1' ) ) {
-			throw new \RuntimeException( 'Cannot commit spreadsheet part.' ); }
+			throw new \RuntimeException( __( 'Cannot commit spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 		return true;
 	}
 
@@ -105,15 +105,15 @@ class Spreadsheet_XML_Parts {
 		libxml_clear_errors();
 		try {
 			if ( ! $reader->open( $this->path( $name ), null, LIBXML_NONET | LIBXML_COMPACT | LIBXML_PARSEHUGE ) ) {
-				throw new \RuntimeException( 'Invalid spreadsheet XML.' ); }
+				throw new \RuntimeException( __( 'Invalid spreadsheet XML.', 'import-export-by-rockstarlab' ) ); }
 			while ( $reader->read() ) {
 				if ( \XMLReader::DOC_TYPE === $reader->nodeType ) {
-					throw new \RuntimeException( 'Spreadsheet document types are unsupported.' ); }
+					throw new \RuntimeException( __( 'Spreadsheet document types are unsupported.', 'import-export-by-rockstarlab' ) ); }
 				yield $reader;
 			}
 			foreach ( libxml_get_errors() as $error ) {
 				if ( $error->level >= LIBXML_ERR_ERROR ) {
-					throw new \RuntimeException( 'Invalid spreadsheet XML.' ); }
+					throw new \RuntimeException( __( 'Invalid spreadsheet XML.', 'import-export-by-rockstarlab' ) ); }
 			}
 		} finally {
 			$reader->close();
@@ -146,7 +146,7 @@ class Spreadsheet_XML_Parts {
 			libxml_clear_errors();
 			try {
 				if ( ! $reader->XML( $xml, null, LIBXML_NONET | LIBXML_COMPACT | LIBXML_PARSEHUGE ) ) {
-					throw new \RuntimeException( 'Invalid spreadsheet XML.' ); }
+					throw new \RuntimeException( __( 'Invalid spreadsheet XML.', 'import-export-by-rockstarlab' ) ); }
 				$inside = false;
 				while ( $reader->read() ) {
 					if ( \XMLReader::PI === $reader->nodeType && 'rsl-slice' === $reader->name ) {
@@ -162,7 +162,7 @@ class Spreadsheet_XML_Parts {
 				}
 				foreach ( libxml_get_errors() as $error ) {
 					if ( $error->level >= LIBXML_ERR_ERROR ) {
-						throw new \RuntimeException( 'Invalid spreadsheet XML.' ); }
+						throw new \RuntimeException( __( 'Invalid spreadsheet XML.', 'import-export-by-rockstarlab' ) ); }
 				}
 			} finally {
 				$reader->close();
@@ -186,7 +186,7 @@ class Spreadsheet_XML_Parts {
 			return; }
 		$path = $this->paths[ $name ];
 		if ( is_file( $path ) && ! unlink( $path ) ) {
-			throw new \RuntimeException( 'Cannot release spreadsheet part.' ); }
+			throw new \RuntimeException( __( 'Cannot release spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 		unset( $this->paths[ $name ] );
 	}
 

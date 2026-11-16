@@ -12,7 +12,8 @@ mix.setPublicPath(`${projectPath}/assets`);
 
 mix.webpackConfig({
     externals: {
-        "jquery": "jQuery"
+        "jquery": "jQuery",
+        "@wordpress/i18n": ["wp", "i18n"]
     }
 });
 
