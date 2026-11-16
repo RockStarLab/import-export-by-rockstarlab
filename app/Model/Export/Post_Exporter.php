@@ -486,7 +486,7 @@ class Post_Exporter extends Abstract_Exporter {
 
 		$query_args = $this->build_query_args( $options );
 
-		$this->log_info( 'Querying posts', $query_args );
+		$this->log_info( __( 'Querying posts', 'import-export-by-rockstarlab' ), $query_args );
 
 		// Combine custom filters
 		$custom_id_filters     = $query_args['_custom_id_filters'] ?? [];

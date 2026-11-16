@@ -707,10 +707,10 @@ class Trigger_Service {
 			'name'        => sprintf( __( 'WordPress: %s', 'import-export-by-rockstarlab' ), $t['name'] ),
 			'nodes'       => [
 				$node( 'Start', 'n8n-nodes-base.manualTrigger', 1, [], 0 ),
-				$node( 'Start the job', 'n8n-nodes-base.httpRequest', 4.2, $start, 220 ),
+				$node( __( 'Start the job', 'import-export-by-rockstarlab' ), 'n8n-nodes-base.httpRequest', 4.2, $start, 220 ),
 				$wait,
 				$node(
-					'Check the job',
+					__( 'Check the job', 'import-export-by-rockstarlab' ),
 					'n8n-nodes-base.httpRequest',
 					4.2,
 					[
@@ -752,9 +752,9 @@ class Trigger_Service {
 				),
 			],
 			'connections' => [
-				'Start'         => [ 'main' => [ [ $link( 'Start the job' ) ] ] ],
+				'Start'         => [ 'main' => [ [ $link( __( 'Start the job', 'import-export-by-rockstarlab' ) ) ] ] ],
 				'Start the job' => [ 'main' => [ [ $link( 'Wait 30 seconds' ) ] ] ],
-				'Wait 30 seconds' => [ 'main' => [ [ $link( 'Check the job' ) ] ] ],
+				'Wait 30 seconds' => [ 'main' => [ [ $link( __( 'Check the job', 'import-export-by-rockstarlab' ) ) ] ] ],
 				'Check the job' => [ 'main' => [ [ $link( 'Finished?' ) ] ] ],
 				'Finished?'     => [ 'main' => [ [], [ $link( 'Wait 30 seconds' ) ] ] ],
 			],

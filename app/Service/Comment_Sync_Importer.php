@@ -149,7 +149,7 @@ class Comment_Sync_Importer {
 				$id = wp_insert_comment( wp_slash( $data ) ); }
 				if ( ! $id || is_wp_error( $id ) ) {
 					++$result['failed'];
-					$result['errors'][] = 'Comment could not be saved.';
+					$result['errors'][] = __( 'Comment could not be saved.', 'import-export-by-rockstarlab' );
 					continue; }
 				$saved_comment = get_comment( $id );
 				if ( ! $saved_comment || (int) $saved_comment->user_id !== $data['user_id'] ) {

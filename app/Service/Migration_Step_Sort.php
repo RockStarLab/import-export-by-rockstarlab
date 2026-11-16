@@ -31,26 +31,26 @@ class Migration_Step_Sort {
 	private function write( $stream, array $step ) {
 		$line = base64_encode( serialize( $step ) ) . "\n";
 		if ( strlen( $line ) !== fwrite( $stream, $line ) ) {
-			throw new \RuntimeException( 'Cannot write step sort.' ); }
+			throw new \RuntimeException( __( 'Cannot write step sort.', 'import-export-by-rockstarlab' ) ); }
 	}
 
 	private function read( $stream ) {
 		$line = fgets( $stream );
 		if ( false === $line ) {
 			if ( ! feof( $stream ) ) {
-				throw new \RuntimeException( 'Cannot read step sort.' ); }
+				throw new \RuntimeException( __( 'Cannot read step sort.', 'import-export-by-rockstarlab' ) ); }
 			return null;
 		}
 		$value = unserialize( base64_decode( rtrim( $line, "\n" ), true ), array( 'allowed_classes' => false ) );
 		if ( ! is_array( $value ) ) {
-			throw new \RuntimeException( 'Invalid step sort.' ); }
+			throw new \RuntimeException( __( 'Invalid step sort.', 'import-export-by-rockstarlab' ) ); }
 		return $value;
 	}
 
 	private function stream() {
 		$stream = tmpfile();
 		if ( ! $stream ) {
-			throw new \RuntimeException( 'Cannot create step sort.' ); }
+			throw new \RuntimeException( __( 'Cannot create step sort.', 'import-export-by-rockstarlab' ) ); }
 		return $stream;
 	}
 
@@ -58,7 +58,7 @@ class Migration_Step_Sort {
 		$output = $this->stream();
 		try {
 			if ( ! rewind( $left ) || ! rewind( $right ) ) {
-				throw new \RuntimeException( 'Cannot rewind step sort.' ); }
+				throw new \RuntimeException( __( 'Cannot rewind step sort.', 'import-export-by-rockstarlab' ) ); }
 			$a = $this->read( $left );
 			$b = $this->read( $right );
 			while ( null !== $a || null !== $b ) {
@@ -103,7 +103,7 @@ class Migration_Step_Sort {
 	/** Select one dependency-ordered step without retaining the full result. */
 	public function select( $index ) {
 		if ( ! is_int( $index ) || $index < 0 || $index >= $this->count ) {
-			throw new \InvalidArgumentException( 'Invalid step ordinal.' );
+			throw new \InvalidArgumentException( __( 'Invalid step ordinal.', 'import-export-by-rockstarlab' ) );
 		}
 		$this->flush();
 		$run = null;
@@ -112,18 +112,18 @@ class Migration_Step_Sort {
 				if ( null === $run ) {
 					$run = $this->stream();
 					if ( ! rewind( $part ) || false === stream_copy_to_stream( $part, $run ) ) {
-						throw new \RuntimeException( 'Cannot copy step sort.' ); }
+						throw new \RuntimeException( __( 'Cannot copy step sort.', 'import-export-by-rockstarlab' ) ); }
 				} else {
 					$merged = $this->merge( $run, $part );
 					fclose( $run );
 					$run = $merged; }
 			}
 			if ( null === $run || ! rewind( $run ) ) {
-				throw new \RuntimeException( 'Missing step sort.' ); }
+				throw new \RuntimeException( __( 'Missing step sort.', 'import-export-by-rockstarlab' ) ); }
 			for ( $i = 0; $i <= $index; ++$i ) {
 				$step = $this->read( $run );
 				if ( null === $step ) {
-					throw new \RuntimeException( 'Truncated step sort.' ); }
+					throw new \RuntimeException( __( 'Truncated step sort.', 'import-export-by-rockstarlab' ) ); }
 			}
 			return array(
 				'total_steps' => $this->count,

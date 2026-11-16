@@ -186,7 +186,7 @@ class Migration_Service {
 				'type'        => 'migration_export',
 				'data_type'   => 'site_migration',
 				'file_format' => 'zip',
-				'job_name'    => 'Content Migration',
+				'job_name'    => __( 'Content Migration', 'import-export-by-rockstarlab' ),
 				'status'      => 'pending',
 				'user_id'     => get_current_user_id(),
 				'total_items' => count( $input['steps'] ),

@@ -1214,12 +1214,12 @@ class Media_Library_Sync_Service {
 				return $move; }
 			$dir = File_Store::directory( $transfer_id );
 			if ( is_wp_error( $dir ) ) {
-				throw new \RuntimeException( 'Cannot persist media move.' ); }
+				throw new \RuntimeException( __( 'Cannot persist media move.', 'import-export-by-rockstarlab' ) ); }
 			$journal = $dir . '/media-move.json';
 			$json    = wp_json_encode( [ 'path' => $destination ] );
 			// phpcs:ignore WordPress.WP.AlternativeFunctions -- Atomic local journal publication must precede WordPress moving the file.
 			if ( is_link( $journal ) || is_link( $journal . '.tmp' ) || false === $json || file_put_contents( $journal . '.tmp', $json, LOCK_EX ) !== strlen( $json ) || ! rename( $journal . '.tmp', $journal ) ) {
-				throw new \RuntimeException( 'Cannot persist media move.' ); }
+				throw new \RuntimeException( __( 'Cannot persist media move.', 'import-export-by-rockstarlab' ) ); }
 			return $move;
 		};
 		$sync_mimes = Sync_SVG::mimes();

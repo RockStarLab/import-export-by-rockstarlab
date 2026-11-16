@@ -265,7 +265,7 @@ class Media_Library_Sync_Controller {
 			static function ( $request ) {
 				$input = $request->get_json_params();
 				if ( ! is_array( $input ) ) {
-					return new \WP_Error( 'rsl_ie_invalid_chunk_request', 'Invalid media chunk request.', [ 'status' => 400 ] ); }
+					return new \WP_Error( 'rsl_ie_invalid_chunk_request', __( 'Invalid media chunk request.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] ); }
 				$action                     = $input['action'] ?? '';
 				$fields                     = [
 					'begin'    => [ 'action', 'file_name', 'size', 'sha256' ],
@@ -285,39 +285,39 @@ class Media_Library_Sync_Controller {
 				$fields['read']             = [ 'action', 'attachment_id', 'offset', 'size', 'sha256' ];
 				if ( 'snapshot' === $action && array_key_exists( 'bounded', $input ) ) {
 					if ( ! is_bool( $input['bounded'] ) ) {
-						return new \WP_Error( 'rsl_ie_invalid_chunk_request', 'Invalid media chunk request.', [ 'status' => 400 ] ); }
+						return new \WP_Error( 'rsl_ie_invalid_chunk_request', __( 'Invalid media chunk request.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] ); }
 					$fields['snapshot'][] = 'bounded';
 				}
 				if ( 'begin' === $action && array_key_exists( 'file_hash', $input ) ) {
 					if ( ! is_string( $input['file_hash'] ) || ! preg_match( '/^[a-f0-9]{32}$/D', $input['file_hash'] ) ) {
-						return new \WP_Error( 'rsl_ie_invalid_chunk_request', 'Invalid file hash.', [ 'status' => 400 ] );
+						return new \WP_Error( 'rsl_ie_invalid_chunk_request', __( 'Invalid file hash.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
 					}
 					$fields['begin'][] = 'file_hash';
 				}
 				if ( 'begin' === $action && array_key_exists( 'data', $input ) ) {
 					if ( ! is_string( $input['data'] ) || strlen( $input['data'] ) > 4 * ceil( \RockStarLab\ImportExport\Service\Media_Chunk_Store::CHUNK_BYTES / 3 ) || false === base64_decode( $input['data'], true ) ) {
-						return new \WP_Error( 'rsl_ie_invalid_chunk_request', 'Invalid media chunk request.', [ 'status' => 400 ] );
+						return new \WP_Error( 'rsl_ie_invalid_chunk_request', __( 'Invalid media chunk request.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
 					}
 					$fields['begin'][] = 'data';
 				}
 				if ( 'begin' === $action && array_key_exists( 'request_id', $input ) ) {
 					if ( ! is_string( $input['request_id'] ) ) {
-						return new \WP_Error( 'rsl_ie_invalid_chunk_request', 'Invalid media chunk request.', [ 'status' => 400 ] ); }
+						return new \WP_Error( 'rsl_ie_invalid_chunk_request', __( 'Invalid media chunk request.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] ); }
 					$fields['begin'][] = 'request_id';
 				}
 				if ( 'finalize' === $action && array_key_exists( 'bounded_metadata', $input ) ) {
 					if ( ! is_bool( $input['bounded_metadata'] ) ) {
-						return new \WP_Error( 'rsl_ie_invalid_chunk_request', 'Invalid media chunk request.', [ 'status' => 400 ] );
+						return new \WP_Error( 'rsl_ie_invalid_chunk_request', __( 'Invalid media chunk request.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
 					}
 					$fields['finalize'][] = 'bounded_metadata';
 				}
 				if ( 'finalize' === $action && array_key_exists( 'envelope', $input ) ) {
 					if ( ! is_array( $input['envelope'] ) ) {
-						return new \WP_Error( 'rsl_ie_invalid_chunk_request', 'Invalid media chunk request.', [ 'status' => 400 ] ); }
+						return new \WP_Error( 'rsl_ie_invalid_chunk_request', __( 'Invalid media chunk request.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] ); }
 					$fields['finalize'][] = 'envelope';
 				}
 				if ( ! is_string( $action ) || ! isset( $fields[ $action ] ) || array_diff( array_keys( $input ), $fields[ $action ] ) || array_diff( $fields[ $action ], array_keys( $input ) ) ) {
-					return new \WP_Error( 'rsl_ie_invalid_chunk_request', 'Invalid media chunk request.', [ 'status' => 400 ] ); }
+					return new \WP_Error( 'rsl_ie_invalid_chunk_request', __( 'Invalid media chunk request.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] ); }
 				// Sync_Authentication already verified this bearer value. Normalize
 				// header whitespace/case so equivalent headers retain one scope.
 				preg_match( '/^Bearer\s+(\S+)\s*$/iD', (string) $request->get_header( 'Authorization' ), $matches );
@@ -325,7 +325,7 @@ class Media_Library_Sync_Controller {
 				$store = \RockStarLab\ImportExport\Service\Media_Chunk_Store::class;
 				if ( 'capabilities' === $action ) {
 					if ( ! current_user_can( 'upload_files' ) ) {
-						return new \WP_Error( 'rsl_ie_media_forbidden', 'Media upload permission is required.', [ 'status' => 403 ] ); }
+						return new \WP_Error( 'rsl_ie_media_forbidden', __( 'Media upload permission is required.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] ); }
 					$result = [
 						'chunk_bytes'               => $store::CHUNK_BYTES,
 						'snapshot_version'          => 1,
@@ -347,7 +347,7 @@ class Media_Library_Sync_Controller {
 					}
 				} elseif ( 'append' === $action ) {
 					if ( ! is_string( $input['data'] ) || strlen( $input['data'] ) > 4 * ceil( $store::CHUNK_BYTES / 3 ) ) {
-						return new \WP_Error( 'rsl_ie_invalid_chunk_request', 'Invalid media chunk request.', [ 'status' => 400 ] ); }
+						return new \WP_Error( 'rsl_ie_invalid_chunk_request', __( 'Invalid media chunk request.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] ); }
 					$bytes  = base64_decode( $input['data'], true );
 					$result = $store::append( $input['transfer_id'], $input['offset'], $bytes, $scope );
 				} elseif ( 'snapshot' === $action ) {
@@ -360,11 +360,11 @@ class Media_Library_Sync_Controller {
 					$result = $store::discard( $input['snapshot_id'], 'source:' . $scope );
 				} elseif ( 'prepare-snapshot' === $action ) {
 					if ( ! is_array( $input['input'] ) ) {
-						return new \WP_Error( 'rsl_ie_invalid_chunk_request', 'Invalid media chunk request.', [ 'status' => 400 ] ); }
+						return new \WP_Error( 'rsl_ie_invalid_chunk_request', __( 'Invalid media chunk request.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] ); }
 					$result = ( new Media_Library_Sync_Service() )->prepare_snapshot_media( $input['snapshot_id'], $input['input'], $scope );
 				} elseif ( 'prepare' === $action ) {
 					if ( ! is_array( $input['input'] ) ) {
-						return new \WP_Error( 'rsl_ie_invalid_chunk_request', 'Invalid media chunk request.', [ 'status' => 400 ] ); }
+						return new \WP_Error( 'rsl_ie_invalid_chunk_request', __( 'Invalid media chunk request.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] ); }
 					$result = ( new Media_Library_Sync_Service() )->prepare_chunk_media( $input['input'] );
 				} elseif ( 'source' === $action ) {
 					$result = ( new Media_Library_Sync_Service() )->source_manifest( $input['attachment_id'] );
@@ -372,7 +372,7 @@ class Media_Library_Sync_Controller {
 					$result = ( new Media_Library_Sync_Service() )->read_source_chunk( $input['attachment_id'], $input['offset'], $input['size'], $input['sha256'] );
 				} elseif ( 'finalize' === $action ) {
 					if ( ! is_array( $input['metadata'] ) || ! is_bool( $input['defer_fields'] ) ) {
-						return new \WP_Error( 'rsl_ie_invalid_chunk_request', 'Invalid media chunk request.', [ 'status' => 400 ] ); }
+						return new \WP_Error( 'rsl_ie_invalid_chunk_request', __( 'Invalid media chunk request.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] ); }
 					$result = ( new Media_Library_Sync_Service() )->receive_staged_file( $input['transfer_id'], $input['metadata'], $scope, $input['defer_fields'], $input['envelope'] ?? [], $input['bounded_metadata'] ?? false );
 				} else {
 					$result = $store::$action( $input['transfer_id'], $scope );

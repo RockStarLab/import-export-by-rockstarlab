@@ -51,7 +51,7 @@ class Migration_Manifest_Reader {
 		$this->buffer = '';
 		$this->offset = 0;
 		if ( ! $this->stream ) {
-			throw new \RuntimeException( 'Cannot read manifest.' );
+			throw new \RuntimeException( __( 'Cannot read manifest.', 'import-export-by-rockstarlab' ) );
 		}
 		try {
 			$this->expect( '{' );
@@ -60,7 +60,7 @@ class Migration_Manifest_Reader {
 				while ( true ) {
 					$key = $this->value( 511 );
 					if ( ! is_string( $key ) ) {
-						throw new \RuntimeException( 'Invalid manifest key.' );
+						throw new \RuntimeException( __( 'Invalid manifest key.', 'import-export-by-rockstarlab' ) );
 					}
 					$this->expect( ':' );
 					if ( 'steps' === $key && $spool_steps ) {
@@ -72,7 +72,7 @@ class Migration_Manifest_Reader {
 						if ( $spool_steps ) {
 							$this->steps_stream = tmpfile();
 							if ( ! $this->steps_stream ) {
-								throw new \RuntimeException( 'Cannot create manifest spool.' ); }
+								throw new \RuntimeException( __( 'Cannot create manifest spool.', 'import-export-by-rockstarlab' ) ); }
 						}
 						if ( ']' !== $this->peek() ) {
 							while ( true ) {
@@ -80,7 +80,7 @@ class Migration_Manifest_Reader {
 								if ( $spool_steps ) {
 									$encoded = base64_encode( serialize( $step ) ) . "\n";
 									if ( strlen( $encoded ) !== fwrite( $this->steps_stream, $encoded ) ) {
-										throw new \RuntimeException( 'Cannot write manifest spool.' ); }
+										throw new \RuntimeException( __( 'Cannot write manifest spool.', 'import-export-by-rockstarlab' ) ); }
 									++$this->steps_count;
 								} else {
 									$steps[] = $step; }
@@ -104,7 +104,7 @@ class Migration_Manifest_Reader {
 			}
 			$this->expect( '}' );
 			if ( null !== $this->peek() ) {
-				throw new \RuntimeException( 'Trailing manifest content.' );
+				throw new \RuntimeException( __( 'Trailing manifest content.', 'import-export-by-rockstarlab' ) );
 			}
 			return $result;
 		} catch ( \Throwable $error ) {
@@ -122,15 +122,15 @@ class Migration_Manifest_Reader {
 			return;
 		}
 		if ( ! rewind( $this->steps_stream ) ) {
-			throw new \RuntimeException( 'Cannot rewind manifest spool.' ); }
+			throw new \RuntimeException( __( 'Cannot rewind manifest spool.', 'import-export-by-rockstarlab' ) ); }
 		while ( false !== ( $line = fgets( $this->steps_stream ) ) ) {
 			$decoded = base64_decode( rtrim( $line, "\n" ), true );
 			if ( false === $decoded ) {
-				throw new \RuntimeException( 'Invalid manifest spool.' ); }
+				throw new \RuntimeException( __( 'Invalid manifest spool.', 'import-export-by-rockstarlab' ) ); }
 			yield unserialize( $decoded, [ 'allowed_classes' => false ] );
 		}
 		if ( ! feof( $this->steps_stream ) ) {
-			throw new \RuntimeException( 'Cannot read manifest spool.' ); }
+			throw new \RuntimeException( __( 'Cannot read manifest spool.', 'import-export-by-rockstarlab' ) ); }
 	}
 
 	/** Count without materializing the final steps array. */
@@ -187,11 +187,11 @@ class Migration_Manifest_Reader {
 			} elseif ( '[' === $char || '{' === $char ) {
 				$stack[] = $char;
 				if ( count( $stack ) >= $depth ) {
-					throw new \RuntimeException( 'Manifest depth exceeded.' );
+					throw new \RuntimeException( __( 'Manifest depth exceeded.', 'import-export-by-rockstarlab' ) );
 				}
 			} elseif ( ']' === $char || '}' === $char ) {
 				if ( array_pop( $stack ) !== ( ']' === $char ? '[' : '{' ) ) {
-					throw new \RuntimeException( 'Unbalanced manifest value.' );
+					throw new \RuntimeException( __( 'Unbalanced manifest value.', 'import-export-by-rockstarlab' ) );
 				}
 			}
 		}
@@ -206,7 +206,7 @@ class Migration_Manifest_Reader {
 	 */
 	private function expect( $char ) {
 		if ( $this->peek() !== $char ) {
-			throw new \RuntimeException( 'Invalid manifest delimiter.' );
+			throw new \RuntimeException( __( 'Invalid manifest delimiter.', 'import-export-by-rockstarlab' ) );
 		}
 		++$this->offset;
 	}
@@ -230,7 +230,7 @@ class Migration_Manifest_Reader {
 			$this->buffer = fread( $this->stream, 65536 );
 			$this->offset = 0;
 			if ( false === $this->buffer || ( '' === $this->buffer && ! feof( $this->stream ) ) ) {
-				throw new \RuntimeException( 'Cannot read manifest.' );
+				throw new \RuntimeException( __( 'Cannot read manifest.', 'import-export-by-rockstarlab' ) );
 			}
 			if ( '' === $this->buffer ) {
 				return null;

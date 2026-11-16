@@ -16,7 +16,7 @@ class XLSX_Cell_Decoder {
 
 	public function __construct( $calendar = 1900 ) {
 		if ( ! in_array( $calendar, [ 1900, 1904 ], true ) ) {
-			throw new \RuntimeException( 'Invalid spreadsheet calendar.' ); }
+			throw new \RuntimeException( __( 'Invalid spreadsheet calendar.', 'import-export-by-rockstarlab' ) ); }
 		$this->calendar = $calendar;
 		$this->book     = new Spreadsheet();
 	}
@@ -43,7 +43,7 @@ class XLSX_Cell_Decoder {
 			if ( null === $value || '' === $value ) {
 				$value = ''; } else {
 				if ( ! $strings ) {
-					throw new \RuntimeException( 'Missing shared-string table.' ); }
+					throw new \RuntimeException( __( 'Missing shared-string table.', 'import-export-by-rockstarlab' ) ); }
 				$value = $strings->get( (int) $value );
 				}
 		} elseif ( $formula && null !== $value && '' !== $value && 'e' !== $type ) {

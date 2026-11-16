@@ -90,6 +90,6 @@ class Credential_Service {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $status ) {
-		return new \WP_Error( 'rsl_ie_credential_' . $code, 'Credential operation failed: ' . $code, [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_credential_' . $code, sprintf( /* translators: %s: error code. */ __( 'Credential operation failed: %s', 'import-export-by-rockstarlab' ), $code ), [ 'status' => $status ] );
 	}
 }

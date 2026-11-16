@@ -152,7 +152,7 @@ class Comment_Exporter extends Abstract_Exporter {
 			unset( $query_args['offset'], $query_args['number'] );
 		}
 
-		$this->log_info( 'Querying comments', $query_args );
+		$this->log_info( __( 'Querying comments', 'import-export-by-rockstarlab' ), $query_args );
 
 		$comment_query = new \WP_Comment_Query( $query_args );
 		$comments      = $this->filter_comments( $comment_query->get_comments(), $comment_filters );
@@ -576,7 +576,7 @@ class Comment_Exporter extends Abstract_Exporter {
 	protected function apply_dynamic_filters( &$args, $filters ) {
 		global $wpdb;
 
-		$this->log_info( 'Applying dynamic filters', [ 'filters' => $filters ] );
+		$this->log_info( __( 'Applying dynamic filters', 'import-export-by-rockstarlab' ), [ 'filters' => $filters ] );
 
 		// Store all filters for manual checking
 		if ( ! isset( $args['_other_filters'] ) ) {
@@ -834,7 +834,7 @@ class Comment_Exporter extends Abstract_Exporter {
 		}
 
 		$this->log_info(
-			'Applied filters to query',
+			__( 'Applied filters to query', 'import-export-by-rockstarlab' ),
 			[
 				'args'           => $args,
 				'custom_filters' => $custom_id_filters,
@@ -1030,7 +1030,7 @@ class Comment_Exporter extends Abstract_Exporter {
 			}
 
 			$clauses['where'] .= ' AND (' . $combined_where . ')';
-			$this->log_info( 'Applied custom WHERE clauses', [ 'prepared_filter_parts' => $prepared_filter_parts ] );
+			$this->log_info( __( 'Applied custom WHERE clauses', 'import-export-by-rockstarlab' ), [ 'prepared_filter_parts' => $prepared_filter_parts ] );
 		}
 
 		return $clauses;

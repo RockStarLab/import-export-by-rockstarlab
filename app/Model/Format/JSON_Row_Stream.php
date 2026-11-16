@@ -9,7 +9,7 @@ class JSON_Row_Stream {
 	public static function rows( $path, array $options = [], &$cursor = null ) {
 		$stream = fopen( $path, 'rb' );
 		if ( ! $stream ) {
-			throw new \RuntimeException( 'Cannot read JSON file.' );
+			throw new \RuntimeException( __( 'Cannot read JSON file.', 'import-export-by-rockstarlab' ) );
 		}
 		$phase   = 'start';
 		$value   = '';
@@ -25,13 +25,13 @@ class JSON_Row_Stream {
 			$settings = hash( 'sha256', serialize( [ $depth, $object, $options['flags'] ?? 0 ] ) );
 			if ( null !== $cursor ) {
 				if ( ! is_array( $cursor ) || ( $cursor['identity'] ?? null ) !== $identity || ( $cursor['settings'] ?? null ) !== $settings || ! isset( $cursor['offset'], $cursor['phase'] ) || ! is_int( $cursor['offset'] ) || $cursor['offset'] < 0 || $cursor['offset'] > $identity['size'] || ! in_array( $cursor['phase'], [ 'next', 'end' ], true ) || 0 !== fseek( $stream, $cursor['offset'] ) ) {
-					throw new \RuntimeException( 'Invalid JSON cursor.' ); }
+					throw new \RuntimeException( __( 'Invalid JSON cursor.', 'import-export-by-rockstarlab' ) ); }
 				$phase = $cursor['phase'];
 			}
 			while ( ! feof( $stream ) ) {
 				$buffer = fread( $stream, 65536 );
 				if ( false === $buffer ) {
-					throw new \RuntimeException( 'Cannot read JSON file.' );
+					throw new \RuntimeException( __( 'Cannot read JSON file.', 'import-export-by-rockstarlab' ) );
 				}
 				for ( $i = 0, $length = strlen( $buffer ); $i < $length; ++$i ) {
 					$char = $buffer[ $i ];
@@ -43,16 +43,16 @@ class JSON_Row_Stream {
 								throw new \RuntimeException( 'JSON depth exceeded.' ); }
 							$phase = 'first';
 							continue; }
-						throw new \RuntimeException( 'Expected a JSON container without trailing content.' );
+						throw new \RuntimeException( __( 'Expected a JSON container without trailing content.', 'import-export-by-rockstarlab' ) );
 					}
 					if ( ! $quoted && ! $stack && ( ',' === $char || $closing === $char ) ) {
 						if ( '' === trim( $value ) ) {
 							if ( 'first' !== $phase || $closing !== $char ) {
-								throw new \RuntimeException( 'Missing JSON row.' ); }
+								throw new \RuntimeException( __( 'Missing JSON row.', 'import-export-by-rockstarlab' ) ); }
 						} else {
 							$row = json_decode( $object ? '{' . $value . '}' : $value, true, $object ? $depth : $depth - 1, $options['flags'] ?? 0 );
 							if ( JSON_ERROR_NONE !== json_last_error() ) {
-								throw new \RuntimeException( 'Invalid JSON row.' ); }
+								throw new \RuntimeException( __( 'Invalid JSON row.', 'import-export-by-rockstarlab' ) ); }
 							$cursor = [
 								'identity' => $identity,
 								'settings' => $settings,
@@ -82,12 +82,12 @@ class JSON_Row_Stream {
 							throw new \RuntimeException( 'JSON depth exceeded.' ); }
 						} elseif ( ']' === $char || '}' === $char ) {
 							if ( array_pop( $stack ) !== ( ']' === $char ? '[' : '{' ) ) {
-								throw new \RuntimeException( 'Unbalanced JSON row.' ); }
+								throw new \RuntimeException( __( 'Unbalanced JSON row.', 'import-export-by-rockstarlab' ) ); }
 						}
 				}
 			}
 			if ( 'end' !== $phase ) {
-				throw new \RuntimeException( 'Incomplete JSON container.' ); }
+				throw new \RuntimeException( __( 'Incomplete JSON container.', 'import-export-by-rockstarlab' ) ); }
 		} finally {
 			fclose( $stream );
 		}

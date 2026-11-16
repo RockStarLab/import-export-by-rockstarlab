@@ -1,6 +1,7 @@
 import TabProgress from '../utils/tab-progress';
 import Utils from './utils';
 
+import { __ } from '@wordpress/i18n';
 const MediaHash = {
 	init() {
 		if ( ! document.getElementById( 'rsl-ie-tools' ) ) {
@@ -103,14 +104,27 @@ const MediaHash = {
 					.addClass( 'notice-success' )
 					.prop( 'hidden', false )
 					.find( 'p' )
-					.text( 'Site info loaded.' );
+					.text(
+						__(
+							'Site info loaded.',
+							'import-export-by-rockstarlab'
+						)
+					);
 			} )
 			.catch( ( error ) => {
 				this.$debugResult
 					.addClass( 'notice-error' )
 					.prop( 'hidden', false )
 					.find( 'p' )
-					.text( String( error || 'Failed to load site info.' ) );
+					.text(
+						String(
+							error ||
+								__(
+									'Failed to load site info.',
+									'import-export-by-rockstarlab'
+								)
+						)
+					);
 			} )
 			.finally( () => {
 				this.$debugButton.prop( 'disabled', false );
@@ -126,7 +140,9 @@ const MediaHash = {
 
 		const showCopied = () => {
 			const original = this.$debugCopyButton.html();
-			this.$debugCopyButton.text( 'Copied!' );
+			this.$debugCopyButton.text(
+				__( 'Copied!', 'import-export-by-rockstarlab' )
+			);
 			setTimeout( () => this.$debugCopyButton.html( original ), 1600 );
 		};
 
@@ -216,12 +232,19 @@ const MediaHash = {
 		const message = this.errors
 			? (
 					i18n.hashScanCompleteErrors ||
-					'Scan complete. Indexed %1$s files; %2$s files could not be read.'
+					__(
+						'Scan complete. Indexed %1$s files; %2$s files could not be read.',
+						'import-export-by-rockstarlab'
+					)
 			  )
 					.replace( '%1$s', this.processed )
 					.replace( '%2$s', this.errors )
 			: (
-					i18n.hashScanComplete || 'Scan complete. Indexed %s files.'
+					i18n.hashScanComplete ||
+					__(
+						'Scan complete. Indexed %s files.',
+						'import-export-by-rockstarlab'
+					)
 			  ).replace( '%s', this.processed );
 		this.$button.prop( 'disabled', false );
 		this.$spinner.removeClass( 'is-active' );
@@ -245,7 +268,10 @@ const MediaHash = {
 				String(
 					error ||
 						window.rslIeData?.i18n?.hashScanFailed ||
-						'The media hash scan failed.'
+						__(
+							'The media hash scan failed.',
+							'import-export-by-rockstarlab'
+						)
 				)
 			);
 	},

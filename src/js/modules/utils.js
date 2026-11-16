@@ -1,3 +1,4 @@
+import { __, sprintf } from '@wordpress/i18n';
 /**
  * Utility Functions
  *
@@ -154,7 +155,10 @@ const Utils = {
 						reject(
 							response.data?.message ||
 								response.data ||
-								'Request failed'
+								__(
+									'Request failed',
+									'import-export-by-rockstarlab'
+								)
 						);
 					}
 				} )
@@ -165,7 +169,10 @@ const Utils = {
 						json: !! jqXHR?.responseJSON,
 					};
 					// Try to parse error response
-					let errorMessage = 'Request failed';
+					let errorMessage = __(
+						'Request failed',
+						'import-export-by-rockstarlab'
+					);
 
 					if (
 						jqXHR.responseJSON &&
@@ -203,7 +210,12 @@ const Utils = {
 		if ( bytes === 0 ) return '0 Bytes';
 
 		const k = 1024;
-		const sizes = [ 'Bytes', 'KB', 'MB', 'GB' ];
+		const sizes = [
+			__( 'Bytes', 'import-export-by-rockstarlab' ),
+			'KB',
+			'MB',
+			'GB',
+		];
 		const i = Math.floor( Math.log( bytes ) / Math.log( k ) );
 
 		return (
@@ -222,7 +234,8 @@ const Utils = {
 	formatDuration( seconds ) {
 		if ( seconds < 60 ) {
 			return (
-				window.rslIeData?.i18n?.timeFormatSeconds || '%ds'
+				window.rslIeData?.i18n?.timeFormatSeconds ||
+				__( '%ds', 'import-export-by-rockstarlab' )
 			).replace( '%d', Math.round( seconds ) );
 		}
 
@@ -232,7 +245,7 @@ const Utils = {
 		if ( minutes < 60 ) {
 			return (
 				window.rslIeData?.i18n?.timeFormatMinutesSeconds ||
-				'%1$sm %2$ss'
+				__( '%1$sm %2$ss', 'import-export-by-rockstarlab' )
 			)
 				.replace( '%1$s', minutes )
 				.replace( '%2$s', secs );
@@ -242,7 +255,8 @@ const Utils = {
 		const mins = minutes % 60;
 
 		return (
-			window.rslIeData?.i18n?.timeFormatHoursMinutes || '%1$sh %2$sm'
+			window.rslIeData?.i18n?.timeFormatHoursMinutes ||
+			__( '%1$sh %2$sm', 'import-export-by-rockstarlab' )
 		)
 			.replace( '%1$s', hours )
 			.replace( '%2$s', mins );
@@ -273,7 +287,8 @@ const Utils = {
 	showNotice( message, type = 'info' ) {
 		const noticeClass = 'notice notice-' + type + ' is-dismissible';
 		const dismissText =
-			window.rslIeData?.i18n?.dismissNotice || 'Dismiss this notice.';
+			window.rslIeData?.i18n?.dismissNotice ||
+			__( 'Dismiss this notice.', 'import-export-by-rockstarlab' );
 
 		// Remove all existing notices to show only one at a time
 		jQuery( '.wrap > .notice' ).remove();
@@ -321,7 +336,10 @@ const Utils = {
 		if ( file.size > maxSize ) {
 			const fileSizeMsg = (
 				window.rslIeData?.i18n?.fileSizeExceeds ||
-				'File size (%1$s) exceeds maximum allowed size (%2$s)'
+				__(
+					'File size (%1$s) exceeds maximum allowed size (%2$s)',
+					'import-export-by-rockstarlab'
+				)
 			)
 				.replace( '%1$s', this.formatFileSize( file.size ) )
 				.replace( '%2$s', this.formatFileSize( maxSize ) );
@@ -341,7 +359,10 @@ const Utils = {
 			if ( ! isAllowed ) {
 				const fileTypeMsg = (
 					window.rslIeData?.i18n?.fileTypeNotAllowed ||
-					'File type .%1$s is not allowed. Allowed types: %2$s'
+					__(
+						'File type .%1$s is not allowed. Allowed types: %2$s',
+						'import-export-by-rockstarlab'
+					)
 				)
 					.replace( '%1$s', fileExt )
 					.replace( '%2$s', allowedTypes.join( ', ' ) );
@@ -453,7 +474,9 @@ const Utils = {
 	 * @returns {jQuery} Progress bar element
 	 */
 	createProgressBar() {
-		const itemsText = window.rslIeData?.i18n?.jobItems || 'items';
+		const itemsText =
+			window.rslIeData?.i18n?.jobItems ||
+			__( 'items', 'import-export-by-rockstarlab' );
 		return jQuery(
 			'<div class="rsl-ie-progress-container">' +
 				'<div class="rsl-ie-progress-bar">' +
@@ -532,7 +555,7 @@ const Utils = {
 	 */
 	errorText( error ) {
 		if ( ! error ) {
-			return 'Unknown error';
+			return __( 'Unknown error', 'import-export-by-rockstarlab' );
 		}
 		if ( typeof error === 'string' ) {
 			return error;
@@ -557,12 +580,19 @@ const Utils = {
 			}
 		}
 		if ( typeof error.status === 'number' && error.status > 0 ) {
-			return `Request failed (HTTP ${ error.status }${
+			return sprintf(
+				__(
+					'Request failed (HTTP %1$s%2$s).',
+					'import-export-by-rockstarlab'
+				),
+				error.status,
 				error.statusText ? ' ' + error.statusText : ''
-			}).`;
+			);
 		}
 		const text = String( error );
-		return '[object Object]' === text ? 'Unknown error' : text;
+		return '[object Object]' === text
+			? __( 'Unknown error', 'import-export-by-rockstarlab' )
+			: text;
 	},
 
 	/**

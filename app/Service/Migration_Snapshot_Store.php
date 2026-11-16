@@ -67,6 +67,6 @@ class Migration_Snapshot_Store {
 	}
 
 	private static function error() {
-		return new \WP_Error( 'rsl_ie_migration_snapshot_unavailable', 'Migration reference snapshot is unavailable or changed.', array( 'status' => 409 ) );
+		return new \WP_Error( 'rsl_ie_migration_snapshot_unavailable', __( 'Migration reference snapshot is unavailable or changed.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 	}
 }

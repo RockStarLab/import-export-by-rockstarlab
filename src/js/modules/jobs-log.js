@@ -6,6 +6,7 @@
 
 import Utils from './utils';
 
+import { __ } from '@wordpress/i18n';
 const JobsLogModule = {
 	currentPage: 1,
 	perPage: 20,
@@ -232,7 +233,10 @@ const JobsLogModule = {
 						data-job-name="${ this.escapeAttr( customJobName ) }"
 						title="${ this.escapeAttr(
 							window.rslIeData.i18n.clickToRenameJob ||
-								'Click to rename this job'
+								__(
+									'Click to rename this job',
+									'import-export-by-rockstarlab'
+								)
 						) }"
 					>
 						<span class="rsl-ie-job-name-text">${ this.escapeHtml( jobName ) }</span>
@@ -253,7 +257,11 @@ const JobsLogModule = {
 						${
 							job.failed_items > 0
 								? `<div class="failed-count">${
-										window.rslIeData.i18n.failed || 'Failed'
+										window.rslIeData.i18n.failed ||
+										__(
+											'Failed',
+											'import-export-by-rockstarlab'
+										)
 								  }: ${ job.failed_items }</div>`
 								: ''
 						}
@@ -305,14 +313,19 @@ const JobsLogModule = {
 					maxlength="255"
 					placeholder="${ this.escapeAttr(
 						window.rslIeData.i18n.customJobNamePlaceholder ||
-							'Custom job name...'
+							__(
+								'Custom job name...',
+								'import-export-by-rockstarlab'
+							)
 					) }"
 				>
 				<button type="button" class="button button-small rsl-ie-job-name-save">${
-					window.rslIeData.i18n.save || 'Save'
+					window.rslIeData.i18n.save ||
+					__( 'Save', 'import-export-by-rockstarlab' )
 				}</button>
 				<button type="button" class="button button-small rsl-ie-job-name-cancel">${
-					window.rslIeData.i18n.cancel || 'Cancel'
+					window.rslIeData.i18n.cancel ||
+					__( 'Cancel', 'import-export-by-rockstarlab' )
 				}</button>
 			</div>
 		` );
@@ -342,7 +355,10 @@ const JobsLogModule = {
 
 			Utils.showNotice(
 				window.rslIeData.i18n.jobNameUpdatedSuccess ||
-					'Job name updated successfully',
+					__(
+						'Job name updated successfully',
+						'import-export-by-rockstarlab'
+					),
 				'success'
 			);
 			this.loadJobs();
@@ -351,7 +367,10 @@ const JobsLogModule = {
 				typeof error === 'string' ? error : error?.message || '';
 			Utils.showNotice(
 				( window.rslIeData.i18n.errorRenamingJob ||
-					'Error renaming job: ' ) + message,
+					__(
+						'Error renaming job: ',
+						'import-export-by-rockstarlab'
+					) ) + message,
 				'error'
 			);
 			$cell.find( 'input, button' ).prop( 'disabled', false );
@@ -406,7 +425,8 @@ const JobsLogModule = {
 		// View details
 		actions.push(
 			`<button class="button button-small job-action-view" title="${
-				window.rslIeData.i18n.viewDetails || 'View Details'
+				window.rslIeData.i18n.viewDetails ||
+				__( 'View Details', 'import-export-by-rockstarlab' )
 			}"><span class="dashicons dashicons-visibility"></span></button>`
 		);
 
@@ -426,7 +446,10 @@ const JobsLogModule = {
 					job.data_type || ''
 				) }" title="${
 					window.rslIeData.i18n.continueJob ||
-					'Continue in this window'
+					__(
+						'Continue in this window',
+						'import-export-by-rockstarlab'
+					)
 				}"><span class="dashicons dashicons-controls-play"></span></button>`
 			);
 		}
@@ -435,7 +458,8 @@ const JobsLogModule = {
 		if ( job.can_resume ) {
 			actions.push(
 				`<button class="button button-small job-action-resume" title="${
-					window.rslIeData.i18n.resume || 'Resume'
+					window.rslIeData.i18n.resume ||
+					__( 'Resume', 'import-export-by-rockstarlab' )
 				}"><span class="dashicons dashicons-controls-play"></span></button>`
 			);
 		}
@@ -444,7 +468,8 @@ const JobsLogModule = {
 		if ( job.can_restart ) {
 			actions.push(
 				`<button class="button button-small job-action-restart" title="${
-					window.rslIeData.i18n.restart || 'Restart'
+					window.rslIeData.i18n.restart ||
+					__( 'Restart', 'import-export-by-rockstarlab' )
 				}"><span class="dashicons dashicons-controls-repeat"></span></button>`
 			);
 		}
@@ -454,7 +479,10 @@ const JobsLogModule = {
 			actions.push(
 				`<button class="button button-small job-action-retry" title="${
 					window.rslIeData.i18n.retry ||
-					'Retry (Create new job with same parameters)'
+					__(
+						'Retry (Create new job with same parameters)',
+						'import-export-by-rockstarlab'
+					)
 				}"><span class="dashicons dashicons-update"></span></button>`
 			);
 		}
@@ -473,7 +501,10 @@ const JobsLogModule = {
 			actions.push(
 				`<button class="button button-small job-action-save-template" title="${
 					window.rslIeData.i18n.saveAsMappingTemplate ||
-					'Save field mapping as template'
+					__(
+						'Save field mapping as template',
+						'import-export-by-rockstarlab'
+					)
 				}"><span class="dashicons dashicons-portfolio"></span></button>`
 			);
 		}
@@ -486,7 +517,8 @@ const JobsLogModule = {
 		) {
 			actions.push(
 				`<button class="button button-small job-action-download" title="${
-					window.rslIeData.i18n.download || 'Download'
+					window.rslIeData.i18n.download ||
+					__( 'Download', 'import-export-by-rockstarlab' )
 				}"><span class="dashicons dashicons-download"></span></button>`
 			);
 		}
@@ -495,7 +527,8 @@ const JobsLogModule = {
 		if ( job.can_delete ) {
 			actions.push(
 				`<button class="button button-small job-action-delete" title="${
-					window.rslIeData.i18n.delete || 'Delete'
+					window.rslIeData.i18n.delete ||
+					__( 'Delete', 'import-export-by-rockstarlab' )
 				}"><span class="dashicons dashicons-trash"></span></button>`
 			);
 		}
@@ -608,7 +641,10 @@ const JobsLogModule = {
 		// eslint-disable-next-line no-alert
 		const name = window.prompt(
 			i18n.templateNamePrompt ||
-				'Template name (for example "Supplier price list"):',
+				__(
+					'Template name (for example "Supplier price list"):',
+					'import-export-by-rockstarlab'
+				),
 			currentName
 		);
 		if ( name === null ) {
@@ -632,7 +668,10 @@ const JobsLogModule = {
 					! window.confirm(
 						(
 							i18n.templateReplaceConfirm ||
-							'A template named "%s" already exists. Replace it?'
+							__(
+								'A template named "%s" already exists. Replace it?',
+								'import-export-by-rockstarlab'
+							)
 						).replace( '%s', name.trim() )
 					)
 				) {
@@ -643,7 +682,10 @@ const JobsLogModule = {
 			Utils.showNotice(
 				(
 					i18n.templateSavedFromJob ||
-					'Template "%s" saved. Choose it in step 4 of the import wizard.'
+					__(
+						'Template "%s" saved. Choose it in step 4 of the import wizard.',
+						'import-export-by-rockstarlab'
+					)
 				).replace( '%s', template.name ),
 				'success'
 			);
@@ -732,7 +774,10 @@ const JobsLogModule = {
 			const errorMsg =
 				error && error.message
 					? error.message
-					: 'Unknown error occurred';
+					: __(
+							'Unknown error occurred',
+							'import-export-by-rockstarlab'
+					  );
 			Utils.showNotice(
 				window.rslIeData.i18n.errorRetryingJob + errorMsg,
 				'error'
@@ -881,25 +926,37 @@ const JobsLogModule = {
 			<div class="job-details">
 				<table class="form-table">
 					<tr>
-						<th>${ window.rslIeData.i18n.jobId || 'ID' }:</th>
+						<th>${
+							window.rslIeData.i18n.jobId ||
+							__( 'ID', 'import-export-by-rockstarlab' )
+						}:</th>
 						<td>${ job.id }</td>
 					</tr>
 					${
 						job.job_name
 							? `<tr>
-						<th>${ window.rslIeData.i18n.jobName || 'Job Name' }:</th>
+						<th>${
+							window.rslIeData.i18n.jobName ||
+							__( 'Job Name', 'import-export-by-rockstarlab' )
+						}:</th>
 						<td>${ this.escapeHtml( job.job_name ) }</td>
 					</tr>`
 							: ''
 					}
 					<tr>
-						<th>${ window.rslIeData.i18n.jobType || 'Type' }:</th>
+						<th>${
+							window.rslIeData.i18n.jobType ||
+							__( 'Type', 'import-export-by-rockstarlab' )
+						}:</th>
 						<td>${ this.getTypeLabel( job.type, job.data_type ) }</td>
 					</tr>
 					${
 						job.data_type
 							? `<tr>
-						<th>${ window.rslIeData.i18n.jobDataType || 'Data Type' }:</th>
+						<th>${
+							window.rslIeData.i18n.jobDataType ||
+							__( 'Data Type', 'import-export-by-rockstarlab' )
+						}:</th>
 						<td>${ job.data_type }</td>
 					</tr>`
 							: ''
@@ -907,33 +964,50 @@ const JobsLogModule = {
 					${
 						job.file_format
 							? `<tr>
-						<th>${ window.rslIeData.i18n.jobFileFormat || 'File Format' }:</th>
+						<th>${
+							window.rslIeData.i18n.jobFileFormat ||
+							__( 'File Format', 'import-export-by-rockstarlab' )
+						}:</th>
 						<td>${ job.file_format }</td>
 					</tr>`
 							: ''
 					}
 					<tr>
-						<th>${ window.rslIeData.i18n.jobStatus || 'Status' }:</th>
+						<th>${
+							window.rslIeData.i18n.jobStatus ||
+							__( 'Status', 'import-export-by-rockstarlab' )
+						}:</th>
 						<td><span class="job-status-badge job-status-${
 							job.status
 						}">${ this.getStatusLabel( job.status ) }</span></td>
 					</tr>
 					<tr>
-						<th>${ window.rslIeData.i18n.jobProgress || 'Progress' }:</th>
+						<th>${
+							window.rslIeData.i18n.jobProgress ||
+							__( 'Progress', 'import-export-by-rockstarlab' )
+						}:</th>
 						<td>${ job.progress || 0 }%</td>
 					</tr>
 					<tr>
-						<th>${ window.rslIeData.i18n.jobItems || 'Items' }:</th>
+						<th>${
+							window.rslIeData.i18n.jobItems ||
+							__( 'Items', 'import-export-by-rockstarlab' )
+						}:</th>
 						<td>${ job.processed_items } / ${ job.total_items } (${
-							window.rslIeData.i18n.jobSuccess || 'Success'
+							window.rslIeData.i18n.jobSuccess ||
+							__( 'Success', 'import-export-by-rockstarlab' )
 						}: ${ job.success_items }, ${
-							window.rslIeData.i18n.failed || 'Failed'
+							window.rslIeData.i18n.failed ||
+							__( 'Failed', 'import-export-by-rockstarlab' )
 						}: ${ job.failed_items })</td>
 					</tr>
 					${
 						job.created_at
 							? `<tr>
-						<th>${ window.rslIeData.i18n.jobCreated || 'Created' }:</th>
+						<th>${
+							window.rslIeData.i18n.jobCreated ||
+							__( 'Created', 'import-export-by-rockstarlab' )
+						}:</th>
 						<td>${ job.created_at }</td>
 					</tr>`
 							: ''
@@ -941,7 +1015,10 @@ const JobsLogModule = {
 					${
 						job.started_at
 							? `<tr>
-						<th>${ window.rslIeData.i18n.jobStarted || 'Started' }:</th>
+						<th>${
+							window.rslIeData.i18n.jobStarted ||
+							__( 'Started', 'import-export-by-rockstarlab' )
+						}:</th>
 						<td>${ job.started_at }</td>
 					</tr>`
 							: ''
@@ -949,7 +1026,10 @@ const JobsLogModule = {
 					${
 						job.completed_at
 							? `<tr>
-						<th>${ window.rslIeData.i18n.jobCompleted || 'Completed' }:</th>
+						<th>${
+							window.rslIeData.i18n.jobCompleted ||
+							__( 'Completed', 'import-export-by-rockstarlab' )
+						}:</th>
 						<td>${ job.completed_at }</td>
 					</tr>`
 							: ''
@@ -957,7 +1037,10 @@ const JobsLogModule = {
 					${
 						job.file_path
 							? `<tr>
-						<th>${ window.rslIeData.i18n.jobFile || 'File' }:</th>
+						<th>${
+							window.rslIeData.i18n.jobFile ||
+							__( 'File', 'import-export-by-rockstarlab' )
+						}:</th>
 						<td class="job-file-path" title="${ this.escapeHtml(
 							job.file_path
 						) }">${ this.escapeHtml(
@@ -972,7 +1055,10 @@ const JobsLogModule = {
 						job.file_size
 							? `<tr><th>${
 									window.rslIeData.i18n.jobFileSize ||
-									'File Size'
+									__(
+										'File Size',
+										'import-export-by-rockstarlab'
+									)
 							  }:</th><td>${ job.file_size_human }</td></tr>`
 							: ''
 					}
@@ -983,7 +1069,10 @@ const JobsLogModule = {
 				${
 					job.parameters
 						? `
-					<h3>${ window.rslIeData.i18n.jobParameters || 'Parameters' }</h3>
+					<h3>${
+						window.rslIeData.i18n.jobParameters ||
+						__( 'Parameters', 'import-export-by-rockstarlab' )
+					}</h3>
 					<textarea class="job-parameters job-parameters-textarea" disabled readonly>${ this.escapeHtml(
 						this.formatJobDetailValue( job.parameters )
 					) }</textarea>
@@ -993,7 +1082,10 @@ const JobsLogModule = {
 				${
 					job.result
 						? `
-					<h3>${ window.rslIeData.i18n.jobResult || 'Result' }</h3>
+					<h3>${
+						window.rslIeData.i18n.jobResult ||
+						__( 'Result', 'import-export-by-rockstarlab' )
+					}</h3>
 					<pre class="job-parameters">${ this.escapeHtml(
 						JSON.stringify( job.result, null, 2 )
 					) }</pre>
@@ -1016,7 +1108,10 @@ const JobsLogModule = {
 	renderJobWarnings( job ) {
 		const errors = Array.isArray( job.log_errors ) ? job.log_errors : [];
 		const errorHtml = errors.length
-			? `<h3>${ window.rslIeData.i18n.jobErrors || 'Errors' }</h3>
+			? `<h3>${
+					window.rslIeData.i18n.jobErrors ||
+					__( 'Errors', 'import-export-by-rockstarlab' )
+			  }</h3>
 			<ul class="job-warnings job-errors">${ errors
 				.map(
 					( log ) =>
@@ -1039,9 +1134,10 @@ const JobsLogModule = {
 			)
 			.join( '' );
 		return `${ errorHtml }
-			<h3>${ window.rslIeData.i18n.jobWarnings || 'Warnings' } (${
-				warnings.length
-			})</h3>
+			<h3>${
+				window.rslIeData.i18n.jobWarnings ||
+				__( 'Warnings', 'import-export-by-rockstarlab' )
+			} (${ warnings.length })</h3>
 			<ul class="job-warnings">${ items }</ul>
 		`;
 	},
@@ -1079,15 +1175,28 @@ const JobsLogModule = {
 			)
 			.join( '' );
 		return `
-			<h3>${ this.escapeHtml( i18n.rowErrorsTitle || 'Rows with errors' ) } (${
-				errors.length
-			})</h3>
+			<h3>${ this.escapeHtml(
+				i18n.rowErrorsTitle ||
+					__( 'Rows with errors', 'import-export-by-rockstarlab' )
+			) } (${ errors.length })</h3>
 			<table class="widefat striped rsl-ie-job-row-errors">
 				<thead><tr>
-					<th>${ this.escapeHtml( i18n.rowHeader || 'Row' ) }</th>
-					<th>${ this.escapeHtml( i18n.field || 'Field' ) }</th>
-					<th>${ this.escapeHtml( i18n.error || 'Error' ) }</th>
-					<th>${ this.escapeHtml( i18n.howToFix || 'How to fix' ) }</th>
+					<th>${ this.escapeHtml(
+						i18n.rowHeader ||
+							__( 'Row', 'import-export-by-rockstarlab' )
+					) }</th>
+					<th>${ this.escapeHtml(
+						i18n.field ||
+							__( 'Field', 'import-export-by-rockstarlab' )
+					) }</th>
+					<th>${ this.escapeHtml(
+						i18n.error ||
+							__( 'Error', 'import-export-by-rockstarlab' )
+					) }</th>
+					<th>${ this.escapeHtml(
+						i18n.howToFix ||
+							__( 'How to fix', 'import-export-by-rockstarlab' )
+					) }</th>
 				</tr></thead>
 				<tbody>${ rows }</tbody>
 			</table>
@@ -1095,7 +1204,10 @@ const JobsLogModule = {
 				errors.length > 50
 					? `<p class="description">${ this.escapeHtml(
 							i18n.rowErrorsMore ||
-								'The first 50 rows are shown. The CSV has all of them.'
+								__(
+									'The first 50 rows are shown. The CSV has all of them.',
+									'import-export-by-rockstarlab'
+								)
 					  ) }</p>`
 					: ''
 			}
@@ -1103,7 +1215,11 @@ const JobsLogModule = {
 				job.id,
 				10
 			) }"><span class="dashicons dashicons-download"></span> ${ this.escapeHtml(
-				i18n.downloadErrorRows || 'Download rows with errors (CSV)'
+				i18n.downloadErrorRows ||
+					__(
+						'Download rows with errors (CSV)',
+						'import-export-by-rockstarlab'
+					)
 			) }</button></p>
 		`;
 	},
@@ -1181,31 +1297,53 @@ const JobsLogModule = {
 	getTypeLabel( type, dataType ) {
 		// Content Updater jobs are stored as type=import with data_type=content_update.
 		if ( 'import' === type && 'content_update' === dataType ) {
-			return 'Content Update';
+			return __( 'Content Update', 'import-export-by-rockstarlab' );
 		}
 
 		const labels = {
-			import: window.rslIeData.i18n.typeImport || 'Import',
-			export: window.rslIeData.i18n.typeExport || 'Export',
+			import:
+				window.rslIeData.i18n.typeImport ||
+				__( 'Import', 'import-export-by-rockstarlab' ),
+			export:
+				window.rslIeData.i18n.typeExport ||
+				__( 'Export', 'import-export-by-rockstarlab' ),
 			content_sync_push:
 				window.rslIeData.i18n.typeContentSyncPush ||
-				'Content Sync - Push',
+				__( 'Content Sync - Push', 'import-export-by-rockstarlab' ),
 			content_sync_pull:
 				window.rslIeData.i18n.typeContentSyncPull ||
-				'Content Sync - Pull',
+				__( 'Content Sync - Pull', 'import-export-by-rockstarlab' ),
 			sync_background:
 				window.rslIeData.i18n.typeContentSyncBackground ||
-				'Content Sync - Background',
-			migration_export: 'Content Migration - Export File',
-			migration_import: 'Content Migration - Import File',
-			migration_sync_push: 'Content Migration - Sync Push',
-			migration_sync_pull: 'Content Migration - Sync Pull',
+				__(
+					'Content Sync - Background',
+					'import-export-by-rockstarlab'
+				),
+			migration_export: __(
+				'Content Migration - Export File',
+				'import-export-by-rockstarlab'
+			),
+			migration_import: __(
+				'Content Migration - Import File',
+				'import-export-by-rockstarlab'
+			),
+			migration_sync_push: __(
+				'Content Migration - Sync Push',
+				'import-export-by-rockstarlab'
+			),
+			migration_sync_pull: __(
+				'Content Migration - Sync Pull',
+				'import-export-by-rockstarlab'
+			),
 		};
 		// Variation transfers of a product sync run as their own child jobs.
 		if ( 'migration_sources' === type && 'product' === dataType ) {
 			return (
 				window.rslIeData.i18n.typeContentSyncVariations ||
-				'Content Sync - Product Variations'
+				__(
+					'Content Sync - Product Variations',
+					'import-export-by-rockstarlab'
+				)
 			);
 		}
 		return labels[ type ] || type;
@@ -1249,7 +1387,7 @@ const JobsLogModule = {
 				'post' === type
 					? base
 					: 'page' === type
-					? 'Pages'
+					? __( 'Pages', 'import-export-by-rockstarlab' )
 					: type.charAt( 0 ).toUpperCase() + type.slice( 1 )
 			)
 			.join( ' + ' );
@@ -1257,29 +1395,65 @@ const JobsLogModule = {
 
 	getDataTypeLabel( dataType ) {
 		const labels = {
-			urls: 'All Site URLs',
-			post: 'Blog Posts',
-			page: 'Pages',
-			media: 'Media',
-			media_sync: 'Media Sync',
-			site_migration: 'Content Migration',
-			content_update: 'Content Updater',
-			menu: 'Menus',
-			user: 'Users',
-			comment: 'Comments',
-			taxonomy: 'Taxonomy Terms',
-			woo_product: 'WooCommerce Products',
-			woo_order: 'WooCommerce Orders',
-			woo_coupon: 'WooCommerce Coupons',
-			woo_attribute: 'WooCommerce Attributes',
-			woo_review: 'WooCommerce Reviews',
-			woo_refund: 'WooCommerce Refunds',
-			woo_customer: 'WooCommerce Customers',
-			woo_shipping_zone: 'WooCommerce Shipping Zones',
-			custom_post_types: 'Custom Post Types',
-			form_entries: 'Form Entries',
-			database_table: 'MySQL Database Table',
-			table: 'MySQL Database Table',
+			urls: __( 'All Site URLs', 'import-export-by-rockstarlab' ),
+			post: __( 'Blog Posts', 'import-export-by-rockstarlab' ),
+			page: __( 'Pages', 'import-export-by-rockstarlab' ),
+			media: __( 'Media', 'import-export-by-rockstarlab' ),
+			media_sync: __( 'Media Sync', 'import-export-by-rockstarlab' ),
+			site_migration: __(
+				'Content Migration',
+				'import-export-by-rockstarlab'
+			),
+			content_update: __(
+				'Content Updater',
+				'import-export-by-rockstarlab'
+			),
+			menu: __( 'Menus', 'import-export-by-rockstarlab' ),
+			user: __( 'Users', 'import-export-by-rockstarlab' ),
+			comment: __( 'Comments', 'import-export-by-rockstarlab' ),
+			taxonomy: __( 'Taxonomy Terms', 'import-export-by-rockstarlab' ),
+			woo_product: __(
+				'WooCommerce Products',
+				'import-export-by-rockstarlab'
+			),
+			woo_order: __(
+				'WooCommerce Orders',
+				'import-export-by-rockstarlab'
+			),
+			woo_coupon: __(
+				'WooCommerce Coupons',
+				'import-export-by-rockstarlab'
+			),
+			woo_attribute: __(
+				'WooCommerce Attributes',
+				'import-export-by-rockstarlab'
+			),
+			woo_review: __(
+				'WooCommerce Reviews',
+				'import-export-by-rockstarlab'
+			),
+			woo_refund: __(
+				'WooCommerce Refunds',
+				'import-export-by-rockstarlab'
+			),
+			woo_customer: __(
+				'WooCommerce Customers',
+				'import-export-by-rockstarlab'
+			),
+			woo_shipping_zone: __(
+				'WooCommerce Shipping Zones',
+				'import-export-by-rockstarlab'
+			),
+			custom_post_types: __(
+				'Custom Post Types',
+				'import-export-by-rockstarlab'
+			),
+			form_entries: __( 'Form Entries', 'import-export-by-rockstarlab' ),
+			database_table: __(
+				'MySQL Database Table',
+				'import-export-by-rockstarlab'
+			),
+			table: __( 'MySQL Database Table', 'import-export-by-rockstarlab' ),
 		};
 
 		const postTypes = window.rslIeData.postTypeLabels || {};
@@ -1291,12 +1465,24 @@ const JobsLogModule = {
 	 */
 	getStatusLabel( status ) {
 		const labels = {
-			pending: window.rslIeData.i18n.statusPending || 'Pending',
-			processing: window.rslIeData.i18n.statusProcessing || 'Processing',
-			completed: window.rslIeData.i18n.statusCompleted || 'Completed',
-			failed: window.rslIeData.i18n.statusFailed || 'Failed',
-			paused: window.rslIeData.i18n.statusPaused || 'Paused',
-			cancelled: window.rslIeData.i18n.statusCancelled || 'Cancelled',
+			pending:
+				window.rslIeData.i18n.statusPending ||
+				__( 'Pending', 'import-export-by-rockstarlab' ),
+			processing:
+				window.rslIeData.i18n.statusProcessing ||
+				__( 'Processing', 'import-export-by-rockstarlab' ),
+			completed:
+				window.rslIeData.i18n.statusCompleted ||
+				__( 'Completed', 'import-export-by-rockstarlab' ),
+			failed:
+				window.rslIeData.i18n.statusFailed ||
+				__( 'Failed', 'import-export-by-rockstarlab' ),
+			paused:
+				window.rslIeData.i18n.statusPaused ||
+				__( 'Paused', 'import-export-by-rockstarlab' ),
+			cancelled:
+				window.rslIeData.i18n.statusCancelled ||
+				__( 'Cancelled', 'import-export-by-rockstarlab' ),
 		};
 		return labels[ status ] || status;
 	},

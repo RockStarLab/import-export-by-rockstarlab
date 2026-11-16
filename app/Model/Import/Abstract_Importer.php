@@ -124,7 +124,7 @@ abstract class Abstract_Importer implements Importer_Interface {
 			return $validation;
 		}
 
-		$this->log_info( sprintf( 'Starting import of %d items', count( $data ) ) );
+		$this->log_info( sprintf( /* translators: %d: value. */ __( 'Starting import of %d items', 'import-export-by-rockstarlab' ), count( $data ) ) );
 
 		$this->stats['total'] = count( $data );
 
@@ -144,24 +144,24 @@ abstract class Abstract_Importer implements Importer_Interface {
 					'message' => $result->get_error_message(),
 					'data'    => $result->get_error_data(),
 				];
-				$this->log_error( sprintf( 'Failed to import row %d: %s', $index + 1, $result->get_error_message() ) );
+				$this->log_error( sprintf( /* translators: %1$d: row number, %2$s: value. */ __( 'Failed to import row %1$d: %2$s', 'import-export-by-rockstarlab' ), $index + 1, $result->get_error_message() ) );
 			} elseif ( 'skipped' === $result ) {
 				++$this->stats['skipped'];
-				$this->log_info( sprintf( 'Skipped row %d', $index + 1 ) );
+				$this->log_info( sprintf( /* translators: %d: row number. */ __( 'Skipped row %d', 'import-export-by-rockstarlab' ), $index + 1 ) );
 			} elseif ( 'updated' === $result ) {
 				++$this->stats['updated'];
 				++$this->stats['success'];
-				$this->log_info( sprintf( 'Updated row %d', $index + 1 ) );
+				$this->log_info( sprintf( /* translators: %d: row number. */ __( 'Updated row %d', 'import-export-by-rockstarlab' ), $index + 1 ) );
 			} else {
 				++$this->stats['created'];
 				++$this->stats['success'];
-				$this->log_info( sprintf( 'Created row %d', $index + 1 ) );
+				$this->log_info( sprintf( /* translators: %d: row number. */ __( 'Created row %d', 'import-export-by-rockstarlab' ), $index + 1 ) );
 			}
 		}
 
 		$this->log_info(
 			sprintf(
-				'Import completed: %d total, %d success, %d failed, %d skipped',
+				/* translators: %1$d: stats, %2$d: stats, %3$d: stats, %4$d: stats. */ __( 'Import completed: %1$d total, %2$d success, %3$d failed, %4$d skipped', 'import-export-by-rockstarlab' ),
 				$this->stats['total'],
 				$this->stats['success'],
 				$this->stats['failed'],

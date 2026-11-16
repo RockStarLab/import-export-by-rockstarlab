@@ -3,7 +3,7 @@
 	Plugin Name:                Content Sync, Media Sync, Import, Export with AI Agents Support
 	Plugin URI:                 https://profiles.wordpress.org/rockstarlab/
 	Description:                Import, export, and sync WordPress content between sites with CSV, XML, XLSX, ODS, JSON, jobs, media tools, and AI URL import.
-	Version:                    2.2.15
+	Version:                    2.2.16
 	Requires at least:          6.2
 	Requires PHP:               7.4
 	Author:                     RockstarLab
@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) or exit;
 define( 'RSL_IE_FILE', __FILE__ );
 define( 'RSL_IE_PATH', trailingslashit( plugin_dir_path( RSL_IE_FILE ) ) );
 define( 'RSL_IE_URL', plugins_url( '/', RSL_IE_FILE ) );
-define( 'RSL_IE_VERSION', '2.2.15' );
+define( 'RSL_IE_VERSION', '2.2.16' );
 
 // Composer autoloader (required for bundled third-party libraries).
 if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
@@ -109,6 +109,25 @@ if ( ! function_exists( 'rsl_ie_fs' ) ) {
 			return $show && rsl_ie_fs()->is_registered();
 		}
 	);
+	// Freemius menu items use the plugin's translations: the SDK has no file for some
+	// languages (uk), and its ru_RU file translates "Add-Ons" as "Plugin Settings".
+	// The same labels appear in Plugin Options > Admin menu, so both stay in step.
+	add_action(
+		'init',
+		function () {
+			fs_override_i18n(
+				array(
+					'add-ons'       => __( 'Add-Ons', 'import-export-by-rockstarlab' ),
+					'account'       => __( 'Account', 'import-export-by-rockstarlab' ),
+					'contact-us'    => __( 'Contact Us', 'import-export-by-rockstarlab' ),
+					'support-forum' => __( 'Support Forum', 'import-export-by-rockstarlab' ),
+					'affiliation'   => __( 'Affiliation', 'import-export-by-rockstarlab' ),
+				),
+				'import-export-by-rockstarlab'
+			);
+		}
+	);
+
 	// A banner saved before this check stays until dismissed: drop it on such sites.
 	add_action(
 		'admin_init',

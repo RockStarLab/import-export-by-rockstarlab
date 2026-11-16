@@ -1,6 +1,7 @@
 import 'select2';
 import 'select2/dist/css/select2.min.css';
 
+import { __ } from '@wordpress/i18n';
 const SchedulesModule = {
 	init() {
 		const $ = jQuery;
@@ -17,7 +18,9 @@ const SchedulesModule = {
 		$select.select2( {
 			width: '25em',
 			allowClear: ! $select.prop( 'required' ),
-			placeholder: $select.data( 'placeholder' ) || 'Search Jobs...',
+			placeholder:
+				$select.data( 'placeholder' ) ||
+				__( 'Search Jobs...', 'import-export-by-rockstarlab' ),
 			minimumInputLength: 0,
 			ajax: {
 				url: data.ajaxUrl || window.ajaxurl || '',

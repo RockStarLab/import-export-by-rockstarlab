@@ -1982,7 +1982,7 @@ class ACF_Fields {
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		if ( $code < 200 || $code >= 300 ) {
 			wp_delete_file( $tmp );
-			return new \WP_Error( 'rsl_ie_download_failed', sprintf( 'Download failed with HTTP %d', $code ) );
+			return new \WP_Error( 'rsl_ie_download_failed', sprintf( /* translators: %d: code. */ __( 'Download failed with HTTP %d', 'import-export-by-rockstarlab' ), $code ) );
 		}
 
 		return $tmp;

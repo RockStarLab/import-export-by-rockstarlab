@@ -236,7 +236,7 @@ class Settings_Service {
 				$result = ( new \RockStarLab\ImportExport\Helper\AI_Content_Extractor() )->test_connection();
 				return is_wp_error( $result ) ? $this->error( 'ai_test_failed', 502 ) : [
 					'connected' => true,
-					'message'   => 'Connection successful.',
+					'message'   => __( 'Connection successful.', 'import-export-by-rockstarlab' ),
 				];
 			}
 			$response = wp_remote_get(
@@ -253,7 +253,7 @@ class Settings_Service {
 			$status   = is_wp_error( $response ) ? 0 : (int) wp_remote_retrieve_response_code( $response );
 			return $status >= 200 && $status < 300 ? [
 				'connected' => true,
-				'message'   => 'Connection successful.',
+				'message'   => __( 'Connection successful.', 'import-export-by-rockstarlab' ),
 			] : $this->error( 'ai_test_failed', 502 );
 		}
 		if ( 'ai-key-delete' === $name && ! empty( $input['legacy'] ) ) {
@@ -289,6 +289,6 @@ class Settings_Service {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $status ) {
-		return new \WP_Error( 'rsl_ie_settings_' . $code, 'Settings operation failed: ' . $code, [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_settings_' . $code, sprintf( /* translators: %s: error code. */ __( 'Settings operation failed: %s', 'import-export-by-rockstarlab' ), $code ), [ 'status' => $status ] );
 	}
 }

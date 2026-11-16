@@ -237,7 +237,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 						'options'    => [ 'rawBody' => true ],
 					],
 					'id'          => wp_generate_uuid4(),
-					'name'        => 'Job finished',
+					'name'        => __( 'Job finished', 'import-export-by-rockstarlab' ),
 					'type'        => 'n8n-nodes-base.webhook',
 					'typeVersion' => 2,
 					'position'    => [ 0, 0 ],
@@ -246,7 +246,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 				[
 					'parameters'  => [ 'jsCode' => $code ],
 					'id'          => wp_generate_uuid4(),
-					'name'        => 'Check signature',
+					'name'        => __( 'Check signature', 'import-export-by-rockstarlab' ),
 					'type'        => 'n8n-nodes-base.code',
 					'typeVersion' => 2,
 					'position'    => [ 240, 0 ],
@@ -257,7 +257,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 					'main' => [
 						[
 							[
-								'node'  => 'Check signature',
+								'node'  => __( 'Check signature', 'import-export-by-rockstarlab' ),
 								'type'  => 'main',
 								'index' => 0,
 							],

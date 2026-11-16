@@ -7,6 +7,7 @@ import TabProgress from '../utils/tab-progress';
 
 import Utils from './utils.js';
 
+import { __ } from '@wordpress/i18n';
 const AIURLImporter = {
 	urls: [],
 	currentStep: 1,
@@ -492,7 +493,10 @@ const AIURLImporter = {
 				)
 				.show();
 		} catch ( error ) {
-			const message = error.message || error || 'Connection test failed';
+			const message =
+				error.message ||
+				error ||
+				__( 'Connection test failed', 'import-export-by-rockstarlab' );
 
 			$result
 				.removeClass( 'success' )
@@ -606,15 +610,20 @@ const AIURLImporter = {
 			.filter( ( w ) => w.length > 0 ).length;
 
 		let statsHtml = `<p class="rsl-ie-content-stats">📄 ${ wordCount } ${
-			window.rslIeData.i18n.words || 'words'
+			window.rslIeData.i18n.words ||
+			__( 'words', 'import-export-by-rockstarlab' )
 		}, ${ charCount.toLocaleString() } ${
-			window.rslIeData.i18n.characters || 'characters'
+			window.rslIeData.i18n.characters ||
+			__( 'characters', 'import-export-by-rockstarlab' )
 		}</p>`;
 
 		if ( data.truncated ) {
 			statsHtml += `<div class="rsl-ie-truncation-warning notice notice-warning inline"><p>⚠️ ${
 				window.rslIeData.i18n.contentTruncated ||
-				'Warning: the article content was truncated by the AI because it exceeded the token limit. The imported post will contain incomplete content. Consider using a shorter article or a more powerful model.'
+				__(
+					'Warning: the article content was truncated by the AI because it exceeded the token limit. The imported post will contain incomplete content. Consider using a shorter article or a more powerful model.',
+					'import-export-by-rockstarlab'
+				)
 			}</p></div>`;
 		}
 
@@ -645,7 +654,10 @@ const AIURLImporter = {
 		// Display featured image
 		if ( data.featured_image ) {
 			jQuery( '.preview-featured-image' ).html( `
-				<img src="${ data.featured_image }" alt="Featured" style="max-width: 300px; height: auto;">
+				<img src="${ data.featured_image }" alt="${ __(
+					'Featured',
+					'import-export-by-rockstarlab'
+				) }" style="max-width: 300px; height: auto;">
 			` );
 		} else {
 			jQuery( '.preview-featured-image' ).html(
@@ -714,7 +726,7 @@ const AIURLImporter = {
 				'default-text',
 				$button.text().trim() ||
 					window.rslIeData.i18n.startImport ||
-					'Start Import'
+					__( 'Start Import', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -725,7 +737,10 @@ const AIURLImporter = {
 				.html(
 					`<span class="spinner is-active" aria-hidden="true"></span><span>${ Utils.escapeHtml(
 						window.rslIeData.i18n.startingImport ||
-							'Starting import...'
+							__(
+								'Starting import...',
+								'import-export-by-rockstarlab'
+							)
 					) }</span>`
 				);
 			return;
@@ -864,8 +879,10 @@ const AIURLImporter = {
 				const status = entry.status === 'success' ? 'success' : 'error';
 				const statusLabel =
 					status === 'success'
-						? window.rslIeData.i18n.success || 'Success'
-						: window.rslIeData.i18n.failed || 'Failed';
+						? window.rslIeData.i18n.success ||
+						  __( 'Success', 'import-export-by-rockstarlab' )
+						: window.rslIeData.i18n.failed ||
+						  __( 'Failed', 'import-export-by-rockstarlab' );
 				const url = Utils.escapeHtml( entry.url || '' );
 				const message = Utils.escapeHtml( entry.message || '' );
 				const timestamp = Utils.escapeHtml( entry.timestamp || '' );

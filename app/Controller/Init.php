@@ -235,13 +235,52 @@ class Init {
 	}
 
 	/**
-	 * Load plugin translations
+	 * Load plugin translations.
 	 *
-	 * Note: load_plugin_textdomain() is no longer needed since WordPress 4.6.
-	 * WordPress automatically loads translations from the languages directory.
+	 * The plugin ships its own translations in languages/ so they work before (or without)
+	 * a language pack from translate.wordpress.org. A language pack in
+	 * wp-content/languages/plugins/ still loads first for PHP strings when present.
 	 */
 	function load_translations() {
-		// Translations are loaded automatically by WordPress since version 4.6.
+		add_action( 'init', array( $this, 'load_textdomain' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'set_script_translations' ), PHP_INT_MAX );
+		add_action( 'enqueue_block_editor_assets', array( $this, 'set_script_translations' ), PHP_INT_MAX );
+	}
+
+	/**
+	 * Loads the bundled .mo file of the current locale.
+	 */
+	public function load_textdomain() {
+		load_plugin_textdomain( 'import-export-by-rockstarlab', false, dirname( plugin_basename( RSL_IE_FILE ) ) . '/languages' );
+	}
+
+	/**
+	 * Plugin scripts translate their texts with wp.i18n: the bundled JSON files in languages/,
+	 * otherwise a language pack from translate.wordpress.org.
+	 */
+	public function set_script_translations() {
+		$handles = array(
+			'import-export-by-rockstarlab-scripts',
+			'rsl-ie-media-library-export',
+			'rsl-ie-taxonomy-quick-actions',
+			'rsl-ie-admin-object-quick-actions',
+			'rsl-ie-post-sync',
+			'rsl-ie-gutenberg-sync',
+			'rsl-ie-media-library-sync',
+			'rsl-ie-admin-notices',
+			'rsl-ie-agent-connection',
+			'rsl-ie-review-notice',
+		);
+		$scripts = wp_scripts();
+		foreach ( $handles as $handle ) {
+			if ( ! isset( $scripts->registered[ $handle ] ) ) {
+				continue;
+			}
+			if ( ! in_array( 'wp-i18n', $scripts->registered[ $handle ]->deps, true ) ) {
+				$scripts->registered[ $handle ]->deps[] = 'wp-i18n';
+			}
+			wp_set_script_translations( $handle, 'import-export-by-rockstarlab', RSL_IE_PATH . 'languages' );
+		}
 	}
 
 	/**

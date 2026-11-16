@@ -1,3 +1,4 @@
+import { __ } from '@wordpress/i18n';
 /**
  * Notification utilities
  */
@@ -24,7 +25,8 @@ export function showNotice( message ) {
 	dismissButton.type = 'button';
 	dismissButton.className = 'notice-dismiss';
 	dismissButton.innerHTML = `<span class="screen-reader-text">${
-		window.rslIeData?.i18n?.dismissNotice || 'Dismiss this notice.'
+		window.rslIeData?.i18n?.dismissNotice ||
+		__( 'Dismiss this notice.', 'import-export-by-rockstarlab' )
 	}</span>`;
 	dismissButton.addEventListener( 'click', () => {
 		notice.remove();
@@ -53,7 +55,8 @@ export function showError( message ) {
 	dismissButton.type = 'button';
 	dismissButton.className = 'notice-dismiss';
 	dismissButton.innerHTML = `<span class="screen-reader-text">${
-		window.rslIeData?.i18n?.dismissNotice || 'Dismiss this notice.'
+		window.rslIeData?.i18n?.dismissNotice ||
+		__( 'Dismiss this notice.', 'import-export-by-rockstarlab' )
 	}</span>`;
 	dismissButton.addEventListener( 'click', () => {
 		notice.remove();
@@ -113,7 +116,8 @@ export function showModalError( message, modalElement = null ) {
 	dismissButton.type = 'button';
 	dismissButton.className = 'notice-dismiss';
 	dismissButton.innerHTML = `<span class="screen-reader-text">${
-		window.rslIeData?.i18n?.dismissNotice || 'Dismiss this notice.'
+		window.rslIeData?.i18n?.dismissNotice ||
+		__( 'Dismiss this notice.', 'import-export-by-rockstarlab' )
 	}</span>`;
 	dismissButton.addEventListener( 'click', () => {
 		notice.remove();

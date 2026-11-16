@@ -57,7 +57,7 @@ class Media_Chunk_Transfer {
 				}
 			} while ( microtime( true ) < $deadline );
 			if ( 'done' !== $state['phase'] ) {
-				return new \WP_Error( 'rsl_ie_media_transfer_timeout', 'Media transfer timed out. Inspect the destination before repeating.', [ 'status' => 504, 'result' => $result, 'source_id' => $id ] );
+				return new \WP_Error( 'rsl_ie_media_transfer_timeout', __( 'Media transfer timed out. Inspect the destination before repeating.', 'import-export-by-rockstarlab' ), [ 'status' => 504, 'result' => $result, 'source_id' => $id ] );
 			}
 		}
 		return $result;

@@ -298,7 +298,16 @@ $rsl_ie_is_wp7_plus = \RockStarLab\ImportExport\Helper\OpenAI_API_Key::is_wp7_pl
 							<div class="rsl-ie-progress-fill" style="width: 0%;"></div>
 						</div>
 						<div class="rsl-ie-progress-text">
-							<span class="current">0</span> / <span class="total">0</span> URLs processed
+							<?php
+							echo wp_kses_post(
+								sprintf(
+									/* translators: 1: number of processed URLs, 2: total number of URLs. */
+									esc_html__( '%1$s / %2$s URLs processed', 'import-export-by-rockstarlab' ),
+									'<span class="current">0</span>',
+									'<span class="total">0</span>'
+								)
+							);
+							?>
 						</div>
 					</div>
 

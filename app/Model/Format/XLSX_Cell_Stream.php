@@ -41,7 +41,7 @@ class XLSX_Cell_Stream {
 				if ( 0 === $node->depth ) {
 					$namespace = $node->namespaceURI;
 					if ( 'worksheet' !== $node->localName || ! in_array( $namespace, [ 'http://schemas.openxmlformats.org/spreadsheetml/2006/main', 'http://purl.oclc.org/ooxml/spreadsheetml/main' ], true ) ) {
-						throw new \RuntimeException( 'Invalid worksheet root.' ); }
+						throw new \RuntimeException( __( 'Invalid worksheet root.', 'import-export-by-rockstarlab' ) ); }
 				}
 				if ( 1 === $node->depth ) {
 					$in_data = 'sheetData' === $node->localName && $namespace === $node->namespaceURI && ! $node->isEmptyElement; }
@@ -61,7 +61,7 @@ class XLSX_Cell_Stream {
 				$indices = Coordinate::indexesFromString( $coordinate );
 				$xml     = simplexml_load_string( $node->readOuterXml(), \SimpleXMLElement::class, LIBXML_NONET | LIBXML_COMPACT | LIBXML_PARSEHUGE );
 				if ( false === $xml ) {
-					throw new \RuntimeException( 'Invalid worksheet cell.' ); }
+					throw new \RuntimeException( __( 'Invalid worksheet cell.', 'import-export-by-rockstarlab' ) ); }
 				$value = $decoder->decode( $xml, $namespace, $coordinate, $strings, [ $formulas, 'resolve' ] );
 				$style = $node->getAttribute( 's' );
 				if ( ! empty( $map['decimals'] ) && null !== $style && '' !== $style && isset( $map['decimals'][ (int) $style ] ) && in_array( (string) $node->getAttribute( 't' ), [ '', 'n' ], true ) ) {
@@ -80,7 +80,7 @@ class XLSX_Cell_Stream {
 					$checkpoint['state'][ $field ] = $$field; }
 			}
 			if ( null === $namespace && ( ! $resume || ! empty( $checkpoint['nodes']['done'] ) ) ) {
-				throw new \RuntimeException( 'Missing worksheet root.' ); }
+				throw new \RuntimeException( __( 'Missing worksheet root.', 'import-export-by-rockstarlab' ) ); }
 		} finally {
 			if ( $decoder ) {
 				$decoder->close(); }

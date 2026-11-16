@@ -159,7 +159,7 @@ class Site_Migration_Controller extends Base_Controller {
 			return;
 		}
 
-		$this->send_error( 'Only file migration is supported.', null, 400 );
+		$this->send_error( __( 'Only file migration is supported.', 'import-export-by-rockstarlab' ), null, 400 );
 	}
 
 	public function update_migration() {
@@ -171,7 +171,7 @@ class Site_Migration_Controller extends Base_Controller {
 		$job_id = absint( $this->get_request_param( 'job_id', 0 ) );
 		$job    = rsl_ie()->Model->job->find( $job_id );
 		if ( \RockStarLab\ImportExport\Service\Migration_Service::supports( $job ) || ( $job && ! empty( json_decode( $job->parameters, true )['migration_parent_id'] ) ) ) {
-			$this->send_error( 'Migration progress is owned by the server.', null, 409 );
+			$this->send_error( __( 'Migration progress is owned by the server.', 'import-export-by-rockstarlab' ), null, 409 );
 			return; }
 		if ( ! $job || 'site_migration' !== $job->data_type ) {
 			$this->send_error( __( 'Migration job not found.', 'import-export-by-rockstarlab' ), null, 404 );
@@ -220,7 +220,7 @@ class Site_Migration_Controller extends Base_Controller {
 		$files  = $this->get_request_array( 'files' );
 		$job    = rsl_ie()->Model->job->find( $job_id );
 		if ( \RockStarLab\ImportExport\Service\Migration_Service::supports( $job ) || ( $job && ! empty( json_decode( $job->parameters, true )['migration_parent_id'] ) ) ) {
-			$this->send_error( 'Migration progress is owned by the server.', null, 409 );
+			$this->send_error( __( 'Migration progress is owned by the server.', 'import-export-by-rockstarlab' ), null, 409 );
 			return; }
 		if ( ! $job || empty( $files ) ) {
 			$this->send_error( __( 'No migration export files were provided.', 'import-export-by-rockstarlab' ), null, 400 );
@@ -362,7 +362,7 @@ class Site_Migration_Controller extends Base_Controller {
 		if ( \RockStarLab\ImportExport\Service\Migration_Service::supports( $job ) ) {
 			$access = ( new \RockStarLab\ImportExport\Service\Migration_Service() )->authorize( $job );
 			if ( is_wp_error( $access ) || 'completed' !== $job->status ) {
-				$this->send_error( 'Migration package is unavailable.', null, 403 );
+				$this->send_error( __( 'Migration package is unavailable.', 'import-export-by-rockstarlab' ), null, 403 );
 				return; }
 		}
 		if ( ! $job || empty( $job->file_path ) || ! is_readable( $job->file_path ) ) {
@@ -429,7 +429,7 @@ class Site_Migration_Controller extends Base_Controller {
 		if ( \RockStarLab\ImportExport\Service\Migration_Service::supports( $job ) ) {
 			$access = ( new \RockStarLab\ImportExport\Service\Migration_Service() )->authorize( $job );
 			if ( is_wp_error( $access ) || 'completed' !== $job->status ) {
-				$this->send_error( 'Migration package is unavailable.', null, 403 );
+				$this->send_error( __( 'Migration package is unavailable.', 'import-export-by-rockstarlab' ), null, 403 );
 				return; }
 		}
 		if ( ! $job || empty( $job->file_path ) || ! is_readable( $job->file_path ) ) {
@@ -484,6 +484,17 @@ class Site_Migration_Controller extends Base_Controller {
 	}
 
 	private function get_pro_only_labels() {
-		return array( 'Menus', 'Users', 'Taxonomies', 'WooCommerce products', 'WooCommerce orders', 'WooCommerce refunds', 'WooCommerce customers', 'WooCommerce reviews', 'Coupons', 'Custom post types' );
+		return array(
+			__( 'Menus', 'import-export-by-rockstarlab' ),
+			__( 'Users', 'import-export-by-rockstarlab' ),
+			__( 'Taxonomies', 'import-export-by-rockstarlab' ),
+			__( 'WooCommerce products', 'import-export-by-rockstarlab' ),
+			__( 'WooCommerce orders', 'import-export-by-rockstarlab' ),
+			__( 'WooCommerce refunds', 'import-export-by-rockstarlab' ),
+			__( 'WooCommerce customers', 'import-export-by-rockstarlab' ),
+			__( 'WooCommerce reviews', 'import-export-by-rockstarlab' ),
+			__( 'Coupons', 'import-export-by-rockstarlab' ),
+			__( 'Custom post types', 'import-export-by-rockstarlab' ),
+		);
 	}
 }

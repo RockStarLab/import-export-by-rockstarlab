@@ -8,6 +8,7 @@ import syncButtonBusy from './utils/sync-button-busy';
 import 'select2';
 import 'select2/dist/css/select2.min.css';
 
+import { __, sprintf } from '@wordpress/i18n';
 ( function ( $ ) {
 	'use strict';
 
@@ -158,7 +159,11 @@ import 'select2/dist/css/select2.min.css';
 
 	function getErrorMessage( error, fallback ) {
 		if ( ! error ) {
-			return fallback || config.i18n?.syncFailed || 'Sync failed.';
+			return (
+				fallback ||
+				config.i18n?.syncFailed ||
+				__( 'Sync failed.', 'import-export-by-rockstarlab' )
+			);
 		}
 
 		if ( typeof error === 'string' ) {
@@ -196,7 +201,11 @@ import 'select2/dist/css/select2.min.css';
 			return error.statusText;
 		}
 
-		return fallback || config.i18n?.syncFailed || 'Sync failed.';
+		return (
+			fallback ||
+			config.i18n?.syncFailed ||
+			__( 'Sync failed.', 'import-export-by-rockstarlab' )
+		);
 	}
 
 	function getSelectedIds() {
@@ -278,12 +287,18 @@ import 'select2/dist/css/select2.min.css';
 					type: 'button',
 					id: exportButtonId,
 					class: 'button action',
-					text: config.exportLabel || 'Export',
+					text:
+						config.exportLabel ||
+						__( 'Export', 'import-export-by-rockstarlab' ),
 					disabled: config.selectionMode !== 'always',
 					'aria-disabled':
 						config.selectionMode === 'always' ? 'false' : 'true',
 					title:
-						config.i18n?.selectItems || 'Select one or more items.',
+						config.i18n?.selectItems ||
+						__(
+							'Select one or more items.',
+							'import-export-by-rockstarlab'
+						),
 				} ).css( 'margin-left', '5px' )
 			);
 		}
@@ -297,11 +312,17 @@ import 'select2/dist/css/select2.min.css';
 					type: 'button',
 					id: syncButtonId,
 					class: 'button action',
-					text: config.syncLabel || 'Sync',
+					text:
+						config.syncLabel ||
+						__( 'Sync', 'import-export-by-rockstarlab' ),
 					disabled: needsSelection,
 					'aria-disabled': needsSelection ? 'true' : 'false',
 					title:
-						config.i18n?.selectItems || 'Select one or more items.',
+						config.i18n?.selectItems ||
+						__(
+							'Select one or more items.',
+							'import-export-by-rockstarlab'
+						),
 				} ).css( 'margin-left', '5px' )
 			);
 		}
@@ -322,8 +343,12 @@ import 'select2/dist/css/select2.min.css';
 			.attr( 'aria-disabled', hasSelection ? 'false' : 'true' )
 			.text(
 				hasSelection
-					? `${ config.exportLabel || 'Export' } (${ ids.length })`
-					: config.exportLabel || 'Export'
+					? `${
+							config.exportLabel ||
+							__( 'Export', 'import-export-by-rockstarlab' )
+					  } (${ ids.length })`
+					: config.exportLabel ||
+							__( 'Export', 'import-export-by-rockstarlab' )
 			);
 
 		const disableSync = syncRequiresSelection() && ! hasSelection;
@@ -332,8 +357,12 @@ import 'select2/dist/css/select2.min.css';
 			.attr( 'aria-disabled', disableSync ? 'true' : 'false' )
 			.text(
 				hasSelection
-					? `${ config.syncLabel || 'Sync' } (${ ids.length })`
-					: config.syncLabel || 'Sync'
+					? `${
+							config.syncLabel ||
+							__( 'Sync', 'import-export-by-rockstarlab' )
+					  } (${ ids.length })`
+					: config.syncLabel ||
+							__( 'Sync', 'import-export-by-rockstarlab' )
 			);
 
 		updateModalPushButtonState();
@@ -382,7 +411,11 @@ import 'select2/dist/css/select2.min.css';
 		const sites = config.connectedSites || {};
 		const options = [
 			`<option value="">${ escapeHtml(
-				config.i18n?.selectSite || 'Please select a site.'
+				config.i18n?.selectSite ||
+					__(
+						'Please select a site.',
+						'import-export-by-rockstarlab'
+					)
 			) }</option>`,
 		];
 
@@ -444,40 +477,97 @@ import 'select2/dist/css/select2.min.css';
 	function getObjectText( key ) {
 		const defaults = {
 			comment: {
-				syncItems: 'Sync Comments',
-				push: 'Push selected comments',
-				browse: 'Browse remote comments',
-				remote: 'Remote Comments',
-				searchLabel: 'Search comments',
-				search: 'Search comments...',
-				pull: 'Pull selected comments',
+				syncItems: __(
+					'Sync Comments',
+					'import-export-by-rockstarlab'
+				),
+				push: __(
+					'Push selected comments',
+					'import-export-by-rockstarlab'
+				),
+				browse: __(
+					'Browse remote comments',
+					'import-export-by-rockstarlab'
+				),
+				remote: __( 'Remote Comments', 'import-export-by-rockstarlab' ),
+				searchLabel: __(
+					'Search comments',
+					'import-export-by-rockstarlab'
+				),
+				search: __(
+					'Search comments...',
+					'import-export-by-rockstarlab'
+				),
+				pull: __(
+					'Pull selected comments',
+					'import-export-by-rockstarlab'
+				),
 			},
 			user: {
-				syncItems: 'Sync Users',
-				push: 'Push selected users',
-				browse: 'Browse remote users',
-				remote: 'Remote Users',
-				searchLabel: 'Search users',
-				search: 'Search users...',
-				pull: 'Pull selected users',
+				syncItems: __( 'Sync Users', 'import-export-by-rockstarlab' ),
+				push: __(
+					'Push selected users',
+					'import-export-by-rockstarlab'
+				),
+				browse: __(
+					'Browse remote users',
+					'import-export-by-rockstarlab'
+				),
+				remote: __( 'Remote Users', 'import-export-by-rockstarlab' ),
+				searchLabel: __(
+					'Search users',
+					'import-export-by-rockstarlab'
+				),
+				search: __( 'Search users...', 'import-export-by-rockstarlab' ),
+				pull: __(
+					'Pull selected users',
+					'import-export-by-rockstarlab'
+				),
 			},
 			menu: {
-				syncItems: 'Sync Menus',
-				push: 'Push current menu',
-				browse: 'Browse remote menus',
-				remote: 'Remote Menus',
-				searchLabel: 'Search menus',
-				search: 'Search menus...',
-				pull: 'Pull selected menus',
+				syncItems: __( 'Sync Menus', 'import-export-by-rockstarlab' ),
+				push: __( 'Push current menu', 'import-export-by-rockstarlab' ),
+				browse: __(
+					'Browse remote menus',
+					'import-export-by-rockstarlab'
+				),
+				remote: __( 'Remote Menus', 'import-export-by-rockstarlab' ),
+				searchLabel: __(
+					'Search menus',
+					'import-export-by-rockstarlab'
+				),
+				search: __( 'Search menus...', 'import-export-by-rockstarlab' ),
+				pull: __(
+					'Pull selected menus',
+					'import-export-by-rockstarlab'
+				),
 			},
 			woo_attribute: {
-				syncItems: 'Sync WooCommerce Attributes',
-				push: 'Push attributes',
-				browse: 'Browse remote attributes',
-				remote: 'Remote WooCommerce Attributes',
-				searchLabel: 'Search attributes',
-				search: 'Search attributes...',
-				pull: 'Pull selected attributes',
+				syncItems: __(
+					'Sync WooCommerce Attributes',
+					'import-export-by-rockstarlab'
+				),
+				push: __( 'Push attributes', 'import-export-by-rockstarlab' ),
+				browse: __(
+					'Browse remote attributes',
+					'import-export-by-rockstarlab'
+				),
+				remote: __(
+					'Remote WooCommerce Attributes',
+					'import-export-by-rockstarlab'
+				),
+				searchLabel: __(
+					'Search attributes',
+					'import-export-by-rockstarlab'
+				),
+				search: __(
+					'Search attributes...',
+					'import-export-by-rockstarlab'
+				),
+				pull: __(
+					'Pull selected attributes',
+					'import-export-by-rockstarlab'
+				),
 			},
 		};
 
@@ -502,13 +592,18 @@ import 'select2/dist/css/select2.min.css';
 								getObjectText( 'syncItems' )
 						) }</h2>
 						<button type="button" class="rsl-ie-modal-close" aria-label="${ escapeHtml(
-							config.i18n?.close || 'Close'
+							config.i18n?.close ||
+								__( 'Close', 'import-export-by-rockstarlab' )
 						) }">&times;</button>
 					</div>
 					<div class="rsl-ie-modal-body" style="text-align:center;">
 						<div class="rsl-ie-form-group" style="max-width:360px;margin:0 auto 16px;">
 							<label for="rsl-ie-pro-object-sync-site" style="display:block;margin-bottom:6px;">${ escapeHtml(
-								config.i18n?.selectSiteLabel || 'Select Site'
+								config.i18n?.selectSiteLabel ||
+									__(
+										'Select Site',
+										'import-export-by-rockstarlab'
+									)
 							) }</label>
 							<select id="rsl-ie-pro-object-sync-site" class="rsl-ie-form-control" style="display:block;width:100%;">${ getSitesOptions() }</select>
 						</div>
@@ -557,7 +652,11 @@ import 'select2/dist/css/select2.min.css';
 						.reject(
 							getErrorMessage(
 								response,
-								config.i18n?.syncFailed || 'Sync failed.'
+								config.i18n?.syncFailed ||
+									__(
+										'Sync failed.',
+										'import-export-by-rockstarlab'
+									)
 							)
 						)
 						.promise();
@@ -570,7 +669,11 @@ import 'select2/dist/css/select2.min.css';
 					.reject(
 						getErrorMessage(
 							error,
-							config.i18n?.syncFailed || 'Sync failed.'
+							config.i18n?.syncFailed ||
+								__(
+									'Sync failed.',
+									'import-export-by-rockstarlab'
+								)
 						)
 					)
 					.promise()
@@ -668,23 +771,36 @@ import 'select2/dist/css/select2.min.css';
 			<div id="${ pushModalId }" class="rsl-ie-modal rsl-ie-browse-library-modal" style="display:none;">
 				<div class="rsl-ie-modal-content rsl-ie-modal-large">
 					<div class="rsl-ie-modal-header">
-						<h2>${ escapeHtml( config.i18n?.pushComments || 'Push current menu' ) }</h2>
+						<h2>${ escapeHtml(
+							config.i18n?.pushComments ||
+								__(
+									'Push current menu',
+									'import-export-by-rockstarlab'
+								)
+						) }</h2>
 						<button type="button" class="rsl-ie-modal-close" aria-label="${ escapeHtml(
-							config.i18n?.close || 'Close'
+							config.i18n?.close ||
+								__( 'Close', 'import-export-by-rockstarlab' )
 						) }">&times;</button>
 					</div>
 					<div class="rsl-ie-modal-body" style="padding-top:18px;">
 							<div class="rsl-ie-pro-menu-push-wrap" style="max-width:360px;margin:0 auto 16px;text-align:center;">
 								<label for="rsl-ie-pro-menu-push-remote-menu" style="display:flex;margin-bottom:6px;align-items:center;justify-content:center;gap:8px;">${ escapeHtml(
 									config.i18n?.remoteMenuLabel ||
-										'Remote menu'
+										__(
+											'Remote menu',
+											'import-export-by-rockstarlab'
+										)
 								) }<span class="spinner rsl-ie-pro-remote-menu-spinner" style="float:none;margin:0;display:none;"></span></label>
 								<select id="rsl-ie-pro-menu-push-remote-menu" class="regular-text rsl-ie-pro-object-select2" style="display:block;width:100%;"></select>
 							</div>
 						<div class="rsl-ie-pro-comment-push-map-wrap" style="max-width:420px;margin:0 auto 16px;text-align:center;display:none;">
 							<label for="rsl-ie-pro-comment-push-map-post" style="display:block;margin-bottom:6px;">${ escapeHtml(
 								config.i18n?.mapToRemotePostLabel ||
-									'Map to remote post'
+									__(
+										'Map to remote post',
+										'import-export-by-rockstarlab'
+									)
 							) }</label>
 							<select id="rsl-ie-pro-comment-push-map-post" class="regular-text rsl-ie-pro-object-select2" style="display:block;width:100%;"></select>
 						</div>
@@ -693,10 +809,15 @@ import 'select2/dist/css/select2.min.css';
 					</div>
 					<div class="rsl-ie-browse-footer">
 						<button type="button" class="button" id="rsl-ie-pro-object-push-cancel">${ escapeHtml(
-							config.i18n?.cancel || 'Cancel'
+							config.i18n?.cancel ||
+								__( 'Cancel', 'import-export-by-rockstarlab' )
 						) }</button>
 						<button type="button" class="button button-primary" id="rsl-ie-pro-object-push-confirm">${ escapeHtml(
-							config.i18n?.pushComments || 'Push current menu'
+							config.i18n?.pushComments ||
+								__(
+									'Push current menu',
+									'import-export-by-rockstarlab'
+								)
 						) }</button>
 					</div>
 				</div>
@@ -759,7 +880,11 @@ import 'select2/dist/css/select2.min.css';
 			<div class="rsl-ie-pro-remote-menu-loading" style="display:none;margin-top:10px;padding:12px 14px;border:1px solid #dcdcde;background:#f6f7f7;border-radius:6px;color:#3c434a;align-items:center;justify-content:center;gap:10px;">
 				<span class="spinner is-active" style="float:none;margin:0;"></span>
 				<span>${ escapeHtml(
-					config.i18n?.loadingRemoteMenus || 'Loading remote menus...'
+					config.i18n?.loadingRemoteMenus ||
+						__(
+							'Loading remote menus...',
+							'import-export-by-rockstarlab'
+						)
 				) }</span>
 			</div>
 		` );
@@ -807,7 +932,11 @@ import 'select2/dist/css/select2.min.css';
 		const siteId = $( '#rsl-ie-pro-object-sync-site' ).val();
 		if ( ! siteId ) {
 			showMessage(
-				config.i18n?.selectSite || 'Please select a site.',
+				config.i18n?.selectSite ||
+					__(
+						'Please select a site.',
+						'import-export-by-rockstarlab'
+					),
 				'warning'
 			);
 			return;
@@ -841,14 +970,22 @@ import 'select2/dist/css/select2.min.css';
 		const ids = getSelectedIds();
 		if ( ! siteId ) {
 			showMessage(
-				config.i18n?.selectSite || 'Please select a site.',
+				config.i18n?.selectSite ||
+					__(
+						'Please select a site.',
+						'import-export-by-rockstarlab'
+					),
 				'warning'
 			);
 			return;
 		}
 		if ( ! ids.length ) {
 			showMessage(
-				config.i18n?.selectItems || 'Select one or more items.',
+				config.i18n?.selectItems ||
+					__(
+						'Select one or more items.',
+						'import-export-by-rockstarlab'
+					),
 				'warning'
 			);
 			updateModalPushButtonState();
@@ -884,7 +1021,11 @@ import 'select2/dist/css/select2.min.css';
 
 		if ( ! siteId ) {
 			showMessage(
-				config.i18n?.selectSite || 'Please select a site.',
+				config.i18n?.selectSite ||
+					__(
+						'Please select a site.',
+						'import-export-by-rockstarlab'
+					),
 				'warning'
 			);
 			return;
@@ -892,7 +1033,11 @@ import 'select2/dist/css/select2.min.css';
 
 		if ( ! ids.length ) {
 			showMessage(
-				config.i18n?.selectItems || 'Select one or more items.',
+				config.i18n?.selectItems ||
+					__(
+						'Select one or more items.',
+						'import-export-by-rockstarlab'
+					),
 				'warning'
 			);
 			updateModalPushButtonState();
@@ -914,7 +1059,10 @@ import 'select2/dist/css/select2.min.css';
 			$( '#rsl-ie-pro-comment-push-message' ).html(
 				`<div class="notice notice-warning inline"><p>${ escapeHtml(
 					config.i18n?.mapCommentPostsRequired ||
-						'Please select a destination post before pushing comments.'
+						__(
+							'Please select a destination post before pushing comments.',
+							'import-export-by-rockstarlab'
+						)
 				) }</p></div>`
 			);
 			return;
@@ -924,7 +1072,11 @@ import 'select2/dist/css/select2.min.css';
 			! $( '#rsl-ie-pro-menu-push-remote-menu' ).val()
 		) {
 			showMessage(
-				config.i18n?.selectRemoteMenu || 'Select a remote menu.',
+				config.i18n?.selectRemoteMenu ||
+					__(
+						'Select a remote menu.',
+						'import-export-by-rockstarlab'
+					),
 				'warning'
 			);
 			return;
@@ -938,7 +1090,8 @@ import 'select2/dist/css/select2.min.css';
 				: $( '#rsl-ie-pro-object-push-btn' );
 		const stopButtonBusy = syncButtonBusy(
 			$button,
-			config.i18n?.loading || 'Loading...'
+			config.i18n?.loading ||
+				__( 'Loading...', 'import-export-by-rockstarlab' )
 		);
 		const payload = getPushPayload( siteId, ids );
 		if ( config.objectType === 'comment' ) {
@@ -958,13 +1111,18 @@ import 'select2/dist/css/select2.min.css';
 				showMessage(
 					data.message ||
 						config.i18n?.syncComplete ||
-						'Sync completed successfully.',
+						__(
+							'Sync completed successfully.',
+							'import-export-by-rockstarlab'
+						),
 					'success'
 				);
 			} )
 			.fail( ( message ) => {
 				const text =
-					message || config.i18n?.syncFailed || 'Sync failed.';
+					message ||
+					config.i18n?.syncFailed ||
+					__( 'Sync failed.', 'import-export-by-rockstarlab' );
 				showMessage( text, 'error' );
 				// The push dialog stays open over the sync dialog, so its error was not visible.
 				if ( $( `#${ pushModalId }` ).is( ':visible' ) ) {
@@ -999,7 +1157,8 @@ import 'select2/dist/css/select2.min.css';
 								getObjectText( 'remote' )
 						) }</h2>
 						<button type="button" class="rsl-ie-modal-close" aria-label="${ escapeHtml(
-							config.i18n?.close || 'Close'
+							config.i18n?.close ||
+								__( 'Close', 'import-export-by-rockstarlab' )
 						) }">&times;</button>
 					</div>
 						<div class="rsl-ie-browse-search-bar" style="display:grid;grid-template-columns:minmax(180px,1fr) minmax(220px,1fr) minmax(220px,1fr) auto;gap:10px;align-items:end;">
@@ -1016,29 +1175,47 @@ import 'select2/dist/css/select2.min.css';
 							<div>
 								<label for="rsl-ie-pro-object-post-filter" style="display:block;margin-bottom:6px;">${ escapeHtml(
 									config.i18n?.searchPostsLabel ||
-										'Search posts'
+										__(
+											'Search posts',
+											'import-export-by-rockstarlab'
+										)
 								) }</label>
 								<select id="rsl-ie-pro-object-post-filter" class="regular-text rsl-ie-pro-object-select2" style="width:100%;min-width:0;">
 									<option value="">${ escapeHtml(
-										config.i18n?.allPosts || 'All posts'
+										config.i18n?.allPosts ||
+											__(
+												'All posts',
+												'import-export-by-rockstarlab'
+											)
 									) }</option>
 								</select>
 							</div>
 							<div>
 								<label for="rsl-ie-pro-comment-map-post" style="display:block;margin-bottom:6px;">${ escapeHtml(
-									config.i18n?.mapToPostLabel || 'Map to post'
+									config.i18n?.mapToPostLabel ||
+										__(
+											'Map to post',
+											'import-export-by-rockstarlab'
+										)
 								) }</label>
 								<select id="rsl-ie-pro-comment-map-post" class="regular-text rsl-ie-pro-object-select2" style="width:100%;min-width:0;"></select>
 							</div>
 							<button type="button" class="button" id="rsl-ie-pro-comment-automap-post">${ escapeHtml(
-								config.i18n?.automap || 'Automap'
+								config.i18n?.automap ||
+									__(
+										'Automap',
+										'import-export-by-rockstarlab'
+									)
 							) }</button>
 						</div>
 					<div id="rsl-ie-pro-menu-pull-controls" class="rsl-ie-browse-search-bar" style="display:none;">
 						<div style="max-width:360px;margin:0 auto;text-align:center;">
 								<label for="rsl-ie-pro-menu-pull-remote-menu" style="display:flex;margin-bottom:6px;align-items:center;justify-content:center;gap:8px;">${ escapeHtml(
 									config.i18n?.remoteMenuLabel ||
-										'Remote menu'
+										__(
+											'Remote menu',
+											'import-export-by-rockstarlab'
+										)
 								) }<span class="spinner rsl-ie-pro-remote-menu-spinner" style="float:none;margin:0;display:none;"></span></label>
 								<select id="rsl-ie-pro-menu-pull-remote-menu" class="regular-text rsl-ie-pro-object-select2" style="width:100%;"></select>
 						</div>
@@ -1046,10 +1223,18 @@ import 'select2/dist/css/select2.min.css';
 					<div class="rsl-ie-browse-search-bar" style="padding-top:12px;display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;">
 						<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
 							<button type="button" class="button" id="rsl-ie-pro-object-select-all">${ escapeHtml(
-								config.i18n?.selectAll || 'Select all'
+								config.i18n?.selectAll ||
+									__(
+										'Select all',
+										'import-export-by-rockstarlab'
+									)
 							) }</button>
 							<button type="button" class="button" id="rsl-ie-pro-object-deselect-all">${ escapeHtml(
-								config.i18n?.deselectAll || 'Deselect all'
+								config.i18n?.deselectAll ||
+									__(
+										'Deselect all',
+										'import-export-by-rockstarlab'
+									)
 							) }</button>
 						</div>
 						<span id="rsl-ie-pro-object-selected-count" style="opacity:.72;line-height:30px;display:inline-flex;align-items:center;margin-left:auto;"></span>
@@ -1062,7 +1247,8 @@ import 'select2/dist/css/select2.min.css';
 					</div>
 					<div class="rsl-ie-browse-footer">
 						<button type="button" class="button" id="rsl-ie-pro-object-browse-cancel">${ escapeHtml(
-							config.i18n?.cancel || 'Cancel'
+							config.i18n?.cancel ||
+								__( 'Cancel', 'import-export-by-rockstarlab' )
 						) }</button>
 						<button type="button" class="button button-primary" id="rsl-ie-pro-object-pull-selected-btn">${ escapeHtml(
 							config.i18n?.pullSelected || getObjectText( 'pull' )
@@ -1099,7 +1285,16 @@ import 'select2/dist/css/select2.min.css';
 		).length;
 		const loaded = $( '.rsl-ie-pro-remote-object-checkbox' ).length;
 		$( '#rsl-ie-pro-object-selected-count' ).text(
-			loaded ? `Loaded: ${ loaded } · Selected: ${ selected }` : ''
+			loaded
+				? sprintf(
+						__(
+							'Loaded: %1$s · Selected: %2$s',
+							'import-export-by-rockstarlab'
+						),
+						loaded,
+						selected
+				  )
+				: ''
 		);
 	}
 
@@ -1132,7 +1327,8 @@ import 'select2/dist/css/select2.min.css';
 			const current = String( $select.val() || '' );
 			const options = [
 				`<option value="">${ escapeHtml(
-					config.i18n?.allPosts || 'All posts'
+					config.i18n?.allPosts ||
+						__( 'All posts', 'import-export-by-rockstarlab' )
 				) }</option>`,
 			];
 
@@ -1167,7 +1363,9 @@ import 'select2/dist/css/select2.min.css';
 		}
 
 		$select.select2( {
-			placeholder: config.i18n?.allPosts || 'All posts',
+			placeholder:
+				config.i18n?.allPosts ||
+				__( 'All posts', 'import-export-by-rockstarlab' ),
 			allowClear: true,
 			width: '100%',
 			dropdownParent: $( `#${ browseModalId } .rsl-ie-modal-content` ),
@@ -1205,7 +1403,10 @@ import 'select2/dist/css/select2.min.css';
 											id: '',
 											text:
 												config.i18n?.allPosts ||
-												'All posts',
+												__(
+													'All posts',
+													'import-export-by-rockstarlab'
+												),
 										},
 								  ]
 								: [] ),
@@ -1249,7 +1450,9 @@ import 'select2/dist/css/select2.min.css';
 		}
 
 		$select.select2( {
-			placeholder: config.i18n?.selectPost || 'Select destination post',
+			placeholder:
+				config.i18n?.selectPost ||
+				__( 'Select destination post', 'import-export-by-rockstarlab' ),
 			allowClear: true,
 			width: '100%',
 			dropdownParent: $( 'body' ),
@@ -1354,7 +1557,8 @@ import 'select2/dist/css/select2.min.css';
 		$select
 			.html(
 				`<option value="">${ escapeHtml(
-					config.i18n?.loading || 'Loading...'
+					config.i18n?.loading ||
+						__( 'Loading...', 'import-export-by-rockstarlab' )
 				) }</option>`
 			)
 			.prop( 'disabled', true );
@@ -1364,7 +1568,11 @@ import 'select2/dist/css/select2.min.css';
 				const menus = data.menus || [];
 				const options = [
 					`<option value="">${ escapeHtml(
-						config.i18n?.selectRemoteMenu || 'Select a remote menu.'
+						config.i18n?.selectRemoteMenu ||
+							__(
+								'Select a remote menu.',
+								'import-export-by-rockstarlab'
+							)
 					) }</option>`,
 				];
 
@@ -1383,7 +1591,11 @@ import 'select2/dist/css/select2.min.css';
 				if ( ! menus.length ) {
 					options.push(
 						`<option value="" disabled>${ escapeHtml(
-							config.i18n?.noItemsFound || 'No items found.'
+							config.i18n?.noItemsFound ||
+								__(
+									'No items found.',
+									'import-export-by-rockstarlab'
+								)
 						) }</option>`
 					);
 				}
@@ -1402,7 +1614,10 @@ import 'select2/dist/css/select2.min.css';
 					$select.select2( {
 						placeholder:
 							config.i18n?.selectRemoteMenu ||
-							'Select a remote menu.',
+							__(
+								'Select a remote menu.',
+								'import-export-by-rockstarlab'
+							),
 						allowClear: true,
 						width: '100%',
 						dropdownParent: $( dropdownParentSelector ),
@@ -1417,7 +1632,12 @@ import 'select2/dist/css/select2.min.css';
 				$select
 					.html(
 						`<option value="">${ escapeHtml(
-							message || config.i18n?.syncFailed || 'Sync failed.'
+							message ||
+								config.i18n?.syncFailed ||
+								__(
+									'Sync failed.',
+									'import-export-by-rockstarlab'
+								)
 						) }</option>`
 					)
 					.prop( 'disabled', true );
@@ -1435,7 +1655,8 @@ import 'select2/dist/css/select2.min.css';
 
 		$select.select2( {
 			placeholder:
-				config.i18n?.selectRemoteMenu || 'Select a remote menu.',
+				config.i18n?.selectRemoteMenu ||
+				__( 'Select a remote menu.', 'import-export-by-rockstarlab' ),
 			allowClear: true,
 			width: '100%',
 			dropdownParent: $( dropdownParentSelector ),
@@ -1488,7 +1709,14 @@ import 'select2/dist/css/select2.min.css';
 												item.object || 'custom'
 											}${
 												item.object_id
-													? ` · source ID: ${ item.object_id }`
+													? ` · ${ sprintf(
+															/* translators: %s: object ID on the source site. */
+															__(
+																'source ID: %s',
+																'import-export-by-rockstarlab'
+															),
+															item.object_id
+													  ) }`
 													: ''
 											}`
 										) }</span>
@@ -1521,7 +1749,10 @@ import 'select2/dist/css/select2.min.css';
 												direction
 										  ) }" style="width:100%;"></select>`
 										: `<span style="color:#787c82;font-size:12px;">${ escapeHtml(
-												'No mapping needed'
+												__(
+													'No mapping needed',
+													'import-export-by-rockstarlab'
+												)
 										  ) }</span>`
 								}
 							</div>
@@ -1530,7 +1761,10 @@ import 'select2/dist/css/select2.min.css';
 									needsMapping
 										? `<button type="button" class="button rsl-ie-pro-menu-automap-one">${ escapeHtml(
 												config.i18n?.automap ||
-													'Automap'
+													__(
+														'Automap',
+														'import-export-by-rockstarlab'
+													)
 										  ) }</button>`
 										: ''
 								}
@@ -1548,24 +1782,44 @@ import 'select2/dist/css/select2.min.css';
 						<h3 style="margin:0 0 4px;font-size:14px;">${ escapeHtml(
 							selectable
 								? config.i18n?.pullSelected ||
-										'Pull selected menu items'
+										__(
+											'Pull selected menu items',
+											'import-export-by-rockstarlab'
+										)
 								: config.i18n?.mapMenuItems ||
-										'Map menu item objects'
+										__(
+											'Map menu item objects',
+											'import-export-by-rockstarlab'
+										)
 						) }</h3>
 						<p class="description" style="margin:0;">${ escapeHtml(
 							selectable
-								? 'Selected items without a destination mapping will be skipped. Select and map at least one item, or select a link that needs no mapping.'
+								? __(
+										'Selected items without a destination mapping will be skipped. Select and map at least one item, or select a link that needs no mapping.',
+										'import-export-by-rockstarlab'
+								  )
 								: config.i18n?.mapMenuItemsHelp ||
-										'Map post/page menu items to matching objects on the destination site.'
+										__(
+											'Map post/page menu items to matching objects on the destination site.',
+											'import-export-by-rockstarlab'
+										)
 						) }</p>
 					</div>
 					<button type="button" class="button rsl-ie-pro-menu-automap-all">${ escapeHtml(
-						config.i18n?.automap || 'Automap'
+						config.i18n?.automap ||
+							__( 'Automap', 'import-export-by-rockstarlab' )
 					) }</button>
 				</div>
 				<div class="rsl-ie-menu-map-header" style="display:grid;grid-template-columns:minmax(260px,1.1fr) minmax(260px,1fr) auto;gap:10px;padding:8px 0;border-bottom:1px solid #dcdcde;color:#646970;font-size:12px;font-weight:600;text-transform:uppercase;">
-					<div>${ escapeHtml( selectable ? 'Select menu item' : 'Menu item' ) }</div>
-					<div>${ escapeHtml( 'Map to' ) }</div>
+					<div>${ escapeHtml(
+						selectable
+							? __(
+									'Select menu item',
+									'import-export-by-rockstarlab'
+							  )
+							: __( 'Menu item', 'import-export-by-rockstarlab' )
+					) }</div>
+					<div>${ escapeHtml( __( 'Map to', 'import-export-by-rockstarlab' ) ) }</div>
 					<div></div>
 				</div>
 				${ renderRows( 0 ) }
@@ -1673,18 +1927,24 @@ import 'select2/dist/css/select2.min.css';
 
 	function getMenuMappingPlaceholder( objectKind, postType, taxonomy ) {
 		if ( objectKind === 'taxonomy' ) {
-			return `Select ${ taxonomy || 'taxonomy' } term`;
+			return sprintf(
+				__( 'Select %s term', 'import-export-by-rockstarlab' ),
+				taxonomy || 'taxonomy'
+			);
 		}
 
 		if ( postType === 'page' ) {
-			return 'Select page';
+			return __( 'Select page', 'import-export-by-rockstarlab' );
 		}
 
 		if ( postType === 'post' ) {
-			return 'Select post';
+			return __( 'Select post', 'import-export-by-rockstarlab' );
 		}
 
-		return `Select ${ postType || 'post type' } item`;
+		return sprintf(
+			__( 'Select %s item', 'import-export-by-rockstarlab' ),
+			postType || 'post type'
+		);
 	}
 
 	function getMenuMappingResults( data, objectKind, postType, taxonomy ) {
@@ -1844,7 +2104,9 @@ import 'select2/dist/css/select2.min.css';
 		}
 
 		$select.select2( {
-			placeholder: config.i18n?.selectPost || 'Select destination post',
+			placeholder:
+				config.i18n?.selectPost ||
+				__( 'Select destination post', 'import-export-by-rockstarlab' ),
 			allowClear: true,
 			width: '100%',
 			dropdownParent: $( `#${ browseModalId } .rsl-ie-modal-content` ),
@@ -1930,7 +2192,10 @@ import 'select2/dist/css/select2.min.css';
 		if ( ! remotePost?.title ) {
 			alert(
 				config.i18n?.selectRemoteItem ||
-					'Please select a remote comment or remote post first.'
+					__(
+						'Please select a remote comment or remote post first.',
+						'import-export-by-rockstarlab'
+					)
 			);
 			return;
 		}
@@ -1938,7 +2203,10 @@ import 'select2/dist/css/select2.min.css';
 		const $button = $( '#rsl-ie-pro-comment-automap-post' );
 		$button
 			.prop( 'disabled', true )
-			.text( config.i18n?.loading || 'Loading...' );
+			.text(
+				config.i18n?.loading ||
+					__( 'Loading...', 'import-export-by-rockstarlab' )
+			);
 
 		request( 'content_sync_search_local_posts', {
 			post_type: remotePost.post_type || 'any',
@@ -1971,7 +2239,13 @@ import 'select2/dist/css/select2.min.css';
 					posts[ 0 ];
 
 				if ( ! match ) {
-					alert( config.i18n?.noItemsFound || 'No items found.' );
+					alert(
+						config.i18n?.noItemsFound ||
+							__(
+								'No items found.',
+								'import-export-by-rockstarlab'
+							)
+					);
 					return;
 				}
 
@@ -1987,7 +2261,10 @@ import 'select2/dist/css/select2.min.css';
 			.always( () => {
 				$button
 					.prop( 'disabled', false )
-					.text( config.i18n?.automap || 'Automap' );
+					.text(
+						config.i18n?.automap ||
+							__( 'Automap', 'import-export-by-rockstarlab' )
+					);
 			} );
 	}
 
@@ -2008,29 +2285,44 @@ import 'select2/dist/css/select2.min.css';
 		} else if ( config.objectType === 'woo_attribute' ) {
 			id = item.attribute_id;
 			title = item.attribute_label || item.attribute_name || '';
-			meta = `ID: ${ item.attribute_id || '' } · ${
-				item.attribute_name || ''
-			} · ${ item.term_count || 0 } terms`;
+			meta = sprintf(
+				__(
+					'ID: %1$s · %2$s · %3$s terms',
+					'import-export-by-rockstarlab'
+				),
+				item.attribute_id || '',
+				item.attribute_name || '',
+				item.term_count || 0
+			);
 		} else {
 			id = item.comment_ID;
-			title = item.comment_author || 'Anonymous';
+			title =
+				item.comment_author ||
+				__( 'Anonymous', 'import-export-by-rockstarlab' );
 			meta = `ID: ${ item.comment_ID || '' } · ${
 				item.post?.title || ''
 			}`;
 			content = String( item.comment_content || '' ).slice( 0, 180 );
 			if ( Number( item.comment_parent ) ) {
-				meta += ` · ${ config.i18n?.replyTo || 'Reply to' } #${
-					item.comment_parent
-				}`;
+				meta += ` · ${
+					config.i18n?.replyTo ||
+					__( 'Reply to', 'import-export-by-rockstarlab' )
+				} #${ item.comment_parent }`;
 			}
 			// Show moderation state, so pending or spam comments are not pulled by mistake.
 			const approved = String( item.comment_approved ?? '1' );
 			if ( approved !== '1' ) {
 				const label =
 					{
-						0: config.i18n?.commentPending || 'Pending',
-						spam: config.i18n?.commentSpam || 'Spam',
-						trash: config.i18n?.commentTrash || 'Trash',
+						0:
+							config.i18n?.commentPending ||
+							__( 'Pending', 'import-export-by-rockstarlab' ),
+						spam:
+							config.i18n?.commentSpam ||
+							__( 'Spam', 'import-export-by-rockstarlab' ),
+						trash:
+							config.i18n?.commentTrash ||
+							__( 'Trash', 'import-export-by-rockstarlab' ),
 					}[ approved ] || approved;
 				meta += ` · ${ label }`;
 			}
@@ -2068,7 +2360,9 @@ import 'select2/dist/css/select2.min.css';
 		}
 
 		$select.select2( {
-			placeholder: config.i18n?.selectPost || 'Select destination post',
+			placeholder:
+				config.i18n?.selectPost ||
+				__( 'Select destination post', 'import-export-by-rockstarlab' ),
 			allowClear: true,
 			width: '100%',
 			dropdownParent: $( `#${ browseModalId } .rsl-ie-modal-content` ),
@@ -2135,7 +2429,10 @@ import 'select2/dist/css/select2.min.css';
 				`
 			<div class="notice notice-info inline"><p>${ escapeHtml(
 				config.i18n?.mapCommentPosts ||
-					'Map remote comment posts to destination posts, then click Pull selected comments again.'
+					__(
+						'Map remote comment posts to destination posts, then click Pull selected comments again.',
+						'import-export-by-rockstarlab'
+					)
 			) }</p></div>
 			${ postIds
 				.map( ( remotePostId ) => {
@@ -2143,7 +2440,14 @@ import 'select2/dist/css/select2.min.css';
 					return `
 						<div class="rsl-ie-form-group" style="margin:12px 0;">
 							<label style="display:block;margin-bottom:6px;">${ escapeHtml(
-								post.title || `Remote post #${ remotePostId }`
+								post.title ||
+									sprintf(
+										__(
+											'Remote post #%s',
+											'import-export-by-rockstarlab'
+										),
+										remotePostId
+									)
 							) } <span style="opacity:.65;">ID: ${ escapeHtml(
 								remotePostId
 							) }</span></label>
@@ -2274,7 +2578,8 @@ import 'select2/dist/css/select2.min.css';
 		$list.find( '.rsl-ie-comment-page-status' ).remove();
 		$list.append(
 			`<p class="rsl-ie-comment-page-status" role="status">${ escapeHtml(
-				config.i18n?.loading || 'Loading...'
+				config.i18n?.loading ||
+					__( 'Loading...', 'import-export-by-rockstarlab' )
 			) }</p>`
 		);
 		const payload = getBrowsePayload(
@@ -2318,13 +2623,21 @@ import 'select2/dist/css/select2.min.css';
 				if ( ! state.items.length )
 					$list.append(
 						`<p>${ escapeHtml(
-							config.i18n?.noItemsFound || 'No items found.'
+							config.i18n?.noItemsFound ||
+								__(
+									'No items found.',
+									'import-export-by-rockstarlab'
+								)
 						) }</p>`
 					);
 				if ( state.page < state.pages )
 					$list.append(
 						`<button type="button" class="button rsl-ie-comment-page-status rsl-ie-comment-load-more">${ escapeHtml(
-							config.i18n?.loadMore || 'Load more'
+							config.i18n?.loadMore ||
+								__(
+									'Load more',
+									'import-export-by-rockstarlab'
+								)
 						) }</button>`
 					);
 				$scroller.scrollTop( top );
@@ -2337,7 +2650,8 @@ import 'select2/dist/css/select2.min.css';
 					`<div class="rsl-ie-comment-page-status" role="alert"><p>${ escapeHtml(
 						message
 					) }</p><button type="button" class="button rsl-ie-comment-load-more">${ escapeHtml(
-						config.i18n?.retry || 'Retry'
+						config.i18n?.retry ||
+							__( 'Retry', 'import-export-by-rockstarlab' )
 					) }</button></div>`
 				);
 			} )
@@ -2370,7 +2684,11 @@ import 'select2/dist/css/select2.min.css';
 			if ( ! menuId ) {
 				$list.html(
 					`<p style="text-align:center;color:#646970;">${ escapeHtml(
-						config.i18n?.selectRemoteMenu || 'Select a remote menu.'
+						config.i18n?.selectRemoteMenu ||
+							__(
+								'Select a remote menu.',
+								'import-export-by-rockstarlab'
+							)
 					) }</p>`
 				);
 				updateRemoteObjectSelectionCount();
@@ -2381,7 +2699,10 @@ import 'select2/dist/css/select2.min.css';
 			$list.html( `
 				<div class="rsl-ie-loading-posts">
 					<span class="spinner is-active"></span>
-					<p>${ escapeHtml( config.i18n?.loading || 'Loading...' ) }</p>
+					<p>${ escapeHtml(
+						config.i18n?.loading ||
+							__( 'Loading...', 'import-export-by-rockstarlab' )
+					) }</p>
 				</div>
 			` );
 
@@ -2400,7 +2721,13 @@ import 'select2/dist/css/select2.min.css';
 						$list.html( `
 							<div class="rsl-ie-loading-posts">
 								<span class="dashicons dashicons-menu" style="font-size:48px;opacity:.3;width:auto;height:auto;"></span>
-								<p>${ escapeHtml( config.i18n?.noItemsFound || 'No items found.' ) }</p>
+								<p>${ escapeHtml(
+									config.i18n?.noItemsFound ||
+										__(
+											'No items found.',
+											'import-export-by-rockstarlab'
+										)
+								) }</p>
 							</div>
 						` );
 						$( '#rsl-ie-pro-menu-pull-mapping' ).empty();
@@ -2430,7 +2757,10 @@ import 'select2/dist/css/select2.min.css';
 		$list.html( `
 			<div class="rsl-ie-loading-posts">
 				<span class="spinner is-active"></span>
-				<p>${ escapeHtml( config.i18n?.loading || 'Loading...' ) }</p>
+				<p>${ escapeHtml(
+					config.i18n?.loading ||
+						__( 'Loading...', 'import-export-by-rockstarlab' )
+				) }</p>
 			</div>
 		` );
 
@@ -2450,7 +2780,13 @@ import 'select2/dist/css/select2.min.css';
 							<span class="dashicons ${ escapeHtml(
 								getRemoteEmptyIcon()
 							) }" style="font-size:48px;opacity:.3;width:auto;height:auto;"></span>
-							<p>${ escapeHtml( config.i18n?.noItemsFound || 'No items found.' ) }</p>
+							<p>${ escapeHtml(
+								config.i18n?.noItemsFound ||
+									__(
+										'No items found.',
+										'import-export-by-rockstarlab'
+									)
+							) }</p>
 						</div>
 					` );
 					updateRemoteObjectSelectionCount();
@@ -2489,7 +2825,11 @@ import 'select2/dist/css/select2.min.css';
 		const siteId = $( '#rsl-ie-pro-object-sync-site' ).val();
 		if ( ! siteId ) {
 			showMessage(
-				config.i18n?.selectSite || 'Please select a site.',
+				config.i18n?.selectSite ||
+					__(
+						'Please select a site.',
+						'import-export-by-rockstarlab'
+					),
 				'warning'
 			);
 			return;
@@ -2528,9 +2868,15 @@ import 'select2/dist/css/select2.min.css';
 		if ( ! ids.length ) {
 			alert(
 				config.objectType === 'menu'
-					? 'Select at least one menu item and assign its destination object where required.'
+					? __(
+							'Select at least one menu item and assign its destination object where required.',
+							'import-export-by-rockstarlab'
+					  )
 					: config.i18n?.selectRemoteItem ||
-							'Please select one or more remote items.'
+							__(
+								'Please select one or more remote items.',
+								'import-export-by-rockstarlab'
+							)
 			);
 			return;
 		}
@@ -2541,7 +2887,10 @@ import 'select2/dist/css/select2.min.css';
 		if ( config.objectType === 'comment' && ! mappedPostId ) {
 			alert(
 				config.i18n?.mapCommentPostsRequired ||
-					'Please select a destination post before pulling comments.'
+					__(
+						'Please select a destination post before pulling comments.',
+						'import-export-by-rockstarlab'
+					)
 			);
 			return;
 		}
@@ -2549,7 +2898,8 @@ import 'select2/dist/css/select2.min.css';
 		const $button = $( '#rsl-ie-pro-object-pull-selected-btn' );
 		const stopButtonBusy = syncButtonBusy(
 			$button,
-			config.i18n?.loading || 'Loading...'
+			config.i18n?.loading ||
+				__( 'Loading...', 'import-export-by-rockstarlab' )
 		);
 
 		request( getPullAction(), {
@@ -2564,7 +2914,10 @@ import 'select2/dist/css/select2.min.css';
 				const doneMessage =
 					data.message ||
 					config.i18n?.syncComplete ||
-					'Sync completed successfully.';
+					__(
+						'Sync completed successfully.',
+						'import-export-by-rockstarlab'
+					);
 				showMessage( doneMessage, 'success' );
 				// The result was visible for 0.9 s before the reload; show it again after it.
 				try {
@@ -2576,7 +2929,11 @@ import 'select2/dist/css/select2.min.css';
 				window.setTimeout( () => window.location.reload(), 900 );
 			} )
 			.fail( ( message ) => {
-				alert( message || config.i18n?.syncFailed || 'Sync failed.' );
+				alert(
+					message ||
+						config.i18n?.syncFailed ||
+						__( 'Sync failed.', 'import-export-by-rockstarlab' )
+				);
 			} )
 			.always( () => {
 				stopButtonBusy();
@@ -2758,11 +3115,17 @@ import 'select2/dist/css/select2.min.css';
 				.find( '.rsl-ie-pro-menu-object-map' );
 			$button
 				.prop( 'disabled', true )
-				.text( config.i18n?.loading || 'Loading...' );
+				.text(
+					config.i18n?.loading ||
+						__( 'Loading...', 'import-export-by-rockstarlab' )
+				);
 			automapMenuObjectSelect( $select ).always( () => {
 				$button
 					.prop( 'disabled', false )
-					.text( config.i18n?.automap || 'Automap' );
+					.text(
+						config.i18n?.automap ||
+							__( 'Automap', 'import-export-by-rockstarlab' )
+					);
 			} );
 		}
 	);
@@ -2779,14 +3142,20 @@ import 'select2/dist/css/select2.min.css';
 			const tasks = [];
 			$button
 				.prop( 'disabled', true )
-				.text( config.i18n?.loading || 'Loading...' );
+				.text(
+					config.i18n?.loading ||
+						__( 'Loading...', 'import-export-by-rockstarlab' )
+				);
 			$selects.each( function () {
 				tasks.push( automapMenuObjectSelect( $( this ) ) );
 			} );
 			$.when( ...tasks ).always( () => {
 				$button
 					.prop( 'disabled', false )
-					.text( config.i18n?.automap || 'Automap' );
+					.text(
+						config.i18n?.automap ||
+							__( 'Automap', 'import-export-by-rockstarlab' )
+					);
 			} );
 		}
 	);

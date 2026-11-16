@@ -1,4 +1,5 @@
 import syncButtonBusy from './utils/sync-button-busy';
+import { __, sprintf } from '@wordpress/i18n';
 /**
  * Taxonomy Quick Actions
  *
@@ -128,12 +129,17 @@ import syncButtonBusy from './utils/sync-button-busy';
 					type: 'button',
 					id: exportButtonId,
 					class: 'button action',
-					text: config.exportLabel || 'Export',
+					text:
+						config.exportLabel ||
+						__( 'Export', 'import-export-by-rockstarlab' ),
 					disabled: true,
 					'aria-disabled': 'true',
 					title:
 						config.disabledTitle ||
-						'Select one or more terms to enable export.',
+						__(
+							'Select one or more terms to enable export.',
+							'import-export-by-rockstarlab'
+						),
 				} )
 			);
 		}
@@ -145,12 +151,17 @@ import syncButtonBusy from './utils/sync-button-busy';
 					type: 'button',
 					id: syncButtonId,
 					class: 'button action',
-					text: config.syncLabel || 'Sync',
+					text:
+						config.syncLabel ||
+						__( 'Sync', 'import-export-by-rockstarlab' ),
 					disabled: false,
 					'aria-disabled': 'false',
 					title:
 						config.i18n?.syncTerms ||
-						'Sync terms. Select terms first to push, or browse remote terms to pull.',
+						__(
+							'Sync terms. Select terms first to push, or browse remote terms to pull.',
+							'import-export-by-rockstarlab'
+						),
 				} )
 			);
 		}
@@ -167,8 +178,12 @@ import syncButtonBusy from './utils/sync-button-busy';
 			.attr( 'aria-disabled', hasSelection ? 'false' : 'true' )
 			.text(
 				hasSelection
-					? `${ config.exportLabel || 'Export' } (${ ids.length })`
-					: config.exportLabel || 'Export'
+					? `${
+							config.exportLabel ||
+							__( 'Export', 'import-export-by-rockstarlab' )
+					  } (${ ids.length })`
+					: config.exportLabel ||
+							__( 'Export', 'import-export-by-rockstarlab' )
 			);
 
 		$( `#${ syncButtonId }` )
@@ -176,8 +191,12 @@ import syncButtonBusy from './utils/sync-button-busy';
 			.attr( 'aria-disabled', 'false' )
 			.text(
 				hasSelection
-					? `${ config.syncLabel || 'Sync' } (${ ids.length })`
-					: config.syncLabel || 'Sync'
+					? `${
+							config.syncLabel ||
+							__( 'Sync', 'import-export-by-rockstarlab' )
+					  } (${ ids.length })`
+					: config.syncLabel ||
+							__( 'Sync', 'import-export-by-rockstarlab' )
 			);
 	}
 
@@ -203,7 +222,8 @@ import syncButtonBusy from './utils/sync-button-busy';
 		const sites = config.connectedSites || {};
 		const options = [
 			`<option value="">${
-				config.i18n?.selectSite || 'Please select a site.'
+				config.i18n?.selectSite ||
+				__( 'Please select a site.', 'import-export-by-rockstarlab' )
 			}</option>`,
 		];
 
@@ -445,9 +465,16 @@ import syncButtonBusy from './utils/sync-button-busy';
 			<div id="${ modalId }" class="rsl-ie-modal rsl-ie-mapping-modal" style="display:none;">
 				<div class="rsl-ie-modal-content">
 					<div class="rsl-ie-modal-header">
-						<h2>${ escapeHtml( config.i18n?.syncTerms || 'Sync Terms' ) }</h2>
+						<h2>${ escapeHtml(
+							config.i18n?.syncTerms ||
+								__(
+									'Sync Terms',
+									'import-export-by-rockstarlab'
+								)
+						) }</h2>
 						<button type="button" class="rsl-ie-modal-close" aria-label="${ escapeHtml(
-							config.i18n?.close || 'Close'
+							config.i18n?.close ||
+								__( 'Close', 'import-export-by-rockstarlab' )
 						) }">&times;</button>
 					</div>
 					<div class="rsl-ie-modal-body" style="text-align:center;">
@@ -455,23 +482,38 @@ import syncButtonBusy from './utils/sync-button-busy';
 							<p>
 								<strong>${ escapeHtml(
 									config.i18n?.selectedTerms ||
-										'Selected terms:'
+										__(
+											'Selected terms:',
+											'import-export-by-rockstarlab'
+										)
 								) }</strong>
 								<span id="rsl-ie-taxonomy-selected-count">0</span>
 							</p>
 						</div>
 						<div class="rsl-ie-form-group" style="max-width:360px;margin:0 auto 16px;">
 							<label for="rsl-ie-taxonomy-sync-site" style="display:block;margin-bottom:6px;">${ escapeHtml(
-								config.i18n?.selectSiteLabel || 'Select Site'
+								config.i18n?.selectSiteLabel ||
+									__(
+										'Select Site',
+										'import-export-by-rockstarlab'
+									)
 							) }</label>
 							<select id="rsl-ie-taxonomy-sync-site" class="rsl-ie-form-control" style="display:block;width:100%;">${ getSitesOptions() }</select>
 						</div>
 						<div class="rsl-ie-taxonomy-sync-actions" style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
 							<button type="button" class="button button-primary" id="rsl-ie-taxonomy-push-btn" style="width:auto;flex:0 0 auto;">${ escapeHtml(
-								config.i18n?.pushTerms || 'Push selected terms'
+								config.i18n?.pushTerms ||
+									__(
+										'Push selected terms',
+										'import-export-by-rockstarlab'
+									)
 							) }</button>
 							<button type="button" class="button" id="rsl-ie-taxonomy-browse-btn" style="width:auto;flex:0 0 auto;">${ escapeHtml(
-								config.i18n?.pullTerms || 'Pull from remote'
+								config.i18n?.pullTerms ||
+									__(
+										'Pull from remote',
+										'import-export-by-rockstarlab'
+									)
 							) }</button>
 						</div>
 						<div id="rsl-ie-taxonomy-sync-message" style="margin-top:12px;"></div>
@@ -490,14 +532,25 @@ import syncButtonBusy from './utils/sync-button-busy';
 			<div id="${ browseModalId }" class="rsl-ie-modal rsl-ie-browse-library-modal" style="display:none;">
 				<div class="rsl-ie-modal-content rsl-ie-modal-large">
 					<div class="rsl-ie-modal-header">
-						<h2>${ escapeHtml( config.i18n?.remoteTerms || 'Remote Terms' ) }</h2>
+						<h2>${ escapeHtml(
+							config.i18n?.remoteTerms ||
+								__(
+									'Remote Terms',
+									'import-export-by-rockstarlab'
+								)
+						) }</h2>
 						<button type="button" class="rsl-ie-modal-close" aria-label="${ escapeHtml(
-							config.i18n?.close || 'Close'
+							config.i18n?.close ||
+								__( 'Close', 'import-export-by-rockstarlab' )
 						) }">&times;</button>
 					</div>
 					<div class="rsl-ie-browse-search-bar">
 						<input type="search" id="rsl-ie-taxonomy-term-search" class="regular-text" placeholder="${ escapeHtml(
-							config.i18n?.searchTerms || 'Search terms...'
+							config.i18n?.searchTerms ||
+								__(
+									'Search terms...',
+									'import-export-by-rockstarlab'
+								)
 						) }">
 					</div>
 					<div class="rsl-ie-browse-body">
@@ -507,10 +560,15 @@ import syncButtonBusy from './utils/sync-button-busy';
 					</div>
 					<div class="rsl-ie-browse-footer">
 						<button type="button" class="button" id="rsl-ie-taxonomy-browse-cancel">${ escapeHtml(
-							config.i18n?.cancel || 'Cancel'
+							config.i18n?.cancel ||
+								__( 'Cancel', 'import-export-by-rockstarlab' )
 						) }</button>
 						<button type="button" class="button button-primary" id="rsl-ie-taxonomy-pull-selected-btn">${ escapeHtml(
-							config.i18n?.pullSelected || 'Pull selected terms'
+							config.i18n?.pullSelected ||
+								__(
+									'Pull selected terms',
+									'import-export-by-rockstarlab'
+								)
 						) }</button>
 					</div>
 				</div>
@@ -534,8 +592,13 @@ import syncButtonBusy from './utils/sync-button-busy';
 	function showRemoteTermsMessage( message, type = 'info' ) {
 		const fallback =
 			type === 'error'
-				? config.i18n?.syncFailed || 'Failed to load remote terms.'
-				: config.i18n?.noTermsFound || 'No terms found.';
+				? config.i18n?.syncFailed ||
+				  __(
+						'Failed to load remote terms.',
+						'import-export-by-rockstarlab'
+				  )
+				: config.i18n?.noTermsFound ||
+				  __( 'No terms found.', 'import-export-by-rockstarlab' );
 		const text = getErrorMessage( message, fallback );
 
 		$( '#rsl-ie-taxonomy-remote-terms' ).html(
@@ -591,7 +654,8 @@ import syncButtonBusy from './utils/sync-button-busy';
 				if ( ! response || ! response.success ) {
 					const message = getErrorMessage(
 						response,
-						config.i18n?.syncFailed || 'Sync failed.'
+						config.i18n?.syncFailed ||
+							__( 'Sync failed.', 'import-export-by-rockstarlab' )
 					);
 					return $.Deferred().reject( message ).promise();
 				}
@@ -604,7 +668,9 @@ import syncButtonBusy from './utils/sync-button-busy';
 					jqXHR?.responseJSON || null,
 					getErrorMessage(
 						errorThrown || jqXHR,
-						textStatus || config.i18n?.syncFailed || 'Sync failed.'
+						textStatus ||
+							config.i18n?.syncFailed ||
+							__( 'Sync failed.', 'import-export-by-rockstarlab' )
 					)
 				);
 				return $.Deferred().reject( message ).promise();
@@ -626,8 +692,16 @@ import syncButtonBusy from './utils/sync-button-busy';
 		$( '#rsl-ie-taxonomy-push-btn' ).toggle( hasSelection );
 		$( '#rsl-ie-taxonomy-browse-btn' ).text(
 			hasSelection
-				? config.i18n?.pullUpdateTerms || 'Pull / update selected terms'
-				: config.i18n?.pullTerms || 'Browse remote terms'
+				? config.i18n?.pullUpdateTerms ||
+						__(
+							'Pull / update selected terms',
+							'import-export-by-rockstarlab'
+						)
+				: config.i18n?.pullTerms ||
+						__(
+							'Browse remote terms',
+							'import-export-by-rockstarlab'
+						)
 		);
 
 		$( `#${ modalId }` ).css( 'display', 'flex' );
@@ -644,7 +718,11 @@ import syncButtonBusy from './utils/sync-button-busy';
 
 		if ( ! siteId ) {
 			showMessage(
-				config.i18n?.selectSite || 'Please select a site.',
+				config.i18n?.selectSite ||
+					__(
+						'Please select a site.',
+						'import-export-by-rockstarlab'
+					),
 				'warning'
 			);
 			return;
@@ -652,7 +730,11 @@ import syncButtonBusy from './utils/sync-button-busy';
 
 		if ( ! ids.length ) {
 			showMessage(
-				config.i18n?.selectTerms || 'Please select one or more terms.',
+				config.i18n?.selectTerms ||
+					__(
+						'Please select one or more terms.',
+						'import-export-by-rockstarlab'
+					),
 				'warning'
 			);
 			return;
@@ -661,7 +743,8 @@ import syncButtonBusy from './utils/sync-button-busy';
 		const $button = $( '#rsl-ie-taxonomy-push-btn' );
 		const stopButtonBusy = syncButtonBusy(
 			$button,
-			config.i18n?.loading || 'Loading...'
+			config.i18n?.loading ||
+				__( 'Loading...', 'import-export-by-rockstarlab' )
 		);
 
 		request( 'content_sync_push_terms', {
@@ -673,13 +756,18 @@ import syncButtonBusy from './utils/sync-button-busy';
 				showMessage(
 					data.message ||
 						config.i18n?.termsSynced ||
-						'Terms synced successfully.',
+						__(
+							'Terms synced successfully.',
+							'import-export-by-rockstarlab'
+						),
 					'success'
 				);
 			} )
 			.fail( ( message ) => {
 				showMessage(
-					message || config.i18n?.syncFailed || 'Sync failed.',
+					message ||
+						config.i18n?.syncFailed ||
+						__( 'Sync failed.', 'import-export-by-rockstarlab' ),
 					'error'
 				);
 			} )
@@ -687,7 +775,13 @@ import syncButtonBusy from './utils/sync-button-busy';
 				stopButtonBusy();
 				$button
 					.prop( 'disabled', false )
-					.text( config.i18n?.pushTerms || 'Push selected terms' );
+					.text(
+						config.i18n?.pushTerms ||
+							__(
+								'Push selected terms',
+								'import-export-by-rockstarlab'
+							)
+					);
 			} );
 	}
 
@@ -697,7 +791,10 @@ import syncButtonBusy from './utils/sync-button-busy';
 		const $list = $( '#rsl-ie-taxonomy-remote-terms' );
 
 		$list.html(
-			`<p>${ escapeHtml( config.i18n?.loading || 'Loading...' ) }</p>`
+			`<p>${ escapeHtml(
+				config.i18n?.loading ||
+					__( 'Loading...', 'import-export-by-rockstarlab' )
+			) }</p>`
 		);
 
 		request( 'content_sync_get_remote_terms', {
@@ -712,7 +809,11 @@ import syncButtonBusy from './utils/sync-button-busy';
 				remoteTermsCache = terms;
 				if ( ! terms.length ) {
 					showRemoteTermsMessage(
-						config.i18n?.noTermsFound || 'No terms found.',
+						config.i18n?.noTermsFound ||
+							__(
+								'No terms found.',
+								'import-export-by-rockstarlab'
+							),
 						'warning'
 					);
 					return;
@@ -738,16 +839,30 @@ import syncButtonBusy from './utils/sync-button-busy';
 					<div class="rsl-ie-browse-bulk-info">
 						<span class="dashicons dashicons-list-view"></span>
 						<span>
-							${ escapeHtml( config.i18n?.bulkActions || 'Bulk actions for visible terms' ) }
+							${ escapeHtml(
+								config.i18n?.bulkActions ||
+									__(
+										'Bulk actions for visible terms',
+										'import-export-by-rockstarlab'
+									)
+							) }
 							(<span id="rsl-ie-taxonomy-remote-selected-count">0</span>)
 						</span>
 					</div>
 					<div class="rsl-ie-browse-bulk-buttons">
 						<button type="button" id="rsl-ie-taxonomy-select-all-remote" class="button button-small">${ escapeHtml(
-							config.i18n?.selectAll || 'Select all'
+							config.i18n?.selectAll ||
+								__(
+									'Select all',
+									'import-export-by-rockstarlab'
+								)
 						) }</button>
 						<button type="button" id="rsl-ie-taxonomy-deselect-all-remote" class="button button-small">${ escapeHtml(
-							config.i18n?.deselectAll || 'Deselect all'
+							config.i18n?.deselectAll ||
+								__(
+									'Deselect all',
+									'import-export-by-rockstarlab'
+								)
 						) }</button>
 					</div>
 				</div>
@@ -815,7 +930,11 @@ import syncButtonBusy from './utils/sync-button-busy';
 		const selectedTerms = getSelectedTerms();
 		const options = [
 			`<option value="">${ escapeHtml(
-				config.i18n?.selectRemoteTerm || 'Select remote term...'
+				config.i18n?.selectRemoteTerm ||
+					__(
+						'Select remote term...',
+						'import-export-by-rockstarlab'
+					)
 			) }</option>`,
 		].concat(
 			terms.map(
@@ -836,11 +955,19 @@ import syncButtonBusy from './utils/sync-button-busy';
 				<thead>
 					<tr>
 						<th class="rsl-ie-local-post">${ escapeHtml(
-							config.i18n?.localTerm || 'Local term'
+							config.i18n?.localTerm ||
+								__(
+									'Local term',
+									'import-export-by-rockstarlab'
+								)
 						) }</th>
 						<th class="rsl-ie-sync-arrow"></th>
 						<th class="rsl-ie-remote-post">${ escapeHtml(
-							config.i18n?.remoteTerm || 'Remote term to pull'
+							config.i18n?.remoteTerm ||
+								__(
+									'Remote term to pull',
+									'import-export-by-rockstarlab'
+								)
 						) }</th>
 					</tr>
 				</thead>
@@ -884,7 +1011,10 @@ import syncButtonBusy from './utils/sync-button-busy';
 			</div>
 			<p class="description" style="margin-top:8px;">${ escapeHtml(
 				config.i18n?.mappingHelp ||
-					'Choose which remote term should update each selected local term.'
+					__(
+						'Choose which remote term should update each selected local term.',
+						'import-export-by-rockstarlab'
+					)
 			) }</p>
 		` );
 
@@ -912,7 +1042,11 @@ import syncButtonBusy from './utils/sync-button-busy';
 		const siteId = $( '#rsl-ie-taxonomy-sync-site' ).val();
 		if ( ! siteId ) {
 			showMessage(
-				config.i18n?.selectSite || 'Please select a site.',
+				config.i18n?.selectSite ||
+					__(
+						'Please select a site.',
+						'import-export-by-rockstarlab'
+					),
 				'warning'
 			);
 			return;
@@ -924,8 +1058,16 @@ import syncButtonBusy from './utils/sync-button-busy';
 		$( '#rsl-ie-taxonomy-term-search' ).val( '' );
 		$( '#rsl-ie-taxonomy-pull-selected-btn' ).text(
 			browseMode === 'map'
-				? config.i18n?.pullUpdateTerms || 'Pull / update selected terms'
-				: config.i18n?.pullSelected || 'Pull selected terms'
+				? config.i18n?.pullUpdateTerms ||
+						__(
+							'Pull / update selected terms',
+							'import-export-by-rockstarlab'
+						)
+				: config.i18n?.pullSelected ||
+						__(
+							'Pull selected terms',
+							'import-export-by-rockstarlab'
+						)
 		);
 		$( `#${ browseModalId }` ).css( 'display', 'flex' );
 		loadRemoteTerms();
@@ -954,7 +1096,10 @@ import syncButtonBusy from './utils/sync-button-busy';
 		if ( ! ids.length ) {
 			alert(
 				config.i18n?.selectRemoteTerm ||
-					'Please select one or more remote terms.'
+					__(
+						'Please select one or more remote terms.',
+						'import-export-by-rockstarlab'
+					)
 			);
 			return;
 		}
@@ -962,7 +1107,8 @@ import syncButtonBusy from './utils/sync-button-busy';
 		const $button = $( '#rsl-ie-taxonomy-pull-selected-btn' );
 		const stopButtonBusy = syncButtonBusy(
 			$button,
-			config.i18n?.loading || 'Loading...'
+			config.i18n?.loading ||
+				__( 'Loading...', 'import-export-by-rockstarlab' )
 		);
 
 		request( 'content_sync_pull_terms', {
@@ -976,7 +1122,10 @@ import syncButtonBusy from './utils/sync-button-busy';
 				const doneMessage =
 					data.message ||
 					config.i18n?.termsSynced ||
-					'Terms synced successfully.';
+					__(
+						'Terms synced successfully.',
+						'import-export-by-rockstarlab'
+					);
 				showMessage( doneMessage, 'success' );
 				// The message was shown in the closed dialog and the page reloaded 0.3 s later,
 				// so a pull ended without any visible result. Show it after the reload.
@@ -991,13 +1140,23 @@ import syncButtonBusy from './utils/sync-button-busy';
 				}, 300 );
 			} )
 			.fail( ( message ) => {
-				alert( message || config.i18n?.syncFailed || 'Sync failed.' );
+				alert(
+					message ||
+						config.i18n?.syncFailed ||
+						__( 'Sync failed.', 'import-export-by-rockstarlab' )
+				);
 			} )
 			.always( () => {
 				stopButtonBusy();
 				$button
 					.prop( 'disabled', false )
-					.text( config.i18n?.pullSelected || 'Pull selected terms' );
+					.text(
+						config.i18n?.pullSelected ||
+							__(
+								'Pull selected terms',
+								'import-export-by-rockstarlab'
+							)
+					);
 			} );
 	}
 

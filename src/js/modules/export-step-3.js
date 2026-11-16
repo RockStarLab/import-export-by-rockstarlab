@@ -1,3 +1,4 @@
+import { __ } from '@wordpress/i18n';
 /**
  * Export Step 3: Field Selection with Drag & Drop
  */
@@ -306,7 +307,11 @@ export default class ExportStep3 {
 				<span class="rsl-ie-column-icon dashicons ${ iconClass }"></span>
 				<div class="rsl-ie-column-actions">
 					<button type="button" class="rsl-ie-rename-column" title="${ this.escapeHtml(
-						window.rslIeData.i18n.renameColumn || 'Rename column'
+						window.rslIeData.i18n.renameColumn ||
+							__(
+								'Rename column',
+								'import-export-by-rockstarlab'
+							)
 					) }" data-field-key="${ fieldKey }">
 						<span class="dashicons dashicons-edit"></span>
 					</button>
@@ -442,7 +447,10 @@ export default class ExportStep3 {
 		if ( ! label || ! label.trim() ) return;
 		const value = prompt(
 			window.rslIeData.i18n.enterColumnValue ||
-				'Value for every row (optional):',
+				__(
+					'Value for every row (optional):',
+					'import-export-by-rockstarlab'
+				),
 			''
 		);
 
@@ -469,7 +477,10 @@ export default class ExportStep3 {
 		const current = column.header || column.field;
 		const header = prompt(
 			window.rslIeData.i18n.renameColumnPrompt ||
-				'Column name in the exported file:',
+				__(
+					'Column name in the exported file:',
+					'import-export-by-rockstarlab'
+				),
 			current
 		);
 		if ( null === header ) return;
@@ -951,7 +962,10 @@ export default class ExportStep3 {
 				'.rsl-ie-taxonomies-grid',
 				'rsl-ie-taxonomies-loading',
 				window.rslIeData.i18n.loadingTaxonomies ||
-					'Loading taxonomies...'
+					__(
+						'Loading taxonomies...',
+						'import-export-by-rockstarlab'
+					)
 			);
 			trackRequest( this.loadTaxonomies() );
 		} else {
@@ -968,7 +982,10 @@ export default class ExportStep3 {
 				'.rsl-ie-custom-fields-grid',
 				'rsl-ie-custom-fields-loading',
 				window.rslIeData.i18n.loadingCustomFields ||
-					'Loading custom fields...'
+					__(
+						'Loading custom fields...',
+						'import-export-by-rockstarlab'
+					)
 			);
 			trackRequest( this.loadCustomFields() );
 		} else {
@@ -992,7 +1009,10 @@ export default class ExportStep3 {
 				'.rsl-ie-acf-fields-grid',
 				'rsl-ie-acf-loading',
 				window.rslIeData.i18n.loadingAcfFields ||
-					'Loading ACF fields...'
+					__(
+						'Loading ACF fields...',
+						'import-export-by-rockstarlab'
+					)
 			);
 			trackRequest( this.checkAndLoadACF() );
 		} else {
@@ -1044,7 +1064,10 @@ export default class ExportStep3 {
 				'.rsl-ie-elementor-fields-category',
 				'.rsl-ie-elementor-fields-grid',
 				'rsl-ie-elementor-loading',
-				'Loading Elementor fields...'
+				__(
+					'Loading Elementor fields...',
+					'import-export-by-rockstarlab'
+				)
 			);
 			trackRequest( this.checkAndLoadElementor() );
 		} else {
@@ -1184,7 +1207,12 @@ export default class ExportStep3 {
 			);
 			if ( grid ) {
 				grid.innerHTML =
-					'<div class="rsl-ie-rank-math-loading"><span class="spinner is-active"></span><p>Loading Rank Math SEO fields...</p></div>';
+					'<div class="rsl-ie-rank-math-loading"><span class="spinner is-active"></span><p>' +
+					__(
+						'Loading Rank Math SEO fields...',
+						'import-export-by-rockstarlab'
+					) +
+					'</p></div>';
 			}
 		}
 
@@ -1195,7 +1223,12 @@ export default class ExportStep3 {
 			);
 			if ( grid ) {
 				grid.innerHTML =
-					'<div class="rsl-ie-elementor-loading"><span class="spinner is-active"></span><p>Loading Elementor fields...</p></div>';
+					'<div class="rsl-ie-elementor-loading"><span class="spinner is-active"></span><p>' +
+					__(
+						'Loading Elementor fields...',
+						'import-export-by-rockstarlab'
+					) +
+					'</p></div>';
 			}
 		}
 
@@ -1239,11 +1272,17 @@ export default class ExportStep3 {
 		// Render each field group as a category
 		fieldGroups.forEach( ( group, index ) => {
 			// Skip Custom Filters group and selector groups (they're only for step 2)
-			if (
-				group.label === 'Custom Filters' ||
-				group.label === 'Post Type Selection' ||
-				group.label === 'Taxonomy Selection'
-			) {
+			// Labels arrive translated: compare with the English and the translated names.
+			const i18n = window.rslIeData?.i18n || {};
+			const stepTwoGroups = [
+				__( 'Custom Filters', 'import-export-by-rockstarlab' ),
+				__( 'Post Type Selection', 'import-export-by-rockstarlab' ),
+				__( 'Taxonomy Selection', 'import-export-by-rockstarlab' ),
+				i18n.fieldGroupCustomFilters,
+				i18n.fieldGroupPostTypeSelection,
+				i18n.fieldGroupTaxonomySelection,
+			].filter( Boolean );
+			if ( stepTwoGroups.includes( group.label ) ) {
 				return;
 			}
 
@@ -1335,27 +1374,37 @@ export default class ExportStep3 {
 				...options,
 				{
 					value: 'permalink',
-					label: i18n.fieldPermalink || 'Permalink',
+					label:
+						i18n.fieldPermalink ||
+						__( 'Permalink', 'import-export-by-rockstarlab' ),
 					type: 'string',
 				},
 				{
 					value: 'word_count',
-					label: i18n.fieldWordCount || 'Word Count',
+					label:
+						i18n.fieldWordCount ||
+						__( 'Word Count', 'import-export-by-rockstarlab' ),
 					type: 'number',
 				},
 				{
 					value: 'parent_title',
-					label: i18n.fieldParentTitle || 'Parent Title',
+					label:
+						i18n.fieldParentTitle ||
+						__( 'Parent Title', 'import-export-by-rockstarlab' ),
 					type: 'string',
 				},
 				{
 					value: 'category_names',
-					label: i18n.fieldCategoryNames || 'Category Names',
+					label:
+						i18n.fieldCategoryNames ||
+						__( 'Category Names', 'import-export-by-rockstarlab' ),
 					type: 'string',
 				},
 				{
 					value: 'tag_names',
-					label: i18n.fieldTagNames || 'Tag Names',
+					label:
+						i18n.fieldTagNames ||
+						__( 'Tag Names', 'import-export-by-rockstarlab' ),
 					type: 'string',
 				},
 			],
@@ -1844,7 +1893,10 @@ export default class ExportStep3 {
 			item.innerHTML = `
 				<span class="rsl-ie-field-icon dashicons dashicons-chart-area"></span>
 				<span class="rsl-ie-field-label">${ this.escapeHtml( field.label ) }</span>
-				<span class="rsl-ie-field-type">rank math</span>
+				<span class="rsl-ie-field-type">${ __(
+					'rank math',
+					'import-export-by-rockstarlab'
+				) }</span>
 			`;
 
 			grid.appendChild( item );
@@ -2305,7 +2357,7 @@ export default class ExportStep3 {
 					<button type="button" class="button button-small">${
 						window.rslIeData.i18n.addFunction ||
 						window.rslIeData.i18n.add ||
-						'Assign function'
+						__( 'Assign function', 'import-export-by-rockstarlab' )
 					}</button>
 				`;
 
@@ -2485,7 +2537,8 @@ export default class ExportStep3 {
 		stepsContainer.appendChild(
 			this.createPreviewStep(
 				0,
-				window.rslIeData.i18n.initialValue || 'Initial Value',
+				window.rslIeData.i18n.initialValue ||
+					__( 'Initial Value', 'import-export-by-rockstarlab' ),
 				initialValue
 			)
 		);

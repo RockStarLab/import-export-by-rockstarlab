@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.2.15
+Stable tag: 2.2.16
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -293,6 +293,12 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.2.16 =
+* New: the plugin interface is translated into Russian and Ukrainian. The translations ship with the plugin and work right away.
+* Tweak: texts in the admin screens, notices, job messages and errors can now be translated into any language.
+* Tweak: import auto-mapping also matches columns by the English field name, so files with English headers map correctly when the admin is in another language.
+* Fix: long translated labels fit in the Triggers table and the Functions pagination on phone screens.
 
 = 2.2.15 =
 * Fix: re-importing a Content Migration package on the site it came from with "skip existing" no longer creates duplicate comments or terms.

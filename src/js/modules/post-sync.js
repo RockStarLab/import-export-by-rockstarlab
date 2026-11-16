@@ -1,5 +1,6 @@
 import syncButtonBusy from '../utils/sync-button-busy';
 import TabProgress from '../utils/tab-progress';
+import { __ } from '@wordpress/i18n';
 /**
  * Post Sync Module
  *
@@ -150,12 +151,17 @@ const PostSync = {
 		const siteName = $( '#rsl-ie-sync-site-select option:selected' ).text();
 		const actionText =
 			direction === 'push'
-				? window.rslIeData?.i18n?.pushTo || 'push to'
-				: window.rslIeData?.i18n?.pullFrom || 'pull from';
+				? window.rslIeData?.i18n?.pushTo ||
+				  __( 'push to', 'import-export-by-rockstarlab' )
+				: window.rslIeData?.i18n?.pullFrom ||
+				  __( 'pull from', 'import-export-by-rockstarlab' );
 
 		const message = (
 			window.rslIeData?.i18n?.confirmSyncAction ||
-			'Are you sure you want to %1$s %2$s?\n\nThis will affect %3$s post(s).'
+			__(
+				'Are you sure you want to %1$s %2$s?\n\nThis will affect %3$s post(s).',
+				'import-export-by-rockstarlab'
+			)
 		)
 			.replace( '%1$s', actionText )
 			.replace( '%2$s', siteName )
@@ -172,9 +178,15 @@ const PostSync = {
 		const preparingMsg =
 			direction === 'push'
 				? window.rslIeData?.i18n?.preparingToPush ||
-				  'Preparing to push content...'
+				  __(
+						'Preparing to push content...',
+						'import-export-by-rockstarlab'
+				  )
 				: window.rslIeData?.i18n?.preparingToPull ||
-				  'Preparing to pull content...';
+				  __(
+						'Preparing to pull content...',
+						'import-export-by-rockstarlab'
+				  );
 
 		this.updateProgress( 0, preparingMsg, {
 			posts: 0,
@@ -184,7 +196,8 @@ const PostSync = {
 
 		const stopButtonBusy = syncButtonBusy(
 			$( `#rsl-ie-sync-${ direction }-btn` ),
-			window.rslIeData?.i18n?.loading || 'Loading...'
+			window.rslIeData?.i18n?.loading ||
+				__( 'Loading...', 'import-export-by-rockstarlab' )
 		);
 
 		// Disable buttons
@@ -200,9 +213,15 @@ const PostSync = {
 				const progressMsg =
 					direction === 'push'
 						? window.rslIeData?.i18n?.uploadingContent ||
-						  'Uploading content...'
+						  __(
+								'Uploading content...',
+								'import-export-by-rockstarlab'
+						  )
 						: window.rslIeData?.i18n?.downloadingContent ||
-						  'Downloading content...';
+						  __(
+								'Downloading content...',
+								'import-export-by-rockstarlab'
+						  );
 
 				this.updateProgress( simulatedProgress, progressMsg, {
 					posts: Math.floor(
@@ -254,7 +273,10 @@ const PostSync = {
 					this.updateProgress(
 						100,
 						window.rslIeData?.i18n?.operationCompleted ||
-							'Completed successfully!',
+							__(
+								'Completed successfully!',
+								'import-export-by-rockstarlab'
+							),
 						{
 							posts: postIds.length,
 							images: imageCount,
@@ -270,11 +292,17 @@ const PostSync = {
 							response.message ||
 							response.data?.message ||
 							window.rslIeData?.i18n?.syncCompletedSuccessfully ||
-							'Sync completed successfully';
+							__(
+								'Sync completed successfully',
+								'import-export-by-rockstarlab'
+							);
 						if ( data.created && data.updated ) {
 							const createdUpdatedMsg = (
 								window.rslIeData?.i18n?.createdPosts ||
-								'✓ Created %d post(s), Updated %d post(s)'
+								__(
+									'✓ Created %d post(s), Updated %d post(s)',
+									'import-export-by-rockstarlab'
+								)
 							)
 								.replace( '%d', data.created )
 								.replace( '%d', data.updated );
@@ -283,7 +311,10 @@ const PostSync = {
 						if ( imageCount > 0 ) {
 							const syncedImagesMsg = (
 								window.rslIeData?.i18n?.syncedImages ||
-								'✓ Synced %d image(s)'
+								__(
+									'✓ Synced %d image(s)',
+									'import-export-by-rockstarlab'
+								)
 							).replace( '%d', imageCount );
 							successMsg += `<br>${ syncedImagesMsg }`;
 						}
@@ -293,7 +324,8 @@ const PostSync = {
 				} else {
 					this.updateProgress(
 						0,
-						window.rslIeData?.i18n?.syncFailed || 'Sync failed',
+						window.rslIeData?.i18n?.syncFailed ||
+							__( 'Sync failed', 'import-export-by-rockstarlab' ),
 						{}
 					);
 					setTimeout( () => {
@@ -303,7 +335,10 @@ const PostSync = {
 							response.message ||
 								response.data?.message ||
 								window.rslIeData?.i18n?.syncFailed ||
-								'Sync failed'
+								__(
+									'Sync failed',
+									'import-export-by-rockstarlab'
+								)
 						);
 					}, 500 );
 				}
@@ -314,7 +349,10 @@ const PostSync = {
 
 				let errorMessage =
 					window.rslIeData?.i18n?.errorOccurredDuringSync ||
-					'An error occurred during sync';
+					__(
+						'An error occurred during sync',
+						'import-export-by-rockstarlab'
+					);
 				if (
 					xhr.responseJSON?.message ||
 					xhr.responseJSON?.data?.message
@@ -352,7 +390,8 @@ const PostSync = {
 
 		if ( details.posts !== undefined && details.total ) {
 			const postsMsg = (
-				window.rslIeData?.i18n?.postsProgress || 'Posts: %1$s/%2$s'
+				window.rslIeData?.i18n?.postsProgress ||
+				__( 'Posts: %1$s/%2$s', 'import-export-by-rockstarlab' )
 			)
 				.replace( '%1$s', details.posts )
 				.replace( '%2$s', details.total );
@@ -362,7 +401,7 @@ const PostSync = {
 		if ( details.images !== undefined && details.images > 0 ) {
 			const imagesMsg = (
 				window.rslIeData?.i18n?.imagesSyncedProgress ||
-				'Images synced: %d'
+				__( 'Images synced: %d', 'import-export-by-rockstarlab' )
 			).replace( '%d', details.images );
 			progressText += `<br><span class="progress-details">${ imagesMsg }</span>`;
 		}

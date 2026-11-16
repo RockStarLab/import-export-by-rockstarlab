@@ -141,7 +141,7 @@ class CSV_Format implements File_Format_Interface {
 
 		$handle = fopen( $file_path, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 		if ( ! $handle ) {
-			throw new \RuntimeException( 'Cannot open CSV file.' );
+			throw new \RuntimeException( __( 'Cannot open CSV file.', 'import-export-by-rockstarlab' ) );
 		}
 
 		$headers = [];
@@ -153,7 +153,7 @@ class CSV_Format implements File_Format_Interface {
 			$settings = hash( 'sha256', serialize( [ $delimiter, $enclosure, $escape, $has_header, $encoding ] ) );
 			if ( null !== $cursor ) {
 				if ( ! is_array( $cursor ) || ( $cursor['identity'] ?? null ) !== $identity || ( $cursor['settings'] ?? null ) !== $settings || ! isset( $cursor['offset'], $cursor['headers'], $cursor['row_num'] ) || ! is_int( $cursor['offset'] ) || $cursor['offset'] < 0 || ! is_array( $cursor['headers'] ) || ! is_int( $cursor['row_num'] ) || $cursor['row_num'] < 0 || $cursor['offset'] > fstat( $handle )['size'] || 0 !== fseek( $handle, $cursor['offset'] ) ) {
-					throw new \RuntimeException( 'Invalid CSV cursor.' );
+					throw new \RuntimeException( __( 'Invalid CSV cursor.', 'import-export-by-rockstarlab' ) );
 				}
 				$headers = $cursor['headers'];
 				$row_num = $cursor['row_num'];

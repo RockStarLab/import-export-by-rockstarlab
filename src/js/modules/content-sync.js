@@ -1,3 +1,4 @@
+import { __ } from '@wordpress/i18n';
 /**
  * Content Sync Module
  *
@@ -165,7 +166,10 @@ const ContentSyncModule = {
 						<span class="dashicons dashicons-admin-site" style="font-size: 48px; opacity: 0.3;"></span>
 						<p style="margin-top: 40px">${
 							window.rslIeData.i18n.noConnectedSites ||
-							'No connected sites yet. Add your first connection!'
+							__(
+								'No connected sites yet. Add your first connection!',
+								'import-export-by-rockstarlab'
+							)
 						}</p>
 					</td>
 				</tr>
@@ -177,7 +181,8 @@ const ContentSyncModule = {
 			const statusClass = `rsl-ie-status-${ site.status }`;
 			const lastSync = site.last_sync_at
 				? new Date( site.last_sync_at ).toLocaleString()
-				: window.rslIeData.i18n.never || 'Never';
+				: window.rslIeData.i18n.never ||
+				  __( 'Never', 'import-export-by-rockstarlab' );
 
 			const row = `
 				<tr data-site-id="${ site.id }">
@@ -193,7 +198,22 @@ const ContentSyncModule = {
 					</td>
 					<td class="column-status">
 						<span class="rsl-ie-status-badge ${ statusClass }">
-							${ this.escapeHtml( site.status ) }
+							${ this.escapeHtml(
+								{
+									active: __(
+										'Active',
+										'import-export-by-rockstarlab'
+									),
+									inactive: __(
+										'Inactive',
+										'import-export-by-rockstarlab'
+									),
+									error: __(
+										'Error',
+										'import-export-by-rockstarlab'
+									),
+								}[ site.status ] || site.status
+							) }
 						</span>
 					</td>
 					<td class="column-last-sync">
@@ -204,19 +224,26 @@ const ContentSyncModule = {
 							site.id
 						}" title="${
 							window.rslIeData.i18n.testConnection ||
-							'Test Connection'
+							__(
+								'Test Connection',
+								'import-export-by-rockstarlab'
+							)
 						}">
 							<span class="dashicons dashicons-update"></span>
 						</button>
 						<button type="button" class="button button-small rsl-ie-edit-site" data-site-id="${
 							site.id
-						}" title="${ window.rslIeData.i18n.edit || 'Edit' }">
+						}" title="${
+							window.rslIeData.i18n.edit ||
+							__( 'Edit', 'import-export-by-rockstarlab' )
+						}">
 							<span class="dashicons dashicons-edit"></span>
 						</button>
 						<button type="button" class="button button-small rsl-ie-delete-site" data-site-id="${
 							site.id
 						}" title="${
-							window.rslIeData.i18n.delete || 'Delete'
+							window.rslIeData.i18n.delete ||
+							__( 'Delete', 'import-export-by-rockstarlab' )
 						}">
 							<span class="dashicons dashicons-trash"></span>
 						</button>
@@ -243,7 +270,8 @@ const ContentSyncModule = {
 	showAddSiteModal() {
 		const $ = jQuery;
 		$( '#rsl-ie-modal-title' ).text(
-			window.rslIeData.i18n.addNewSite || 'Add New Site'
+			window.rslIeData.i18n.addNewSite ||
+				__( 'Add New Site', 'import-export-by-rockstarlab' )
 		);
 		$( '#rsl-ie-site-form' )[ 0 ].reset();
 		$( '#rsl-ie-site-id' ).val( '' );
@@ -269,7 +297,8 @@ const ContentSyncModule = {
 		if ( ! site ) return;
 
 		$( '#rsl-ie-modal-title' ).text(
-			window.rslIeData.i18n.editSite || 'Edit Site'
+			window.rslIeData.i18n.editSite ||
+				__( 'Edit Site', 'import-export-by-rockstarlab' )
 		);
 		$( '#rsl-ie-site-id' ).val( siteId );
 		$( '#rsl-ie-site-name' ).val( site.name );
@@ -281,7 +310,10 @@ const ContentSyncModule = {
 			.attr(
 				'placeholder',
 				window.rslIeData.i18n.keepCurrentKey ||
-					'Leave empty to keep the current key'
+					__(
+						'Leave empty to keep the current key',
+						'import-export-by-rockstarlab'
+					)
 			);
 		$( '#rsl-ie-site-api-key' )
 			.closest( '.rsl-ie-form-row' )
@@ -349,9 +381,13 @@ const ContentSyncModule = {
 		const hasApiKey = data.api_key && data.api_key.trim() !== '';
 		const buttonText =
 			isEdit && ! hasApiKey
-				? window.rslIeData.i18n.updating || 'Updating...'
+				? window.rslIeData.i18n.updating ||
+				  __( 'Updating...', 'import-export-by-rockstarlab' )
 				: window.rslIeData.i18n.validatingSaving ||
-				  'Validating & Saving...';
+				  __(
+						'Validating & Saving...',
+						'import-export-by-rockstarlab'
+				  );
 		$saveBtn.prop( 'disabled', true ).text( buttonText );
 
 		// Show info message when validating API key
@@ -359,9 +395,15 @@ const ContentSyncModule = {
 			this.showModalNotice(
 				'info',
 				window.rslIeData.i18n.validatingApiKey ||
-					'Validating API key...',
+					__(
+						'Validating API key...',
+						'import-export-by-rockstarlab'
+					),
 				window.rslIeData.i18n.pleaseWaitVerifying ||
-					'Please wait while we verify the connection to the remote site.'
+					__(
+						'Please wait while we verify the connection to the remote site.',
+						'import-export-by-rockstarlab'
+					)
 			);
 		}
 
@@ -375,13 +417,20 @@ const ContentSyncModule = {
 						response.message ||
 						( response.data && response.data.message ) ||
 						window.rslIeData.i18n.operationCompleted ||
-						'Operation completed successfully';
+						__(
+							'Operation completed successfully',
+							'import-export-by-rockstarlab'
+						);
 
 					// Check if no changes were made
 					if ( message.includes( 'No changes' ) ) {
 						this.showModalNotice(
 							'info',
-							window.rslIeData.i18n.noChanges || 'No Changes',
+							window.rslIeData.i18n.noChanges ||
+								__(
+									'No Changes',
+									'import-export-by-rockstarlab'
+								),
 							message
 						);
 						// Close modal after delay
@@ -391,7 +440,11 @@ const ContentSyncModule = {
 					} else {
 						this.showModalNotice(
 							'success',
-							window.rslIeData.i18n.success || 'Success!',
+							window.rslIeData.i18n.success ||
+								__(
+									'Success!',
+									'import-export-by-rockstarlab'
+								),
 							message
 						);
 						// Close modal after short delay
@@ -405,20 +458,30 @@ const ContentSyncModule = {
 					this.showModalNotice(
 						'error',
 						window.rslIeData.i18n.validationFailed ||
-							'Validation Failed',
+							__(
+								'Validation Failed',
+								'import-export-by-rockstarlab'
+							),
 						response.message ||
 							( response.data && response.data.message ) ||
 							window.rslIeData.i18n.failedSaveSiteConnection ||
-							'Failed to save site connection'
+							__(
+								'Failed to save site connection',
+								'import-export-by-rockstarlab'
+							)
 					);
 				}
 			},
 			error: ( xhr ) => {
 				let errorTitle =
-					window.rslIeData.i18n.connectionError || 'Connection Error';
+					window.rslIeData.i18n.connectionError ||
+					__( 'Connection Error', 'import-export-by-rockstarlab' );
 				let errorMessage =
 					window.rslIeData.i18n.unexpectedError ||
-					'An unexpected error occurred while trying to save the site connection.';
+					__(
+						'An unexpected error occurred while trying to save the site connection.',
+						'import-export-by-rockstarlab'
+					);
 				let errorDetails = [];
 
 				// Check if we have a response from the server with error message
@@ -440,42 +503,72 @@ const ContentSyncModule = {
 					) {
 						errorTitle =
 							window.rslIeData.i18n.connectionFailed ||
-							'Connection Failed';
+							__(
+								'Connection Failed',
+								'import-export-by-rockstarlab'
+							);
 						errorDetails.push(
 							window.rslIeData.i18n.possibleReasons ||
-								'Possible reasons:'
+								__(
+									'Possible reasons:',
+									'import-export-by-rockstarlab'
+								)
 						);
 						errorDetails.push(
 							window.rslIeData.i18n.urlIncorrect ||
-								'- The URL is incorrect or not accessible'
+								__(
+									'- The URL is incorrect or not accessible',
+									'import-export-by-rockstarlab'
+								)
 						);
 						errorDetails.push(
 							window.rslIeData.i18n.remoteSiteOffline ||
-								'- The remote site is offline'
+								__(
+									'- The remote site is offline',
+									'import-export-by-rockstarlab'
+								)
 						);
 						errorDetails.push(
 							window.rslIeData.i18n.networkFirewall ||
-								'- Network or firewall issues are blocking the connection'
+								__(
+									'- Network or firewall issues are blocking the connection',
+									'import-export-by-rockstarlab'
+								)
 						);
 					} else if ( errorMessage.includes( 'Invalid API key' ) ) {
 						errorTitle =
 							window.rslIeData.i18n.invalidApiKey ||
-							'Invalid API Key';
+							__(
+								'Invalid API Key',
+								'import-export-by-rockstarlab'
+							);
 						errorDetails.push(
 							window.rslIeData.i18n.toResolveIssue ||
-								'To resolve this issue:'
+								__(
+									'To resolve this issue:',
+									'import-export-by-rockstarlab'
+								)
 						);
 						errorDetails.push(
 							window.rslIeData.i18n.goToContentSync ||
-								'- Go to Content Sync page on the remote site'
+								__(
+									'- Go to Content Sync page on the remote site',
+									'import-export-by-rockstarlab'
+								)
 						);
 						errorDetails.push(
 							window.rslIeData.i18n.clickShowDetails ||
-								'- Click "Show Details" to reveal the API key'
+								__(
+									'- Click "Show Details" to reveal the API key',
+									'import-export-by-rockstarlab'
+								)
 						);
 						errorDetails.push(
 							window.rslIeData.i18n.copyEntireKey ||
-								'- Copy the entire key and paste it here'
+								__(
+									'- Copy the entire key and paste it here',
+									'import-export-by-rockstarlab'
+								)
 						);
 					} else if (
 						errorMessage.includes( 'plugin is not installed' ) ||
@@ -483,43 +576,70 @@ const ContentSyncModule = {
 					) {
 						errorTitle =
 							window.rslIeData.i18n.pluginNotFound ||
-							'Plugin Not Found';
+							__(
+								'Plugin Not Found',
+								'import-export-by-rockstarlab'
+							);
 						// No additional details needed, message is clear
 					} else if ( errorMessage.includes( 'already connected' ) ) {
 						errorTitle =
 							window.rslIeData.i18n.duplicateConnection ||
-							'Duplicate Connection';
+							__(
+								'Duplicate Connection',
+								'import-export-by-rockstarlab'
+							);
 						errorDetails.push(
 							window.rslIeData.i18n.siteAlreadyConnected ||
-								'This site URL is already in your connected sites list.'
+								__(
+									'This site URL is already in your connected sites list.',
+									'import-export-by-rockstarlab'
+								)
 						);
 					} else if ( errorMessage.includes( 'required' ) ) {
 						errorTitle =
 							window.rslIeData.i18n.validationError ||
-							'Validation Error';
+							__(
+								'Validation Error',
+								'import-export-by-rockstarlab'
+							);
 						// Field validation errors are clear enough
 					} else {
-						errorTitle = window.rslIeData.i18n.error || 'Error';
+						errorTitle =
+							window.rslIeData.i18n.error ||
+							__( 'Error', 'import-export-by-rockstarlab' );
 						// Use the server message as-is for other errors
 					}
 				} else if ( xhr.status === 0 ) {
 					errorTitle =
-						window.rslIeData.i18n.networkError || 'Network Error';
+						window.rslIeData.i18n.networkError ||
+						__( 'Network Error', 'import-export-by-rockstarlab' );
 					errorMessage =
 						window.rslIeData.i18n.unableConnectServer ||
-						'Unable to connect to the server. Please check your internet connection.';
+						__(
+							'Unable to connect to the server. Please check your internet connection.',
+							'import-export-by-rockstarlab'
+						);
 				} else if ( xhr.status >= 500 ) {
 					errorTitle =
-						window.rslIeData.i18n.serverError || 'Server Error';
+						window.rslIeData.i18n.serverError ||
+						__( 'Server Error', 'import-export-by-rockstarlab' );
 					errorMessage = (
 						window.rslIeData.i18n.serverReturnedError ||
-						'The server returned an error (%s). Please try again later.'
+						__(
+							'The server returned an error (%s). Please try again later.',
+							'import-export-by-rockstarlab'
+						)
 					).replace( '%s', xhr.status );
 				} else if ( xhr.status === 404 ) {
-					errorTitle = window.rslIeData.i18n.notFound || 'Not Found';
+					errorTitle =
+						window.rslIeData.i18n.notFound ||
+						__( 'Not Found', 'import-export-by-rockstarlab' );
 					errorMessage =
 						window.rslIeData.i18n.endpointNotFound ||
-						'The requested endpoint was not found. Please check if the plugin is properly installed.';
+						__(
+							'The requested endpoint was not found. Please check if the plugin is properly installed.',
+							'import-export-by-rockstarlab'
+						);
 				}
 
 				this.showModalNotice(
@@ -534,7 +654,10 @@ const ContentSyncModule = {
 					.prop( 'disabled', false )
 					.text(
 						window.rslIeData.i18n.saveConnection ||
-							'Save Connection'
+							__(
+								'Save Connection',
+								'import-export-by-rockstarlab'
+							)
 					);
 			},
 		} );
@@ -685,13 +808,15 @@ const ContentSyncModule = {
 			if ( $info.is( ':visible' ) ) {
 				$btn.html(
 					`<span class="dashicons dashicons-hidden"></span> ${
-						window.rslIeData.i18n.hideDetails || 'Hide Details'
+						window.rslIeData.i18n.hideDetails ||
+						__( 'Hide Details', 'import-export-by-rockstarlab' )
 					}`
 				);
 			} else {
 				$btn.html(
 					`<span class="dashicons dashicons-visibility"></span> ${
-						window.rslIeData.i18n.showDetails || 'Show Details'
+						window.rslIeData.i18n.showDetails ||
+						__( 'Show Details', 'import-export-by-rockstarlab' )
 					}`
 				);
 			}
@@ -712,7 +837,8 @@ const ContentSyncModule = {
 
 		$btn.html(
 			`<span class="dashicons dashicons-yes"></span> ${
-				window.rslIeData.i18n.copied || 'Copied!'
+				window.rslIeData.i18n.copied ||
+				__( 'Copied!', 'import-export-by-rockstarlab' )
 			}`
 		);
 
@@ -738,7 +864,8 @@ const ContentSyncModule = {
 		const originalText = $btn.html();
 		$btn.prop( 'disabled', true ).html(
 			`<span class="dashicons dashicons-update"></span> ${
-				window.rslIeData.i18n.regenerating || 'Regenerating...'
+				window.rslIeData.i18n.regenerating ||
+				__( 'Regenerating...', 'import-export-by-rockstarlab' )
 			}`
 		);
 
@@ -760,7 +887,8 @@ const ContentSyncModule = {
 					// Briefly show success state on button
 					$btn.html(
 						`<span class="dashicons dashicons-yes"></span> ${
-							window.rslIeData.i18n.regenerated || 'Regenerated!'
+							window.rslIeData.i18n.regenerated ||
+							__( 'Regenerated!', 'import-export-by-rockstarlab' )
 						}`
 					);
 					setTimeout( () => {

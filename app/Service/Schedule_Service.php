@@ -153,7 +153,7 @@ class Schedule_Service {
 		$name   = sanitize_text_field( $input['name'] ?? $row->name ?? '' );
 		$data   = [
 			'source_job_id' => $source_id,
-			'name'          => '' === $name ? 'Schedule for Job #' . $source_id : $name,
+			'name'          => '' === $name ? sprintf( /* translators: %d: job ID. */ __( 'Schedule for Job #%d', 'import-export-by-rockstarlab' ), $source_id ) : $name,
 			'schedule_type' => $type,
 			'recurrence'    => $recurrence,
 			'status'        => $status,
@@ -264,6 +264,6 @@ class Schedule_Service {
 		if ( 'changed_only_unsupported' === $code ) {
 			return new \WP_Error( 'rsl_ie_schedule_' . $code, __( '"Changes only" works with exports of posts or pages. Turn it off for this source job.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
 		}
-		return new \WP_Error( 'rsl_ie_schedule_' . $code, 'Schedule operation failed: ' . $code, [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_schedule_' . $code, sprintf( /* translators: %s: error code. */ __( 'Schedule operation failed: %s', 'import-export-by-rockstarlab' ), $code ), [ 'status' => $status ] );
 	}
 }

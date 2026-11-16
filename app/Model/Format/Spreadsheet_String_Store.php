@@ -14,19 +14,19 @@ class Spreadsheet_String_Store {
 		$this->values = null === $path ? tmpfile() : fopen( $path . '.values', 'c+b' );
 		if ( ! $this->index || ! $this->values ) {
 			$this->close();
-			throw new \RuntimeException( 'Cannot create spreadsheet string index.' ); }
+			throw new \RuntimeException( __( 'Cannot create spreadsheet string index.', 'import-export-by-rockstarlab' ) ); }
 		if ( null !== $path ) {
 			$length = 0;
 			if ( $count ) {
 				if ( fseek( $this->index, ( $count - 1 ) * 40 ) !== 0 ) {
-					throw new \RuntimeException( 'Invalid string checkpoint.' ); }
+					throw new \RuntimeException( __( 'Invalid string checkpoint.', 'import-export-by-rockstarlab' ) ); }
 				$last = fread( $this->index, 40 );
 				if ( strlen( $last ) !== 40 || ! ctype_digit( $last ) ) {
-					throw new \RuntimeException( 'Invalid string checkpoint.' ); }
+					throw new \RuntimeException( __( 'Invalid string checkpoint.', 'import-export-by-rockstarlab' ) ); }
 				$length = (int) substr( $last, 0, 20 ) + (int) substr( $last, 20 );
 			}
 			if ( fstat( $this->values )['size'] < $length || ! ftruncate( $this->index, $count * 40 ) || ! ftruncate( $this->values, $length ) ) {
-				throw new \RuntimeException( 'Invalid string checkpoint.' ); }
+				throw new \RuntimeException( __( 'Invalid string checkpoint.', 'import-export-by-rockstarlab' ) ); }
 			$this->count = $count;
 		}
 	}
@@ -43,17 +43,17 @@ class Spreadsheet_String_Store {
 					continue; }
 				if ( 0 === $node->depth ) {
 					if ( 'sst' !== $node->localName || ! in_array( $node->namespaceURI, [ 'http://schemas.openxmlformats.org/spreadsheetml/2006/main', 'http://purl.oclc.org/ooxml/spreadsheetml/main' ], true ) ) {
-						throw new \RuntimeException( 'Invalid shared-string root.' ); }
+						throw new \RuntimeException( __( 'Invalid shared-string root.', 'import-export-by-rockstarlab' ) ); }
 					$root      = true;
 					$namespace = $node->namespaceURI;
 				}
 				if ( 1 !== $node->depth || 'si' !== $node->localName ) {
 					continue; }
 				if ( $node->namespaceURI !== $namespace ) {
-					throw new \RuntimeException( 'Invalid shared-string namespace.' ); }
+					throw new \RuntimeException( __( 'Invalid shared-string namespace.', 'import-export-by-rockstarlab' ) ); }
 				$xml = simplexml_load_string( $node->readOuterXml(), \SimpleXMLElement::class, LIBXML_NONET | LIBXML_COMPACT | LIBXML_PARSEHUGE );
 				if ( false === $xml ) {
-					throw new \RuntimeException( 'Invalid shared string.' ); }
+					throw new \RuntimeException( __( 'Invalid shared string.', 'import-export-by-rockstarlab' ) ); }
 				$item  = $xml->children( $namespace );
 				$value = '';
 				if ( isset( $item->t ) ) {
@@ -69,7 +69,7 @@ class Spreadsheet_String_Store {
 				$checkpoint['root']      = $root;
 				$checkpoint['namespace'] = $namespace; }
 			if ( ! $root && ( ! $resume || ! empty( $checkpoint['nodes']['done'] ) ) ) {
-				throw new \RuntimeException( 'Missing shared-string root.' ); }
+				throw new \RuntimeException( __( 'Missing shared-string root.', 'import-export-by-rockstarlab' ) ); }
 			return $store;
 		} catch ( \Throwable $error ) {
 			$store->close();
@@ -81,30 +81,30 @@ class Spreadsheet_String_Store {
 
 	public function append( $value ) {
 		if ( ! is_string( $value ) || 0 !== fseek( $this->values, 0, SEEK_END ) || 0 !== fseek( $this->index, 0, SEEK_END ) ) {
-			throw new \RuntimeException( 'Invalid spreadsheet string.' ); }
+			throw new \RuntimeException( __( 'Invalid spreadsheet string.', 'import-export-by-rockstarlab' ) ); }
 		$offset = ftell( $this->values );
 		$length = strlen( $value );
 		$entry  = sprintf( '%020d%020d', $offset, $length );
 		if ( 40 !== strlen( $entry ) || $length !== fwrite( $this->values, $value ) || 40 !== fwrite( $this->index, $entry ) ) {
-			throw new \RuntimeException( 'Cannot store spreadsheet string.' ); }
+			throw new \RuntimeException( __( 'Cannot store spreadsheet string.', 'import-export-by-rockstarlab' ) ); }
 		return $this->count++;
 	}
 
 	public function get( $id ) {
 		if ( ! is_int( $id ) || $id < 0 || $id >= $this->count || 0 !== fseek( $this->index, $id * 40 ) ) {
-			throw new \RuntimeException( 'Invalid shared-string reference.' ); }
+			throw new \RuntimeException( __( 'Invalid shared-string reference.', 'import-export-by-rockstarlab' ) ); }
 		$entry = fread( $this->index, 40 );
 		if ( strlen( $entry ) !== 40 || ! ctype_digit( $entry ) ) {
-			throw new \RuntimeException( 'Invalid spreadsheet string index.' ); }
+			throw new \RuntimeException( __( 'Invalid spreadsheet string index.', 'import-export-by-rockstarlab' ) ); }
 		$offset    = (int) substr( $entry, 0, 20 );
 		$remaining = (int) substr( $entry, 20 );
 		if ( 0 !== fseek( $this->values, $offset ) ) {
-			throw new \RuntimeException( 'Cannot seek spreadsheet string.' ); }
+			throw new \RuntimeException( __( 'Cannot seek spreadsheet string.', 'import-export-by-rockstarlab' ) ); }
 		$value = '';
 		while ( $remaining ) {
 			$chunk = fread( $this->values, min( 65536, $remaining ) );
 			if ( false === $chunk || '' === $chunk ) {
-				throw new \RuntimeException( 'Incomplete spreadsheet string.' ); }
+				throw new \RuntimeException( __( 'Incomplete spreadsheet string.', 'import-export-by-rockstarlab' ) ); }
 			$value     .= $chunk;
 			$remaining -= strlen( $chunk );
 		}

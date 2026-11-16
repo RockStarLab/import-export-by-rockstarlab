@@ -112,7 +112,7 @@ class Job_Scheduler {
 				static function () use ( $schedule, $due, $options ) {
 					$last = $schedule->last_job_id ? rsl_ie()->Model->job->find( (int) $schedule->last_job_id ) : null;
 					if ( $last && in_array( $last->status, [ 'pending', 'processing', 'paused' ], true ) ) {
-						return new \WP_Error( 'rsl_ie_schedule_overlap', 'Previous occurrence is still active.', [ 'status' => 409 ] );
+						return new \WP_Error( 'rsl_ie_schedule_overlap', __( 'Previous occurrence is still active.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
 					}
 					// "Changes only": everything modified since the previous completed run started.
 					// Without a completed previous run, export everything so nothing is missed.

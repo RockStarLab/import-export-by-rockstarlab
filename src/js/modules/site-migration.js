@@ -5,6 +5,7 @@ import TabProgress from '../utils/tab-progress';
 
 import Utils from './utils';
 
+import { __, _n, sprintf } from '@wordpress/i18n';
 const SiteMigration = {
 	step: 2,
 	plan: [],
@@ -72,9 +73,15 @@ const SiteMigration = {
 			if ( ! started ) {
 				Utils.handleError(
 					new Error(
-						'The download did not start. Please try again.'
+						__(
+							'The download did not start. Please try again.',
+							'import-export-by-rockstarlab'
+						)
 					),
-					'Download migration package'
+					__(
+						'Download migration package',
+						'import-export-by-rockstarlab'
+					)
 				);
 			}
 		}, 250 );
@@ -166,7 +173,10 @@ const SiteMigration = {
 			$notice.hide();
 		} catch ( error ) {
 			$button.prop( 'disabled', false );
-			Utils.handleError( error, 'Content migration notice' );
+			Utils.handleError(
+				error,
+				__( 'Content migration notice', 'import-export-by-rockstarlab' )
+			);
 		}
 	},
 
@@ -177,7 +187,10 @@ const SiteMigration = {
 			this.contentContext = null;
 			this.updateMode();
 		} catch ( error ) {
-			Utils.handleError( error, 'Load migration plan' );
+			Utils.handleError(
+				error,
+				__( 'Load migration plan', 'import-export-by-rockstarlab' )
+			);
 		}
 	},
 
@@ -193,7 +206,7 @@ const SiteMigration = {
 					...step,
 					label:
 						step.type === 'menu'
-							? 'Menus'
+							? __( 'Menus', 'import-export-by-rockstarlab' )
 							: step.key.replace( /[_:]/g, ' ' ),
 			  } ) )
 			: this.expandSteps( this.plan );
@@ -202,19 +215,45 @@ const SiteMigration = {
 		const i18n =
 			( 'undefined' !== typeof window && window.rslIeData?.i18n ) || {};
 		const familyLabels = {
-			media: i18n.migrationMedia || 'Media',
-			post: i18n.migrationPosts || 'Posts',
-			page: i18n.migrationPages || 'Pages',
-			comment: i18n.migrationComments || 'Comments',
-			user: i18n.migrationUsers || 'Users',
-			menu: i18n.migrationMenus || 'Menus',
-			woo_attribute: i18n.migrationAttributes || 'Product attributes',
-			woo_product: i18n.migrationProducts || 'Products',
-			woo_coupon: i18n.migrationCoupons || 'Coupons',
-			woo_customer: i18n.migrationCustomers || 'Customers',
-			woo_order: i18n.migrationOrders || 'Orders',
-			woo_refund: i18n.migrationRefunds || 'Refunds',
-			woo_review: i18n.migrationReviews || 'Product reviews',
+			media:
+				i18n.migrationMedia ||
+				__( 'Media', 'import-export-by-rockstarlab' ),
+			post:
+				i18n.migrationPosts ||
+				__( 'Posts', 'import-export-by-rockstarlab' ),
+			page:
+				i18n.migrationPages ||
+				__( 'Pages', 'import-export-by-rockstarlab' ),
+			comment:
+				i18n.migrationComments ||
+				__( 'Comments', 'import-export-by-rockstarlab' ),
+			user:
+				i18n.migrationUsers ||
+				__( 'Users', 'import-export-by-rockstarlab' ),
+			menu:
+				i18n.migrationMenus ||
+				__( 'Menus', 'import-export-by-rockstarlab' ),
+			woo_attribute:
+				i18n.migrationAttributes ||
+				__( 'Product attributes', 'import-export-by-rockstarlab' ),
+			woo_product:
+				i18n.migrationProducts ||
+				__( 'Products', 'import-export-by-rockstarlab' ),
+			woo_coupon:
+				i18n.migrationCoupons ||
+				__( 'Coupons', 'import-export-by-rockstarlab' ),
+			woo_customer:
+				i18n.migrationCustomers ||
+				__( 'Customers', 'import-export-by-rockstarlab' ),
+			woo_order:
+				i18n.migrationOrders ||
+				__( 'Orders', 'import-export-by-rockstarlab' ),
+			woo_refund:
+				i18n.migrationRefunds ||
+				__( 'Refunds', 'import-export-by-rockstarlab' ),
+			woo_review:
+				i18n.migrationReviews ||
+				__( 'Product reviews', 'import-export-by-rockstarlab' ),
 		};
 		this.contentChoices = leaves.map( ( leaf ) => ( {
 			...leaf,
@@ -227,11 +266,27 @@ const SiteMigration = {
 			requires: [],
 		} ) );
 		const groups = [
-			[ 'content', 'Posts & media', 'admin-post' ],
-			[ 'menus', 'Menus', 'menu' ],
-			[ 'custom', 'Custom post types', 'admin-page' ],
-			[ 'taxonomy', 'Taxonomies', 'category' ],
-			[ 'people', 'People & discussion', 'groups' ],
+			[
+				'content',
+				__( 'Posts & media', 'import-export-by-rockstarlab' ),
+				'admin-post',
+			],
+			[ 'menus', __( 'Menus', 'import-export-by-rockstarlab' ), 'menu' ],
+			[
+				'custom',
+				__( 'Custom post types', 'import-export-by-rockstarlab' ),
+				'admin-page',
+			],
+			[
+				'taxonomy',
+				__( 'Taxonomies', 'import-export-by-rockstarlab' ),
+				'category',
+			],
+			[
+				'people',
+				__( 'People & discussion', 'import-export-by-rockstarlab' ),
+				'groups',
+			],
 			[ 'store', 'WooCommerce', 'cart' ],
 		];
 		const $groups = jQuery( '.rsl-ie-content-groups' ).empty();
@@ -261,8 +316,11 @@ const SiteMigration = {
 				class: 'rsl-ie-content-group-actions',
 			} ).appendTo( $body );
 			[
-				[ 'all', 'Select all' ],
-				[ 'none', 'Deselect all' ],
+				[ 'all', __( 'Select all', 'import-export-by-rockstarlab' ) ],
+				[
+					'none',
+					__( 'Deselect all', 'import-export-by-rockstarlab' ),
+				],
 			].forEach( ( [ action, label ] ) => {
 				jQuery( '<button>', {
 					type: 'button',
@@ -357,15 +415,21 @@ const SiteMigration = {
 			}
 			input.disabled = !! unavailable;
 			const reason = choice.unavailable
-				? 'Available through export file'
+				? __(
+						'Available through export file',
+						'import-export-by-rockstarlab'
+				  )
 				: missing.length
-				? `Select ${ missing
-						.map(
-							( key ) =>
-								choices.find( ( item ) => item.key === key )
-									?.label || key
-						)
-						.join( ', ' ) } first`
+				? sprintf(
+						__( 'Select %s first', 'import-export-by-rockstarlab' ),
+						missing
+							.map(
+								( key ) =>
+									choices.find( ( item ) => item.key === key )
+										?.label || key
+							)
+							.join( ', ' )
+				  )
 				: '';
 			jQuery( input )
 				.closest( 'label' )
@@ -383,7 +447,18 @@ const SiteMigration = {
 			);
 		} );
 		const count = this.selectedContentKeys().length;
-		jQuery( '.rsl-ie-content-count' ).text( `${ count } selected` );
+		jQuery( '.rsl-ie-content-count' ).text(
+			sprintf(
+				/* translators: %s: number of selected content types. */
+				_n(
+					'%s selected',
+					'%s selected',
+					count,
+					'import-export-by-rockstarlab'
+				),
+				count
+			)
+		);
 	},
 
 	updateMode() {
@@ -447,7 +522,10 @@ const SiteMigration = {
 	async setSelectedFile( file ) {
 		if ( file && ! /\.zip$/i.test( file.name ) ) {
 			Utils.showNotice(
-				'Please choose a ZIP migration package.',
+				__(
+					'Please choose a ZIP migration package.',
+					'import-export-by-rockstarlab'
+				),
 				'error'
 			);
 			return;
@@ -471,7 +549,12 @@ const SiteMigration = {
 		}
 		jQuery( '.rsl-ie-package-activity' ).remove();
 		jQuery( '.rsl-ie-migration-file-info' ).append(
-			'<div class="rsl-ie-package-activity" role="status"><span class="spinner is-active"></span><span class="rsl-ie-package-activity-text">Uploading and checking package…</span></div>'
+			'<div class="rsl-ie-package-activity" role="status"><span class="spinner is-active"></span><span class="rsl-ie-package-activity-text">' +
+				__(
+					'Uploading and checking package…',
+					'import-export-by-rockstarlab'
+				) +
+				'</span></div>'
 		);
 		this.preparingPackage = true;
 		jQuery( '.rsl-ie-migration-start' ).prop( 'disabled', true );
@@ -492,11 +575,18 @@ const SiteMigration = {
 			}
 			if ( ! upload.success ) {
 				throw new Error(
-					this.getErrorMessage( upload ) || 'Package upload failed'
+					this.getErrorMessage( upload ) ||
+						__(
+							'Package upload failed',
+							'import-export-by-rockstarlab'
+						)
 				);
 			}
 			jQuery( '.rsl-ie-package-activity-text' ).text(
-				'Reading package contents…'
+				__(
+					'Reading package contents…',
+					'import-export-by-rockstarlab'
+				)
 			);
 			let prepared = upload.data;
 			const started = Date.now();
@@ -512,10 +602,23 @@ const SiteMigration = {
 				const secs = Math.round( ( Date.now() - started ) / 1000 );
 				jQuery( '.rsl-ie-package-activity-text' ).text(
 					read > 0
-						? `Reading package contents… ${ read } ${
-								1 === read ? 'part' : 'parts'
-						  } read (${ secs } s)`
-						: `Reading package contents… (${ secs } s)`
+						? sprintf(
+								_n(
+									'Reading package contents… %1$s part read (%2$s s)',
+									'Reading package contents… %1$s parts read (%2$s s)',
+									read,
+									'import-export-by-rockstarlab'
+								),
+								read,
+								secs
+						  )
+						: sprintf(
+								__(
+									'Reading package contents… (%s s)',
+									'import-export-by-rockstarlab'
+								),
+								secs
+						  )
 				);
 			}
 			const steps = [ ...prepared.steps ];
@@ -537,7 +640,10 @@ const SiteMigration = {
 						class: 'rsl-ie-package-activity',
 						role: 'status',
 					} ).text(
-						'WooCommerce is inactive. WooCommerce data is excluded from this import, including when All content is selected. Other content can be imported.'
+						__(
+							'WooCommerce is inactive. WooCommerce data is excluded from this import, including when All content is selected. Other content can be imported.',
+							'import-export-by-rockstarlab'
+						)
 					)
 				);
 			}
@@ -547,7 +653,10 @@ const SiteMigration = {
 						class: 'rsl-ie-package-activity',
 						role: 'status',
 					} ).text(
-						'Some content in this package (for example menus, users, categories or custom post types) needs the PRO addon with an active license. It is skipped; posts, pages, media and comments can be imported.'
+						__(
+							'Some content in this package (for example menus, users, categories or custom post types) needs the PRO addon with an active license. It is skipped; posts, pages, media and comments can be imported.',
+							'import-export-by-rockstarlab'
+						)
 					)
 				);
 			}
@@ -559,7 +668,13 @@ const SiteMigration = {
 				jQuery( '.rsl-ie-package-activity-text' ).text(
 					this.getErrorMessage( error )
 				);
-				Utils.handleError( error, 'Read migration package' );
+				Utils.handleError(
+					error,
+					__(
+						'Read migration package',
+						'import-export-by-rockstarlab'
+					)
+				);
 			}
 		} finally {
 			if ( this.selectedFile === file ) {
@@ -585,7 +700,9 @@ const SiteMigration = {
 			this.showStep( 3 );
 			this.migrationStartTime = Date.now();
 			this.resetCompletion();
-			this.log( 'Starting migration...' );
+			this.log(
+				__( 'Starting migration...', 'import-export-by-rockstarlab' )
+			);
 			const operation =
 				this.getFileOperation() === 'upload' ? 'import' : 'export';
 			const steps = this.getSelectedSteps();
@@ -597,7 +714,10 @@ const SiteMigration = {
 			}
 			if ( ! steps.length ) {
 				throw new Error(
-					'Select at least one content type to migrate.'
+					__(
+						'Select at least one content type to migrate.',
+						'import-export-by-rockstarlab'
+					)
 				);
 			}
 			const parent = await Utils.ajax( 'migration_start', {
@@ -616,14 +736,23 @@ const SiteMigration = {
 			this.log(
 				`${
 					this.serverMigration && ! error.migrationStatus
-						? 'Migration request interrupted'
-						: 'Migration failed'
+						? __(
+								'Migration request interrupted',
+								'import-export-by-rockstarlab'
+						  )
+						: __(
+								'Migration failed',
+								'import-export-by-rockstarlab'
+						  )
 				}: ${ message }`,
 				'error'
 			);
 			if ( this.serverMigration && ! error.migrationStatus ) {
 				this.log(
-					'The server job may still be running. Refresh its status before starting another migration.'
+					__(
+						'The server job may still be running. Refresh its status before starting another migration.',
+						'import-export-by-rockstarlab'
+					)
 				);
 				if ( ! this.parentJobId ) {
 					this.showStep( 2 );
@@ -634,7 +763,10 @@ const SiteMigration = {
 				error.migrationStatus || 'interrupted',
 				message
 			);
-			Utils.handleError( error, 'Content migration' );
+			Utils.handleError(
+				error,
+				__( 'Content migration', 'import-export-by-rockstarlab' )
+			);
 		} finally {
 			this.starting = false;
 			jQuery( '.rsl-ie-migration-start' ).prop( 'disabled', false );
@@ -643,7 +775,7 @@ const SiteMigration = {
 
 	getErrorMessage( error ) {
 		if ( ! error ) {
-			return 'Unknown error';
+			return __( 'Unknown error', 'import-export-by-rockstarlab' );
 		}
 		if ( typeof error === 'string' ) {
 			return error;
@@ -666,12 +798,12 @@ const SiteMigration = {
 		try {
 			return JSON.stringify( error );
 		} catch ( e ) {
-			return 'Unknown error';
+			return __( 'Unknown error', 'import-export-by-rockstarlab' );
 		}
 	},
 
 	async runPackageExport() {
-		this.log( 'Preparing export…' );
+		this.log( __( 'Preparing export…', 'import-export-by-rockstarlab' ) );
 		let progress;
 		do {
 			progress = await Utils.ajax( 'migration_advance', {
@@ -696,7 +828,12 @@ const SiteMigration = {
 
 	async runPackageImport() {
 		if ( ! this.selectedFile ) {
-			throw new Error( 'Please choose a migration ZIP file.' );
+			throw new Error(
+				__(
+					'Please choose a migration ZIP file.',
+					'import-export-by-rockstarlab'
+				)
+			);
 		}
 		const replaceLinks = jQuery(
 			'#rsl-ie-migration-enable-replace-links'
@@ -714,11 +851,21 @@ const SiteMigration = {
 			replacedUrls: 0,
 		};
 		if ( ! this.preparedPackage ) {
-			throw new Error( 'Upload and validate the migration ZIP first.' );
+			throw new Error(
+				__(
+					'Upload and validate the migration ZIP first.',
+					'import-export-by-rockstarlab'
+				)
+			);
 		}
 		const keys = this.selectedContentKeys();
 		if ( ! keys.length ) {
-			throw new Error( 'Select at least one content type to migrate.' );
+			throw new Error(
+				__(
+					'Select at least one content type to migrate.',
+					'import-export-by-rockstarlab'
+				)
+			);
 		}
 
 		const parent = await Utils.ajax( 'migration_start', {
@@ -737,7 +884,7 @@ const SiteMigration = {
 				).val() || 'skip',
 		} );
 		this.parentJobId = parent.job_id;
-		this.log( 'Preparing import…' );
+		this.log( __( 'Preparing import…', 'import-export-by-rockstarlab' ) );
 		let progress;
 		do {
 			progress = await Utils.ajax( 'migration_advance', {
@@ -881,12 +1028,15 @@ const SiteMigration = {
 		if ( ! active && state !== 'completed' ) {
 			jQuery( '.rsl-ie-migration-progress-text' ).text(
 				state === 'failed'
-					? 'Failed'
+					? __( 'Failed', 'import-export-by-rockstarlab' )
 					: state === 'paused'
-					? 'Paused'
+					? __( 'Paused', 'import-export-by-rockstarlab' )
 					: state === 'cancelled'
-					? 'Cancelled'
-					: 'Connection interrupted'
+					? __( 'Cancelled', 'import-export-by-rockstarlab' )
+					: __(
+							'Connection interrupted',
+							'import-export-by-rockstarlab'
+					  )
 			);
 		}
 	},
@@ -909,8 +1059,19 @@ const SiteMigration = {
 		if ( [ 'failed', 'cancelled', 'paused' ].includes( progress.status ) ) {
 			const reason =
 				progress.error_code === 'rsl_ie_content_type_forbidden'
-					? 'The imported content or a matching destination item is outside the allowed content type.'
-					: progress.error_code || `Migration ${ progress.status }.`;
+					? __(
+							'The imported content or a matching destination item is outside the allowed content type.',
+							'import-export-by-rockstarlab'
+					  )
+					: progress.error_code ||
+					  sprintf(
+							/* translators: %s: job status (failed, cancelled or paused). */
+							__(
+								'Migration %s.',
+								'import-export-by-rockstarlab'
+							),
+							progress.status
+					  );
 			const error = new Error( reason );
 			error.migrationStatus = progress.status;
 			throw error;
@@ -922,13 +1083,40 @@ const SiteMigration = {
 			child
 				? `${ child.type }${
 						child.total > 0
-							? `: ${ child.processed } / ${ child.total } items`
+							? sprintf(
+									/* translators: 1: processed items, 2: total items. */
+									__(
+										': %1$s / %2$s items',
+										'import-export-by-rockstarlab'
+									),
+									child.processed,
+									child.total
+							  )
 							: ''
-				  } · ${ progress.processed } / ${ progress.total } files`
-				: `${ progress.processed } / ${ progress.total } files · ${
+				  } · ${ sprintf(
+						/* translators: 1: processed files, 2: total files. */
+						__(
+							'%1$s / %2$s files',
+							'import-export-by-rockstarlab'
+						),
+						progress.processed,
+						progress.total
+				  ) }`
+				: `${ sprintf(
+						/* translators: 1: processed files, 2: total files. */
+						__(
+							'%1$s / %2$s files',
+							'import-export-by-rockstarlab'
+						),
+						progress.processed,
+						progress.total
+				  ) } · ${
 						progress.stage === 'packaging'
-							? 'Building package…'
-							: 'Preparing…'
+							? __(
+									'Building package…',
+									'import-export-by-rockstarlab'
+							  )
+							: __( 'Preparing…', 'import-export-by-rockstarlab' )
 				  }`
 		);
 	},
@@ -952,15 +1140,21 @@ const SiteMigration = {
 
 	completeImport( stats ) {
 		this.completeMigrationResult( {
-			title: 'Migration Import Completed Successfully!',
+			title: __(
+				'Migration Import Completed Successfully!',
+				'import-export-by-rockstarlab'
+			),
 			subtitle: this.importBreakdown( stats ),
-			filesLabel: 'Import Files',
+			filesLabel: __( 'Import Files', 'import-export-by-rockstarlab' ),
 			filesValue: stats.filesCount || 0,
-			itemsLabel: 'Imported Items',
+			itemsLabel: __( 'Imported Items', 'import-export-by-rockstarlab' ),
 			itemsValue: stats.success || 0,
-			extraLabel: 'URLs Replaced',
+			extraLabel: __( 'URLs Replaced', 'import-export-by-rockstarlab' ),
 			extraValue: stats.replaceLinks ? stats.replacedUrls || 0 : 0,
-			logMessage: 'Migration import completed.',
+			logMessage: __(
+				'Migration import completed.',
+				'import-export-by-rockstarlab'
+			),
 			showDownload: false,
 		} );
 	},
@@ -975,15 +1169,31 @@ const SiteMigration = {
 		const created = parseInt( stats.created, 10 ) || 0;
 		const updated = parseInt( stats.updated, 10 ) || 0;
 		const skipped = parseInt( stats.skipped, 10 ) || 0;
-		let text = `${ created } created, ${ updated } updated`;
+		let text = sprintf(
+			__( '%1$s created, %2$s updated', 'import-export-by-rockstarlab' ),
+			created,
+			updated
+		);
 		if ( skipped > 0 ) {
-			text += `, ${ skipped } skipped because they already exist on this site`;
+			text += sprintf(
+				__(
+					', %s skipped because they already exist on this site',
+					'import-export-by-rockstarlab'
+				),
+				skipped
+			);
 		}
 		const failed = parseInt( stats.failed, 10 ) || 0;
 		if ( failed > 0 ) {
-			text += `. ${ failed } media ${
-				failed === 1 ? 'file' : 'files'
-			} could not be imported (missing on the source site, or a file type this site does not accept, such as SVG); see Jobs Log`;
+			text += sprintf(
+				_n(
+					'. %s media file could not be imported (missing on the source site, or a file type this site does not accept, such as SVG); see Jobs Log',
+					'. %s media files could not be imported (missing on the source site, or a file type this site does not accept, such as SVG); see Jobs Log',
+					failed,
+					'import-export-by-rockstarlab'
+				),
+				failed
+			);
 		}
 		return text + '.';
 	},
@@ -1024,16 +1234,24 @@ const SiteMigration = {
 
 	completeExport( stats ) {
 		this.completeMigrationResult( {
-			title: 'Migration Package Ready!',
-			subtitle:
+			title: __(
+				'Migration Package Ready!',
+				'import-export-by-rockstarlab'
+			),
+			subtitle: __(
 				'Your content migration export has been packaged and is ready to download.',
-			filesLabel: 'Export Files',
+				'import-export-by-rockstarlab'
+			),
+			filesLabel: __( 'Export Files', 'import-export-by-rockstarlab' ),
 			filesValue: stats.filesCount || 0,
-			itemsLabel: 'Exported Items',
+			itemsLabel: __( 'Exported Items', 'import-export-by-rockstarlab' ),
 			itemsValue: stats.exportedItems || 0,
-			extraLabel: 'Package Size',
+			extraLabel: __( 'Package Size', 'import-export-by-rockstarlab' ),
 			extraValue: Utils.formatFileSize( stats.fileSize || 0 ),
-			logMessage: 'Migration package is ready.',
+			logMessage: __(
+				'Migration package is ready.',
+				'import-export-by-rockstarlab'
+			),
 			showDownload: true,
 		} );
 		jQuery( '.rsl-ie-migration-download-file' )

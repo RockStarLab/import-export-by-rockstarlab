@@ -1,3 +1,4 @@
+import { __ } from '@wordpress/i18n';
 /**
  * Backup Warning Modal
  *
@@ -145,55 +146,127 @@ const BackupWarningModal = {
 				<div class="rsl-ie-backup-warning-modal">
 					<div class="rsl-ie-backup-warning-header">
 						<div class="rsl-ie-warning-icon">⚠️</div>
-						<h2>${ i18n.backupWarningTitle || 'Important: Create a Backup!' }</h2>
+						<h2>${
+							i18n.backupWarningTitle ||
+							__(
+								'Important: Create a Backup!',
+								'import-export-by-rockstarlab'
+							)
+						}</h2>
 						<p>${
 							i18n.backupWarningSubtitle ||
-							'This action can modify or delete existing data'
+							__(
+								'This action can modify or delete existing data',
+								'import-export-by-rockstarlab'
+							)
 						}</p>
 					</div>
 
 					<div class="rsl-ie-backup-warning-body">
 						<div class="rsl-ie-warning-message">
-							<p><strong>${ i18n.backupWarningRisks || 'Action may lead to:' }</strong></p>
+							<p><strong>${
+								i18n.backupWarningRisks ||
+								__(
+									'Action may lead to:',
+									'import-export-by-rockstarlab'
+								)
+							}</strong></p>
 							<p>
-								• ${ i18n.backupRisk1 || 'Overwriting existing posts, pages, and records' }<br>
-								• ${ i18n.backupRisk2 || 'Modifying metadata and taxonomies' }<br>
-								• ${ i18n.backupRisk3 || 'Data loss due to incorrect field mapping' }<br>
-								• ${ i18n.backupRisk4 || 'Conflicts with existing IDs' }
+								• ${
+									i18n.backupRisk1 ||
+									__(
+										'Overwriting existing posts, pages, and records',
+										'import-export-by-rockstarlab'
+									)
+								}<br>
+								• ${
+									i18n.backupRisk2 ||
+									__(
+										'Modifying metadata and taxonomies',
+										'import-export-by-rockstarlab'
+									)
+								}<br>
+								• ${
+									i18n.backupRisk3 ||
+									__(
+										'Data loss due to incorrect field mapping',
+										'import-export-by-rockstarlab'
+									)
+								}<br>
+								• ${
+									i18n.backupRisk4 ||
+									__(
+										'Conflicts with existing IDs',
+										'import-export-by-rockstarlab'
+									)
+								}
 							</p>
 							<p><strong>${
 								i18n.backupWarningImportant ||
-								'Rollback may be impossible, especially for updated data!'
+								__(
+									'Rollback may be impossible, especially for updated data!',
+									'import-export-by-rockstarlab'
+								)
 							}</strong></p>
 						</div>
 
 						<div class="rsl-ie-backup-recommendations">
-							<h3>${ i18n.backupRecommendations || 'Recommended backup methods:' }</h3>
+							<h3>${
+								i18n.backupRecommendations ||
+								__(
+									'Recommended backup methods:',
+									'import-export-by-rockstarlab'
+								)
+							}</h3>
 							
 							<div class="rsl-ie-backup-options">
 								<div class="rsl-ie-backup-option">
 									<h4>
 										<span>UpdraftPlus</span>
 										<span class="rsl-ie-badge rsl-ie-badge-free">FREE</span>
-										<span class="rsl-ie-badge">${ i18n.recommended || 'RECOMMENDED' }</span>
+										<span class="rsl-ie-badge">${
+											i18n.recommended ||
+											__(
+												'RECOMMENDED',
+												'import-export-by-rockstarlab'
+											)
+										}</span>
 									</h4>
 									<p>${
 										i18n.backupUpdraftPlus ||
-										'Back up your WordPress files and database'
+										__(
+											'Back up your WordPress files and database',
+											'import-export-by-rockstarlab'
+										)
 									}</p>
 									<a href="https://teamupdraft.com/ref/3832/" target="_blank" class="rsl-ie-backup-link">
-										${ i18n.viewPlugin || 'View plugin' }
+										${ i18n.viewPlugin || __( 'View plugin', 'import-export-by-rockstarlab' ) }
 									</a>
 								</div>
 
 								<div class="rsl-ie-backup-option">
 									<h4>
-										<span>${ i18n.hostingBackup || 'Hosting Backup' }</span>
-										<span class="rsl-ie-badge">${ i18n.recommended || 'RECOMMENDED' }</span>
+										<span>${
+											i18n.hostingBackup ||
+											__(
+												'Hosting Backup',
+												'import-export-by-rockstarlab'
+											)
+										}</span>
+										<span class="rsl-ie-badge">${
+											i18n.recommended ||
+											__(
+												'RECOMMENDED',
+												'import-export-by-rockstarlab'
+											)
+										}</span>
 									</h4>
 									<p>${
 										i18n.hostingBackupDesc ||
-										'Use built-in backup tools from your hosting provider (cPanel, Plesk, etc.)'
+										__(
+											'Use built-in backup tools from your hosting provider (cPanel, Plesk, etc.)',
+											'import-export-by-rockstarlab'
+										)
 									}</p>
 								</div>
 							</div>
@@ -205,14 +278,23 @@ const BackupWarningModal = {
 								<label for="rsl-ie-backup-created">
 									<strong>${
 										i18n.backupConfirm ||
-										'I have created a database backup and understand the irreversibility of data updates'
+										__(
+											'I have created a database backup and understand the irreversibility of data updates',
+											'import-export-by-rockstarlab'
+										)
 									}</strong>
 								</label>
 							</div>
 							<div class="rsl-ie-backup-checkbox">
 								<input type="checkbox" id="rsl-ie-backup-dont-show">
 								<label for="rsl-ie-backup-dont-show">
-									${ i18n.backupDontShow || "Don't show this warning again" }
+									${
+										i18n.backupDontShow ||
+										__(
+											"Don't show this warning again",
+											'import-export-by-rockstarlab'
+										)
+									}
 								</label>
 							</div>
 						</div>
@@ -220,10 +302,10 @@ const BackupWarningModal = {
 
 					<div class="rsl-ie-backup-warning-footer">
 						<button type="button" class="rsl-ie-button rsl-ie-button-secondary rsl-ie-backup-cancel">
-							${ i18n.cancel || 'Cancel' }
+							${ i18n.cancel || __( 'Cancel', 'import-export-by-rockstarlab' ) }
 						</button>
 						<button type="button" class="rsl-ie-button rsl-ie-button-primary rsl-ie-backup-confirm" disabled>
-							✓ ${ i18n.backupContinue || 'Continue' }
+							✓ ${ i18n.backupContinue || __( 'Continue', 'import-export-by-rockstarlab' ) }
 						</button>
 					</div>
 				</div>

@@ -255,7 +255,18 @@ $rsl_ie_has_url = (bool) array_filter( $rsl_ie_srcs, static fn( $s ) => $s['from
 							?>
 							</a>
 						<?php else : ?>
-							<span class="rsl-ie-trigger-skip"><?php echo esc_html( str_replace( [ 'rsl_ie_trigger_', 'rsl_ie_', '_' ], [ '', '', ' ' ], $rsl_ie_e['detail'] ) ); ?></span>
+							<?php
+							$rsl_ie_skip_labels = array(
+								'rsl_ie_trigger_too_soon'         => __( 'Skipped: less than a minute after the previous run', 'import-export-by-rockstarlab' ),
+								'rsl_ie_trigger_overlap'          => __( 'Skipped: the previous job is still running', 'import-export-by-rockstarlab' ),
+								'rsl_ie_trigger_paused'           => __( 'Skipped: the trigger is paused', 'import-export-by-rockstarlab' ),
+								'rsl_ie_trigger_busy'             => __( 'Skipped: the trigger was busy', 'import-export-by-rockstarlab' ),
+								'rsl_ie_trigger_source'           => __( 'The source job could not be started', 'import-export-by-rockstarlab' ),
+								'rsl_ie_trigger_file_unreachable' => __( 'The file could not be downloaded', 'import-export-by-rockstarlab' ),
+								'rsl_ie_trigger_file_http'        => __( 'The file could not be downloaded', 'import-export-by-rockstarlab' ),
+							);
+							?>
+							<span class="rsl-ie-trigger-skip"><?php echo esc_html( $rsl_ie_skip_labels[ $rsl_ie_e['detail'] ] ?? str_replace( [ 'rsl_ie_trigger_', 'rsl_ie_', '_' ], [ '', '', ' ' ], $rsl_ie_e['detail'] ) ); ?></span>
 						<?php endif; ?>
 					</td>
 				</tr>

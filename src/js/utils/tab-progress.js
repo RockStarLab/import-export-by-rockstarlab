@@ -1,13 +1,38 @@
+import { __, sprintf } from '@wordpress/i18n';
 /** Shared tab indicator. Completion is explicit: 100% may still mean finalizing. */
 const labels = {
-	import: [ 'Importing', 'Import' ],
-	export: [ 'Exporting', 'Export' ],
-	upload: [ 'Uploading', 'Upload' ],
-	ai: [ 'AI importing', 'AI import' ],
-	media: [ 'Syncing media', 'Media sync' ],
-	sync: [ 'Syncing content', 'Content sync' ],
-	migration: [ 'Migrating', 'Migration' ],
-	hash: [ 'Indexing media', 'Media indexing' ],
+	import: [
+		__( 'Importing', 'import-export-by-rockstarlab' ),
+		__( 'Import', 'import-export-by-rockstarlab' ),
+	],
+	export: [
+		__( 'Exporting', 'import-export-by-rockstarlab' ),
+		__( 'Export', 'import-export-by-rockstarlab' ),
+	],
+	upload: [
+		__( 'Uploading', 'import-export-by-rockstarlab' ),
+		__( 'Upload', 'import-export-by-rockstarlab' ),
+	],
+	ai: [
+		__( 'AI importing', 'import-export-by-rockstarlab' ),
+		__( 'AI import', 'import-export-by-rockstarlab' ),
+	],
+	media: [
+		__( 'Syncing media', 'import-export-by-rockstarlab' ),
+		__( 'Media sync', 'import-export-by-rockstarlab' ),
+	],
+	sync: [
+		__( 'Syncing content', 'import-export-by-rockstarlab' ),
+		__( 'Content sync', 'import-export-by-rockstarlab' ),
+	],
+	migration: [
+		__( 'Migrating', 'import-export-by-rockstarlab' ),
+		__( 'Migration', 'import-export-by-rockstarlab' ),
+	],
+	hash: [
+		__( 'Indexing media', 'import-export-by-rockstarlab' ),
+		__( 'Media indexing', 'import-export-by-rockstarlab' ),
+	],
 };
 
 class TabProgress {
@@ -30,7 +55,10 @@ class TabProgress {
 			document.head.appendChild( this.icon );
 		}
 		this.key = key;
-		const [ active, name ] = labels[ key ] || [ 'Processing', 'Operation' ];
+		const [ active, name ] = labels[ key ] || [
+			__( 'Processing', 'import-export-by-rockstarlab' ),
+			__( 'Operation', 'import-export-by-rockstarlab' ),
+		];
 		const terminal = [
 			'completed',
 			'failed',
@@ -50,11 +78,12 @@ class TabProgress {
 						0,
 						Math.min( 100, Math.round( Number( percent ) ) )
 				  ) }%`;
-		document.title = `${
+		document.title = sprintf(
+			__( '%s — WP Import Export', 'import-export-by-rockstarlab' ),
 			terminal
 				? `${ prefix[ status ] }${ name } ${ status }`
 				: `${ active }…${ value }`
-		} — WP Import Export`;
+		);
 		if ( terminal ) {
 			clearInterval( this.timer );
 			this.timer = null;

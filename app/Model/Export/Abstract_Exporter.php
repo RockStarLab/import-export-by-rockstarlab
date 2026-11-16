@@ -79,7 +79,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 			return $validation;
 		}
 
-		$this->log_info( 'Starting export' );
+		$this->log_info( __( 'Starting export', 'import-export-by-rockstarlab' ) );
 
 		// Get total count
 		$this->stats['total'] = $this->get_count( $this->options );
@@ -88,20 +88,21 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 			return $this->stats['total'];
 		}
 		if ( 0 === $this->stats['total'] ) {
-			$this->log_warning( 'No items found to export' );
+			$this->log_warning( __( 'No items found to export', 'import-export-by-rockstarlab' ) );
 			return [
 				'data'  => [],
 				'stats' => array_merge( $this->stats, [ 'processed' => 0 ] ),
 			];
 		}
 
-		$this->log_info( sprintf( 'Found %d items to export', $this->stats['total'] ) );
+		$this->log_info( sprintf( /* translators: %d: stats. */ __( 'Found %d items to export', 'import-export-by-rockstarlab' ), $this->stats['total'] ) );
 
 		// Get data
 		$data = $this->get_data( $this->options );
 
 		if ( is_wp_error( $data ) ) {
-			$this->log_error( 'Failed to get data: ' . $data->get_error_message() );
+			/* translators: %s: error message. */
+			$this->log_error( sprintf( __( 'Failed to get data: %s', 'import-export-by-rockstarlab' ), $data->get_error_message() ) );
 			return $data;
 		}
 
@@ -120,7 +121,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 					'message' => $processed->get_error_message(),
 					'data'    => $processed->get_error_data(),
 				];
-				$this->log_error( sprintf( 'Failed to process row %d: %s', $index + 1, $processed->get_error_message() ) );
+				$this->log_error( sprintf( /* translators: %1$d: row number, %2$s: value. */ __( 'Failed to process row %1$d: %2$s', 'import-export-by-rockstarlab' ), $index + 1, $processed->get_error_message() ) );
 			} elseif ( 'skipped' === $processed ) {
 				++$this->stats['skipped'];
 			} else {
@@ -135,7 +136,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 
 		$this->log_info(
 			sprintf(
-				'Export completed in %s seconds: %d total, %d exported, %d failed, %d skipped',
+				/* translators: %1$s: duration, %2$d: stats, %3$d: stats, %4$d: stats, %5$d: stats. */ __( 'Export completed in %1$s seconds: %2$d total, %3$d exported, %4$d failed, %5$d skipped', 'import-export-by-rockstarlab' ),
 				$duration,
 				$this->stats['total'],
 				$this->stats['exported'],
