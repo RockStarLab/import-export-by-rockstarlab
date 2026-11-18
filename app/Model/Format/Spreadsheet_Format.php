@@ -62,7 +62,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 			return $validation; }
 		try {
 			return iterator_to_array( $this->rows( $file_path, $options ), false ); } catch ( \Throwable $error ) {
-			return new \WP_Error( 'spreadsheet_parse_error', esc_html( $error->getMessage() ) ); }
+			return self::parse_error( $error ); }
 	}
 
 	/** Yield normalized rows without building a second complete row array. */
@@ -124,7 +124,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 			}
 			return $result;
 		} catch ( \Throwable $error ) {
-			return new \WP_Error( 'spreadsheet_parse_error', esc_html( $error->getMessage() ) );
+			return self::parse_error( $error );
 		} finally {
 			if ( $spreadsheet instanceof Spreadsheet ) {
 				$spreadsheet->disconnectWorksheets();
@@ -179,7 +179,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 			}
 			return $data;
 		} catch ( \Throwable $error ) {
-			return new \WP_Error( 'spreadsheet_parse_error', esc_html( $error->getMessage() ) ); }
+			return self::parse_error( $error ); }
 	}
 
 	/**
@@ -344,7 +344,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 			}
 			return true;
 		} catch ( \Throwable $error ) {
-			return new \WP_Error( 'spreadsheet_parse_error', esc_html( $error->getMessage() ) );
+			return self::parse_error( $error );
 		}
 	}
 
@@ -366,7 +366,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 			if ( $reader instanceof \PhpOffice\PhpSpreadsheet\Reader\Ods ) {
 				return ODS_Row_Stream::headers( $file_path, $options ); }
 		} catch ( \Throwable $error ) {
-			return new \WP_Error( 'spreadsheet_parse_error', esc_html( $error->getMessage() ) ); }
+			return self::parse_error( $error ); }
 		$spreadsheet = $this->load_spreadsheet( $file_path );
 		if ( is_wp_error( $spreadsheet ) ) {
 			return $spreadsheet;
@@ -398,7 +398,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 				++$count; }
 			return $count;
 		} catch ( \Throwable $error ) {
-			return new \WP_Error( 'spreadsheet_parse_error', esc_html( $error->getMessage() ) ); }
+			return self::parse_error( $error ); }
 	}
 
 	/**
@@ -439,7 +439,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 			$reader->setReadDataOnly( true );
 			return $reader->load( $file_path );
 		} catch ( \Throwable $e ) {
-			return new \WP_Error( 'spreadsheet_parse_error', esc_html( $e->getMessage() ) );
+			return self::parse_error( $e );
 		}
 	}
 
@@ -656,5 +656,17 @@ class Spreadsheet_Format implements File_Format_Interface {
 		}
 
 		return true;
+	}
+
+	/**
+	 * A workbook the reader can't open: say what to do, keep the reader's reason for support.
+	 *
+	 * @param \Throwable $error Reader exception.
+	 * @return \WP_Error
+	 */
+	private static function parse_error( $error ) {
+		$message = __( 'The spreadsheet could not be read. Open it in Excel, Google Sheets or LibreOffice and save it again as .xlsx, .ods or .csv.', 'import-export-by-rockstarlab' );
+		$detail  = $error instanceof \Throwable ? trim( $error->getMessage() ) : '';
+		return new \WP_Error( 'spreadsheet_parse_error', esc_html( '' !== $detail ? $message . ' (' . $detail . ')' : $message ) );
 	}
 }

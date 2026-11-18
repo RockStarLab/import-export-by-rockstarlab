@@ -110,23 +110,18 @@ class Progress_Tracker {
 	 * @return string Formatted duration
 	 */
 	protected static function format_duration( $seconds ) {
-		$seconds = (int) $seconds;
-
+		$seconds = (int) max( 0, (int) $seconds );
 		if ( $seconds < 60 ) {
-			return $seconds . 's';
+			/* translators: %d: seconds (short unit). */
+			return sprintf( __( '%ds', 'import-export-by-rockstarlab' ), $seconds );
 		}
-
-		$minutes = floor( $seconds / 60 );
-		$seconds = $seconds % 60;
-
+		$minutes = (int) floor( $seconds / 60 );
 		if ( $minutes < 60 ) {
-			return sprintf( '%dm %ds', $minutes, $seconds );
+			/* translators: 1: minutes, 2: seconds (short units). */
+			return sprintf( __( '%1$sm %2$ss', 'import-export-by-rockstarlab' ), $minutes, $seconds % 60 );
 		}
-
-		$hours   = floor( $minutes / 60 );
-		$minutes = $minutes % 60;
-
-		return sprintf( '%dh %dm', $hours, $minutes );
+		/* translators: 1: hours, 2: minutes (short units). */
+		return sprintf( __( '%1$sh %2$sm', 'import-export-by-rockstarlab' ), (int) floor( $minutes / 60 ), $minutes % 60 );
 	}
 
 	/**
