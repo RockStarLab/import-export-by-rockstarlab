@@ -1,5 +1,10 @@
 <?php
-/** Incremental JSON container reader. */
+/**
+ * Incremental JSON container reader.
+ *
+ * Parse errors that JSON_Format::invalid_json_error() turns into a translated hint are
+ * thrown in English on purpose: the message is the lookup key, not text for the reader.
+ */
 namespace RockStarLab\ImportExport\Model\Format;
 
 defined( 'ABSPATH' ) || exit;
@@ -43,16 +48,16 @@ class JSON_Row_Stream {
 								throw new \RuntimeException( 'JSON depth exceeded.' ); }
 							$phase = 'first';
 							continue; }
-						throw new \RuntimeException( __( 'Expected a JSON container without trailing content.', 'import-export-by-rockstarlab' ) );
+						throw new \RuntimeException( 'Expected a JSON container without trailing content.' );
 					}
 					if ( ! $quoted && ! $stack && ( ',' === $char || $closing === $char ) ) {
 						if ( '' === trim( $value ) ) {
 							if ( 'first' !== $phase || $closing !== $char ) {
-								throw new \RuntimeException( __( 'Missing JSON row.', 'import-export-by-rockstarlab' ) ); }
+								throw new \RuntimeException( 'Missing JSON row.' ); }
 						} else {
 							$row = json_decode( $object ? '{' . $value . '}' : $value, true, $object ? $depth : $depth - 1, $options['flags'] ?? 0 );
 							if ( JSON_ERROR_NONE !== json_last_error() ) {
-								throw new \RuntimeException( __( 'Invalid JSON row.', 'import-export-by-rockstarlab' ) ); }
+								throw new \RuntimeException( 'Invalid JSON row.' ); }
 							$cursor = [
 								'identity' => $identity,
 								'settings' => $settings,
@@ -82,12 +87,12 @@ class JSON_Row_Stream {
 							throw new \RuntimeException( 'JSON depth exceeded.' ); }
 						} elseif ( ']' === $char || '}' === $char ) {
 							if ( array_pop( $stack ) !== ( ']' === $char ? '[' : '{' ) ) {
-								throw new \RuntimeException( __( 'Unbalanced JSON row.', 'import-export-by-rockstarlab' ) ); }
+								throw new \RuntimeException( 'Unbalanced JSON row.' ); }
 						}
 				}
 			}
 			if ( 'end' !== $phase ) {
-				throw new \RuntimeException( __( 'Incomplete JSON container.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( 'Incomplete JSON container.' ); }
 		} finally {
 			fclose( $stream );
 		}
