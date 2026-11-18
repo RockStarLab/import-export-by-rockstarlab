@@ -51,20 +51,7 @@ $rsl_ie_form_title        = $rsl_ie_readonly
 	? __( 'Schedule details', 'import-export-by-rockstarlab' )
 	: ( $rsl_ie_selected ? __( 'Edit schedule', 'import-export-by-rockstarlab' ) : __( 'Add schedule', 'import-export-by-rockstarlab' ) );
 $rsl_ie_format_job_label  = static function ( $job ) {
-	$base_label = sprintf(
-		'#%1$d — %2$s / %3$s (%4$s)',
-		(int) $job->id,
-		(string) $job->type,
-		(string) $job->data_type,
-		(string) $job->status
-	);
-
-	$job_name = isset( $job->job_name ) ? trim( (string) $job->job_name ) : '';
-	if ( '' === $job_name ) {
-		return $base_label;
-	}
-
-	return sprintf( '%1$s — %2$s', $job_name, $base_label );
+	return \RockStarLab\ImportExport\Service\Schedule_Service::job_label( $job, true );
 };
 ?>
 
@@ -201,14 +188,16 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 					<td><strong><?php echo esc_html( $rsl_ie_schedule->name ); ?></strong></td>
 					<td>
 						<?php
-						$rsl_ie_source_base = sprintf(
-							'#%1$d — %2$s / %3$s',
-							$rsl_ie_schedule->source_job_id,
-							$rsl_ie_schedule->source_type ? $rsl_ie_schedule->source_type : '—',
-							$rsl_ie_schedule->source_data_type ? $rsl_ie_schedule->source_data_type : '—'
+						echo esc_html(
+							\RockStarLab\ImportExport\Service\Schedule_Service::job_label(
+								(object) array(
+									'id'        => $rsl_ie_schedule->source_job_id,
+									'type'      => $rsl_ie_schedule->source_type ? $rsl_ie_schedule->source_type : '—',
+									'data_type' => $rsl_ie_schedule->source_data_type ? $rsl_ie_schedule->source_data_type : '—',
+									'job_name'  => isset( $rsl_ie_schedule->source_job_name ) ? $rsl_ie_schedule->source_job_name : '',
+								)
+							)
 						);
-						$rsl_ie_source_name = isset( $rsl_ie_schedule->source_job_name ) ? trim( (string) $rsl_ie_schedule->source_job_name ) : '';
-						echo esc_html( '' === $rsl_ie_source_name ? $rsl_ie_source_base : sprintf( '%1$s — %2$s', $rsl_ie_source_name, $rsl_ie_source_base ) );
 						?>
 					</td>
 					<td>

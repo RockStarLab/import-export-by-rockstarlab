@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.23
+Stable tag: 2.2.24
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -295,6 +295,10 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.2.24 =
+* Fix: `wp rsl-ie schedule run` is recorded as the schedule's last run, so the next "Changes only" run exports only what changed since then instead of everything again.
+* Fix: source jobs in Schedules are named in the admin language ("#55 Export · Posts (completed)") instead of internal names such as "export / post".
 
 = 2.2.23 =
 * Fix: elapsed and remaining time on the export progress page are shown in the admin language for the whole export, not only between server updates.
