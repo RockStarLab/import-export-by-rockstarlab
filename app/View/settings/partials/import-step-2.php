@@ -108,7 +108,7 @@ defined( 'ABSPATH' ) || exit;
 						<option value=";">; <?php esc_html_e( ' (Semicolon)', 'import-export-by-rockstarlab' ); ?></option>
 						<option value="tab">	<?php esc_html_e( ' (Tab)', 'import-export-by-rockstarlab' ); ?></option>
 						<option value="|">| <?php esc_html_e( ' (Pipe)', 'import-export-by-rockstarlab' ); ?></option>
-						<option value="custom"><?php esc_html_e( 'Custom', 'import-export-by-rockstarlab' ); ?></option>
+						<option value="custom"><?php echo esc_html_x( 'Custom', 'CSV delimiter option', 'import-export-by-rockstarlab' ); ?></option>
 					</select>
 				</label>
 

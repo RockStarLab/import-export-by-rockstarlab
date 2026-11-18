@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.21
+Stable tag: 2.2.22
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -295,6 +295,10 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.2.22 =
+* Fix: the export and import speed ("items/s") on the progress page is shown in the admin language.
+* Fix: the "Custom" delimiter option in the CSV export and import settings has its own translation, separate from other "Custom" labels.
 
 = 2.2.21 =
 * Fix: Content Sync no longer replaces an image in the pushed post with another file when an attachment ID of the receiving site is also the ID of a different file on the sending site.
