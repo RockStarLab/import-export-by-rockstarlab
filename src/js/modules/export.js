@@ -2377,18 +2377,7 @@ const ExportModule = {
 						: 0;
 
 				const formatTime = ( sec ) => {
-					sec = Math.round( sec );
-					if ( sec < 60 ) return sec + 's';
-					if ( sec < 3600 )
-						return (
-							Math.floor( sec / 60 ) + 'm ' + ( sec % 60 ) + 's'
-						);
-					return (
-						Math.floor( sec / 3600 ) +
-						'h ' +
-						Math.floor( ( sec % 3600 ) / 60 ) +
-						'm'
-					);
+					return Utils.formatDuration( Math.max( 0, Math.round( sec ) ) );
 				};
 
 				TabProgress.update( 'export', percentage );
@@ -2488,16 +2477,7 @@ const ExportModule = {
 			Utils.formatFileSize( result.file_size || 0 )
 		);
 		const formatExportDuration = ( sec ) => {
-			sec = Math.max( 0, Math.round( sec ) );
-			if ( sec < 60 ) return sec + 's';
-			if ( sec < 3600 )
-				return Math.floor( sec / 60 ) + 'm ' + ( sec % 60 ) + 's';
-			return (
-				Math.floor( sec / 3600 ) +
-				'h ' +
-				Math.floor( ( sec % 3600 ) / 60 ) +
-				'm'
-			);
+			return Utils.formatDuration( Math.max( 0, Math.round( sec ) ) );
 		};
 		const exportDurSec = this.exportStartTime
 			? ( Date.now() - this.exportStartTime ) / 1000

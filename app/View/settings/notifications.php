@@ -142,7 +142,7 @@ $rsl_ie_types = [
 					<td><?php echo esc_html( get_date_from_gmt( $rsl_ie_entry['time'], 'Y-m-d H:i' ) ); ?></td>
 					<td><?php echo $rsl_ie_entry['job_id'] ? esc_html( '#' . $rsl_ie_entry['job_id'] ) : esc_html__( 'Test', 'import-export-by-rockstarlab' ); ?></td>
 					<td><?php echo esc_html( ucfirst( $rsl_ie_entry['channel'] ) ); ?></td>
-					<td><?php echo esc_html( ( $rsl_ie_entry['ok'] ? '✓ ' : '✗ ' ) . $rsl_ie_entry['detail'] . ( $rsl_ie_entry['attempt'] > 1 ? ' (' . sprintf( /* translators: %d: attempt number. */ __( 'attempt %d', 'import-export-by-rockstarlab' ), $rsl_ie_entry['attempt'] ) . ')' : '' ) ); ?></td>
+					<td><?php echo esc_html( ( $rsl_ie_entry['ok'] ? '✓ ' : '✗ ' ) . \RockStarLab\ImportExport\Service\Job_Notification_Service::detail_label( $rsl_ie_entry['detail'] ) . ( $rsl_ie_entry['attempt'] > 1 ? ' (' . sprintf( /* translators: %d: attempt number. */ __( 'attempt %d', 'import-export-by-rockstarlab' ), $rsl_ie_entry['attempt'] ) . ')' : '' ) ); ?></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>

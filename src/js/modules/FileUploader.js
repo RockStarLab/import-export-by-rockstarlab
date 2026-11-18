@@ -1,4 +1,5 @@
 import TabProgress from '../utils/tab-progress';
+import Utils from './utils';
 import { __, sprintf } from '@wordpress/i18n';
 /**
  * FileUploader - Handles chunked file uploads to bypass PHP upload limits
@@ -307,13 +308,6 @@ export default class FileUploader {
 	 * @returns {string}
 	 */
 	static formatTime( seconds ) {
-		if ( seconds < 60 ) {
-			return Math.round( seconds ) + 's';
-		}
-
-		const minutes = Math.floor( seconds / 60 );
-		const secs = Math.round( seconds % 60 );
-
-		return minutes + 'm ' + secs + 's';
+		return Utils.formatDuration( Math.max( 0, Math.round( seconds ) ) );
 	}
 }

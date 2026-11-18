@@ -45,6 +45,12 @@ class Job_Notification_Service {
 	public function settings() {
 		$raw = get_option( self::OPTION, [] );
 		$raw = is_array( $raw ) ? $raw : [];
+		// An unedited subject or message follows the current language instead of the language it was saved in.
+		foreach ( [ 'subject', 'message' ] as $key ) {
+			if ( isset( $raw[ $key ] ) && $this->is_default_text( $key, (string) $raw[ $key ] ) ) {
+				unset( $raw[ $key ] );
+			}
+		}
 		return array_replace_recursive(
 			[
 				'enabled'   => false,
@@ -198,6 +204,11 @@ class Job_Notification_Service {
 			}
 		}
 		$was = (bool) $this->settings()['enabled'];
+		foreach ( [ 'subject', 'message' ] as $key ) {
+			if ( $this->is_default_text( $key, (string) $s[ $key ] ) ) {
+				$s[ $key ] = '';
+			}
+		}
 		$this->store( self::OPTION, $s );
 		if ( $s['enabled'] && ! $was ) {
 			// Start from now: jobs that finished before notifications were turned on are not reported.
@@ -406,7 +417,9 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 			}
 			update_option( self::LOCK, time(), false );
 		}
-		$handled = [];
+		$handled  = [];
+		$switched = $this->switch_to_site_locale();
+		$s        = $this->settings();
 		try {
 			foreach ( $this->pending_jobs( 20 ) as $job ) {
 				$this->mark_notified( (int) $job->id );
@@ -424,8 +437,20 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 			$this->advance_floor();
 		} finally {
 			delete_option( self::LOCK );
+			if ( $switched ) {
+				restore_previous_locale();
+			}
 		}
 		return $handled;
+	}
+
+	/**
+	 * Notifications go to the site team, so they use the site language, not the language of whoever finished the job.
+	 *
+	 * @return bool Whether the locale was switched (restore_previous_locale() needed).
+	 */
+	private function switch_to_site_locale() {
+		return function_exists( 'switch_to_locale' ) && get_locale() !== determine_locale() && switch_to_locale( get_locale() );
 	}
 
 	/**
@@ -434,11 +459,15 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @return array Per-channel result.
 	 */
 	public function send_test() {
-		$s = $this->settings();
-		$results = [];
+		$switched = $this->switch_to_site_locale();
+		$s        = $this->settings();
+		$results  = [];
 		foreach ( $this->channels( $s ) as $channel ) {
 			$results[ $channel ] = $this->send( $channel, $s, null );
 			$this->log( 0, $channel, $results[ $channel ] );
+		}
+		if ( $switched ) {
+			restore_previous_locale();
 		}
 		if ( ! $results ) {
 			return $this->error( 'notification_no_channel', __( 'Turn on email, Slack or a webhook first.', 'import-export-by-rockstarlab' ) );
@@ -619,7 +648,8 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 			'{success}'      => (string) $counts['success'],
 			'{failed}'       => (string) $counts['failed'],
 			'{skipped}'      => (string) $counts['skipped'],
-			'{duration}'     => $duration >= 60 ? sprintf( '%dm %ds', floor( $duration / 60 ), $duration % 60 ) : $duration . 's',
+			/* translators: 1: minutes, 2: seconds (short units). */
+			'{duration}'     => $duration >= 60 ? sprintf( __( '%1$sm %2$ss', 'import-export-by-rockstarlab' ), floor( $duration / 60 ), $duration % 60 ) : sprintf( /* translators: %d: seconds (short unit). */ __( '%ds', 'import-export-by-rockstarlab' ), $duration ),
 			'{errors}'       => trim( $errors ),
 			'{job_url}'      => admin_url( 'admin.php?page=rsl-ie-jobs-log' ),
 		];
@@ -920,6 +950,22 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	}
 
 	/**
+	 * Readable text for a stored delivery result code (codes stay English for the abilities).
+	 *
+	 * @param string $detail sent, wp_mail_failed, rate_limited, http_error or "HTTP <code>".
+	 * @return string
+	 */
+	public static function detail_label( $detail ) {
+		$labels = [
+			'sent'           => __( 'sent', 'import-export-by-rockstarlab' ),
+			'wp_mail_failed' => __( 'not sent: the site mailer (wp_mail) failed', 'import-export-by-rockstarlab' ),
+			'rate_limited'   => __( 'not sent: more than 30 notifications in an hour', 'import-export-by-rockstarlab' ),
+			'http_error'     => __( 'no answer from the address', 'import-export-by-rockstarlab' ),
+		];
+		return $labels[ $detail ] ?? (string) $detail;
+	}
+
+	/**
 	 * Normalize an HTTP result.
 	 *
 	 * @param array|\WP_Error $response Response.
@@ -1027,6 +1073,32 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 */
 	private static function bool( $value ) {
 		return true === $value || 1 === $value || in_array( strtolower( (string) $value ), [ '1', 'true', 'on', 'yes' ], true );
+	}
+
+	/**
+	 * Whether a subject or message is empty or one of the built-in defaults (English or current language).
+	 *
+	 * @param string $key  subject|message.
+	 * @param string $text Text.
+	 * @return bool
+	 */
+	private function is_default_text( $key, $text ) {
+		$norm = static function ( $t ) {
+			return trim( str_replace( "\r\n", "\n", (string) $t ) );
+		};
+		$text = $norm( $text );
+		if ( '' === $text ) {
+			return true;
+		}
+		$defaults = 'subject' === $key
+			? [ '[{site_name}] {job_type} #{job_id} {status}: {success} done, {failed} failed', $this->default_subject() ]
+			: [ "{job_type} #{job_id} {job_name} ({content_type}) {status} in {duration}.\nRows: {total} total, {success} done, {failed} failed, {skipped} skipped.\n\n{errors}\n\nJobs Log: {job_url}", $this->default_message() ];
+		foreach ( $defaults as $default ) {
+			if ( $norm( $default ) === $text ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
