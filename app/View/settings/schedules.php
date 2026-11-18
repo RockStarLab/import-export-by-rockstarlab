@@ -243,6 +243,10 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 						<?php
 						$rsl_ie_schedule_meta = get_option( 'rsl_ie_schedule_meta_' . $rsl_ie_schedule->id, [] );
 						if ( ! empty( $rsl_ie_schedule_meta['error_message'] ) ) :
+							if ( 'rsl_ie_url_download_failed' === ( $rsl_ie_schedule_meta['error_code'] ?? '' ) && '' !== (string) ( $rsl_ie_schedule_meta['error_reason'] ?? '' ) ) {
+								/* translators: %s: error message or HTTP status. */
+								$rsl_ie_schedule_meta['error_message'] = sprintf( __( 'The file could not be downloaded (%s).', 'import-export-by-rockstarlab' ), $rsl_ie_schedule_meta['error_reason'] );
+							}
 							$rsl_ie_error_time = ! empty( $rsl_ie_schedule_meta['error_gmt'] ) ? strtotime( $rsl_ie_schedule_meta['error_gmt'] . ' UTC' ) : 0;
 							?>
 							<br><span class="rsl-ie-schedule-error" style="color:#b32d2e;">

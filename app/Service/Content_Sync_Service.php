@@ -1633,7 +1633,9 @@ class Content_Sync_Service {
 		$image_sources = $all_images;
 		$image_map     = $this->upload_images_to_remote( array_values( $all_images ), $site );
 
-		// Replace domains in post data.
+		// Replace domains in post data. Image IDs are translated, file addresses are left to the
+		// receiver: target attachment IDs mean other files in this site's library.
+		\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::$sender = true;
 		foreach ( $posts_data as &$post_data ) {
 			$source_meta = $post_data['meta'] ?? null;
 			$post_data = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_post_domains(
@@ -1657,6 +1659,7 @@ class Content_Sync_Service {
 		if ( array_key_exists( 'woo_product_mapping', $input ) ) {
 			$bounded = Sync_Product_Links::run( 'size', $posts_data );
 			if ( is_wp_error( $bounded ) ) {
+				\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::$sender = false;
 				return $bounded;
 			}
 		}
@@ -1674,6 +1677,7 @@ class Content_Sync_Service {
 			)['post_content'];
 		}
 		unset( $synced_pattern );
+		\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::$sender = false;
 
 		// Send to remote site.
 		$response = \RockStarLab\ImportExport\Helper\Remote_API::post(

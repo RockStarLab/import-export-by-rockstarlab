@@ -2377,7 +2377,9 @@ const ExportModule = {
 						: 0;
 
 				const formatTime = ( sec ) => {
-					return Utils.formatDuration( Math.max( 0, Math.round( sec ) ) );
+					return Utils.formatDuration(
+						Math.max( 0, Math.round( sec ) )
+					);
 				};
 
 				TabProgress.update( 'export', percentage );
