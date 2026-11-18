@@ -97,7 +97,11 @@ class Remote_API {
 	 */
 	public static function failure_message( $error ) {
 		$detail = is_wp_error( $error ) ? $error->get_error_message() : '';
-		if ( preg_match( '/cURL error (6|7|28|35|52|56)\b|resolve host|connect to server|timed out|Connection refused/i', $detail, $m ) ) {
+		if ( preg_match( '/cURL error (35|51|58|60|77)\b|SSL certificate|SSL routines|ssl_error/i', $detail ) ) {
+			/* translators: %s: technical error. */
+			return sprintf( __( 'The secure connection to the other site failed: its SSL certificate is expired, self-signed or not trusted, or the server uses an old TLS version. Renew the certificate, or use the http:// address for local and test sites. Details: %s', 'import-export-by-rockstarlab' ), $detail );
+		}
+		if ( preg_match( '/cURL error (6|7|28|52|56)\b|resolve host|connect to server|timed out|Connection refused/i', $detail, $m ) ) {
 			$text = ( isset( $m[1] ) && '28' === $m[1] ) || false !== stripos( $detail, 'timed out' )
 				? __( 'The other site did not answer in time. It may be busy or offline; try again in a few minutes.', 'import-export-by-rockstarlab' )
 				: __( 'The other site could not be reached. It may be offline, or the site address is wrong.', 'import-export-by-rockstarlab' );
