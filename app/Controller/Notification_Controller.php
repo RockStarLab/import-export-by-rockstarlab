@@ -178,7 +178,7 @@ class Notification_Controller extends Base_Controller {
 			$parts = [];
 			$ok    = true;
 			foreach ( $result['results'] as $channel => $r ) {
-				$parts[] = ucfirst( $channel ) . ': ' . ( $r['ok'] ? __( 'sent', 'import-export-by-rockstarlab' ) : $r['detail'] );
+				$parts[] = ucfirst( $channel ) . ': ' . ( $r['ok'] ? __( 'sent', 'import-export-by-rockstarlab' ) : Job_Notification_Service::detail_label( $r['detail'] ) );
 				$ok      = $ok && $r['ok'];
 			}
 			/* translators: %s: result per channel. */

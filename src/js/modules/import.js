@@ -10013,16 +10013,7 @@ const ImportModule = {
 			}
 
 			const formatTime = ( sec ) => {
-				sec = Math.round( sec );
-				if ( sec < 60 ) return sec + 's';
-				if ( sec < 3600 )
-					return Math.floor( sec / 60 ) + 'm ' + ( sec % 60 ) + 's';
-				return (
-					Math.floor( sec / 3600 ) +
-					'h ' +
-					Math.floor( ( sec % 3600 ) / 60 ) +
-					'm'
-				);
+				return Utils.formatDuration( Math.max( 0, Math.round( sec ) ) );
 			};
 
 			const progressData = {
@@ -10220,7 +10211,7 @@ const ImportModule = {
 				? Math.round( ( Date.now() - this.importStartTime ) / 1000 )
 				: 0;
 			jQuery( '.rsl-ie-step-6 .rsl-ie-elapsed-time' ).text(
-				elapsed + 's'
+				Utils.formatDuration( elapsed )
 			);
 			jQuery( '.rsl-ie-step-6 .rsl-ie-total' ).text(
 				progress.total || 0
@@ -10587,16 +10578,7 @@ const ImportModule = {
 		// Fallback to server job timestamps only when the page was refreshed
 		// mid-import (start time not in memory).
 		const formatDuration = ( sec ) => {
-			sec = Math.max( 0, Math.round( sec ) );
-			if ( sec < 60 ) return sec + 's';
-			if ( sec < 3600 )
-				return Math.floor( sec / 60 ) + 'm ' + ( sec % 60 ) + 's';
-			return (
-				Math.floor( sec / 3600 ) +
-				'h ' +
-				Math.floor( ( sec % 3600 ) / 60 ) +
-				'm'
-			);
+			return Utils.formatDuration( Math.max( 0, Math.round( sec ) ) );
 		};
 		if ( this.importStartTime ) {
 			const durSec = ( Date.now() - this.importStartTime ) / 1000;

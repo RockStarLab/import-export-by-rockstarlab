@@ -1045,8 +1045,10 @@ const JobsLogModule = {
 							job.file_path
 						) }">${ this.escapeHtml(
 							// The private storage path (/var/tmp/rsl-ie-<hash>/file_…/) meant nothing
-							// to the reader; the file name is what identifies the file.
-							String( job.file_path ).split( /[\\/]/ ).pop()
+							// to the reader; the file name is what identifies the file. Uploads are
+							// stored as source.<ext>, so prefer the name that was uploaded.
+							job.parameters?.file_name ||
+								String( job.file_path ).split( /[\\/]/ ).pop()
 						) }</td>
 					</tr>`
 							: ''

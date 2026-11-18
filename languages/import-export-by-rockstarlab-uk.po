@@ -8582,7 +8582,7 @@ msgstr "Ця адреса веде в приватну або локальну �
 
 #: app/Service/Job_Notification_Service.php:1038
 msgid "[{site_name}] {job_type} #{job_id} {status}: {success} done, {failed} failed"
-msgstr "[{site_name}] {job_type} #{job_id} {status}: виконано {success}, помилок {failed}"
+msgstr "[{site_name}] {job_type} #{job_id}: {status}, виконано {success}, помилок {failed}"
 
 #: app/Service/Job_Notification_Service.php:1047
 msgid ""
@@ -8593,7 +8593,7 @@ msgid ""
 "\n"
 "Jobs Log: {job_url}"
 msgstr ""
-"{job_type} #{job_id} {job_name} ({content_type}) {status} за {duration}.\n"
+"{job_type} #{job_id} {job_name} ({content_type}): {status} за {duration}.\n"
 "Рядки: усього {total}, виконано {success}, помилок {failed}, пропущено {skipped}.\n"
 "\n"
 "{errors}\n"
@@ -15646,3 +15646,15 @@ msgstr "Зачекати 30 секунд"
 #: app/Service/Trigger_Service.php
 msgid "Finished?"
 msgstr "Завершено?"
+
+#: app/Service/Job_Notification_Service.php
+msgid "not sent: the site mailer (wp_mail) failed"
+msgstr "не надіслано: пошта сайту (wp_mail) повернула помилку"
+
+#: app/Service/Job_Notification_Service.php
+msgid "not sent: more than 30 notifications in an hour"
+msgstr "не надіслано: понад 30 сповіщень за годину"
+
+#: app/Service/Job_Notification_Service.php
+msgid "no answer from the address"
+msgstr "адреса не відповіла"

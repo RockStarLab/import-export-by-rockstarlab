@@ -377,6 +377,8 @@ class Import_Service {
 			'import_type' => $type,
 			'file_path'   => $file_path,
 			'file_id'     => $file_id,
+			// Uploads are stored as source.<ext>; keep the name the user uploaded for the Jobs Log.
+			'file_name'   => $file_id ? (string) ( $file['file_name'] ?? '' ) : wp_basename( (string) $file_path ),
 			'format'      => $format,
 			'delimiter'   => $delimiter,
 			'encoding'    => $encoding,
