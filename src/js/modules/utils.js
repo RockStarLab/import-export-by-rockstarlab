@@ -529,8 +529,11 @@ const Utils = {
 				$container
 					.find( '.rsl-ie-items-per-second' )
 					.text(
-						data.estimates.items_per_second.toFixed( 1 ) +
-							' items/s'
+						sprintf(
+							/* translators: %s: number of items processed per second, for example 588.2 */
+							__( '%s items/s', 'import-export-by-rockstarlab' ),
+							data.estimates.items_per_second.toFixed( 1 )
+						)
 					);
 			}
 		}

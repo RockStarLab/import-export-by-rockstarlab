@@ -15665,3 +15665,15 @@ msgstr "адреса не відповіла"
 #, js-format
 msgid "Custom field: %s"
 msgstr "Довільне поле: %s"
+
+#: app/View/settings/partials/export-step-4.php:78
+#: app/View/settings/partials/import-step-2.php:111
+msgctxt "CSV delimiter option"
+msgid "Custom"
+msgstr "Інший"
+
+#. translators: %s: number of items processed per second, for example 588.2
+#: assets/js/app.js:1
+#, javascript-format
+msgid "%s items/s"
+msgstr "%s ел./с"
