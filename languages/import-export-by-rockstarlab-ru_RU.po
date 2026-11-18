@@ -8934,7 +8934,7 @@ msgstr "PHP этого сервера не может работать с FTP (�
 #: app/Service/Remote_SFTP_Connection.php:36
 #, php-format
 msgid "Could not connect to %1$s on port %2$d."
-msgstr "Не удалось подключиться к %1$s на порт %2$d."
+msgstr "Не удалось подключиться к %1$s на порту %2$d."
 
 #: app/Service/Remote_FTP_Connection.php:36
 #: app/Service/Remote_SFTP_Connection.php:39
@@ -8977,7 +8977,7 @@ msgstr "В этой копии плагина нет поддержки SFTP. П
 #: app/Service/Remote_SFTP_Connection.php:43
 #, php-format
 msgid "Could not connect to %1$s on port %2$d (%3$s)."
-msgstr "Не удалось подключиться к %1$s на порт %2$d (%3$s)."
+msgstr "Не удалось подключиться к %1$s на порту %2$d (%3$s)."
 
 #. translators: %d: job ID.
 #: app/Service/Schedule_Service.php:156
@@ -12603,7 +12603,7 @@ msgstr[2] "%d секунд"
 #: app/View/settings/triggers.php:95
 #, php-format
 msgid "waits %s to group events"
-msgstr "ждёт %s, чтобы сгруппировать события"
+msgstr "ожидание: %s, чтобы сгруппировать события"
 
 #: app/View/settings/triggers.php:102
 msgid "Accepts a file URL in the request (file_url)"
@@ -13530,7 +13530,7 @@ msgstr "%s — WP Import Export"
 #: assets/js/app.js:388
 #: assets/js/app.js:1061
 msgid "Bytes"
-msgstr "байт"
+msgstr "Б"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:758
@@ -15638,3 +15638,11 @@ msgstr "Сопоставьте записи комментариев удалё�
 #, js-format
 msgid "Remote post #%s"
 msgstr "Запись удалённого сайта #%s"
+
+#: app/Service/Trigger_Service.php
+msgid "Wait 30 seconds"
+msgstr "Подождать 30 секунд"
+
+#: app/Service/Trigger_Service.php
+msgid "Finished?"
+msgstr "Завершено?"

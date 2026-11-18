@@ -632,13 +632,21 @@ class Trigger_Service {
 	public static function source_label( $job ) {
 		$object = post_type_exists( (string) $job->data_type ) ? get_post_type_object( (string) $job->data_type ) : null;
 		$names  = [
-			'urls'           => __( 'All Site URLs', 'import-export-by-rockstarlab' ),
-			'taxonomy'       => __( 'Taxonomy Terms', 'import-export-by-rockstarlab' ),
-			'comment'        => __( 'Comments', 'import-export-by-rockstarlab' ),
-			'user'           => __( 'Users', 'import-export-by-rockstarlab' ),
-			'menu'           => __( 'Menus', 'import-export-by-rockstarlab' ),
-			'media'          => __( 'Media', 'import-export-by-rockstarlab' ),
-			'database_table' => __( 'MySQL Database Table', 'import-export-by-rockstarlab' ),
+			'urls'              => __( 'All Site URLs', 'import-export-by-rockstarlab' ),
+			'taxonomy'          => __( 'Taxonomy Terms', 'import-export-by-rockstarlab' ),
+			'comment'           => __( 'Comments', 'import-export-by-rockstarlab' ),
+			'user'              => __( 'Users', 'import-export-by-rockstarlab' ),
+			'menu'              => __( 'Menus', 'import-export-by-rockstarlab' ),
+			'media'             => __( 'Media', 'import-export-by-rockstarlab' ),
+			'database_table'    => __( 'MySQL Database Table', 'import-export-by-rockstarlab' ),
+			'woo_product'       => __( 'WooCommerce Products', 'import-export-by-rockstarlab' ),
+			'woo_order'         => __( 'WooCommerce Orders', 'import-export-by-rockstarlab' ),
+			'woo_coupon'        => __( 'WooCommerce Coupons', 'import-export-by-rockstarlab' ),
+			'woo_review'        => __( 'WooCommerce Reviews', 'import-export-by-rockstarlab' ),
+			'woo_refund'        => __( 'WooCommerce Refunds', 'import-export-by-rockstarlab' ),
+			'woo_customer'      => __( 'WooCommerce Customers', 'import-export-by-rockstarlab' ),
+			'woo_attribute'     => __( 'WooCommerce Attributes', 'import-export-by-rockstarlab' ),
+			'woo_shipping_zone' => __( 'WooCommerce Shipping Zones', 'import-export-by-rockstarlab' ),
 		];
 		$what   = $object ? $object->labels->name : ( $names[ (string) $job->data_type ] ?? ucwords( str_replace( [ 'woo_', '_' ], [ 'WooCommerce ', ' ' ], (string) $job->data_type ) ) );
 		$label  = sprintf( '#%d %s · %s', (int) $job->id, 'export' === $job->type ? __( 'Export', 'import-export-by-rockstarlab' ) : __( 'Import', 'import-export-by-rockstarlab' ), $what );
@@ -693,7 +701,12 @@ class Trigger_Service {
 				'position'    => [ $x, 0 ],
 			];
 		};
-		$wait            = $node( 'Wait 30 seconds', 'n8n-nodes-base.wait', 1.1, [ 'amount' => 30 ], 440 );
+		// Node names are shown in n8n, so they are translated; links and the expression below use the same names.
+		$start_name      = __( 'Start the job', 'import-export-by-rockstarlab' );
+		$check_name      = __( 'Check the job', 'import-export-by-rockstarlab' );
+		$wait_name       = __( 'Wait 30 seconds', 'import-export-by-rockstarlab' );
+		$done_name       = __( 'Finished?', 'import-export-by-rockstarlab' );
+		$wait            = $node( $wait_name, 'n8n-nodes-base.wait', 1.1, [ 'amount' => 30 ], 440 );
 		$wait['webhookId'] = wp_generate_uuid4();
 		$link            = static function ( $to ) {
 			return [
@@ -707,14 +720,14 @@ class Trigger_Service {
 			'name'        => sprintf( __( 'WordPress: %s', 'import-export-by-rockstarlab' ), $t['name'] ),
 			'nodes'       => [
 				$node( 'Start', 'n8n-nodes-base.manualTrigger', 1, [], 0 ),
-				$node( __( 'Start the job', 'import-export-by-rockstarlab' ), 'n8n-nodes-base.httpRequest', 4.2, $start, 220 ),
+				$node( $start_name, 'n8n-nodes-base.httpRequest', 4.2, $start, 220 ),
 				$wait,
 				$node(
-					__( 'Check the job', 'import-export-by-rockstarlab' ),
+					$check_name,
 					'n8n-nodes-base.httpRequest',
 					4.2,
 					[
-						'url'              => '=' . $jobs . "{{ \$('Start the job').item.json.job_id }}",
+						'url'              => '=' . $jobs . "{{ \$('" . str_replace( [ '\\', "'" ], [ '\\\\', "\\'" ], $start_name ) . "').item.json.job_id }}",
 						'sendHeaders'      => true,
 						'headerParameters' => $headers,
 						'options'          => new \stdClass(),
@@ -722,7 +735,7 @@ class Trigger_Service {
 					660
 				),
 				$node(
-					'Finished?',
+					$done_name,
 					'n8n-nodes-base.if',
 					2,
 					[
@@ -752,11 +765,11 @@ class Trigger_Service {
 				),
 			],
 			'connections' => [
-				'Start'         => [ 'main' => [ [ $link( __( 'Start the job', 'import-export-by-rockstarlab' ) ) ] ] ],
-				'Start the job' => [ 'main' => [ [ $link( 'Wait 30 seconds' ) ] ] ],
-				'Wait 30 seconds' => [ 'main' => [ [ $link( __( 'Check the job', 'import-export-by-rockstarlab' ) ) ] ] ],
-				'Check the job' => [ 'main' => [ [ $link( 'Finished?' ) ] ] ],
-				'Finished?'     => [ 'main' => [ [], [ $link( 'Wait 30 seconds' ) ] ] ],
+				'Start'     => [ 'main' => [ [ $link( $start_name ) ] ] ],
+				$start_name => [ 'main' => [ [ $link( $wait_name ) ] ] ],
+				$wait_name  => [ 'main' => [ [ $link( $check_name ) ] ] ],
+				$check_name => [ 'main' => [ [ $link( $done_name ) ] ] ],
+				$done_name  => [ 'main' => [ [], [ $link( $wait_name ) ] ] ],
 			],
 			'settings'    => [ 'executionOrder' => 'v1' ],
 			'pinData'     => new \stdClass(),

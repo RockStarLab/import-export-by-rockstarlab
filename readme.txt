@@ -2,8 +2,8 @@
 Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
-Tested up to: 7.1.3
-Stable tag: 2.2.16
+Tested up to: 7.2
+Stable tag: 2.2.17
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -15,13 +15,15 @@ Push and pull posts, pages, media and ACF between WordPress sites. Import and ex
 
 Pick the posts or pages you changed and push them to the live site, or pull them back. Images and featured images, ACF fields (repeaters, groups, flexible content, galleries, clones), Elementor and Gutenberg layouts, synced patterns, categories, authors and comments come along. Links and media addresses are rewritten for the target site, and nothing else on it is touched.
 
-https://www.youtube.com/watch?v=TxXZFWFtX1k
+https://www.youtube.com/watch?v=eicm-pxxXMo
 
 Need files instead? Import and export posts, pages, comments and media as CSV, XML (including WordPress export files), JSON, XLSX or ODS, with field mapping, previews and background jobs. Move a whole site's content with Content Migration, or register files uploaded by FTP in the Media Library with Media Folder Sync.
 
 **Works with AI agents.** Connect Claude, Cursor, Codex or another MCP client and ask it to sync pages, prepare an import, export content or check a job. The plugin exposes its operations through the WordPress Abilities API and the official WordPress MCP Adapter. AI is optional: every workflow also works in WP Admin and WP-CLI, without an AI account or API key.
 
 Read [how to sync content between two WordPress websites without export files](https://wpimportexport.com/how-to-sync-content-between-two-wordpress-websites-without-export-files/) and [how to use the plugin with AI agents like Claude, Codex and Cursor](https://wpimportexport.com/how-to-use-the-wordpress-abilities-api-with-ai-agents-exports-imports-content-sync-and-backups/).
+
+**Test: AI browser agent vs Content Sync.** We had an AI agent copy a WordPress page between two sites by clicking through wp-admin, then did the same with Content Sync. [See the time, the steps and what went missing](https://wpimportexport.com/ai-browser-agent-vs-content-sync-move-wordpress-page/).
 
 The free plugin includes Content Sync for posts, pages and media; import/export for posts, pages, comments and media; Content Migration; All Site URLs export; Media Folder Sync; WP-CLI and background jobs. The optional PRO addon adds custom post types, menus, users, taxonomy terms, WooCommerce data, database tables, Content Updater and field transformations, for both the admin tools and connected agents.
 
@@ -293,6 +295,11 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.2.17 =
+* Fix: the n8n workflow downloaded from a webhook trigger works when the admin language is not English.
+* Fix: the Triggers screen names WooCommerce jobs in the admin language, for example "WooCommerce Orders" instead of "WooCommerce Order".
+* Fix: Russian and Ukrainian: FTP/SFTP connection errors, trigger wait times and file sizes read correctly.
 
 = 2.2.16 =
 * New: the plugin interface is translated into Russian and Ukrainian. The translations ship with the plugin and work right away.
