@@ -227,6 +227,31 @@ class Schedule_Service {
 	}
 
 	/**
+	 * Source job label in the admin language, such as "#55 Export · Posts — name (completed)".
+	 *
+	 * @param object $job         Job row (id, type, data_type, job_name, status).
+	 * @param bool   $with_status Add the job status.
+	 * @return string
+	 */
+	public static function job_label( $job, $with_status = false ) {
+		if ( in_array( (string) $job->type, [ 'export', 'import' ], true ) ) {
+			$label = Trigger_Service::source_label( $job );
+		} else {
+			$label = sprintf( '#%d %s · %s', (int) $job->id, (string) $job->type, (string) $job->data_type );
+			$label = '' !== trim( (string) ( $job->job_name ?? '' ) ) ? $label . ' — ' . trim( (string) $job->job_name ) : $label;
+		}
+		if ( ! $with_status ) {
+			return $label;
+		}
+		$statuses = [
+			'completed' => __( 'completed', 'import-export-by-rockstarlab' ),
+			'failed'    => __( 'failed', 'import-export-by-rockstarlab' ),
+			'cancelled' => __( 'cancelled', 'import-export-by-rockstarlab' ),
+		];
+		return sprintf( '%1$s (%2$s)', $label, $statuses[ (string) $job->status ] ?? (string) $job->status );
+	}
+
+	/**
 	 * Read a bounded source page without revealing parameters.
 	 *
 	 * @param array $input Search and pagination.
@@ -242,7 +267,7 @@ class Schedule_Service {
 			$valid     = ( new Schedule_Source_Service() )->execute( $row->id );
 			$results[] = [
 				'id'          => (int) $row->id,
-				'text'        => ltrim( sprintf( '%s — #%d — %s / %s (%s)', (string) ( $row->job_name ?? '' ), $row->id, $row->type, $row->data_type, $row->status ), ' —' ),
+				'text'        => self::job_label( $row, true ),
 				'schedulable' => ! is_wp_error( $valid ),
 				'error_code'  => is_wp_error( $valid ) ? $valid->get_error_code() : '',
 			];

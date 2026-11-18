@@ -77,7 +77,7 @@ class Schedule_Command {
 	}
 
 	/**
-	 * Run a schedule's job now, with the same settings. The schedule keeps its next run time.
+	 * Run a schedule's job now, with the same settings. The schedule keeps its next run time; a "Changes only" schedule counts this run as its last run.
 	 *
 	 * With "changes only" on, the export includes what changed since the schedule's last completed job.
 	 *
@@ -139,6 +139,15 @@ class Schedule_Command {
 		if ( ! $job_id ) {
 			WP_CLI::error( 'The schedule did not start a job.' );
 		}
+		// Remember this run like a scheduled one (the next run time stays): the next
+		// "Changes only" run then exports only what changed since this run started.
+		rsl_ie()->Model->job_schedule->update(
+			(int) $schedule['id'],
+			[
+				'last_job_id'  => $job_id,
+				'last_run_gmt' => current_time( 'mysql', true ),
+			]
+		);
 		if ( 'table' === ( $assoc['format'] ?? 'table' ) && empty( $assoc['porcelain'] ) ) {
 			WP_CLI::log( sprintf( 'Job %d started from schedule %d (%s).', $job_id, (int) $schedule['id'], (string) $schedule['name'] ) );
 		}
