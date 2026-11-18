@@ -23,21 +23,18 @@ class Job_Controller extends Base_Controller {
 	 * @return string
 	 */
 	private function format_duration( $seconds ) {
-		$seconds = (int) max( 0, $seconds );
-
+		$seconds = (int) max( 0, (int) $seconds );
 		if ( $seconds < 60 ) {
-			return $seconds . 's';
+			/* translators: %d: seconds (short unit). */
+			return sprintf( __( '%ds', 'import-export-by-rockstarlab' ), $seconds );
 		}
-
-		if ( $seconds < 3600 ) {
-			$minutes = (int) floor( $seconds / 60 );
-			$secs    = (int) ( $seconds % 60 );
-			return sprintf( '%dm %ds', $minutes, $secs );
+		$minutes = (int) floor( $seconds / 60 );
+		if ( $minutes < 60 ) {
+			/* translators: 1: minutes, 2: seconds (short units). */
+			return sprintf( __( '%1$sm %2$ss', 'import-export-by-rockstarlab' ), $minutes, $seconds % 60 );
 		}
-
-		$hours   = (int) floor( $seconds / 3600 );
-		$minutes = (int) floor( ( $seconds % 3600 ) / 60 );
-		return sprintf( '%dh %dm', $hours, $minutes );
+		/* translators: 1: hours, 2: minutes (short units). */
+		return sprintf( __( '%1$sh %2$sm', 'import-export-by-rockstarlab' ), (int) floor( $minutes / 60 ), $minutes % 60 );
 	}
 
 	/**
