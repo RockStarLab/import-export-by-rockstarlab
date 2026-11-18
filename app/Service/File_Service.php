@@ -157,7 +157,7 @@ class File_Service {
 			wp_delete_file( $tmp );
 			$reason = is_wp_error( $response ) ? $response->get_error_message() : 'HTTP ' . $code;
 			/* translators: %s: error message or HTTP status. */
-			return new \WP_Error( 'rsl_ie_url_download_failed', sprintf( __( 'The file could not be downloaded (%s).', 'import-export-by-rockstarlab' ), $reason ), [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_url_download_failed', sprintf( __( 'The file could not be downloaded (%s).', 'import-export-by-rockstarlab' ), $reason ), [ 'status' => 400, 'reason' => $reason ] );
 		}
 		$name = '';
 		if ( preg_match( '/filename\*?=(?:UTF-8\'\')?"?([^";]+)"?/i', (string) wp_remote_retrieve_header( $response, 'content-disposition' ), $match ) ) {

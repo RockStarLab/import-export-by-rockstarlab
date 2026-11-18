@@ -14,6 +14,15 @@ defined( 'ABSPATH' ) || exit;
 class Content_Sync_Replacer {
 
 	/**
+	 * True while the sending site translates content for a push. The image map then holds IDs of
+	 * the receiving site, which mean other files (or nothing) in this site's Media Library, so only
+	 * the IDs are translated here; the receiver fixes the file addresses against its own library.
+	 *
+	 * @var bool
+	 */
+	public static $sender = false;
+
+	/**
 	 * Collect a map of post IDs referenced by ACF post-reference fields in meta.
 	 *
 	 * This is used during Content Sync to resolve ACF post_object / relationship values
@@ -453,7 +462,10 @@ class Content_Sync_Replacer {
 
 		$content = self::replace_shortcode_attachment_ids( $content, $image_map );
 		$content = self::remap_img_attachment_ids( $content, $image_map );
-		$moved   = array();
+		if ( self::$sender ) {
+			return $content;
+		}
+		$moved = array();
 
 		foreach ( $image_map as $old_id => $new_id ) {
 			$old_id = (int) $old_id;

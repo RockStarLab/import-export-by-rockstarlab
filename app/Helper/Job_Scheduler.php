@@ -141,6 +141,8 @@ class Job_Scheduler {
 				$interval              = wp_get_schedules()[ $schedule->recurrence ]['interval'] ?? 0;
 				$meta['error_code']    = $result->get_error_code();
 				$meta['error_message'] = wp_strip_all_tags( $result->get_error_message() );
+				// Runs happen in WP-Cron, in the site language: keep the parts so Schedules can show the reason in the reader's language.
+				$meta['error_reason']  = (string) ( ( (array) $result->get_error_data() )['reason'] ?? '' );
 				$meta['error_gmt']     = current_time( 'mysql', true );
 				update_option( 'rsl_ie_schedule_meta_' . $schedule_id, $meta, false );
 				if ( $interval ) {
@@ -159,6 +161,8 @@ class Job_Scheduler {
 			if ( is_wp_error( $result ) ) {
 				$meta['error_code']    = $result->get_error_code();
 				$meta['error_message'] = wp_strip_all_tags( $result->get_error_message() );
+				// Runs happen in WP-Cron, in the site language: keep the parts so Schedules can show the reason in the reader's language.
+				$meta['error_reason']  = (string) ( ( (array) $result->get_error_data() )['reason'] ?? '' );
 				$meta['error_gmt']     = current_time( 'mysql', true );
 				update_option( 'rsl_ie_schedule_meta_' . $schedule_id, $meta, false );
 				$model->update(
