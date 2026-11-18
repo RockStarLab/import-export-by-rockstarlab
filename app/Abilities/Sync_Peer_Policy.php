@@ -45,7 +45,20 @@ class Sync_Peer_Policy {
 	public static function destination( $id, $type ) {
 		if ( $id && get_post_type( $id ) !== $type ) {
 			return self::denied(); }
-		return self::post( $type, 'sync_pull', (int) $id );
+		$result = self::post( $type, 'sync_pull', (int) $id );
+		if ( is_wp_error( $result ) && $id && 'page' === $type && (int) get_option( 'wp_page_for_privacy_policy' ) === (int) $id && ! current_user_can( 'manage_privacy_options' ) ) {
+			return new \WP_Error(
+				'rsl_ie_privacy_page_forbidden',
+				sprintf(
+					/* translators: 1: page title, 2: page ID. */
+					__( 'The page "%1$s" (ID %2$d) is the Privacy Policy page of this site. WordPress lets only users who can manage privacy settings edit it; on a multisite network that is a super admin. Create this site\'s connection key as such a user, or update the page by hand.', 'import-export-by-rockstarlab' ),
+					get_the_title( (int) $id ),
+					(int) $id
+				),
+				[ 'status' => 403 ]
+			);
+		}
+		return $result;
 	}
 
 	/**

@@ -15683,3 +15683,9 @@ msgstr "%s эл./с"
 #, php-format
 msgid "The secure connection to the other site failed: its SSL certificate is expired, self-signed or not trusted, or the server uses an old TLS version. Renew the certificate, or use the http:// address for local and test sites. Details: %s"
 msgstr "Не удалось установить защищённое соединение с другим сайтом: его SSL-сертификат истёк, самоподписан или не считается доверенным, либо сервер использует устаревшую версию TLS. Обновите сертификат или укажите адрес с http:// для локальных и тестовых сайтов. Подробности: %s"
+
+#: app/Abilities/Sync_Peer_Policy.php:52
+#. translators: 1: page title, 2: page ID.
+#, php-format
+msgid "The page \"%1$s\" (ID %2$d) is the Privacy Policy page of this site. WordPress lets only users who can manage privacy settings edit it; on a multisite network that is a super admin. Create this site's connection key as such a user, or update the page by hand."
+msgstr "Страница «%1$s» (ID %2$d) — страница политики конфиденциальности этого сайта. WordPress разрешает её редактировать только пользователям с правом управлять настройками конфиденциальности; в мультисайте это суперадминистратор. Создайте ключ подключения этого сайта от такого пользователя или обновите страницу вручную."
