@@ -736,13 +736,7 @@ class Job_Service {
 	 * @return string
 	 */
 	private function format_duration( $seconds ) {
-		if ( $seconds < 60 ) {
-			return $seconds . 's';
-		}
-		if ( $seconds < 3600 ) {
-			return sprintf( '%dm %ds', (int) floor( $seconds / 60 ), $seconds % 60 );
-		}
-		return sprintf( '%dh %dm', (int) floor( $seconds / 3600 ), (int) floor( ( $seconds % 3600 ) / 60 ) );
+		return \RockStarLab\ImportExport\Helper\Progress_Tracker::format_duration( $seconds );
 	}
 
 	/**

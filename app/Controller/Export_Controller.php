@@ -203,17 +203,7 @@ class Export_Controller extends Base_Controller {
 	 * @return string Formatted duration
 	 */
 	private function format_duration( $seconds ) {
-		if ( $seconds < 60 ) {
-			return $seconds . 's';
-		} elseif ( $seconds < 3600 ) {
-			$minutes = floor( $seconds / 60 );
-			$secs    = $seconds % 60;
-			return sprintf( '%dm %ds', $minutes, $secs );
-		} else {
-			$hours   = floor( $seconds / 3600 );
-			$minutes = floor( ( $seconds % 3600 ) / 60 );
-			return sprintf( '%dh %dm', $hours, $minutes );
-		}
+		return \RockStarLab\ImportExport\Helper\Progress_Tracker::format_duration( $seconds );
 	}
 
 	/**
