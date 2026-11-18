@@ -5759,6 +5759,7 @@ msgstr "Тип записів: %s"
 
 #. translators: %s: taxonomy slug.
 #: app/Helper/Button_Location_Settings.php:261
+#: assets/js/app.js:2
 #, php-format
 msgid "Taxonomy: %s"
 msgstr "Таксономія: %s"
@@ -6818,7 +6819,7 @@ msgstr "Неприпустимий JSON: %s"
 #: app/Model/Format/JSON_Format.php:646
 #: app/Model/Format/JSON_Format.php:647
 msgid "The file ends before the JSON is complete: a closing ] or } is missing. Download or export it again."
-msgstr "Файл закінчується раніше, ніж JSON: бракує закривальної ] або }. Завантажте або експортуйте його заново."
+msgstr "Файл обривається до кінця JSON: бракує закривальної ] або }. Завантажте або експортуйте його заново."
 
 #: app/Model/Format/JSON_Format.php:648
 #: app/Model/Format/JSON_Format.php:649
@@ -15658,3 +15659,9 @@ msgstr "не надіслано: понад 30 сповіщень за годи�
 #: app/Service/Job_Notification_Service.php
 msgid "no answer from the address"
 msgstr "адреса не відповіла"
+
+#. translators: %s: custom field (meta) key.
+#: assets/js/app.js:2
+#, js-format
+msgid "Custom field: %s"
+msgstr "Довільне поле: %s"

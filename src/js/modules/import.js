@@ -9,7 +9,7 @@ import Utils from './utils';
 import FileUploader from './FileUploader';
 import BackupWarningModal from './BackupWarningModal';
 
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 const ImportModule = {
 	// Current wizard state
 	currentStep: 1,
@@ -11462,6 +11462,23 @@ const ImportModule = {
 				}
 			}
 		} );
+
+		// Custom fields and taxonomies added in step 4: name the kind of field in the admin
+		// language instead of an English-looking "Meta Event Id".
+		if ( label === fieldValue && /^meta_./.test( fieldValue ) ) {
+			return sprintf(
+				/* translators: %s: custom field (meta) key. */
+				__( 'Custom field: %s', 'import-export-by-rockstarlab' ),
+				fieldValue.slice( 5 )
+			);
+		}
+		if ( label === fieldValue && /^taxonomy_./.test( fieldValue ) ) {
+			return sprintf(
+				/* translators: %s: taxonomy name. */
+				__( 'Taxonomy: %s', 'import-export-by-rockstarlab' ),
+				fieldValue.slice( 9 )
+			);
+		}
 
 		// Fallback: convert field_name to Field Name
 		if ( label === fieldValue ) {
