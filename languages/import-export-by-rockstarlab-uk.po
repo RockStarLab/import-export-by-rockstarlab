@@ -15677,3 +15677,9 @@ msgstr "Інший"
 #, javascript-format
 msgid "%s items/s"
 msgstr "%s ел./с"
+
+#. translators: %s: technical error.
+#: app/Helper/Remote_API.php:101
+#, php-format
+msgid "The secure connection to the other site failed: its SSL certificate is expired, self-signed or not trusted, or the server uses an old TLS version. Renew the certificate, or use the http:// address for local and test sites. Details: %s"
+msgstr "Не вдалося встановити захищене з’єднання з іншим сайтом: його SSL-сертифікат прострочений, самопідписаний або не вважається довіреним, або сервер використовує застарілу версію TLS. Оновіть сертифікат або вкажіть адресу з http:// для локальних і тестових сайтів. Подробиці: %s"
