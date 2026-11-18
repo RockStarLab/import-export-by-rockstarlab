@@ -109,7 +109,7 @@ class Progress_Tracker {
 	 * @param int $seconds Duration in seconds
 	 * @return string Formatted duration
 	 */
-	protected static function format_duration( $seconds ) {
+	public static function format_duration( $seconds ) {
 		$seconds = (int) max( 0, (int) $seconds );
 		if ( $seconds < 60 ) {
 			/* translators: %d: seconds (short unit). */
