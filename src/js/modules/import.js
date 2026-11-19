@@ -8412,7 +8412,10 @@ const ImportModule = {
 			Object.keys( headerAliases ).forEach( ( targetKey ) => {
 				headerAliases[ targetKey ].forEach( ( entry ) => {
 					// Translated aliases keep their capitals; headers are compared in lower case.
-					const alias = String( entry ).toLowerCase();
+					// Ukrainian names are typed with ', ’ or ʼ; compare them as one.
+					const alias = String( entry )
+						.toLowerCase()
+						.replace( /[\u2019\u02BC\u2018`]/g, "'" );
 					if ( ! aliasLookup.has( alias ) ) {
 						aliasLookup.set( alias, targetKey );
 					}
@@ -8429,7 +8432,8 @@ const ImportModule = {
 				const normalizedSource = String( sourceField )
 					.replace( /^\uFEFF/, '' )
 					.trim()
-					.toLowerCase();
+					.toLowerCase()
+					.replace( /[\u2019\u02BC\u2018`]/g, "'" );
 				// Review exports from other stores and review apps use their own headers.
 				const checkedType = jQuery(
 					'input[name="content_type"]:checked'
