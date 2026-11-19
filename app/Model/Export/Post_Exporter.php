@@ -5060,7 +5060,8 @@ class Post_Exporter extends Abstract_Exporter {
 			$out[] = $item;
 		}
 
-		$json = wp_json_encode( $out );
+		// Keep non-Latin names readable: "Клуб", not "\u041a\u043b\u0443\u0431".
+		$json = wp_json_encode( $out, JSON_UNESCAPED_UNICODE );
 		return $json ? $json : '';
 	}
 
