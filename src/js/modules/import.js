@@ -8548,6 +8548,42 @@ const ImportModule = {
 				$sourceCard.addClass( 'used mapped' );
 			} );
 
+			// PASS 1.9: A column named exactly like an ACF field ("featured") goes to that
+			// field. Fuzzy matching below would otherwise send it to a built-in field that
+			// merely contains the name, such as featured_image_url.
+			jQuery(
+				'.rsl-ie-field-card:not(.used):not(.rsl-ie-rest-skip)'
+			).each( ( index, sourceCard ) => {
+				const $sourceCard = jQuery( sourceCard );
+				const sourceField = $sourceCard.data( 'source-field' );
+				const sourceIndex = $sourceCard.data( 'source-index' );
+				if ( ! sourceField ) return;
+				const $targetField = targetByName.get(
+					'acf_' + String( sourceField ).trim().toLowerCase()
+				);
+				if ( ! $targetField || ! $targetField.length ) return;
+				if ( $targetField.hasClass( 'has-mapping' ) ) return;
+				$targetField.find( '.rsl-ie-mapped-source' ).remove();
+				$targetField.find( '.rsl-ie-field-info' ).append( `
+						<div class="rsl-ie-mapped-source">
+							<span class="rsl-ie-source-name">${ Utils.escapeHtml(
+								sourceField
+							) }</span>
+							<span class="dashicons dashicons-no-alt rsl-ie-remove-mapping"></span>
+						</div>
+					` );
+				$targetField.addClass( 'has-mapping' );
+				$targetField.data( 'mapped-source-index', sourceIndex );
+				$targetField.data( 'mapped-source-field', sourceField );
+				mappings.push( {
+					sourceField,
+					sourceIndex,
+					targetField: $targetField.data( 'target-field' ),
+					fieldType: $targetField.data( 'field-type' ),
+				} );
+				$sourceCard.addClass( 'used mapped' );
+			} );
+
 			// PASS 2: Map remaining fields with fuzzy matching
 			// In a WordPress export (WXR) file, the comment columns (wp:comment/...)
 			// describe the post's comments, and link/guid/pubDate/description are

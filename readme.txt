@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.38
+Stable tag: 2.2.39
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -297,6 +297,9 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.2.39 =
+* Fix: Auto Map sends a column named exactly like an ACF field to that field. A "featured" column for an ACF true/false field went to the featured image URL before.
 
 = 2.2.38 =
 * Fix: updating posts by slug from an export file with ACF relationship, post object or page link fields could link a post to the wrong post when that post's ID on this site matched the source ID of another row in the file. The links now point to the posts named in the file.
