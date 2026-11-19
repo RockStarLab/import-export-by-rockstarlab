@@ -2907,7 +2907,7 @@ class Post_Exporter extends Abstract_Exporter {
 						if ( $field_cfg ) {
 							$exported = $this->acf_export_value_from_meta( $post->ID, $field_cfg, $acf_field_name );
 							if ( is_array( $exported ) || is_object( $exported ) ) {
-								$data[ $field ] = wp_json_encode( $exported );
+								$data[ $field ] = wp_json_encode( $exported, JSON_UNESCAPED_UNICODE );
 							} elseif ( $exported === null || $exported === false ) {
 								$data[ $field ] = '';
 							} else {
@@ -3049,7 +3049,7 @@ class Post_Exporter extends Abstract_Exporter {
 					if ( $field_cfg && in_array( $field_type, [ 'image', 'file', 'gallery', 'relationship', 'post_object', 'taxonomy', 'user', 'page_link' ], true ) ) {
 						$exported = $this->acf_export_value_from_meta( $post->ID, $field_cfg, $meta_key );
 						if ( is_array( $exported ) || is_object( $exported ) ) {
-							$data[ $field ] = wp_json_encode( $exported );
+							$data[ $field ] = wp_json_encode( $exported, JSON_UNESCAPED_UNICODE );
 						} elseif ( $exported === null || $exported === false ) {
 							$data[ $field ] = '';
 						} else {
@@ -3263,7 +3263,7 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 			unset( $term_data );
 
-			$encoded = wp_json_encode( $terms );
+			$encoded = wp_json_encode( $terms, JSON_UNESCAPED_UNICODE );
 			if ( $encoded ) {
 				$data[ $field ] = $encoded;
 			}
@@ -3360,9 +3360,9 @@ class Post_Exporter extends Abstract_Exporter {
 		if ( in_array( $field_type, [ 'repeater', 'flexible_content', 'group' ], true ) ) {
 			if ( is_array( $field_obj ) ) {
 				$portable = $this->export_acf_portable_nested_value( $value, $field_obj, $post_id );
-				return wp_json_encode( $portable );
+				return wp_json_encode( $portable, JSON_UNESCAPED_UNICODE );
 			}
-			return wp_json_encode( $value );
+			return wp_json_encode( $value, JSON_UNESCAPED_UNICODE );
 		}
 
 		// ── Gallery ───────────────────────────────────────────────────────────
@@ -3401,7 +3401,8 @@ class Post_Exporter extends Abstract_Exporter {
 					[
 						'acf_type' => 'gallery',
 						'values'   => $urls,
-					]
+					],
+					JSON_UNESCAPED_UNICODE
 				);
 			}
 		}
@@ -3459,7 +3460,8 @@ class Post_Exporter extends Abstract_Exporter {
 						'acf_type' => 'relation',
 						'values'   => $slugs,
 						'single'   => ! is_array( $value ),
-					]
+					],
+					JSON_UNESCAPED_UNICODE
 				);
 			}
 		}
@@ -3491,7 +3493,7 @@ class Post_Exporter extends Abstract_Exporter {
 				if ( $field_taxonomy ) {
 					$encoded['taxonomy'] = $field_taxonomy;
 				}
-				return wp_json_encode( $encoded );
+				return wp_json_encode( $encoded, JSON_UNESCAPED_UNICODE );
 			}
 		}
 
@@ -3499,7 +3501,7 @@ class Post_Exporter extends Abstract_Exporter {
 		// Use wp_json_encode (not maybe_serialize) to avoid double-serialization
 		// on import: update_post_meta() would serialize a PHP-serialized string
 		// a second time, causing ACF to receive a string instead of an array.
-		return wp_json_encode( $value );
+		return wp_json_encode( $value, JSON_UNESCAPED_UNICODE );
 	}
 
 	/**

@@ -350,6 +350,10 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 ## Changelog
 
+### 2.2.37
+
+* Tweak: ACF columns in exports (relationship, taxonomy, user, repeater, group and flexible content fields) keep non-Latin text readable ("Маршруты" instead of "\u041c\u0430..."). Such files import back exactly as before.
+
 ### 2.2.36
 
 * Tweak: when an import or export stops before it starts, the Duration on the result card is shown in the admin language instead of "0s".
@@ -367,17 +371,13 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 * Fix: Auto Map also matches field names such as "Ім’я" (First Name) when the apostrophe differs; 2.2.32 covered only the well-known column headers.
 
-### 2.2.32
-
-* Fix: Auto Map matches Ukrainian column names whatever apostrophe they are typed with (', ’ or ʼ), such as "Ім’я".
-
 Older versions: see [changelog.txt](changelog.txt).
 
 ## Requirements
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.36 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.37 |
 
 ---
 
