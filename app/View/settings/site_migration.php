@@ -217,7 +217,7 @@ $rsl_ie_migration_current_site_url = \RockStarLab\ImportExport\Helper\Site_URL::
 							</div>
 							<div class="rsl-ie-result-details">
 								<span class="rsl-ie-result-label"><?php esc_html_e( 'Duration', 'import-export-by-rockstarlab' ); ?></span>
-								<strong class="rsl-ie-result-value rsl-ie-migration-result-duration">0s</strong>
+								<strong class="rsl-ie-result-value rsl-ie-migration-result-duration"><?php /* translators: %d: number of seconds. */ echo esc_html( sprintf( __( '%ds', 'import-export-by-rockstarlab' ), 0 ) ); ?></strong>
 							</div>
 						</div>
 					</div>

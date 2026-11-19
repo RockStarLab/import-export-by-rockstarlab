@@ -350,6 +350,10 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 ## Changelog
 
+### 2.2.36
+
+* Tweak: when an import or export stops before it starts, the Duration on the result card is shown in the admin language instead of "0s".
+
 ### 2.2.35
 
 * Tweak: category and tag columns in exports keep non-Latin names readable ("Клуб" instead of "\u041a\u043b\u0443\u0431"). Such files import back exactly as before.
@@ -367,17 +371,13 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 * Fix: Auto Map matches Ukrainian column names whatever apostrophe they are typed with (', ’ or ʼ), such as "Ім’я".
 
-### 2.2.31
-
-* Improvement: Auto Map recognizes customer spreadsheet columns named in the admin language, such as "Address", "ZIP", "Customer since" and "Registration date" in Russian or Ukrainian.
-
 Older versions: see [changelog.txt](changelog.txt).
 
 ## Requirements
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.35 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.36 |
 
 ---
 
