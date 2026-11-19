@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.33
+Stable tag: 2.2.34
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -24,6 +24,8 @@ Need files instead? Import and export posts, pages, comments and media as CSV, X
 Read [how to sync content between two WordPress websites without export files](https://wpimportexport.com/how-to-sync-content-between-two-wordpress-websites-without-export-files/) and [how to use the plugin with AI agents like Claude, Codex and Cursor](https://wpimportexport.com/how-to-use-the-wordpress-abilities-api-with-ai-agents-exports-imports-content-sync-and-backups/).
 
 **Test: AI browser agent vs Content Sync.** We had an AI agent copy a WordPress page between two sites by clicking through wp-admin, then did the same with Content Sync. [See the time, the steps and what went missing](https://wpimportexport.com/ai-browser-agent-vs-content-sync-move-wordpress-page/).
+
+**Agent Skills.** Four ready-made [Agent Skills](https://github.com/RockStarLab/wp-import-export-content-sync-skills) teach Claude Code, Codex and Cursor to sync content, import, export and migrate sites with this plugin's abilities. [How to install and use them](https://wpimportexport.com/wordpress-agent-skills-content-sync-import-export/).
 
 The free plugin includes Content Sync for posts, pages and media; import/export for posts, pages, comments and media; Content Migration; All Site URLs export; Media Folder Sync; WP-CLI and background jobs. The optional PRO addon adds custom post types, menus, users, taxonomy terms, WooCommerce data, database tables, Content Updater and field transformations, for both the admin tools and connected agents.
 
@@ -295,6 +297,10 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.2.34 =
+* Fix: with "Automatically Import Media Files" unchecked, an import no longer tries to download the images in post content. The unchecked box reached the importer as the text "false" and was read as switched on.
+* Tweak: the Russian and Ukrainian notice about a Shopify product export reads correctly for any number of rows, products and variations.
 
 = 2.2.33 =
 * Fix: Auto Map also matches field names such as "Ім’я" (First Name) when the apostrophe differs; 2.2.32 covered only the well-known column headers.

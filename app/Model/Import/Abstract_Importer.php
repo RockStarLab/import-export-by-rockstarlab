@@ -404,6 +404,14 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 */
 	public function set_options( $options ) {
 		$this->options = wp_parse_args( $options, $this->get_default_options() );
+		// Checkboxes reach the job as the strings "true" and "false". Read as PHP values,
+		// "false" is truthy, so an unchecked "Automatically Import Media Files" still
+		// downloaded the images in the content. Turn both strings into booleans.
+		foreach ( $this->options as $key => $value ) {
+			if ( 'true' === $value || 'false' === $value ) {
+				$this->options[ $key ] = 'true' === $value;
+			}
+		}
 
 		// For Database_Table_Importer, set table_name
 		if ( method_exists( $this, 'get_name' ) && 'database_table' === $this->get_name() ) {

@@ -41,6 +41,8 @@ Read [how to sync content between two WordPress websites without export files](h
 
 **Test: AI browser agent vs Content Sync.** We had an AI agent copy a WordPress page between two sites by clicking through wp-admin, then did the same with Content Sync. [See the time, the steps and what went missing](https://wpimportexport.com/ai-browser-agent-vs-content-sync-move-wordpress-page/).
 
+**Agent Skills.** Four ready-made [Agent Skills](https://github.com/RockStarLab/wp-import-export-content-sync-skills) teach Claude Code, Codex and Cursor to sync content, import, export and migrate sites with this plugin's abilities. [How to install and use them](https://wpimportexport.com/wordpress-agent-skills-content-sync-import-export/).
+
 The free plugin includes Content Sync for posts, pages and media; import/export for posts, pages, comments and media; Content Migration; All Site URLs export; Media Folder Sync; WP-CLI and background jobs. The optional PRO addon adds custom post types, menus, users, taxonomy terms, WooCommerce data, database tables, Content Updater and field transformations, for both the admin tools and connected agents.
 
 Formerly named "Import Export by RockStarLab": same plugin, same settings, same updates.
@@ -348,6 +350,11 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 ## Changelog
 
+### 2.2.34
+
+* Fix: with "Automatically Import Media Files" unchecked, an import no longer tries to download the images in post content. The unchecked box reached the importer as the text "false" and was read as switched on.
+* Tweak: the Russian and Ukrainian notice about a Shopify product export reads correctly for any number of rows, products and variations.
+
 ### 2.2.33
 
 * Fix: Auto Map also matches field names such as "Ім’я" (First Name) when the apostrophe differs; 2.2.32 covered only the well-known column headers.
@@ -364,17 +371,13 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 * Fix: the billing and shipping fields of WooCommerce customers in the export and import screens are named in the admin language ("City", "Phone") instead of untranslated names such as "Billing City".
 
-### 2.2.29
-
-* Fix: warnings saved by imports that run in the background, such as images that could not be downloaded, are written in the language of the person who started the import instead of the site language.
-
 Older versions: see [changelog.txt](changelog.txt).
 
 ## Requirements
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.33 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.34 |
 
 ---
 
