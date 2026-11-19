@@ -8612,7 +8612,10 @@ const ImportModule = {
 
 				if ( ! sourceField ) return;
 
-				const sourceFieldLower = sourceField.toLowerCase();
+				// Ukrainian names are typed with ', ’ or ʼ; compare them as one.
+				const sourceFieldLower = sourceField
+					.toLowerCase()
+					.replace( /[\u2019\u02BC\u2018`]/g, "'" );
 				let matched = false;
 				if ( isObjectSample( sourceIndex ) ) return;
 
@@ -8633,7 +8636,8 @@ const ImportModule = {
 					const targetLabel = $targetField
 						.find( '.rsl-ie-field-label' )
 						.text()
-						.toLowerCase();
+						.toLowerCase()
+						.replace( /[\u2019\u02BC\u2018`]/g, "'" );
 					// English label: file headers stay English when the admin is translated.
 					const targetLabelEn = String(
 						$targetField.data( 'label-en' ) || ''
