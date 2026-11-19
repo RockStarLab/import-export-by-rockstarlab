@@ -9,6 +9,29 @@ import Utils from './utils';
 import ExportStep3 from './export-step-3';
 
 import { __, sprintf } from '@wordpress/i18n';
+
+/**
+ * Translated label of a customer billing or shipping field ("billing_city" → "City").
+ *
+ * @param {string} value Field key.
+ * @return {string} Label.
+ */
+function customerAddressLabel( value ) {
+	const labels = {
+		first_name: __( 'First Name', 'import-export-by-rockstarlab' ),
+		last_name: __( 'Last Name', 'import-export-by-rockstarlab' ),
+		company: __( 'Company', 'import-export-by-rockstarlab' ),
+		email: __( 'Email', 'import-export-by-rockstarlab' ),
+		phone: __( 'Phone', 'import-export-by-rockstarlab' ),
+		address_1: __( 'Address 1', 'import-export-by-rockstarlab' ),
+		address_2: __( 'Address 2', 'import-export-by-rockstarlab' ),
+		city: __( 'City', 'import-export-by-rockstarlab' ),
+		state: __( 'State', 'import-export-by-rockstarlab' ),
+		postcode: __( 'Postcode', 'import-export-by-rockstarlab' ),
+		country: __( 'Country', 'import-export-by-rockstarlab' ),
+	};
+	return labels[ value.replace( /^(billing|shipping)_/, '' ) ] || value;
+}
 const ExportModule = {
 	currentStep: 1,
 	totalSteps: 5,
@@ -6249,9 +6272,7 @@ const ExportModule = {
 						'billing_country',
 					].map( ( value ) => ( {
 						value,
-						label: value
-							.replace( /_/g, ' ' )
-							.replace( /\b\w/g, ( c ) => c.toUpperCase() ),
+						label: customerAddressLabel( value ),
 						type: 'string',
 					} ) ),
 				},
@@ -6270,9 +6291,7 @@ const ExportModule = {
 						'shipping_country',
 					].map( ( value ) => ( {
 						value,
-						label: value
-							.replace( /_/g, ' ' )
-							.replace( /\b\w/g, ( c ) => c.toUpperCase() ),
+						label: customerAddressLabel( value ),
 						type: 'string',
 					} ) ),
 				},
