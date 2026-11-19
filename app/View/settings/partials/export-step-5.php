@@ -80,7 +80,7 @@ $rsl_ie_zip_supported = class_exists( 'ZipArchive' );
 						</div>
 						<div class="rsl-ie-result-details">
 							<span class="rsl-ie-result-label"><?php esc_html_e( 'Duration', 'import-export-by-rockstarlab' ); ?></span>
-							<strong class="rsl-ie-result-value rsl-ie-result-duration">0s</strong>
+							<strong class="rsl-ie-result-value rsl-ie-result-duration"><?php /* translators: %d: number of seconds. */ echo esc_html( sprintf( __( '%ds', 'import-export-by-rockstarlab' ), 0 ) ); ?></strong>
 						</div>
 					</div>
 				</div>
