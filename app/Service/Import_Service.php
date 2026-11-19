@@ -2059,10 +2059,26 @@ class Import_Service {
 				continue;
 			}
 
+			// Fields imported from portable acf_<name> columns were resolved by slug, login or name and
+			// already hold this site's IDs. Remapping them again as source IDs sent a link to an
+			// unrelated post whenever its local ID matched the source ID of another row in the file.
+			$portable = [];
+			foreach ( array_keys( $row ) as $column ) {
+				if ( is_string( $column ) && 0 === strpos( $column, 'acf_' ) && strlen( $column ) > 4 ) {
+					$portable[] = substr( $column, 4 );
+				}
+			}
+
 			$meta = [];
 			foreach ( $raw_meta as $key => $values ) {
 				if ( ! is_array( $values ) || ! array_key_exists( 0, $values ) ) {
 					continue;
+				}
+				$plain = ltrim( (string) $key, '_' );
+				foreach ( $portable as $name ) {
+					if ( $plain === $name || 0 === strpos( $plain, $name . '_' ) ) {
+						continue 2;
+					}
 				}
 				$meta[ $key ] = maybe_unserialize( $values[0] );
 			}
