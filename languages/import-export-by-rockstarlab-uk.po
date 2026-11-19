@@ -826,7 +826,7 @@ msgstr "Файл такого типу не можна імпортувати. �
 #: assets/js/app.js:2285
 #, php-format,js-format
 msgid "Shopify product export detected: %1$s rows were combined into %2$s products with %3$s variations. Import it as WooCommerce Products and Auto Map will match every column."
-msgstr "Виявлено експорт товарів Shopify: %1$s рядків об'єднано в %2$s товарів з %3$s варіаціями. Імпортуйте його як «Товари WooCommerce», і автозіставлення підбере всі стовпці."
+msgstr "Виявлено експорт товарів Shopify: рядків — %1$s, після об’єднання товарів — %2$s, варіацій — %3$s. Імпортуйте його як «Товари WooCommerce», і автозіставлення підбере всі стовпці."
 
 #. translators: 1: customers in the Shopify CSV, 2: customers without an email address.
 #: app/Controller/Init.php:401
