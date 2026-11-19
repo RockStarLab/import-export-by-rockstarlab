@@ -350,6 +350,10 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 ## Changelog
 
+### 2.2.39
+
+* Fix: Auto Map sends a column named exactly like an ACF field to that field. A "featured" column for an ACF true/false field went to the featured image URL before.
+
 ### 2.2.38
 
 * Fix: updating posts by slug from an export file with ACF relationship, post object or page link fields could link a post to the wrong post when that post's ID on this site matched the source ID of another row in the file. The links now point to the posts named in the file.
@@ -366,18 +370,13 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 * Tweak: category and tag columns in exports keep non-Latin names readable ("Клуб" instead of "\u041a\u043b\u0443\u0431"). Such files import back exactly as before.
 
-### 2.2.34
-
-* Fix: with "Automatically Import Media Files" unchecked, an import no longer tries to download the images in post content. The unchecked box reached the importer as the text "false" and was read as switched on.
-* Tweak: the Russian and Ukrainian notice about a Shopify product export reads correctly for any number of rows, products and variations.
-
 Older versions: see [changelog.txt](changelog.txt).
 
 ## Requirements
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.38 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.39 |
 
 ---
 
