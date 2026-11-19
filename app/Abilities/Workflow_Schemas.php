@@ -427,6 +427,8 @@ class Workflow_Schemas {
 		$p['progress']        = [ 'type' => 'number' ];
 		$p['allowed_actions'] = self::items( self::string() );
 		$required             = array_keys( $p );
+		$p['created']         = self::integer();
+		$p['updated']         = self::integer();
 		$p['preparation']     = self::object(
 			[
 				'format'        => self::string( [ 'csv', 'json', 'xml', 'xlsx', 'ods' ] ),
