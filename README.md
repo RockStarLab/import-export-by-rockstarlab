@@ -350,6 +350,10 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 ## Changelog
 
+### 2.2.40
+
+* Tweak: replace links rules keep non-Latin text readable in JSON custom fields. Cyrillic, Greek and other letters were saved as \uXXXX escapes before: the same values, but hard to read and to search for.
+
 ### 2.2.39
 
 * Fix: Auto Map sends a column named exactly like an ACF field to that field. A "featured" column for an ACF true/false field went to the featured image URL before.
@@ -366,17 +370,13 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 * Tweak: when an import or export stops before it starts, the Duration on the result card is shown in the admin language instead of "0s".
 
-### 2.2.35
-
-* Tweak: category and tag columns in exports keep non-Latin names readable ("Клуб" instead of "\u041a\u043b\u0443\u0431"). Such files import back exactly as before.
-
 Older versions: see [changelog.txt](changelog.txt).
 
 ## Requirements
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.39 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.40 |
 
 ---
 
