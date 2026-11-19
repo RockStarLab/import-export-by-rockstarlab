@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.30
+Stable tag: 2.2.31
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -295,6 +295,9 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.2.31 =
+* Improvement: Auto Map recognizes customer spreadsheet columns named in the admin language, such as "Address", "ZIP", "Customer since" and "Registration date" in Russian or Ukrainian.
 
 = 2.2.30 =
 * Fix: the billing and shipping fields of WooCommerce customers in the export and import screens are named in the admin language ("City", "Phone") instead of untranslated names such as "Billing City".

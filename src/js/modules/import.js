@@ -9,7 +9,7 @@ import Utils from './utils';
 import FileUploader from './FileUploader';
 import BackupWarningModal from './BackupWarningModal';
 
-import { __, sprintf } from '@wordpress/i18n';
+import { __, _x, sprintf } from '@wordpress/i18n';
 
 /**
  * Translated label of a customer billing or shipping field ("billing_city" → "City").
@@ -8209,6 +8209,12 @@ const ImportModule = {
 				],
 				// Customer spreadsheets (CRM, mailing tools, other shops).
 				billing_address_1: [
+					// Localized headers of the same columns (a Russian or Ukrainian CRM export).
+					_x(
+						'Address',
+						'spreadsheet column header',
+						'import-export-by-rockstarlab'
+					),
 					'address',
 					'address 1',
 					'address1',
@@ -8226,6 +8232,11 @@ const ImportModule = {
 				billing_city: [ 'city', 'town' ],
 				billing_state: [ 'state', 'province', 'region', 'county' ],
 				billing_postcode: [
+					_x(
+						'ZIP',
+						'spreadsheet column header',
+						'import-export-by-rockstarlab'
+					),
 					'zip',
 					'zip code',
 					'postcode',
@@ -8235,6 +8246,16 @@ const ImportModule = {
 				billing_phone: [ 'phone', 'phone number', 'telephone' ],
 				billing_company: [ 'company' ],
 				date_created: [
+					_x(
+						'Customer since',
+						'spreadsheet column header',
+						'import-export-by-rockstarlab'
+					),
+					_x(
+						'Registration date',
+						'spreadsheet column header',
+						'import-export-by-rockstarlab'
+					),
 					'customer since',
 					'registered',
 					'date registered',
@@ -8389,7 +8410,9 @@ const ImportModule = {
 				: {};
 			const aliasLookup = new Map();
 			Object.keys( headerAliases ).forEach( ( targetKey ) => {
-				headerAliases[ targetKey ].forEach( ( alias ) => {
+				headerAliases[ targetKey ].forEach( ( entry ) => {
+					// Translated aliases keep their capitals; headers are compared in lower case.
+					const alias = String( entry ).toLowerCase();
 					if ( ! aliasLookup.has( alias ) ) {
 						aliasLookup.set( alias, targetKey );
 					}

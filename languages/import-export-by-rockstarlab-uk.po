@@ -15698,3 +15698,23 @@ msgid_plural "%d transformations"
 msgstr[0] "%d перетворення"
 msgstr[1] "%d перетворення"
 msgstr[2] "%d перетворень"
+
+#: assets/js/app.js:1 src/js/modules/import.js:1
+msgctxt "spreadsheet column header"
+msgid "Address"
+msgstr "Адреса"
+
+#: assets/js/app.js:1 src/js/modules/import.js:1
+msgctxt "spreadsheet column header"
+msgid "ZIP"
+msgstr "Індекс"
+
+#: assets/js/app.js:1 src/js/modules/import.js:1
+msgctxt "spreadsheet column header"
+msgid "Customer since"
+msgstr "Клієнт з"
+
+#: assets/js/app.js:1 src/js/modules/import.js:1
+msgctxt "spreadsheet column header"
+msgid "Registration date"
+msgstr "Дата реєстрації"
