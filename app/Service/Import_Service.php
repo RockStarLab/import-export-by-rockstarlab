@@ -1919,7 +1919,7 @@ class Import_Service {
 			// Variations and other structured export fields may be JSON-encoded.
 			$decoded = json_decode( $value );
 			if ( ( is_array( $decoded ) || $decoded instanceof \stdClass ) && $source_fields ) {
-				return wp_json_encode( $this->apply_replace_links_rules_to_value( $decoded, $rules, $replacement_count, $source_fields ) );
+				return wp_json_encode( $this->apply_replace_links_rules_to_value( $decoded, $rules, $replacement_count, $source_fields ), JSON_UNESCAPED_UNICODE );
 			}
 
 			foreach ( $rules as $rule ) {

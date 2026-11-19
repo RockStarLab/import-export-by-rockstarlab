@@ -8566,9 +8566,7 @@ const ImportModule = {
 				$targetField.find( '.rsl-ie-mapped-source' ).remove();
 				$targetField.find( '.rsl-ie-field-info' ).append( `
 						<div class="rsl-ie-mapped-source">
-							<span class="rsl-ie-source-name">${ Utils.escapeHtml(
-								sourceField
-							) }</span>
+							<span class="rsl-ie-source-name">${ Utils.escapeHtml( sourceField ) }</span>
 							<span class="dashicons dashicons-no-alt rsl-ie-remove-mapping"></span>
 						</div>
 					` );
