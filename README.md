@@ -350,6 +350,10 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 ## Changelog
 
+### 2.2.35
+
+* Tweak: category and tag columns in exports keep non-Latin names readable ("Клуб" instead of "\u041a\u043b\u0443\u0431"). Such files import back exactly as before.
+
 ### 2.2.34
 
 * Fix: with "Automatically Import Media Files" unchecked, an import no longer tries to download the images in post content. The unchecked box reached the importer as the text "false" and was read as switched on.
@@ -367,17 +371,13 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 * Improvement: Auto Map recognizes customer spreadsheet columns named in the admin language, such as "Address", "ZIP", "Customer since" and "Registration date" in Russian or Ukrainian.
 
-### 2.2.30
-
-* Fix: the billing and shipping fields of WooCommerce customers in the export and import screens are named in the admin language ("City", "Phone") instead of untranslated names such as "Billing City".
-
 Older versions: see [changelog.txt](changelog.txt).
 
 ## Requirements
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.34 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.35 |
 
 ---
 
