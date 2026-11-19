@@ -75,6 +75,31 @@ class Job_Runner {
 		if ( ! $job || ( ! Job_Service::supports( $job ) && ! Sync_Job_Service::supports( $job ) && ! Migration_Service::supports( $job ) && ! AI_URL_Service::supports( $job ) && ! ( 'import' === $job->type && 'media_sync' === $job->data_type ) ) || ! in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
 			return;
 		}
+		// Cron runs in the site language; messages saved into the job (warnings, media errors)
+		// are shown to the person who started it, so build them in that person's admin language.
+		$switched = ! empty( $job->user_id ) && function_exists( 'switch_to_user_locale' ) && get_user_locale( (int) $job->user_id ) !== determine_locale() && switch_to_user_locale( (int) $job->user_id );
+		try {
+			self::run_batches( $job, $job_id, $drain_migration );
+		} finally {
+			if ( $switched ) {
+				restore_previous_locale();
+			}
+		}
+		$job = rsl_ie()->Model->job->find( (int) $job_id );
+		if ( $job && in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
+			self::schedule( $job_id );
+		}
+	}
+
+	/**
+	 * Process the batches of one cron request.
+	 *
+	 * @param object $job             Job row.
+	 * @param int    $job_id          Job ID.
+	 * @param bool   $drain_migration Whether to keep processing within the time budget.
+	 * @return void
+	 */
+	private static function run_batches( $job, $job_id, $drain_migration ) {
 		if ( AI_URL_Service::supports( $job ) ) {
 			( new AI_URL_Service() )->process_background_batch( (int) $job_id );
 		} else {
@@ -109,10 +134,6 @@ class Job_Runner {
 				$drains  = Migration_Service::supports( $job ) || $service instanceof Import_Service || $service instanceof Export_Service;
 				$advance = ! is_wp_error( $outcome ) && empty( $outcome['locked'] ) && $drain_migration && $drains && $current && in_array( $current->status, [ 'pending', 'processing' ], true );
 			} while ( $advance && microtime( true ) < ( $service instanceof Import_Service ? $started + Import_Service::BATCH_TIME_BUDGET / 2 : $deadline ) );
-		}
-		$job = rsl_ie()->Model->job->find( (int) $job_id );
-		if ( $job && in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
-			self::schedule( $job_id );
 		}
 	}
 
