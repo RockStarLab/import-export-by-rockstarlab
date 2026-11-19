@@ -269,6 +269,14 @@ class Job_Service {
 			'allowed_actions'    => apply_filters( 'rsl_ie_job_domain_actions', $actions, $job ),
 			'poll_after_seconds' => in_array( $job->status, [ 'pending', 'processing' ], true ) ? 2 : 0,
 		];
+		// Imports also tell new items from updated ones, as the import screen does.
+		if ( 'import' === $job->type && is_array( $result ) ) {
+			foreach ( [ 'created', 'updated' ] as $key ) {
+				if ( isset( $result[ $key ] ) && is_numeric( $result[ $key ] ) ) {
+					$snapshot[ $key ] = (int) $result[ $key ];
+				}
+			}
+		}
 		$preparation = $this->preparation_progress( $job );
 		if ( null !== $preparation ) {
 			$snapshot['preparation'] = $preparation;
