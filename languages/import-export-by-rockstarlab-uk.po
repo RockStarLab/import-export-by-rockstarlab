@@ -15689,3 +15689,12 @@ msgstr "Не вдалося встановити захищене з’єдна�
 #, php-format
 msgid "The page \"%1$s\" (ID %2$d) is the Privacy Policy page of this site. WordPress lets only users who can manage privacy settings edit it; on a multisite network that is a super admin. Create this site's connection key as such a user, or update the page by hand."
 msgstr "Сторінка «%1$s» (ID %2$d) — сторінка політики конфіденційності цього сайту. WordPress дозволяє її редагувати лише користувачам із правом керувати налаштуваннями конфіденційності; у мультисайті це суперадміністратор. Створіть ключ підключення цього сайту від такого користувача або оновіть сторінку вручну."
+
+#: assets/js/app.js
+#. translators: %d: number of transformations assigned to a column.
+#, javascript-format
+msgid "%d transformation"
+msgid_plural "%d transformations"
+msgstr[0] "%d перетворення"
+msgstr[1] "%d перетворення"
+msgstr[2] "%d перетворень"

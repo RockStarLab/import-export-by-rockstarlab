@@ -1,4 +1,4 @@
-import { __ } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 /**
  * Export Step 3: Field Selection with Drag & Drop
  */
@@ -272,6 +272,25 @@ export default class ExportStep3 {
 	}
 
 	/**
+	 * Badge text for the number of transformations on a column.
+	 *
+	 * @param {number} count Assigned transformations.
+	 * @return {string} Translated text with the right plural form.
+	 */
+	transformationCount( count ) {
+		return sprintf(
+			/* translators: %d: number of transformations assigned to a column. */
+			_n(
+				'%d transformation',
+				'%d transformations',
+				count,
+				'import-export-by-rockstarlab'
+			),
+			count
+		);
+	}
+
+	/**
 	 * Render CSV column
 	 */
 	renderColumn( fieldKey, field, label, type ) {
@@ -330,7 +349,7 @@ export default class ExportStep3 {
 					? `
 				<div class="rsl-ie-column-badge">
 					<span class="dashicons dashicons-admin-generic"></span>
-					${ this.fieldFunctions[ fieldKey ].length } ${ window.rslIeData.i18n.functions }
+					${ this.transformationCount( this.fieldFunctions[ fieldKey ].length ) }
 				</div>
 			`
 					: ''
@@ -2265,7 +2284,7 @@ export default class ExportStep3 {
 				}
 				badge.innerHTML = `
 					<span class="dashicons dashicons-admin-generic"></span>
-					${ functions.length } ${ window.rslIeData.i18n.functions }
+					${ this.transformationCount( functions.length ) }
 				`;
 			} else {
 				column.classList.remove( 'has-functions' );
