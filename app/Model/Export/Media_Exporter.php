@@ -619,7 +619,7 @@ class Media_Exporter extends Abstract_Exporter {
 			}
 			$value = get_post_meta( $attachment->ID, $meta_key, true );
 			if ( is_array( $value ) || is_object( $value ) ) {
-				$value = wp_json_encode( $value );
+				$value = wp_json_encode( $value, JSON_UNESCAPED_UNICODE );
 			}
 
 			if ( ! $this->evaluate_media_filter_condition( $value, $filter['condition'], $filter['value'] ?? '' ) ) {

@@ -103,6 +103,51 @@ class Cli_Helper {
 	}
 
 	/**
+	 * Stop with a clear message when the options do not fit the schema branch of the chosen type.
+	 *
+	 * The import/export abilities validate input against a oneOf list (one branch per content
+	 * type). When an option is unknown for the chosen type, WordPress reports the error of the
+	 * last branch ("import_type is not custom_post_types"), which names a different type.
+	 *
+	 * @param string $ability_name Ability name.
+	 * @param string $type_key     Input key holding the type (import_type, export_type, content_type).
+	 * @param string $type         Chosen type.
+	 * @param array  $options      Options to send.
+	 */
+	public static function check_options( $ability_name, $type_key, $type, array $options ) {
+		$ability = self::find_ability( $ability_name );
+		if ( ! $ability || ! $options ) {
+			return;
+		}
+		$schema   = (array) $ability->get_input_schema();
+		$branches = isset( $schema['oneOf'] ) && is_array( $schema['oneOf'] ) ? $schema['oneOf'] : [ $schema ];
+		foreach ( $branches as $branch ) {
+			$type_schema = $branch['properties'][ $type_key ] ?? [];
+			$allowed     = (array) ( $type_schema['enum'] ?? ( isset( $type_schema['const'] ) ? [ $type_schema['const'] ] : [] ) );
+			if ( ! in_array( $type, $allowed, true ) ) {
+				continue;
+			}
+			$option_schema = $branch['properties']['options'] ?? [];
+			if ( empty( $option_schema['properties'] ) || ! array_key_exists( 'additionalProperties', $option_schema ) || false !== $option_schema['additionalProperties'] ) {
+				return;
+			}
+			$known   = array_keys( (array) $option_schema['properties'] );
+			$unknown = array_diff( array_keys( $options ), $known );
+			if ( $unknown ) {
+				WP_CLI::error(
+					sprintf(
+						'These options are not supported for "%1$s": %2$s. Supported options: %3$s.',
+						$type,
+						implode( ', ', $unknown ),
+						implode( ', ', $known )
+					)
+				);
+			}
+			return;
+		}
+	}
+
+	/**
 	 * Stop with an error message and code.
 	 *
 	 * @param \WP_Error $error Error.

@@ -419,7 +419,7 @@ class CSV_Format implements File_Format_Interface {
 				foreach ( $headers as $header ) {
 					$value = $row[ $header ] ?? '';
 					if ( is_array( $value ) || is_object( $value ) ) {
-						$value = wp_json_encode( $value );
+						$value = wp_json_encode( $value, JSON_UNESCAPED_UNICODE );
 					}
 					$ordered_row[] = $value;
 				}
@@ -428,7 +428,7 @@ class CSV_Format implements File_Format_Interface {
 				$row = array_map(
 					function ( $value ) {
 						if ( is_array( $value ) || is_object( $value ) ) {
-							return wp_json_encode( $value );
+							return wp_json_encode( $value, JSON_UNESCAPED_UNICODE );
 						}
 						return $value;
 					},
@@ -755,7 +755,7 @@ class CSV_Format implements File_Format_Interface {
 		$encoded_row = [];
 		foreach ( $row as $value ) {
 			if ( is_array( $value ) || is_object( $value ) ) {
-				$value = wp_json_encode( $value );
+				$value = wp_json_encode( $value, JSON_UNESCAPED_UNICODE );
 			}
 
 			$value = (string) $value;

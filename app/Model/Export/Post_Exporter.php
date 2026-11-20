@@ -1788,7 +1788,7 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 			$value = get_post_meta( $post->ID, $meta_key, true );
 			if ( is_array( $value ) || is_object( $value ) ) {
-				$value = wp_json_encode( $value );
+				$value = wp_json_encode( $value, JSON_UNESCAPED_UNICODE );
 			}
 			if ( ! $this->evaluate_product_condition( $value, $filter['condition'], $filter['value'] ?? '' ) ) {
 				return false;
@@ -1944,7 +1944,7 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 			$value = get_post_meta( $post->ID, $meta_key, true );
 			if ( is_array( $value ) || is_object( $value ) ) {
-				$value = wp_json_encode( $value );
+				$value = wp_json_encode( $value, JSON_UNESCAPED_UNICODE );
 			}
 
 			if ( ! $this->evaluate_product_condition( $value, $filter['condition'], $filter['value'] ?? '' ) ) {
@@ -3191,7 +3191,7 @@ class Post_Exporter extends Abstract_Exporter {
 									'title' => get_the_title( (int) $child_id ),
 								];
 							}
-							$data[ $field ] = empty( $refs ) ? '' : wp_json_encode( $refs );
+							$data[ $field ] = empty( $refs ) ? '' : wp_json_encode( $refs, JSON_UNESCAPED_UNICODE );
 							continue;
 						}
 
@@ -4301,7 +4301,7 @@ class Post_Exporter extends Abstract_Exporter {
 						'items'     => array_values( $items ),
 					];
 
-					$json  = wp_json_encode( $payload );
+					$json  = wp_json_encode( $payload, JSON_UNESCAPED_UNICODE );
 					$token = base64_encode( $json ? $json : '' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 					if ( '' === $token ) {
 						return $shortcode;
@@ -4946,7 +4946,7 @@ class Post_Exporter extends Abstract_Exporter {
 			return '';
 		}
 
-		$json = wp_json_encode( $variations_data );
+		$json = wp_json_encode( $variations_data, JSON_UNESCAPED_UNICODE );
 		return $json ? $json : '';
 	}
 
@@ -5016,7 +5016,7 @@ class Post_Exporter extends Abstract_Exporter {
 			return '';
 		}
 
-		$json = wp_json_encode( $exported );
+		$json = wp_json_encode( $exported, JSON_UNESCAPED_UNICODE );
 		return $json ? $json : '';
 	}
 
@@ -5155,7 +5155,8 @@ class Post_Exporter extends Abstract_Exporter {
 				[
 					'acf_type' => 'gallery',
 					'values'   => $urls,
-				]
+				],
+				JSON_UNESCAPED_UNICODE
 			);
 			return $json ? $json : '';
 		}

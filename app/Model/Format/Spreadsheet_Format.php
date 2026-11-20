@@ -502,7 +502,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 		}
 
 		if ( is_array( $value ) || is_object( $value ) ) {
-			$encoded = wp_json_encode( $value );
+			$encoded = wp_json_encode( $value, JSON_UNESCAPED_UNICODE );
 			return $encoded ? $encoded : '';
 		}
 
