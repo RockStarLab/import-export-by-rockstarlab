@@ -650,9 +650,9 @@ class Media_Exporter extends Abstract_Exporter {
 			case 'not_equals':
 				return ! $this->media_values_equal( $field_value, $test_value );
 			case 'contains':
-				return false !== stripos( (string) $field_value, (string) $test_value );
+				return false !== \RockStarLab\ImportExport\Helper\Text_Match::ipos( (string) $field_value, (string) $test_value );
 			case 'not_contains':
-				return false === stripos( (string) $field_value, (string) $test_value );
+				return false === \RockStarLab\ImportExport\Helper\Text_Match::ipos( (string) $field_value, (string) $test_value );
 			case 'greater':
 				return $field_value > $test_value;
 			case 'equals_or_greater':

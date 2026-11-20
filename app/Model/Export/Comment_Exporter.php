@@ -1156,17 +1156,17 @@ class Comment_Exporter extends Abstract_Exporter {
 				return $field_value != $test_value;
 
 			case 'contains':
-				return stripos( (string) $field_value, (string) $test_value ) !== false;
+				return \RockStarLab\ImportExport\Helper\Text_Match::ipos( (string) $field_value, (string) $test_value ) !== false;
 
 			case 'not_contains':
-				return stripos( (string) $field_value, (string) $test_value ) === false;
+				return \RockStarLab\ImportExport\Helper\Text_Match::ipos( (string) $field_value, (string) $test_value ) === false;
 
 			case 'starts_with':
-				return stripos( (string) $field_value, (string) $test_value ) === 0;
+				return \RockStarLab\ImportExport\Helper\Text_Match::ipos( (string) $field_value, (string) $test_value ) === 0;
 
 			case 'ends_with':
-				$field_lower = strtolower( (string) $field_value );
-				$test_lower  = strtolower( (string) $test_value );
+				$field_lower = \RockStarLab\ImportExport\Helper\Text_Match::lower( (string) $field_value );
+				$test_lower  = \RockStarLab\ImportExport\Helper\Text_Match::lower( (string) $test_value );
 				return substr( $field_lower, -strlen( $test_lower ) ) === $test_lower;
 
 			case 'greater':

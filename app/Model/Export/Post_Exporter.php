@@ -2075,19 +2075,19 @@ class Post_Exporter extends Abstract_Exporter {
 				}
 				return 'equals' === $condition ? $matched : ! $matched;
 			case 'contains':
-				return false !== stripos( (string) $field_value, (string) $test_value );
+				return false !== \RockStarLab\ImportExport\Helper\Text_Match::ipos( (string) $field_value, (string) $test_value );
 			case 'not_contains':
-				return false === stripos( (string) $field_value, (string) $test_value );
+				return false === \RockStarLab\ImportExport\Helper\Text_Match::ipos( (string) $field_value, (string) $test_value );
 			case 'starts_with':
 				if ( $is_taxonomy ) {
 					foreach ( array_map( 'trim', explode( ',', (string) $field_value ) ) as $value ) {
-						if ( 0 === stripos( $value, (string) $test_value ) ) {
+						if ( 0 === \RockStarLab\ImportExport\Helper\Text_Match::ipos( $value, (string) $test_value ) ) {
 							return true;
 						}
 					}
 					return false;
 				}
-				return 0 === stripos( (string) $field_value, (string) $test_value );
+				return 0 === \RockStarLab\ImportExport\Helper\Text_Match::ipos( (string) $field_value, (string) $test_value );
 			case 'ends_with':
 				$test_length = strlen( (string) $test_value );
 				$values      = $is_taxonomy ? array_map( 'trim', explode( ',', (string) $field_value ) ) : [ $field_value ];
@@ -5296,16 +5296,16 @@ class Post_Exporter extends Abstract_Exporter {
 				return $field_value != $test_value;
 
 			case 'contains':
-				return stripos( $field_value, $test_value ) !== false;
+				return \RockStarLab\ImportExport\Helper\Text_Match::ipos( $field_value, $test_value ) !== false;
 
 			case 'not_contains':
-				return stripos( $field_value, $test_value ) === false;
+				return \RockStarLab\ImportExport\Helper\Text_Match::ipos( $field_value, $test_value ) === false;
 
 			case 'starts_with':
-				return stripos( $field_value, $test_value ) === 0;
+				return \RockStarLab\ImportExport\Helper\Text_Match::ipos( $field_value, $test_value ) === 0;
 
 			case 'ends_with':
-				return substr( strtolower( $field_value ), -strlen( $test_value ) ) === strtolower( $test_value );
+				return substr( \RockStarLab\ImportExport\Helper\Text_Match::lower( $field_value ), -strlen( $test_value ) ) === \RockStarLab\ImportExport\Helper\Text_Match::lower( $test_value );
 
 			case 'greater':
 				return $field_value > $test_value;
