@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.42 =
+* Fix: export filters "contains", "does not contain", "starts with" and "ends with" ignore letter case in Cyrillic, Greek and other alphabets, not only in Latin. "мягк" now finds "Мягкая" in posts, pages, comments and media.
+
 = 2.2.41 =
 * Fix: AI agents can filter an export by category, tag or another taxonomy in filters[] (field "_taxonomy_filter" with "taxonomy", or type "taxonomy"). Such a filter matched nothing before; a rule without a taxonomy now returns a clear error.
 * Fix: WP-CLI import and export name the options that the chosen type does not support and list the supported ones, instead of a general schema error.
