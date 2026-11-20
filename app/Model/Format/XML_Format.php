@@ -563,7 +563,7 @@ class XML_Format implements File_Format_Interface {
 			foreach ( $list as $item ) {
 				$rows[] = is_serialized( $item ) ? maybe_unserialize( $item ) : $item;
 			}
-			$row[ 'Meta: ' . $key ] = (string) wp_json_encode( array( '_rsl_ie_meta_rows' => $rows ) );
+			$row[ 'Meta: ' . $key ] = (string) wp_json_encode( array( '_rsl_ie_meta_rows' => $rows ), JSON_UNESCAPED_UNICODE );
 		}
 		return $row;
 	}
@@ -763,7 +763,7 @@ class XML_Format implements File_Format_Interface {
 			foreach ( $children as $child ) {
 				$list[] = $this->flatten_element( $child );
 			}
-			$row[ $key ] = wp_json_encode( $list );
+			$row[ $key ] = wp_json_encode( $list, JSON_UNESCAPED_UNICODE );
 		}
 		return $row;
 	}

@@ -1109,7 +1109,7 @@ class Comment_Exporter extends Abstract_Exporter {
 
 		// Check if it is a meta field.
 		$value = get_comment_meta( $comment->comment_ID, $field_name, true );
-		return is_array( $value ) || is_object( $value ) ? wp_json_encode( $value ) : $value;
+		return is_array( $value ) || is_object( $value ) ? wp_json_encode( $value, JSON_UNESCAPED_UNICODE ) : $value;
 	}
 
 	/**

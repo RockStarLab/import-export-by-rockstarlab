@@ -83,7 +83,8 @@ class Export_Request {
 		$type    = strtolower( trim( $input['export_type'] ) );
 		$options = $input['options'] ?? [];
 		unset( $options['_rsl_ie_selected_id_field'], $options['_rsl_ie_free_comment_scope'] );
-		$filters = [];
+		$filters     = [];
+		$tax_filters = [];
 		foreach ( [ $options['filters'] ?? [], $input['filters'] ?? [], $options['dynamic_filters'] ?? [], $input['dynamic_filters'] ?? [] ] as $group ) {
 			if ( ! is_array( $group ) ) {
 				return self::error();
@@ -91,6 +92,14 @@ class Export_Request {
 			foreach ( $group as $filter ) {
 				if ( ! is_array( $filter ) || ! isset( $filter['field'], $filter['condition'] ) || ! is_string( $filter['field'] ) || ! is_string( $filter['condition'] ) ) {
 					return self::error();
+				}
+				$tax_filter = self::taxonomy_filter( $filter );
+				if ( is_wp_error( $tax_filter ) ) {
+					return $tax_filter;
+				}
+				if ( $tax_filter ) {
+					$tax_filters[ wp_json_encode( $tax_filter ) ] = $tax_filter;
+					continue;
 				}
 				$filter['condition']                  = self::condition( $filter['condition'] );
 				$filters[ wp_json_encode( $filter ) ] = $filter;
@@ -102,6 +111,9 @@ class Export_Request {
 			if ( array_key_exists( $key, $input ) && null !== $input[ $key ] ) {
 				$options[ $key ] = $input[ $key ];
 			}
+		}
+		if ( $tax_filters ) {
+			$options['taxonomy'] = array_merge( is_array( $options['taxonomy'] ?? null ) ? $options['taxonomy'] : [], array_values( $tax_filters ) );
 		}
 		foreach ( [ 'fields', 'custom_fields', 'field_functions' ] as $key ) {
 			if ( isset( $options[ $key ] ) && ! is_array( $options[ $key ] ) ) {
@@ -376,5 +388,53 @@ class Export_Request {
 	 */
 	private static function error() {
 		return new \WP_Error( 'rsl_ie_invalid_export_request', __( 'Invalid export parameters, filters or selected IDs.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+	}
+
+	/**
+	 * Turn a taxonomy row given in filters[] into an options.taxonomy rule.
+	 *
+	 * The admin wizard sends taxonomy rules in options.taxonomy. An agent that copies the field
+	 * name from the wizard ("_taxonomy_filter") or marks a row with type "taxonomy" sends it in
+	 * filters[] instead, where the exporters treat it as an unknown field and match nothing.
+	 *
+	 * @param array $filter Filter row.
+	 * @return array|null|\WP_Error Taxonomy rule, null for an ordinary filter, or an error.
+	 */
+	private static function taxonomy_filter( array $filter ) {
+		$is_tax = '_taxonomy_filter' === $filter['field'] || 'taxonomy' === strtolower( (string) ( $filter['type'] ?? '' ) );
+		if ( ! $is_tax ) {
+			return null;
+		}
+		$taxonomy = '_taxonomy_filter' === $filter['field'] ? (string) ( $filter['taxonomy'] ?? '' ) : (string) ( $filter['taxonomy'] ?? $filter['field'] );
+		$terms    = $filter['value'] ?? ( $filter['terms'] ?? '' );
+		if ( '' === trim( $taxonomy ) || ( is_array( $terms ) ? ! $terms : '' === trim( (string) $terms ) ) ) {
+			return new \WP_Error(
+				'rsl_ie_invalid_taxonomy_filter',
+				__( 'A taxonomy filter needs "taxonomy" (for example category or product_cat) and "value" with one or more term slugs, names or IDs.', 'import-export-by-rockstarlab' ),
+				[ 'status' => 400 ]
+			);
+		}
+		$condition = strtolower( trim( (string) $filter['condition'] ) );
+		$map       = [
+			'equals'     => 'in',
+			'in'         => 'in',
+			'not_equals' => 'not_in',
+			'not_in'     => 'not_in',
+			'and'        => 'and',
+			'all'        => 'and',
+			'or'         => 'in',
+		];
+		if ( ! isset( $map[ $condition ] ) ) {
+			return new \WP_Error(
+				'rsl_ie_invalid_taxonomy_filter',
+				__( 'A taxonomy filter supports the conditions in, not_in and and.', 'import-export-by-rockstarlab' ),
+				[ 'status' => 400 ]
+			);
+		}
+		return [
+			'taxonomy'  => sanitize_key( $taxonomy ),
+			'terms'     => $terms,
+			'condition' => $map[ $condition ],
+		];
 	}
 }

@@ -350,6 +350,12 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 ## Changelog
 
+### 2.2.41
+
+* Fix: AI agents can filter an export by category, tag or another taxonomy in filters[] (field "_taxonomy_filter" with "taxonomy", or type "taxonomy"). Such a filter matched nothing before; a rule without a taxonomy now returns a clear error.
+* Fix: WP-CLI import and export name the options that the chosen type does not support and list the supported ones, instead of a general schema error.
+* Tweak: array and object values in CSV, Excel, XML and JSON exports keep non-Latin text readable ("Говерла" instead of "\u0413..."). Such files import back exactly as before.
+
 ### 2.2.40
 
 * Tweak: replace links rules keep non-Latin text readable in JSON custom fields. Cyrillic, Greek and other letters were saved as \uXXXX escapes before: the same values, but hard to read and to search for.
@@ -366,9 +372,7 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 * Tweak: ACF columns in exports (relationship, taxonomy, user, repeater, group and flexible content fields) keep non-Latin text readable ("Маршруты" instead of "\u041c\u0430..."). Such files import back exactly as before.
 
-### 2.2.36
-
-* Tweak: when an import or export stops before it starts, the Duration on the result card is shown in the admin language instead of "0s".
+Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
 
@@ -376,7 +380,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.40 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.41 |
 
 ---
 

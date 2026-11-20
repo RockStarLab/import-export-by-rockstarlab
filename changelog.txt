@@ -1,5 +1,92 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.41 =
+* Fix: AI agents can filter an export by category, tag or another taxonomy in filters[] (field "_taxonomy_filter" with "taxonomy", or type "taxonomy"). Such a filter matched nothing before; a rule without a taxonomy now returns a clear error.
+* Fix: WP-CLI import and export name the options that the chosen type does not support and list the supported ones, instead of a general schema error.
+* Tweak: array and object values in CSV, Excel, XML and JSON exports keep non-Latin text readable ("Говерла" instead of "\u0413..."). Such files import back exactly as before.
+
+= 2.2.40 =
+* Tweak: replace links rules keep non-Latin text readable in JSON custom fields. Cyrillic, Greek and other letters were saved as \uXXXX escapes before: the same values, but hard to read and to search for.
+
+= 2.2.39 =
+* Fix: Auto Map sends a column named exactly like an ACF field to that field. A "featured" column for an ACF true/false field went to the featured image URL before.
+
+= 2.2.38 =
+* Fix: updating posts by slug from an export file with ACF relationship, post object or page link fields could link a post to the wrong post when that post's ID on this site matched the source ID of another row in the file. The links now point to the posts named in the file.
+
+= 2.2.37 =
+* Tweak: ACF columns in exports (relationship, taxonomy, user, repeater, group and flexible content fields) keep non-Latin text readable ("Маршруты" instead of "\u041c\u0430..."). Such files import back exactly as before.
+
+= 2.2.36 =
+* Tweak: when an import or export stops before it starts, the Duration on the result card is shown in the admin language instead of "0s".
+
+= 2.2.35 =
+* Tweak: category and tag columns in exports keep non-Latin names readable ("Клуб" instead of "\u041a\u043b\u0443\u0431"). Such files import back exactly as before.
+
+= 2.2.34 =
+* Fix: with "Automatically Import Media Files" unchecked, an import no longer tries to download the images in post content. The unchecked box reached the importer as the text "false" and was read as switched on.
+* Tweak: the Russian and Ukrainian notice about a Shopify product export reads correctly for any number of rows, products and variations.
+
+= 2.2.33 =
+* Fix: Auto Map also matches field names such as "Ім’я" (First Name) when the apostrophe differs; 2.2.32 covered only the well-known column headers.
+
+= 2.2.32 =
+* Fix: Auto Map matches Ukrainian column names whatever apostrophe they are typed with (', ’ or ʼ), such as "Ім’я".
+
+= 2.2.31 =
+* Improvement: Auto Map recognizes customer spreadsheet columns named in the admin language, such as "Address", "ZIP", "Customer since" and "Registration date" in Russian or Ukrainian.
+
+= 2.2.30 =
+* Fix: the billing and shipping fields of WooCommerce customers in the export and import screens are named in the admin language ("City", "Phone") instead of untranslated names such as "Billing City".
+
+= 2.2.29 =
+* Fix: warnings saved by imports that run in the background, such as images that could not be downloaded, are written in the language of the person who started the import instead of the site language.
+
+= 2.2.28 =
+* Fix: the badge on an export column shows the number of transformations with the right plural form in every language, for example "1 transformation" instead of "1 transformation(s)".
+
+= 2.2.27 =
+* Improvement: for import jobs, the `rsl-ie/job-get` ability also returns how many items were created and how many were updated, so an AI agent can report the same counts as the import screen.
+
+= 2.2.26 =
+* Fix: Content Sync to a page that is the other site's Privacy Policy page explains that WordPress lets only users who can manage privacy settings (a super admin on multisite) edit it, instead of only "You do not have permission to access this object".
+
+= 2.2.25 =
+* Fix: a Content Sync connection that fails because of the other site's SSL certificate (expired, self-signed, untrusted or old TLS) says so and what to do, instead of only "Failed to connect to remote site" with the cURL error.
+
+= 2.2.24 =
+* Fix: `wp rsl-ie schedule run` is recorded as the schedule's last run, so the next "Changes only" run exports only what changed since then instead of everything again.
+* Fix: source jobs in Schedules are named in the admin language ("#55 Export · Posts (completed)") instead of internal names such as "export / post".
+
+= 2.2.23 =
+* Fix: elapsed and remaining time on the export progress page are shown in the admin language for the whole export, not only between server updates.
+
+= 2.2.22 =
+* Fix: the export and import speed ("items/s") on the progress page is shown in the admin language.
+* Fix: the "Custom" delimiter option in the CSV export and import settings has its own translation, separate from other "Custom" labels.
+
+= 2.2.21 =
+* Fix: Content Sync no longer replaces an image in the pushed post with another file when an attachment ID of the receiving site is also the ID of a different file on the sending site.
+* Fix: the "file could not be downloaded" message of a schedule is shown in the admin language.
+
+= 2.2.20 =
+* Fix: a damaged .xlsx or .ods file gets the message "The spreadsheet could not be read" with what to do, instead of a technical error from the spreadsheet reader.
+* Fix: job durations in the Jobs Log and on the progress page are shown in the admin language.
+
+= 2.2.19 =
+* Fix: when a JSON file can't be read, the message says what is wrong with it (for example, that the file was cut off) also when the admin language is not English.
+* Fix: in step 5 of an import, custom fields and taxonomies added in step 4 are listed as "Custom field: event_id" and "Taxonomy: category" instead of "Meta Event Id".
+
+= 2.2.18 =
+* Fix: notification emails, Slack messages and webhooks use the site language, also when the notification settings were saved in another language.
+* Fix: import, export and upload durations and the Recent notifications results are shown in the admin language.
+* Fix: the Jobs Log shows the name of the uploaded file instead of "source.csv".
+
+= 2.2.17 =
+* Fix: the n8n workflow downloaded from a webhook trigger works when the admin language is not English.
+* Fix: the Triggers screen names WooCommerce jobs in the admin language, for example "WooCommerce Orders" instead of "WooCommerce Order".
+* Fix: Russian and Ukrainian: FTP/SFTP connection errors, trigger wait times and file sizes read correctly.
+
 = 2.2.16 =
 * New: the plugin interface is translated into Russian and Ukrainian. The translations ship with the plugin and work right away.
 * Tweak: texts in the admin screens, notices, job messages and errors can now be translated into any language.

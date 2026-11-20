@@ -175,6 +175,7 @@ class Main_Command {
 		if ( $options ) {
 			$input['options'] = $options;
 		}
+		Cli_Helper::check_options( $ns . 'import-start', 'import_type', $type, $options );
 		$format = $assoc['format'] ?? 'table';
 		if ( ! empty( $assoc['dry-run'] ) ) {
 			$checked = Cli_Helper::call( $ns . 'import-validate', $input );
@@ -311,6 +312,7 @@ class Main_Command {
 		if ( isset( $assoc['fields'] ) ) {
 			$input['fields'] = Cli_Helper::csv_list( $assoc['fields'] );
 		}
+		Cli_Helper::check_options( $ns . 'export-start', 'export_type', $type, (array) ( $input['options'] ?? [] ) );
 		$started = Cli_Helper::call( $ns . 'export-start', $input );
 		$summary = $assoc['format-output'] ?? 'table';
 		if ( 'table' === $summary && empty( $assoc['porcelain'] ) ) {

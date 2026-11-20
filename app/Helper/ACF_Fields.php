@@ -133,7 +133,7 @@ class ACF_Fields {
 
 		$portable = self::to_portable_value( $value, is_array( $field_object ) ? $field_object : [] );
 
-		return is_array( $portable ) || is_object( $portable ) ? wp_json_encode( $portable ) : $portable;
+		return is_array( $portable ) || is_object( $portable ) ? wp_json_encode( $portable, JSON_UNESCAPED_UNICODE ) : $portable;
 	}
 
 	/**

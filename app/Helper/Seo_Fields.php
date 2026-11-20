@@ -491,7 +491,7 @@ class Seo_Fields {
 			];
 		}
 
-		return empty( $schemas ) ? '' : (string) wp_json_encode( $schemas );
+		return empty( $schemas ) ? '' : (string) wp_json_encode( $schemas, JSON_UNESCAPED_UNICODE );
 	}
 
 	/**
