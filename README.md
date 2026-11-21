@@ -350,6 +350,10 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 ## Changelog
 
+### 2.2.44
+
+* Fix: imports and exports work on sites that use SQLite instead of MySQL, such as WordPress Studio, WordPress Playground and Reprint copies. Before, they stopped with a "request busy" or "file busy" error because the database could not lock a running job.
+
 ### 2.2.43
 
 * Fix: a webhook trigger that gets a new file by URL now matches its columns by name also when the source import was started from WP-CLI or by an AI agent. Before, such imports kept only column positions, so a file with the columns in another order filled the wrong fields.
@@ -368,10 +372,6 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 * Tweak: replace links rules keep non-Latin text readable in JSON custom fields. Cyrillic, Greek and other letters were saved as \uXXXX escapes before: the same values, but hard to read and to search for.
 
-### 2.2.39
-
-* Fix: Auto Map sends a column named exactly like an ACF field to that field. A "featured" column for an ACF true/false field went to the featured image URL before.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -380,7 +380,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.43 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.44 |
 
 ---
 
