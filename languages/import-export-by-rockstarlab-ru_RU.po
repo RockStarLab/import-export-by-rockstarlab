@@ -15718,3 +15718,7 @@ msgstr "Клиент с"
 msgctxt "spreadsheet column header"
 msgid "Registration date"
 msgstr "Дата регистрации"
+
+#: app/Service/Schedule_Source_Service.php
+msgid "The column names of the source import are no longer available, so a new file cannot be matched by column name. Run the import once in the import wizard and create the trigger from that job."
+msgstr "Названия столбцов исходного импорта больше недоступны, поэтому новый файл нельзя сопоставить по названиям столбцов. Запустите импорт один раз в мастере импорта и создайте триггер из этого задания."

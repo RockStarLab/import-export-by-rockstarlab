@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.43 =
+* Fix: a webhook trigger that gets a new file by URL now matches its columns by name also when the source import was started from WP-CLI or by an AI agent. Before, such imports kept only column positions, so a file with the columns in another order filled the wrong fields.
+
 = 2.2.42 =
 * Fix: export filters "contains", "does not contain", "starts with" and "ends with" ignore letter case in Cyrillic, Greek and other alphabets, not only in Latin. "мягк" now finds "Мягкая" in posts, pages, comments and media.
 
