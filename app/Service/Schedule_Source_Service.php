@@ -8,6 +8,7 @@
 namespace RockStarLab\ImportExport\Service;
 
 use RockStarLab\ImportExport\Model\Connected_Site;
+use RockStarLab\ImportExport\Model\Format\Format_Factory;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -173,7 +174,14 @@ class Schedule_Source_Service {
 						return $fresh;
 					}
 					if ( '' !== $this->file_url ) {
-						$mapping = $this->map_by_name( (array) ( $input['mapping'] ?? [] ), (array) ( $fresh['headers'] ?? [] ) );
+						// Imports started from WP-CLI or by agents may store columns only by position;
+						// name them from the source job's file first, so the new file is matched by name.
+						$named = $this->name_columns( (array) ( $input['mapping'] ?? [] ), $input );
+						if ( is_wp_error( $named ) ) {
+							File_Store::remove( $fresh['file_id'] );
+							return $named;
+						}
+						$mapping = $this->map_by_name( $named, (array) ( $fresh['headers'] ?? [] ) );
 						if ( is_wp_error( $mapping ) ) {
 							File_Store::remove( $fresh['file_id'] );
 							return $mapping;
@@ -212,6 +220,66 @@ class Schedule_Source_Service {
 		$result = apply_filters( 'rsl_ie_schedule_source', null, $job, $request_id );
 		return null !== $result ? $result : new \WP_Error( 'rsl_ie_schedule_provider_unavailable', __( 'No available schedule provider supports this source.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
 	}
+	/**
+	 * Give every mapped column its name from the source job's file.
+	 *
+	 * Runs without a logged-in user (webhooks, cron), so the file is read directly.
+	 *
+	 * @param array $mapping Stored mapping.
+	 * @param array $request Source import request (file_path, format, parser settings).
+	 * @return array|\WP_Error
+	 */
+	private function name_columns( array $mapping, array $request ) {
+		$need = false;
+		foreach ( $mapping as $entry ) {
+			if ( is_array( $entry ) && ( ! isset( $entry['source_field'] ) || '' === (string) $entry['source_field'] ) && isset( $entry['source_index'] ) ) {
+				$need = true;
+				break;
+			}
+		}
+		// Files without a header row have no column names: positions are all there is.
+		if ( ! $need || false === ( $request['options']['has_header'] ?? true ) ) {
+			return $mapping;
+		}
+		$headers = [];
+		$format  = (string) ( $request['format'] ?? '' );
+		if ( ! empty( $request['file_path'] ) && in_array( $format, [ 'csv', 'xlsx', 'ods' ], true ) ) {
+			try {
+				$rows = Format_Factory::create( $format )->rows(
+					$request['file_path'],
+					[
+						'delimiter'  => $request['delimiter'] ?? ',',
+						'encoding'   => $request['encoding'] ?? 'auto',
+						'has_header' => $request['options']['has_header'] ?? true,
+					]
+				);
+				foreach ( $rows as $row ) {
+					if ( is_array( $row ) ) {
+						$headers = array_map( 'strval', array_keys( $row ) );
+					}
+					break;
+				}
+			} catch ( \Throwable $error ) {
+				$headers = [];
+			}
+		}
+		foreach ( $mapping as $n => $entry ) {
+			if ( ! is_array( $entry ) || ( isset( $entry['source_field'] ) && '' !== (string) $entry['source_field'] ) || ! isset( $entry['source_index'] ) ) {
+				continue;
+			}
+			$index = (int) $entry['source_index'];
+			if ( ! isset( $headers[ $index ] ) || '' === (string) $headers[ $index ] ) {
+				return new \WP_Error(
+					'rsl_ie_file_columns_unknown',
+					__( 'The column names of the source import are no longer available, so a new file cannot be matched by column name. Run the import once in the import wizard and create the trigger from that job.', 'import-export-by-rockstarlab' ),
+					[ 'status' => 409 ]
+				);
+			}
+			$mapping[ $n ]['source_field'] = (string) $headers[ $index ];
+		}
+		return $mapping;
+	}
+
 	/**
 	 * Point each mapped column at its position in another file, by column name.
 	 *

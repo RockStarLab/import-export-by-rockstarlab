@@ -350,6 +350,10 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 ## Changelog
 
+### 2.2.43
+
+* Fix: a webhook trigger that gets a new file by URL now matches its columns by name also when the source import was started from WP-CLI or by an AI agent. Before, such imports kept only column positions, so a file with the columns in another order filled the wrong fields.
+
 ### 2.2.42
 
 * Fix: export filters "contains", "does not contain", "starts with" and "ends with" ignore letter case in Cyrillic, Greek and other alphabets, not only in Latin. "мягк" now finds "Мягкая" in posts, pages, comments and media.
@@ -368,10 +372,6 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 * Fix: Auto Map sends a column named exactly like an ACF field to that field. A "featured" column for an ACF true/false field went to the featured image URL before.
 
-### 2.2.38
-
-* Fix: updating posts by slug from an export file with ACF relationship, post object or page link fields could link a post to the wrong post when that post's ID on this site matched the source ID of another row in the file. The links now point to the posts named in the file.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -380,7 +380,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.42 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.43 |
 
 ---
 
