@@ -365,16 +365,20 @@ class Content_Sync_Service {
 			$args['s'] = $search;
 		}
 
-		$query = new \WP_Query( $args );
+		$query = new \WP_Query( apply_filters( 'rsl_ie_sync_list_args', $args, $input ) );
 		$posts = array();
 		foreach ( $query->posts as $post ) {
-			$posts[] = array(
-				'ID'          => (int) $post->ID,
-				'title'       => (string) get_the_title( $post ),
-				'post_title'  => (string) $post->post_title,
-				'post_name'   => (string) $post->post_name,
-				'post_type'   => (string) $post->post_type,
-				'post_status' => (string) $post->post_status,
+			$posts[] = (array) apply_filters(
+				'rsl_ie_sync_list_item',
+				array(
+					'ID'          => (int) $post->ID,
+					'title'       => (string) get_the_title( $post ),
+					'post_title'  => (string) $post->post_title,
+					'post_name'   => (string) $post->post_name,
+					'post_type'   => (string) $post->post_type,
+					'post_status' => (string) $post->post_status,
+				),
+				$post
 			);
 		}
 
@@ -1280,7 +1284,13 @@ class Content_Sync_Service {
 	 * @return array|null|\WP_Error Matching remote post data, or null.
 	 */
 	private function match_from_title_index( array $titles, $post ) {
-		$candidates = $titles[ $this->normalize_post_title_for_mapping( $post->post_title ) ] ?? array();
+		/**
+		 * Remote posts that may receive a local post with the same title (for example only those of its language).
+		 *
+		 * @param array    $candidates Remote list items.
+		 * @param \WP_Post $post       Local post.
+		 */
+		$candidates = array_values( (array) apply_filters( 'rsl_ie_sync_title_candidates', $titles[ $this->normalize_post_title_for_mapping( $post->post_title ) ] ?? array(), $post ) );
 		$ids        = array_unique( array_map( 'intval', wp_list_pluck( $candidates, 'ID' ) ) );
 		if ( count( $ids ) > 1 ) {
 			return new \WP_Error( 'rsl_ie_sync_ambiguous_title', sprintf( /* translators: %s: post title. */ __( 'Several posts on the remote site are titled "%s". Choose the right one in the list for this post.', 'import-export-by-rockstarlab' ), wp_strip_all_tags( $post->post_title ) ), [ 'status' => 409, 'remote_ids' => array_values( $ids ) ] );
@@ -1316,7 +1326,7 @@ class Content_Sync_Service {
 			if ( ! isset( $data['posts'] ) || ! is_array( $data['posts'] ) ) {
 				return $this->error( __( 'Remote search returned invalid data.', 'import-export-by-rockstarlab' ) );
 			}
-			foreach ( $data['posts'] as $candidate ) {
+			foreach ( (array) apply_filters( 'rsl_ie_sync_title_candidates', $data['posts'], $post ) as $candidate ) {
 				if ( is_array( $candidate ) && ( $candidate['post_type'] ?? '' ) === $post->post_type && $this->normalize_post_title_for_mapping( $candidate['post_title'] ?? '' ) === $local_title ) {
 					if ( $match && (int) $match['ID'] !== (int) $candidate['ID'] ) {
 						return new \WP_Error( 'rsl_ie_sync_ambiguous_title', sprintf( /* translators: %s: post title. */ __( 'Several posts on the remote site are titled "%s". Choose the right one in the list for this post.', 'import-export-by-rockstarlab' ), wp_strip_all_tags( $post->post_title ) ), [ 'status' => 409, 'remote_ids' => [ (int) $match['ID'], (int) $candidate['ID'] ] ] );
@@ -1503,9 +1513,17 @@ class Content_Sync_Service {
 			 *
 			 * @param int[] $post_ids Selected local post IDs.
 			 * @param array $site     Connected site.
+			 * @param array $input    Operation input.
 			 */
-			$post_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) apply_filters( 'rsl_ie_content_sync_push_post_ids', $post_ids, $site ) ) ) ) );
+			$post_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) apply_filters( 'rsl_ie_content_sync_push_post_ids', $post_ids, $site, $input ) ) ) ) );
 		}
+		/**
+		 * Translations that travel with the selection (multilingual plugins), also in the Free scope.
+		 *
+		 * @param int[] $post_ids Selected local post IDs.
+		 * @param array $input    Operation input (with_translations => false turns it off).
+		 */
+		$post_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) apply_filters( 'rsl_ie_content_sync_push_translations', $post_ids, $input ) ) ) ) );
 		$job_id = $this->create_content_sync_job( 'push', $site, $post_ids, $post_mapping );
 		if ( ! $job_id ) {
 			return $this->error( __( 'Could not create a sync history job.', 'import-export-by-rockstarlab' ) );
@@ -2269,7 +2287,7 @@ class Content_Sync_Service {
 						// translators: %s = content placeholder.
 						array(
 							'post_ids' => $post_ids,
-						) + ( isset( $input['acf_user_mapping'] ) ? [ 'acf_users_version' => 1 ] : [] ) + ( isset( $input['acf_term_mapping'] ) ? [ 'acf_terms_version' => 1 ] : [] ) + ( isset( $input['acf_post_mapping'] ) ? [ 'acf_posts_version' => 1 ] : [] ) + ( array_key_exists( 'woo_product_mapping', $input ) ? [
+						) + ( ! array_key_exists( 'with_translations', $input ) || ! empty( $input['with_translations'] ) ? [ 'with_translations' => 1 ] : [] ) + ( isset( $input['acf_user_mapping'] ) ? [ 'acf_users_version' => 1 ] : [] ) + ( isset( $input['acf_term_mapping'] ) ? [ 'acf_terms_version' => 1 ] : [] ) + ( isset( $input['acf_post_mapping'] ) ? [ 'acf_posts_version' => 1 ] : [] ) + ( array_key_exists( 'woo_product_mapping', $input ) ? [
 							'woo_links_version'   => 1,
 							'woo_product_mapping' => $input['woo_product_mapping'],
 						] : [] ) + ( ! empty( $input['acf_media_references'] ) ? [ 'acf_media_version' => 1 ] : [] ) + Sync_ACF_Graph::request() + Sync_Product_Links::request()
@@ -2309,7 +2327,15 @@ class Content_Sync_Service {
 			return $this->error( __( 'No posts found on remote site', 'import-export-by-rockstarlab' ) );
 		}
 		if ( $this->free_scope ) {
-			$access = $this->policy_class::remote_posts( $posts_data, array_map( 'intval', $post_ids ), $this->input['post_type'] );
+			/**
+			 * Remote posts that may arrive with the selection (translations sent with it).
+			 *
+			 * @param int[] $ids        Requested remote IDs.
+			 * @param array $posts_data Received posts.
+			 * @param array $input      Operation input.
+			 */
+			$allowed = array_values( array_unique( array_map( 'intval', (array) apply_filters( 'rsl_ie_sync_pull_allowed_ids', array_map( 'intval', $post_ids ), $posts_data, $this->input ) ) ) );
+			$access  = $this->policy_class::remote_posts( $posts_data, $allowed, $this->input['post_type'] );
 			if ( is_wp_error( $access ) ) {
 				return $access;
 			}
@@ -2584,6 +2610,13 @@ class Content_Sync_Service {
 			if ( is_wp_error( $post_id ) || ! $post_id ) {
 				continue;
 			}
+			/**
+			 * Receiver: a received post was created or updated, before its terms and meta are written.
+			 *
+			 * @param int   $post_id   Local post.
+			 * @param array $post_data Received post.
+			 */
+			do_action( 'rsl_ie_sync_post_received', (int) $post_id, $post_data );
 
 			if ( isset( $post_data['sticky'] ) && 'post' === get_post_type( $post_id ) ) {
 				if ( $post_data['sticky'] ) {
@@ -2910,6 +2943,13 @@ class Content_Sync_Service {
 		 * @param array    $post_map   Remote post ID => local post ID.
 		 * @param array    $posts_data Pulled posts.
 		 */
+		/**
+		 * Receiver: every post of a Content Sync batch was saved.
+		 *
+		 * @param array $map        Source post ID => local post ID.
+		 * @param array $posts_data Received posts.
+		 */
+		do_action( 'rsl_ie_sync_posts_received', $imported_remote_to_local, $posts_data );
 		$after_pull      = (array) apply_filters( 'rsl_ie_content_sync_after_pull', [], $site, $imported_remote_to_local, $posts_data );
 		$total_processed = $imported_count + $updated_count;
 		$this->complete_content_sync_job(
@@ -3752,16 +3792,26 @@ class Content_Sync_Service {
 			return false;
 		}
 
+		/**
+		 * Receiver: query args of the slug lookup for a received post (for example limited to its language).
+		 *
+		 * @param array $args      get_posts() args.
+		 * @param array $post_data Received post.
+		 */
 		$posts = get_posts(
-			array(
-				'name'                   => $post_name,
-				'post_type'              => $post_type,
-				'post_status'            => 'any',
-				'posts_per_page'         => 2,
-				'fields'                 => 'ids',
-				'no_found_rows'          => true,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
+			apply_filters(
+				'rsl_ie_sync_lookup_args',
+				array(
+					'name'                   => $post_name,
+					'post_type'              => $post_type,
+					'post_status'            => 'any',
+					'posts_per_page'         => 2,
+					'fields'                 => 'ids',
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+				),
+				$post_data
 			)
 		);
 
@@ -3862,6 +3912,17 @@ class Content_Sync_Service {
 	private function resolve_synced_term( $taxonomy, $term_info ) {
 		if ( ! taxonomy_exists( $taxonomy ) || empty( $term_info['name'] ) || empty( $term_info['slug'] ) ) {
 			return 0;
+		}
+		/**
+		 * Receiver: find or create the local term for a received one (null = default slug lookup).
+		 *
+		 * @param int|null $term_id   Local term ID.
+		 * @param string   $taxonomy  Taxonomy.
+		 * @param array    $term_info Received term.
+		 */
+		$pre = apply_filters( 'rsl_ie_sync_resolve_term', null, $taxonomy, $term_info );
+		if ( null !== $pre ) {
+			return (int) $pre;
 		}
 
 		$parent_id = 0;
@@ -4691,6 +4752,7 @@ class Content_Sync_Service {
 							}
 						}
 
+						$term_info                  = (array) apply_filters( 'rsl_ie_sync_term_payload', $term_info, $term, $taxonomy );
 						$terms_data[ $taxonomy ][] = $term_info;
 
 						// Extract images from term ACF fields.
@@ -4841,6 +4903,13 @@ class Content_Sync_Service {
 						$image_context[ $attachment_id ] = array_merge( $image_context[ $attachment_id ] ?? [], $contexts ); }
 				}
 
+				/**
+				 * Sender: extend one post of a Content Sync payload (for example its language and translations).
+				 *
+				 * @param array    $post_data Post payload.
+				 * @param \WP_Post $post      Post.
+				 */
+				$post_data    = (array) apply_filters( 'rsl_ie_sync_post_payload', $post_data, $post );
 				$posts_data[] = $post_data;
 		}
 

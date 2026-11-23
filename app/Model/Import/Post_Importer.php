@@ -530,6 +530,7 @@ class Post_Importer extends Abstract_Importer {
 		// Normalize flat prefixed columns produced by the auto-mapper
 		// (e.g. taxonomy_category, meta_*, acf_*) into nested structures.
 		$item = $this->normalize_prefixed_columns( $item );
+		$item = (array) apply_filters( 'rsl_ie_import_item', $item, $this );
 
 		// Ensure `post_name` (slug) is available for duplicate checks/fallbacks,
 		// even when the UI mapping didn't include it.
@@ -554,7 +555,8 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		// Check for duplicates
-		$existing_post = $this->find_existing_post( $item );
+		$existing_post = apply_filters( 'rsl_ie_import_existing_post', $this->find_existing_post( $item ), $item, $this );
+		$existing_post = $existing_post ? get_post( $existing_post ) : null;
 
 		if ( $existing_post ) {
 			$duplicate_mode = $this->get_option( 'duplicate_mode', 'skip' );
@@ -581,14 +583,14 @@ class Post_Importer extends Abstract_Importer {
 				}
 
 				if ( $this->is_post_created_by_current_job_with_different_source( (int) $existing_post->ID, $source_id ) ) {
-					$created = $this->create_post( $item );
+					$created = $this->item_saved( $this->create_post( $item ), 0, $item );
 					if ( is_int( $created ) && $created > 0 ) {
 						$this->record_source_id_map( $source_id, $created );
 					}
 					return $created;
 				}
 
-				$result = $this->update_post( $existing_post->ID, $item );
+				$result = $this->item_saved( $this->update_post( $existing_post->ID, $item ), (int) $existing_post->ID, $item );
 				if ( ! is_wp_error( $result ) ) {
 					$this->record_source_id_map( $source_id, $existing_post->ID );
 				}
@@ -614,7 +616,7 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		// Create new post
-		$created = $this->create_post( $item );
+		$created = $this->item_saved( $this->create_post( $item ), 0, $item );
 		if ( is_int( $created ) && $created > 0 ) {
 			$this->record_source_id_map( $source_id, $created );
 		}

@@ -450,7 +450,13 @@ class Media_Library_Sync_Service {
 			$acf  = [];
 			foreach ( ACF_Fields::get_fields_for_content_type( 'media' ) as $field ) {
 				$acf[ $field['name'] ] = ACF_Fields::export_value( 'media', $id, $field['name'] ); }
-			$media[] = [
+			/**
+			 * One file of a Media Library sync (integrations add data, such as the Polylang language).
+			 *
+			 * @param array $item          Payload item.
+			 * @param int   $attachment_id Attachment.
+			 */
+			$media[] = (array) apply_filters( 'rsl_ie_media_sync_item', [
 				'attachment_id'               => (int) $id,
 				'file_name'                   => basename( $path ),
 				'source_origin_attachment_id' => absint( get_post_meta( $id, '_rsl_ie_original_attachment_id', true ) ),
@@ -459,7 +465,7 @@ class Media_Library_Sync_Service {
 				'caption'                     => $post->post_excerpt,
 				'description'                 => ACF_Fields::export_string_with_media_shortcode_tokens( $post->post_content ),
 				'acf'                         => $acf,
-			] + $binary;
+			] + $binary, (int) $id );
 		}
 		if ( null !== $graph_hashes ) {
 			$check = Sync_ACF_Media_Fields::source( $input['media_ids'], $graph_hashes );
@@ -599,7 +605,7 @@ class Media_Library_Sync_Service {
 		$envelope_fields        = [ 'media_authors', 'acf_attachment_users', 'acf_attachment_terms', 'acf_media_fields_version', 'acf_graph_hashes', 'acf_attachment_media_version' ];
 		if ( array_diff( array_keys( $envelope ), $envelope_fields ) || ( $defer_fields && $envelope ) ) {
 			return $this->error( 'invalid_payload', 400 ); }
-		$allowed = [ 'source_attachment_id', 'source_origin_attachment_id', 'title', 'alt_text', 'caption', 'description', 'acf', 'force_unique' ];
+		$allowed = [ 'source_attachment_id', 'source_origin_attachment_id', 'title', 'alt_text', 'caption', 'description', 'acf', 'force_unique', 'pll' ];
 		if ( array_diff( array_keys( $input ), $allowed ) ) {
 			return $this->error( 'invalid_payload', 400 ); }
 		if ( ! File_Store::valid_id( $transfer_id ) ) {
@@ -771,6 +777,15 @@ class Media_Library_Sync_Service {
 								$this->refresh_fields( $id, $item );
 							}
 							$this->record_source_ids( $id, $item );
+							/**
+							 * The attachment that receives this file (Polylang: the media translation of the
+							 * file's language when the same file already exists in another language).
+							 *
+							 * @param int   $id           Local attachment.
+							 * @param array $item         Received item.
+							 * @param bool  $content_sync Part of a Content Sync.
+							 */
+							$id = (int) apply_filters( 'rsl_ie_media_sync_received', (int) $id, $item, (bool) $content_sync );
 							if ( $existing && $content_sync && ! $recovered ) {
 								$before_metadata = wp_get_attachment_metadata( $id );
 								$size_filter     = $this->image_size_filter();
@@ -820,6 +835,8 @@ class Media_Library_Sync_Service {
 				return $this->error( 'invalid_payload', 400 ); }
 		}
 		if ( isset( $item['source_origin_attachment_id'] ) && ( ! is_scalar( $item['source_origin_attachment_id'] ) || ! ctype_digit( (string) $item['source_origin_attachment_id'] ) ) ) {
+			return $this->error( 'invalid_payload', 400 ); }
+		if ( isset( $item['pll'] ) && ( ! is_array( $item['pll'] ) || ! is_string( $item['pll']['lang'] ?? null ) || ! is_array( $item['pll']['translations'] ?? [] ) ) ) {
 			return $this->error( 'invalid_payload', 400 ); }
 		$acf = $item['acf'] ?? [];
 		if ( ! is_array( $acf ) || preg_grep( '/^_|[^A-Za-z0-9_-]/', array_map( 'strval', array_keys( $acf ) ) ) ) {
@@ -1409,7 +1426,7 @@ class Media_Library_Sync_Service {
 			if ( ( $data[ $name ] ?? null ) !== $value ) {
 				return $this->error( 'peer_upgrade_required', 502 ); }
 		}
-		return $required + [ 'bounded_metadata' => true === ( $data['bounded_metadata'] ?? false ), 'begin_data' => true === ( $data['begin_data'] ?? false ), 'begin_reuse' => true === ( $data['begin_reuse'] ?? false ) ];
+		return $required + [ 'bounded_metadata' => true === ( $data['bounded_metadata'] ?? false ), 'begin_data' => true === ( $data['begin_data'] ?? false ), 'begin_reuse' => true === ( $data['begin_reuse'] ?? false ), 'media_language' => true === ( $data['media_language'] ?? false ) ];
 	}
 
 	/** One bounded peer step, rechecking the saved connection on every request. */

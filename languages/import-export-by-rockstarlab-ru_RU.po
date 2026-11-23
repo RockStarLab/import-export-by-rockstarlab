@@ -15803,3 +15803,6 @@ msgstr "Для экспорта записей, страниц и заказов
 
 msgid "\"Changes only\" works with exports of posts, pages and WooCommerce orders. Turn it off for this source job."
 msgstr "«Только изменения» работает с экспортом записей, страниц и заказов WooCommerce. Отключите эту опцию для этого исходного задания."
+
+msgid "Polylang is active. The free version does not keep languages and translation links. Polylang and Polylang for WooCommerce are supported in the PRO version: languages, translation links, ACF fields and images are kept in Content Sync, import and export."
+msgstr "Polylang активен. Бесплатная версия не сохраняет языки и связи переводов. Polylang и Polylang for WooCommerce поддерживаются в PRO-версии: языки, связи переводов, поля ACF и изображения сохраняются при синхронизации контента, импорте и экспорте."

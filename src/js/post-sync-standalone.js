@@ -1593,6 +1593,15 @@ const getActionNonce = ( action ) =>
 					site_id: siteId,
 					post_ids: postIds,
 					post_mapping: JSON.stringify( postMapping ),
+					...( $( '#rsl-ie-sync-with-translations' ).length
+						? {
+								with_translations: $(
+									'#rsl-ie-sync-with-translations'
+								).is( ':checked' )
+									? 1
+									: 0,
+						  }
+						: {} ),
 				},
 				success: ( response ) => {
 					clearInterval( progressInterval );

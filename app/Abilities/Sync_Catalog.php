@@ -251,11 +251,12 @@ class Sync_Catalog {
 		$add(
 			'sync-push',
 			'push_content',
-			'Synchronously push up to 50 local posts/pages with metadata, ACF, comments, taxonomy relationships and media. post_mapping is local ID to remote ID (null means automatic/new). Returns a history job and maps. This may outlast an HTTP timeout; inspect job history before retrying. No automatic retry or pause/resume for this operation.',
+			'Synchronously push up to 50 local posts/pages with metadata, ACF, comments, taxonomy relationships and media. post_mapping is local ID to remote ID (null means automatic/new). Returns a history job and maps. This may outlast an HTTP timeout; inspect job history before retrying. No automatic retry or pause/resume for this operation. With Polylang and PRO, with_translations (default true) also sends the translations of the selected posts and links them on the other site.',
 			Workflow_Schemas::object(
 				$selection + [
-					'post_mapping' => $map,
-					'hierarchy'    => \RockStarLab\ImportExport\Service\Sync_Hierarchy::schema(),
+					'post_mapping'      => $map,
+					'hierarchy'         => \RockStarLab\ImportExport\Service\Sync_Hierarchy::schema(),
+					'with_translations' => [ 'type' => 'boolean' ],
 				],
 				[ 'site_id', 'post_type', 'post_ids' ]
 			),
@@ -269,11 +270,12 @@ class Sync_Catalog {
 		$add(
 			'sync-pull',
 			'pull_content',
-			'Synchronously pull up to 50 remote posts/pages. post_ids are remote IDs; optional post_mapping is local ID to remote ID and must cover the same selection. Without it, existing slug/original-ID matches are updated. Preserves comments, metadata, media and hierarchy. Returns a history job and maps; inspect history after a timeout before retrying. No automatic retry or pause/resume.',
+			'Synchronously pull up to 50 remote posts/pages. post_ids are remote IDs; optional post_mapping is local ID to remote ID and must cover the same selection. Without it, existing slug/original-ID matches are updated. Preserves comments, metadata, media and hierarchy. Returns a history job and maps; inspect history after a timeout before retrying. No automatic retry or pause/resume. With Polylang and PRO on both sites, with_translations (default true) also pulls the translations of the selected posts.',
 			Workflow_Schemas::object(
 				$selection + [
-					'post_mapping' => $pull_map,
-					'hierarchy'    => \RockStarLab\ImportExport\Service\Sync_Hierarchy::pull_schema(),
+					'post_mapping'      => $pull_map,
+					'hierarchy'         => \RockStarLab\ImportExport\Service\Sync_Hierarchy::pull_schema(),
+					'with_translations' => [ 'type' => 'boolean' ],
 				],
 				[ 'site_id', 'post_type', 'post_ids' ]
 			),

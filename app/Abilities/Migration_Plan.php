@@ -84,6 +84,14 @@ class Migration_Plan {
 			if ( is_string( $field ) && '' !== $field ) {
 				$fields[] = sanitize_text_field( $field ); }
 		}
+		/**
+		 * Columns of a migration step (Polylang adds the language and translation group).
+		 *
+		 * @param string[] $fields  Columns.
+		 * @param string   $type    Content family.
+		 * @param array    $options Provider-owned subtype.
+		 */
+		$fields = (array) apply_filters( 'rsl_ie_migration_step_fields', $fields, (string) $type, $options );
 		return [
 			'key'        => $type,
 			'type'       => $type,

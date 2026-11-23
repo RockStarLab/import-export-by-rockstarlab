@@ -336,6 +336,8 @@ class Media_Library_Sync_Controller {
 						'bounded_metadata'          => true,
 						'begin_data'                => true,
 						'begin_reuse'               => true,
+						// Accepts the language of a file (multilingual integrations such as Polylang).
+						'media_language'            => true,
 					];
 				} elseif ( 'begin' === $action ) {
 					$result = $store::begin( $input['file_name'], $input['size'], $input['sha256'], $scope, $input['request_id'] ?? null );

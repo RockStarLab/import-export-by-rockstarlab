@@ -350,6 +350,14 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 ## Changelog
 
+### 2.2.47
+
+* New: Polylang support (with PRO). Export files get Language and Translation group columns, and exports list every language even when the admin bar filters content by one language or an AI agent exports through the REST API.
+* New: Content Sync abilities sync-push and sync-pull accept with_translations: with Polylang and PRO, the translations of the selected posts travel with them (on by default).
+* Tweak: the multilingual warning no longer appears for Polylang when PRO is active. Without PRO it says that Polylang is supported by the PRO version.
+* New: Media Library sync and Content Migration carry the Polylang language of files, menus and content when PRO is active; a receiving site that does not know file languages still accepts the files.
+* Dev: hooks for integrations: rsl_ie_import_item, rsl_ie_import_existing_post, rsl_ie_import_item_saved, rsl_ie_export_terms_value, rsl_ie_export_default_fields, rsl_ie_export_taxonomies, rsl_ie_export_menu_locations, rsl_ie_migration_step_fields, rsl_ie_media_sync_item, rsl_ie_media_sync_received.
+
 ### 2.2.46
 
 * Fix: an order import with Product Stock keeps the stock right when the same order is imported again with Update. A cancelled or refunded order puts its stock back, a changed quantity is corrected, and stock is never taken twice. The option is now called "Reduce the stock of ordered products".
@@ -370,10 +378,6 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 * Fix: a webhook trigger that gets a new file by URL now matches its columns by name also when the source import was started from WP-CLI or by an AI agent. Before, such imports kept only column positions, so a file with the columns in another order filled the wrong fields.
 
-### 2.2.42
-
-* Fix: export filters "contains", "does not contain", "starts with" and "ends with" ignore letter case in Cyrillic, Greek and other alphabets, not only in Latin. "мягк" now finds "Мягкая" in posts, pages, comments and media.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -382,7 +386,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.46 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.47 |
 
 ---
 
