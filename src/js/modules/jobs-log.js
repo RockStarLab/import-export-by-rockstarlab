@@ -1446,6 +1446,10 @@ const JobsLogModule = {
 				'WooCommerce Shipping Zones',
 				'import-export-by-rockstarlab'
 			),
+			woo_tax_rate: __(
+				'WooCommerce Tax Rates',
+				'import-export-by-rockstarlab'
+			),
 			custom_post_types: __(
 				'Custom Post Types',
 				'import-export-by-rockstarlab'

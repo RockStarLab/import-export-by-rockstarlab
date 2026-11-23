@@ -1656,6 +1656,7 @@ const ExportModule = {
 			woo_refund: null,
 			woo_customer: null,
 			woo_shipping_zone: null,
+			woo_tax_rate: null,
 			custom_table: null, // Not a post type
 		};
 
@@ -6054,6 +6055,120 @@ const ExportModule = {
 								'import-export-by-rockstarlab'
 							),
 							type: 'json',
+						},
+					],
+				},
+			];
+		}
+
+		if ( contentType === 'woo_tax_rate' ) {
+			return [
+				{
+					label: __( 'Tax Rate', 'import-export-by-rockstarlab' ),
+					options: [
+						{
+							value: 'tax_rate_id',
+							label: __(
+								'Tax Rate ID (reference)',
+								'import-export-by-rockstarlab'
+							),
+							type: 'number',
+						},
+						{
+							value: 'tax_rate_class',
+							label: __(
+								'Tax Class (slug, empty = Standard)',
+								'import-export-by-rockstarlab'
+							),
+							type: 'string',
+						},
+						{
+							value: 'tax_rate_class_name',
+							label: __(
+								'Tax Class Name',
+								'import-export-by-rockstarlab'
+							),
+							type: 'string',
+						},
+						{
+							value: 'tax_rate_country',
+							label: __(
+								'Country Code',
+								'import-export-by-rockstarlab'
+							),
+							type: 'string',
+						},
+						{
+							value: 'tax_rate_state',
+							label: __(
+								'State Code',
+								'import-export-by-rockstarlab'
+							),
+							type: 'string',
+						},
+						{
+							value: 'tax_rate_postcodes',
+							label: __(
+								'Postcodes / ZIPs (separated by ;)',
+								'import-export-by-rockstarlab'
+							),
+							type: 'string',
+						},
+						{
+							value: 'tax_rate_cities',
+							label: __(
+								'Cities (separated by ;)',
+								'import-export-by-rockstarlab'
+							),
+							type: 'string',
+						},
+						{
+							value: 'tax_rate',
+							label: __(
+								'Rate %',
+								'import-export-by-rockstarlab'
+							),
+							type: 'number',
+						},
+						{
+							value: 'tax_rate_name',
+							label: __(
+								'Tax Name',
+								'import-export-by-rockstarlab'
+							),
+							type: 'string',
+						},
+						{
+							value: 'tax_rate_priority',
+							label: __(
+								'Priority',
+								'import-export-by-rockstarlab'
+							),
+							type: 'number',
+						},
+						{
+							value: 'tax_rate_compound',
+							label: __(
+								'Compound (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							type: 'number',
+						},
+						{
+							value: 'tax_rate_shipping',
+							label: __(
+								'Shipping (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							type: 'number',
+						},
+						{
+							value: 'tax_rate_order',
+							label: __(
+								'Order',
+								'import-export-by-rockstarlab'
+							),
+							type: 'number',
 						},
 					],
 				},

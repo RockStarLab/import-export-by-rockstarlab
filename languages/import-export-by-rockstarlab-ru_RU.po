@@ -15722,3 +15722,69 @@ msgstr "Дата регистрации"
 #: app/Service/Schedule_Source_Service.php
 msgid "The column names of the source import are no longer available, so a new file cannot be matched by column name. Run the import once in the import wizard and create the trigger from that job."
 msgstr "Названия столбцов исходного импорта больше недоступны, поэтому новый файл нельзя сопоставить по названиям столбцов. Запустите импорт один раз в мастере импорта и создайте триггер из этого задания."
+
+msgid "WooCommerce Tax Rates"
+msgstr "Налоговые ставки WooCommerce"
+
+msgid "Import tax rates of all tax classes"
+msgstr "Импорт налоговых ставок всех классов"
+
+msgid "Export tax rates of all tax classes"
+msgstr "Экспорт налоговых ставок всех классов"
+
+msgid "A taxonomy filter needs \"taxonomy\" (for example category or product_cat) and \"value\" with one or more term slugs, names or IDs."
+msgstr "Фильтру по таксономии нужны «taxonomy» (например, category или product_cat) и «value» с одним или несколькими ярлыками, названиями или ID терминов."
+
+msgid "A taxonomy filter supports the conditions in, not_in and and."
+msgstr "Фильтр по таксономии поддерживает условия in, not_in и and."
+
+msgid "Tax Rate"
+msgstr "Налоговая ставка"
+
+msgid "Tax Rate ID (reference)"
+msgstr "ID налоговой ставки (справочно)"
+
+msgid "Tax Class (slug, empty = Standard)"
+msgstr "Налоговый класс (ярлык, пусто = стандартный)"
+
+msgid "Tax Class Name"
+msgstr "Название налогового класса"
+
+msgid "Country Code"
+msgstr "Код страны"
+
+msgid "State Code"
+msgstr "Код штата"
+
+msgid "Postcodes / ZIPs (separated by ;)"
+msgstr "Почтовые индексы (через ;)"
+
+msgid "Cities (separated by ;)"
+msgstr "Города (через ;)"
+
+msgid "Rate %"
+msgstr "Ставка %"
+
+msgid "Tax Name"
+msgstr "Название налога"
+
+msgid "Priority"
+msgstr "Приоритет"
+
+msgid "Compound (1/0)"
+msgstr "Составной (1/0)"
+
+msgid "Shipping (1/0)"
+msgstr "Доставка (1/0)"
+
+msgid "Order"
+msgstr "Порядок"
+
+msgid "Product Stock"
+msgstr "Остатки товаров"
+
+msgid "Reduce the stock of ordered products for new orders"
+msgstr "Уменьшать остатки заказанных товаров для новых заказов"
+
+msgid "Use this when the orders were placed in another store that sells the same stock. Only orders that the import creates lower the stock; updated orders change nothing. Products are found by SKU."
+msgstr "Включайте, если заказы оформлены в другом магазине, который продаёт товары с того же склада. Остатки уменьшают только заказы, которые импорт создаёт; обновлённые заказы ничего не меняют. Товары ищутся по артикулу (SKU)."

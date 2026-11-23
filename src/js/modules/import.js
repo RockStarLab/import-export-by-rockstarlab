@@ -5931,6 +5931,134 @@ const ImportModule = {
 			];
 		}
 
+		if ( contentType === 'woo_tax_rate' ) {
+			return [
+				{
+					label: __( 'Tax Rate', 'import-export-by-rockstarlab' ),
+					labelEn: 'Tax Rate',
+					options: [
+						{
+							value: 'tax_rate_id',
+							label: __(
+								'Tax Rate ID (reference)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Tax Rate ID (reference)',
+							type: 'number',
+						},
+						{
+							value: 'tax_rate_class',
+							label: __(
+								'Tax Class (slug, empty = Standard)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Tax Class (slug, empty = Standard)',
+							type: 'string',
+						},
+						{
+							value: 'tax_rate_class_name',
+							label: __(
+								'Tax Class Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Tax Class Name',
+							type: 'string',
+						},
+						{
+							value: 'tax_rate_country',
+							label: __(
+								'Country Code',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Country Code',
+							type: 'string',
+						},
+						{
+							value: 'tax_rate_state',
+							label: __(
+								'State Code',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'State Code',
+							type: 'string',
+						},
+						{
+							value: 'tax_rate_postcodes',
+							label: __(
+								'Postcodes / ZIPs (separated by ;)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Postcodes / ZIPs (separated by ;)',
+							type: 'string',
+						},
+						{
+							value: 'tax_rate_cities',
+							label: __(
+								'Cities (separated by ;)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Cities (separated by ;)',
+							type: 'string',
+						},
+						{
+							value: 'tax_rate',
+							label: __(
+								'Rate %',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Rate %',
+							type: 'number',
+						},
+						{
+							value: 'tax_rate_name',
+							label: __(
+								'Tax Name',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Tax Name',
+							type: 'string',
+						},
+						{
+							value: 'tax_rate_priority',
+							label: __(
+								'Priority',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Priority',
+							type: 'number',
+						},
+						{
+							value: 'tax_rate_compound',
+							label: __(
+								'Compound (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Compound (1/0)',
+							type: 'number',
+						},
+						{
+							value: 'tax_rate_shipping',
+							label: __(
+								'Shipping (1/0)',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Shipping (1/0)',
+							type: 'number',
+						},
+						{
+							value: 'tax_rate_order',
+							label: __(
+								'Order',
+								'import-export-by-rockstarlab'
+							),
+							labelEn: 'Order',
+							type: 'number',
+						},
+					],
+				},
+			];
+		}
+
 		if ( contentType === 'woo_shipping_zone' ) {
 			return [
 				{
@@ -9344,6 +9472,7 @@ const ImportModule = {
 				options.default_taxonomy
 			);
 		}
+		setChecked( '#rsl-ie-order-stock-management', options.stock_management );
 		jQuery( '[name="date_order"]' ).val(
 			[ 'dmy', 'mdy' ].includes( options.date_order )
 				? options.date_order
@@ -9633,6 +9762,11 @@ const ImportModule = {
 		if ( contentType === 'taxonomy' ) {
 			options.default_taxonomy =
 				jQuery( '#rsl-ie-default-taxonomy' ).val() || '';
+		}
+		if ( contentType === 'woo_order' ) {
+			options.stock_management = jQuery(
+				'#rsl-ie-order-stock-management'
+			).is( ':checked' );
 		}
 		return options;
 	},
@@ -11011,6 +11145,7 @@ const ImportModule = {
 			'woo_refund',
 			'woo_customer',
 			'woo_shipping_zone',
+			'woo_tax_rate',
 		];
 
 		if (
@@ -11102,6 +11237,7 @@ const ImportModule = {
 			'woo_refund',
 			'woo_customer',
 			'woo_shipping_zone',
+			'woo_tax_rate',
 		];
 
 		if (
@@ -11197,6 +11333,7 @@ const ImportModule = {
 			'woo_refund',
 			'woo_customer',
 			'woo_shipping_zone',
+			'woo_tax_rate',
 		];
 
 		if (
@@ -11374,6 +11511,7 @@ const ImportModule = {
 			],
 			woo_customer: [ 'email', 'username', 'customer_id', 'user_id' ],
 			woo_shipping_zone: [ 'zone_name', 'zone_id' ],
+			woo_tax_rate: [ 'tax_rate_country', 'tax_rate_id' ],
 			database_table: [ 'ID', 'id', 'uuid', 'slug', 'name', 'email' ],
 		};
 
@@ -11437,6 +11575,8 @@ const ImportModule = {
 			customers: 'woo_customer',
 			shipping_zone: 'woo_shipping_zone',
 			shipping_zones: 'woo_shipping_zone',
+			tax_rate: 'woo_tax_rate',
+			tax_rates: 'woo_tax_rate',
 		};
 
 		return aliases[ contentType ] || contentType || '';
@@ -11466,6 +11606,9 @@ const ImportModule = {
 		const $mediaImportOption = jQuery( '.rsl-ie-media-import-option' );
 		jQuery( '.rsl-ie-taxonomy-option' ).toggle(
 			contentType === 'taxonomy'
+		);
+		jQuery( '.rsl-ie-order-stock-option' ).toggle(
+			contentType === 'woo_order'
 		);
 		const $mediaDuplicateOption = jQuery(
 			'.rsl-ie-media-duplicate-option'

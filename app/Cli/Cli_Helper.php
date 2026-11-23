@@ -476,6 +476,8 @@ class Cli_Helper {
 			'customer'  => 'woo_customer',
 			'shipping-zone' => 'woo_shipping_zone',
 			'shipping_zone' => 'woo_shipping_zone',
+			'tax-rate'      => 'woo_tax_rate',
+			'tax_rate'      => 'woo_tax_rate',
 			'review'    => 'woo_review',
 			'refund'    => 'woo_refund',
 			'attribute' => 'woo_attribute',

@@ -42,7 +42,7 @@ class Main_Command {
 	 * : Path to the file (CSV, TSV, XLSX, ODS, JSON, XML or a ZIP with one of them).
 	 *
 	 * [--type=<type>]
-	 * : What to import: post, page, comment or media. With the PRO plugin also product, order, coupon, customer, review, refund, attribute, user, taxonomy, menu, custom_post_types and database_table.
+	 * : What to import: post, page, comment or media. With the PRO plugin also product, order, coupon, customer, review, refund, attribute, shipping-zone, tax-rate, user, taxonomy, menu, custom_post_types and database_table.
 	 * ---
 	 * default: post
 	 * ---
@@ -215,7 +215,7 @@ class Main_Command {
 	 * ## OPTIONS
 	 *
 	 * [--type=<type>]
-	 * : What to export: post, page, comment, media, urls or form_entries. With the PRO plugin also product, order, coupon, customer, review, refund, attribute, user, taxonomy, menu, custom_post_types and database_table.
+	 * : What to export: post, page, comment, media, urls or form_entries. With the PRO plugin also product, order, coupon, customer, review, refund, attribute, shipping-zone, tax-rate, user, taxonomy, menu, custom_post_types and database_table.
 	 * ---
 	 * default: post
 	 * ---

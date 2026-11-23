@@ -273,6 +273,14 @@ class Pro_Addon {
 							? __( 'Import shipping zones with regions and methods', 'import-export-by-rockstarlab' )
 							: __( 'Export shipping zones with regions and methods', 'import-export-by-rockstarlab' ),
 					];
+					$cards[] = [
+						'value'       => 'woo_tax_rate',
+						'icon'        => 'dashicons-chart-pie',
+						'title'       => __( 'WooCommerce Tax Rates', 'import-export-by-rockstarlab' ),
+						'description' => $is_import
+							? __( 'Import tax rates of all tax classes', 'import-export-by-rockstarlab' )
+							: __( 'Export tax rates of all tax classes', 'import-export-by-rockstarlab' ),
+					];
 				}
 
 				$cards[] = [
