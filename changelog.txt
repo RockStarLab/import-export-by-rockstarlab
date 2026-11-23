@@ -1,5 +1,13 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.48 =
+* New: export filter "Language (Polylang)" for posts, pages, custom post types and products: pick the languages from a list instead of typing the language taxonomy.
+* Fix: Content Sync sets ACF User fields to the matching user of the receiving site (a synced user, or the same login or email) instead of keeping the user ID of the other site. Works for push and pull.
+* Fix: Content Sync no longer renames a category that has the same slug as a category used in an ACF Taxonomy field, for example an English and a German category that both use the slug "coffee".
+* Fix: comments imported from a file keep the link to their ACF fields, so ACF shows the values.
+* Fix: confirming a sync while the list of remote posts was still loading could fail with "This connection is already in use".
+* Tweak: the message for a connection that works in one direction only says how to make it work in both.
+
 = 2.2.47 =
 * New: Polylang support (with PRO). Export files get Language and Translation group columns, and exports list every language even when the admin bar filters content by one language or an AI agent exports through the REST API.
 * New: Content Sync abilities sync-push and sync-pull accept with_translations: with Polylang and PRO, the translations of the selected posts travel with them (on by default).

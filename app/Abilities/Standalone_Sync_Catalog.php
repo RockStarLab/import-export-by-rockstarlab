@@ -81,6 +81,9 @@ class Standalone_Sync_Catalog {
 				$properties[ $key ] = $ids;
 				$required[]         = $key;
 				if ( $terms ) {
+					if ( 'push' === $operation ) {
+						$properties['with_translations'] = [ 'type' => 'boolean' ]; // Polylang (PRO): also send the translations.
+					}
 					$properties['term_mapping'] = $map;
 					$properties['hierarchy']    = 'pull' === $operation ? \RockStarLab\ImportExport\Service\Sync_Hierarchy::pull_schema() : \RockStarLab\ImportExport\Service\Sync_Hierarchy::schema();
 				} else {

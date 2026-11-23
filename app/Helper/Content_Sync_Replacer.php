@@ -23,6 +23,40 @@ class Content_Sync_Replacer {
 	public static $sender = false;
 
 	/**
+	 * Collect login and email of the users referenced by ACF user fields in meta, so the receiver can
+	 * find them when they are not mapped by source ID (for example on pull).
+	 *
+	 * @param array $meta Post meta array (already deserialized).
+	 * @return array Source user ID => { login, email }.
+	 */
+	public static function collect_acf_user_reference_map_from_meta( $meta ) {
+		$map = array();
+		if ( empty( $meta ) || ! is_array( $meta ) || ! function_exists( 'acf_get_field' ) ) {
+			return $map;
+		}
+		foreach ( $meta as $key => $value ) {
+			if ( ! is_string( $key ) || 0 === strpos( $key, '_' ) ) {
+				continue;
+			}
+			$ref   = isset( $meta[ '_' . $key ] ) && is_string( $meta[ '_' . $key ] ) && 0 === strpos( $meta[ '_' . $key ], 'field_' ) ? $meta[ '_' . $key ] : $key;
+			$field = acf_get_field( $ref );
+			if ( ! is_array( $field ) || 'user' !== ( $field['type'] ?? '' ) ) {
+				continue;
+			}
+			foreach ( is_array( $value ) ? $value : array( $value ) as $id ) {
+				$user = is_numeric( $id ) && (int) $id > 0 && ! isset( $map[ (int) $id ] ) ? get_userdata( (int) $id ) : false;
+				if ( $user ) {
+					$map[ (int) $id ] = array(
+						'login' => (string) $user->user_login,
+						'email' => (string) $user->user_email,
+					);
+				}
+			}
+		}
+		return $map;
+	}
+
+	/**
 	 * Collect a map of post IDs referenced by ACF post-reference fields in meta.
 	 *
 	 * This is used during Content Sync to resolve ACF post_object / relationship values
@@ -1479,6 +1513,118 @@ class Content_Sync_Replacer {
 	}
 
 	/**
+	 * Point the ACF image, file and gallery fields of a synced comment to the local copies of the
+	 * source attachments (the comment meta arrives with the other site's attachment IDs).
+	 *
+	 * @param int $comment_id Local comment.
+	 * @return void
+	 */
+	public static function map_comment_acf_media_ids( $comment_id ) {
+		if ( ! function_exists( 'acf_get_field' ) || $comment_id <= 0 ) {
+			return;
+		}
+		$local = static function ( $source ) {
+			$source = (int) $source;
+			if ( $source <= 0 ) {
+				return 0;
+			}
+			foreach ( array( '_rsl_ie_source_attachment_id', '_rsl_ie_original_attachment_id' ) as $meta_key ) {
+				$found = get_posts(
+					array(
+						'post_type'        => 'attachment',
+						'post_status'      => 'inherit',
+						'posts_per_page'   => 1,
+						'fields'           => 'ids',
+						'orderby'          => 'ID',
+						'order'            => 'DESC',
+						'lang'             => '',
+						'suppress_filters' => true,
+						'meta_key'         => $meta_key, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source identity.
+						'meta_value'       => $source, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source identity.
+					)
+				);
+				if ( $found ) {
+					return (int) $found[0];
+				}
+			}
+			return 0;
+		};
+		$meta = get_comment_meta( $comment_id );
+		foreach ( (array) $meta as $key => $values ) {
+			$ref = $meta[ '_' . $key ][0] ?? '';
+			if ( '_' === substr( (string) $key, 0, 1 ) || ! is_string( $ref ) || 0 !== strpos( $ref, 'field_' ) ) {
+				continue;
+			}
+			$field = acf_get_field( $ref );
+			if ( ! is_array( $field ) || ! in_array( $field['type'] ?? '', array( 'image', 'file', 'gallery' ), true ) ) {
+				continue;
+			}
+			$value = maybe_unserialize( $values[0] ?? '' );
+			if ( is_array( $value ) ) {
+				$new = array_map( static fn( $v ) => is_numeric( $v ) && $local( $v ) ? (string) $local( $v ) : $v, $value );
+			} elseif ( is_numeric( $value ) && $local( $value ) ) {
+				$new = (string) $local( $value );
+			} else {
+				continue;
+			}
+			if ( $new != $value ) { // phpcs:ignore Universal.Operators.StrictComparisons -- IDs may be strings or integers.
+				update_comment_meta( $comment_id, $key, $new );
+			}
+		}
+	}
+
+	/**
+	 * Point an ACF user field of a received post at the local users synced from the source users.
+	 * A user that was not synced yet keeps the source ID.
+	 *
+	 * @param int    $post_id Local post.
+	 * @param string $key     Meta key.
+	 * @param mixed  $value   Received value (user ID or IDs).
+	 * @param array  $refs    Source user ID => { login, email } sent with the post.
+	 * @return void
+	 */
+	private static function map_acf_user_field( $post_id, $key, $value, array $refs = array() ) {
+		$map = static function ( $source_id ) use ( $refs ) {
+			$source_id = (int) $source_id;
+			if ( $source_id <= 0 ) {
+				return $source_id;
+			}
+			$users = get_users(
+				array(
+					'meta_key'    => '_rsl_ie_original_user_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Exact source ID lookup, one user.
+					'meta_value'  => $source_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Exact source ID lookup, one user.
+					'number'      => 1,
+					'fields'      => 'ID',
+					'count_total' => false,
+				)
+			);
+			if ( $users ) {
+				return (int) $users[0];
+			}
+			// A user that came from this site (pull) or exists on both: by login, then email.
+			$ref  = isset( $refs[ $source_id ] ) && is_array( $refs[ $source_id ] ) ? $refs[ $source_id ] : array();
+			$user = ! empty( $ref['login'] ) ? get_user_by( 'login', (string) $ref['login'] ) : false;
+			if ( ! $user && ! empty( $ref['email'] ) ) {
+				$user = get_user_by( 'email', (string) $ref['email'] );
+			}
+			return $user ? (int) $user->ID : $source_id;
+		};
+		if ( is_numeric( $value ) ) {
+			$mapped = $map( $value );
+			if ( $mapped !== (int) $value ) {
+				update_post_meta( $post_id, $key, $mapped );
+			}
+			return;
+		}
+		if ( is_array( $value ) ) {
+			$mapped = array_map( static fn( $id ) => is_numeric( $id ) ? (string) $map( $id ) : $id, $value );
+			if ( $mapped !== $value ) {
+				update_post_meta( $post_id, $key, $mapped );
+			}
+		}
+	}
+
+	/**
 	 * After importing posts, re-save any ACF post-reference fields (post_object / relationship)
 	 * so they reference the correct local post IDs instead of the source-site IDs.
 	 *
@@ -1494,7 +1640,7 @@ class Content_Sync_Replacer {
 	 * @param int   $post_id        Target post ID.
 	 * @param int   $source_post_id Source-site post ID for this post.
 	 */
-	public static function translate_acf_post_reference_fields_in_meta( $meta, $post_id, $source_post_id, $post_ref_map = array() ) {
+	public static function translate_acf_post_reference_fields_in_meta( $meta, $post_id, $source_post_id, $post_ref_map = array(), $user_ref_map = array() ) {
 		if ( empty( $meta ) || ! function_exists( 'acf_get_field' ) ) {
 			return;
 		}
@@ -1528,6 +1674,7 @@ class Content_Sync_Replacer {
 							'update_post_term_cache' => false,
 							'meta_key'               => $meta_key,
 							'meta_value'             => $maybe_source_id,
+							'lang'                   => '', // Every language (Polylang would limit REST requests to the default one).
 						)
 					);
 					// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
@@ -1553,6 +1700,7 @@ class Content_Sync_Replacer {
 							'update_post_term_cache' => false,
 							'meta_key'               => $meta_key,
 							'meta_value'             => $maybe_source_id,
+							'lang'                   => '', // Every language (Polylang would limit REST requests to the default one).
 						)
 					);
 					// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
@@ -1584,6 +1732,11 @@ class Content_Sync_Replacer {
 				$field_obj = acf_get_field( $key );
 			}
 			if ( ! $field_obj || empty( $field_obj['type'] ) ) {
+				continue;
+			}
+
+			if ( 'user' === $field_obj['type'] ) {
+				self::map_acf_user_field( $post_id, $key, $value, is_array( $user_ref_map ) ? $user_ref_map : array() );
 				continue;
 			}
 

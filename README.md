@@ -350,6 +350,15 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 ## Changelog
 
+### 2.2.48
+
+* New: export filter "Language (Polylang)" for posts, pages, custom post types and products: pick the languages from a list instead of typing the language taxonomy.
+* Fix: Content Sync sets ACF User fields to the matching user of the receiving site (a synced user, or the same login or email) instead of keeping the user ID of the other site. Works for push and pull.
+* Fix: Content Sync no longer renames a category that has the same slug as a category used in an ACF Taxonomy field, for example an English and a German category that both use the slug "coffee".
+* Fix: comments imported from a file keep the link to their ACF fields, so ACF shows the values.
+* Fix: confirming a sync while the list of remote posts was still loading could fail with "This connection is already in use".
+* Tweak: the message for a connection that works in one direction only says how to make it work in both.
+
 ### 2.2.47
 
 * New: Polylang support (with PRO). Export files get Language and Translation group columns, and exports list every language even when the admin bar filters content by one language or an AI agent exports through the REST API.
@@ -374,10 +383,6 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 * Fix: imports and exports work on sites that use SQLite instead of MySQL, such as WordPress Studio, WordPress Playground and Reprint copies. Before, they stopped with a "request busy" or "file busy" error because the database could not lock a running job.
 
-### 2.2.43
-
-* Fix: a webhook trigger that gets a new file by URL now matches its columns by name also when the source import was started from WP-CLI or by an AI agent. Before, such imports kept only column positions, so a file with the columns in another order filled the wrong fields.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -386,7 +391,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.47 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.48 |
 
 ---
 

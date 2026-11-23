@@ -603,7 +603,8 @@ class Content_Sync_API_Controller {
 					$post_data['meta'],
 					$post_id,
 					$source_post_id,
-					isset( $post_data['post_refs'] ) ? $post_data['post_refs'] : array()
+					isset( $post_data['post_refs'] ) ? $post_data['post_refs'] : array(),
+					isset( $post_data['user_refs'] ) && is_array( $post_data['user_refs'] ) ? $post_data['user_refs'] : array()
 				);
 			}
 
@@ -1648,6 +1649,8 @@ class Content_Sync_API_Controller {
 					}
 					update_comment_meta( $result_id, sanitize_key( $key ), wp_slash( $this->resolve_synced_media_references( $value, 0 ) ) );
 				}
+				// ACF image, file and gallery fields of a comment hold source attachment IDs.
+				\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::map_comment_acf_media_ids( (int) $result_id );
 			}
 		}
 	}
@@ -3512,14 +3515,19 @@ class Content_Sync_API_Controller {
 						if ( ! $term || is_wp_error( $term ) ) {
 							continue;
 						}
-						$terms_data[ $acf_taxonomy ][] = array(
-							'term_id'        => $term->term_id,
-							'name'           => $term->name,
-							'slug'           => $term->slug,
-							'parent_term_id' => (int) $term->parent,
-							'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $acf_taxonomy ),
-							'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $acf_taxonomy ),
-							'assign_to_post' => $assign_to_post,
+						$terms_data[ $acf_taxonomy ][] = (array) apply_filters(
+							'rsl_ie_sync_term_payload',
+							array(
+								'term_id'        => $term->term_id,
+								'name'           => $term->name,
+								'slug'           => $term->slug,
+								'parent_term_id' => (int) $term->parent,
+								'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $acf_taxonomy ),
+								'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $acf_taxonomy ),
+								'assign_to_post' => $assign_to_post,
+							),
+							$term,
+							$acf_taxonomy
 						);
 
 						$known_ids[] = $raw_id;
@@ -3550,6 +3558,7 @@ class Content_Sync_API_Controller {
 					'sticky'            => 'post' === $post->post_type && is_sticky( $post->ID ),
 					'meta'              => $prepared_meta,
 					'post_refs'         => \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::collect_acf_post_reference_map_from_meta( $prepared_meta ),
+					'user_refs'         => \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::collect_acf_user_reference_map_from_meta( $prepared_meta ),
 					'terms'             => $terms_data,
 					'comments'          => $this->collect_post_comments_for_sync( $post->ID ),
 				);

@@ -357,6 +357,8 @@ class Init {
 				'exportUrl'                   => Site_URL::admin_url( 'admin.php?page=rsl-ie-export' ),
 				'currentPage'                 => '' !== $current_page ? $current_page : sanitize_key( $admin_page ),
 				'postTypeLabels'              => wp_list_pluck( get_post_types( array( 'show_ui' => true ), 'objects' ), 'label' ),
+				// Polylang languages for the export "Language" filter (empty without Polylang).
+				'languages'                   => function_exists( 'pll_languages_list' ) ? array_combine( (array) pll_languages_list( array( 'fields' => 'slug' ) ), (array) pll_languages_list( array( 'fields' => 'name' ) ) ) : array(),
 				'fieldTransformationsEnabled' => \RockStarLab\ImportExport\Helper\Field_Transformation_Bridge::is_enabled(),
 				'fieldTransformationActions'  => apply_filters(
 					'rsl_ie_field_transformation_ajax_actions',

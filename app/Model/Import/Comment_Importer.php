@@ -1196,9 +1196,24 @@ class Comment_Importer extends Abstract_Importer {
 				foreach ( $meta_data as $meta_key => $meta_value ) {
 					$media = ACF_Fields::import_media_meta( $meta_value, 0 );
 					update_comment_meta( $comment_id, $meta_key, wp_slash( null !== $media ? $media : $this->resolve_comment_media_references( $meta_value ) ) );
+					// Files carry no "_field" references (underscore meta is not exported): link the value to this site's ACF field.
+					if ( function_exists( 'acf_get_field' ) && is_string( $meta_key ) && '' !== $meta_key && '_' !== $meta_key[0] && ! array_key_exists( '_' . $meta_key, $meta_data ) && '' === (string) get_comment_meta( $comment_id, '_' . $meta_key, true ) ) {
+						$field = acf_get_field( $meta_key );
+						if ( is_array( $field ) && ! empty( $field['key'] ) && empty( $field['parent_repeater'] ) ) {
+							update_comment_meta( $comment_id, '_' . $meta_key, $field['key'] );
+						}
+					}
 				}
 			}
 		}
+
+		/**
+		 * After an imported comment's meta is saved (Polylang: media of the post's language).
+		 *
+		 * @param int   $comment_id Comment.
+		 * @param array $item       Imported row.
+		 */
+		do_action( 'rsl_ie_comment_meta_imported', (int) $comment_id, $item );
 
 		// Import ACF fields if enabled
 		if ( $this->get_option( 'import_acf', true ) ) {
