@@ -504,9 +504,13 @@ import { __, sprintf } from '@wordpress/i18n';
 							config.withTranslations
 								? `<p class="rsl-ie-sync-translations-option" style="text-align:left;">
 							<label><input type="checkbox" id="rsl-ie-taxonomy-with-translations" value="1" checked> ${ escapeHtml(
-								__(
-									'Send with translations (Polylang)',
-									'import-export-by-rockstarlab'
+								sprintf(
+									/* translators: %s: multilingual plugin (Polylang, WPML). */
+									__(
+										'Send with translations (%s)',
+										'import-export-by-rockstarlab'
+									),
+									config.multilingualName || 'Polylang'
 								)
 							) }</label>
 							<span class="description" style="display:block;margin-left:24px;">${ escapeHtml(

@@ -59,7 +59,7 @@ class Notices_Controller extends Base_Controller {
 			$plugins[] = 'Polylang';
 		}
 		/**
-		 * Multilingual plugins whose languages and translations are not kept (PRO removes Polylang).
+		 * Multilingual plugins whose languages and translations are not kept (PRO removes the one it supports).
 		 *
 		 * @param string[] $plugins Plugin names.
 		 */
@@ -107,7 +107,7 @@ class Notices_Controller extends Base_Controller {
 			return;
 		}
 		$plugins = $this->multilingual_plugins();
-		$others  = array_values( array_diff( $plugins, [ 'Polylang' ] ) );
+		$others  = array_values( array_diff( $plugins, [ 'Polylang', 'WPML' ] ) );
 		if ( $others ) {
 			printf(
 				'<div class="notice notice-warning"><p><strong>%s</strong> %s</p></div>',
@@ -121,12 +121,19 @@ class Notices_Controller extends Base_Controller {
 				)
 			);
 		}
-		if ( in_array( 'Polylang', $plugins, true ) ) {
+		$supported = [
+			'Polylang' => __( 'Polylang is active. The free version does not keep languages and translation links. Polylang and Polylang for WooCommerce are supported in the PRO version: languages, translation links, ACF fields and images are kept in Content Sync, import and export.', 'import-export-by-rockstarlab' ),
+			'WPML'     => __( 'WPML is active. The free version does not keep languages and translation links. WPML and WooCommerce Multilingual are supported in the PRO version: languages, translation links, ACF fields and images are kept in Content Sync, import and export.', 'import-export-by-rockstarlab' ),
+		];
+		foreach ( $supported as $name => $text ) {
+			if ( ! in_array( $name, $plugins, true ) ) {
+				continue;
+			}
 			$cta = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_cta();
 			printf(
 				'<div class="notice notice-warning"><p><strong>%1$s</strong> %2$s <a href="%3$s">%4$s</a></p></div>',
 				esc_html__( 'Content Sync, Media Sync, Import, Export:', 'import-export-by-rockstarlab' ),
-				esc_html__( 'Polylang is active. The free version does not keep languages and translation links. Polylang and Polylang for WooCommerce are supported in the PRO version: languages, translation links, ACF fields and images are kept in Content Sync, import and export.', 'import-export-by-rockstarlab' ),
+				esc_html( $text ),
 				esc_url( $cta['url'] ),
 				esc_html( $cta['label'] )
 			);

@@ -39,7 +39,7 @@ Need files instead? Import and export posts, pages, comments and media as CSV, X
 
 Read [how to sync content between two WordPress websites without export files](https://wpimportexport.com/how-to-sync-content-between-two-wordpress-websites-without-export-files/) and [how to use the plugin with AI agents like Claude, Codex and Cursor](https://wpimportexport.com/how-to-use-the-wordpress-abilities-api-with-ai-agents-exports-imports-content-sync-and-backups/).
 
-**Multilingual sites with Polylang.** Content Sync, import and export keep the language of every post, page, product, term, menu and media file and its links to the translations, so a German page updates the German page on the other site. The free plugin filters exports by language; languages and translation links travel with the PRO addon.
+**Multilingual sites with Polylang or WPML.** Content Sync, import and export keep the language of every post, page, product, term, menu and media file and its links to the translations, so a German page updates the German page on the other site. The free plugin filters exports by language; languages and translation links travel with the PRO addon.
 
 **Test: AI browser agent vs Content Sync.** We had an AI agent copy a WordPress page between two sites by clicking through wp-admin, then did the same with Content Sync. [See the time, the steps and what went missing](https://wpimportexport.com/ai-browser-agent-vs-content-sync-move-wordpress-page/).
 
@@ -91,7 +91,7 @@ Agent access requires the WordPress Abilities API and a client that can reach yo
 * 🚚 Move content to a new site with media, ACF, Elementor and SEO data
 * 📄 Import and export CSV, XML, JSON, XLSX and ODS files with field mapping
 * 💬 Run sync, import and export tasks from a connected AI agent
-* 🌍 Move multilingual Polylang content between sites with its languages and translations (PRO addon)
+* 🌍 Move multilingual Polylang or WPML content between sites with its languages and translations (PRO addon)
 * 🔎 Build a full public URL inventory for SEO audits
 * 🧾 Re-run imports, exports and sync jobs from history
 * 🤖 Convert public URLs into draft WordPress content with AI
@@ -112,7 +112,7 @@ Choose the WordPress admin interface or a connected AI agent for your data workf
 * 🧾 **Jobs Log**: Re-run previous imports, exports, and sync jobs without rebuilding the whole setup.
 * 🧪 **Live Plugin Preview**: Try the plugin in a temporary WordPress Playground demo powered by the included blueprint.
 * 🧩 **Metadata-Aware Workflows**: Designed for custom fields, SEO metadata, media references, and builder-heavy sites.
-* 🌍 **Polylang Support**: Filter exports by language; with PRO, sync, import and export keep languages and translation links (Polylang and Polylang for WooCommerce).
+* 🌍 **Polylang and WPML Support**: Filter Polylang exports by language; with PRO (also for WPML), sync, import and export keep languages and translation links (Polylang, Polylang for WooCommerce, WPML and WooCommerce Multilingual).
 
 ## PRO Addon
 
@@ -127,7 +127,7 @@ PRO adds:
 * 🪄 Transformation functions for cleaning, combining, changing, or normalizing values during workflows
 * 🧬 Advanced custom-field and metadata workflows for ACF, SEO plugins, builders, and WooCommerce stores
 * 🔄 More site-to-site sync coverage for custom content models
-* 🌍 Polylang support: Content Sync, import and export keep the language of every post, page, product, term, menu and media file and link it to its translations
+* 🌍 Polylang and WPML support: Content Sync, import and export keep the language of every post, page, product, term, menu and media file and link it to its translations
 * 💬 Premium agent operations for supported PRO import, export, sync, Content Updater, and transformation workflows
 * 🏢 Workflow tools built for agencies, WooCommerce teams, content teams, and developers managing staging-to-production releases
 
@@ -142,20 +142,6 @@ Manage content, metadata, media, sync, jobs, and URL audits in one plugin. Start
 * **Built for Humans and AI Agents**: Work in WP Admin or use a connected assistant to run supported data operations.
 * **Optional AI Content Extraction**: Turn public URLs into WordPress content with the separate AI URL Importer.
 * **Free to Start, PRO When You Grow**: Start with core migration and sync tools, then upgrade when you need custom content types, transformations, WooCommerce data, or Content Updater.
-
-### Core Features
-
-* **Multiple Data Types**: Posts, Pages, Comments, and Media in free; additional content types via the optional PRO addon
-* **All Site URLs**: Export public site URLs from posts, pages, custom post types, taxonomies, post type archives, author/date/search archives, RSS/Atom/comments feeds, and REST API endpoints
-* **File Formats**: Import and export CSV, XML, JSON, XLSX, and ODS files
-* **Background Processing**: Handle large datasets in batches to reduce timeout and memory-limit problems
-* **Field Mapping**: Intuitive field mapping interface with preview
-* **Validation System**: Comprehensive data validation before import
-* **Media Folder Sync**: Synchronize FTP-uploaded files with WordPress Media Library
-* **Site-to-Site Sync**: Connect and sync content between two WordPress sites
-* **Progress Tracking**: Real-time progress bars and detailed logs
-* **History & Logs**: Complete history of all import/export operations
-* **Live Preview Blueprint**: WordPress Playground blueprint support for the Live Plugin Preview on WordPress.org
 
 ### All Site URLs
 
@@ -192,27 +178,12 @@ Easily synchronize files from server folders (uploaded via FTP/SFTP) to your Wor
 * **Auto Alt Text**: Generate alt text from filenames
 * **Real Media Library**: Automatically create folder structure in Real Media Library plugin (the plugin is not included)
 
-### PRO Content Types and Tools
-
-The PRO addon extends Import and Export with additional content types, adds the Content Updater, and enables field transformation integrations.
-
-### Perfect For
-
-* 🚚 **Site Migration**: Moving content between WordPress sites
-* 🌐 **Multi-Site Management**: Sync content across multiple WordPress installations
-* ⚡ **Bulk Operations**: Updating hundreds or thousands of posts at once
-* 🔌 **Data Integration**: Importing data from external systems
-* 📝 **Content Management**: Exporting for backup or analysis
-* 🖼️ **Media Organization**: Organizing FTP-uploaded files into Media Library
-* 🏢 **Agency Workflows**: Moving content from staging to production without manual rebuilding
-* 🔎 **SEO Workflows**: Exporting URLs and preserving SEO metadata during migrations
-* 🛒 **WooCommerce**: Product catalog management (via the optional PRO addon)
-
 ## Works With
 
 * 🧱 WordPress
 * 🧩 ACF (Advanced Custom Fields) and ACF Pro (Flexible content, repeaters)
 * 🌍 Polylang and Polylang for WooCommerce (languages and translation links with the PRO addon)
+* 🌍 WPML and WooCommerce Multilingual (languages and translation links with the PRO addon)
 * 🛒 WooCommerce (PRO addon)
 * 🎨 Elementor
 * 🔎 Yoast SEO
@@ -361,7 +332,22 @@ Yes. The free plugin exports and imports Polylang sites and can filter an export
 
 </details>
 
+<details>
+<summary><b>Does it work with WPML?</b></summary>
+
+Yes, with the PRO addon. Content Sync sends the selected posts, pages or products together with their WPML translations, each item gets its language on the receiving site, and the translations stay linked. Pages and terms that share a slug across languages keep it, menus arrive as translations of each other, and media files get their translated copies. Export files get Language and Translation group columns, and the export can be filtered by language. Without PRO, the plugin exports and imports a WPML site but does not keep languages and translation links.
+
+</details>
+
 ## Changelog
+
+### 2.2.51
+
+* New: WPML support in the PRO addon. Content Sync, import and export keep the language of every post, page, product, term, menu and media file and link it to its WPML translations; the free plugin's admin notice for WPML now explains what PRO adds.
+* New: the labels "Language (%s)" and "Send with translations (%s)" name the active multilingual plugin (Polylang or WPML).
+* Fix: the Media Library sync list lets a multilingual add-on leave out the language copies of a file, so each file is listed once.
+* Fix: Content Sync of grouped products keeps the featured image of the child products on the receiving site.
+* Readme: shorter description (WordPress.org shows up to 2,500 words), WPML in features, Works With and FAQ.
 
 ### 2.2.50
 
@@ -396,12 +382,6 @@ Yes. The free plugin exports and imports Polylang sites and can filter an export
 * New: Media Library sync and Content Migration carry the Polylang language of files, menus and content when PRO is active; a receiving site that does not know file languages still accepts the files.
 * Dev: hooks for integrations: rsl_ie_import_item, rsl_ie_import_existing_post, rsl_ie_import_item_saved, rsl_ie_export_terms_value, rsl_ie_export_default_fields, rsl_ie_export_taxonomies, rsl_ie_export_menu_locations, rsl_ie_migration_step_fields, rsl_ie_media_sync_item, rsl_ie_media_sync_received.
 
-### 2.2.46
-
-* Fix: an order import with Product Stock keeps the stock right when the same order is imported again with Update. A cancelled or refunded order puts its stock back, a changed quantity is corrected, and stock is never taken twice. The option is now called "Reduce the stock of ordered products".
-* New: "Changes only" schedules work for exports of WooCommerce orders, so an order that was cancelled or refunded since the previous run is exported again.
-* New: Content Sync lets the PRO plugin add posts that belong to the selection to a push or pull (the product of a paid course) and bring related content after a pull.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -410,7 +390,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.50 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.51 |
 
 ---
 

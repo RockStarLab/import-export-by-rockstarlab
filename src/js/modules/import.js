@@ -4561,11 +4561,19 @@ const ImportModule = {
 							? [
 									{
 										value: 'language',
-										label: __(
-											'Language (Polylang)',
-											'import-export-by-rockstarlab'
+										label: sprintf(
+											/* translators: %s: multilingual plugin (Polylang, WPML). */
+											__(
+												'Language (%s)',
+												'import-export-by-rockstarlab'
+											),
+											window.rslIeData
+												?.multilingualName || 'Polylang'
 										),
-										labelEn: 'Language (Polylang)',
+										labelEn: `Language (${
+											window.rslIeData
+												?.multilingualName || 'Polylang'
+										})`,
 										type: 'string',
 									},
 							  ]

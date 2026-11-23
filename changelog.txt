@@ -1,5 +1,12 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.51 =
+* New: WPML support in the PRO addon. Content Sync, import and export keep the language of every post, page, product, term, menu and media file and link it to its WPML translations; the free plugin's admin notice for WPML now explains what PRO adds.
+* New: the labels "Language (%s)" and "Send with translations (%s)" name the active multilingual plugin (Polylang or WPML).
+* Fix: the Media Library sync list lets a multilingual add-on leave out the language copies of a file, so each file is listed once.
+* Fix: Content Sync of grouped products keeps the featured image of the child products on the receiving site.
+* Readme: shorter description (WordPress.org shows up to 2,500 words), WPML in features, Works With and FAQ.
+
 = 2.2.50 =
 * New: wpml-config.xml tells Polylang and WPML not to copy the plugin's sync and import bookkeeping fields into translations (a copied field could make the next sync take a translation for the original).
 * Fix (Polylang): synced patterns and navigation menus keep their language and translation links in Content Sync and in files.
