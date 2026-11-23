@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.49
+Stable tag: 2.2.50
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -22,6 +22,8 @@ Need files instead? Import and export posts, pages, comments and media as CSV, X
 **Works with AI agents.** Connect Claude, Cursor, Codex or another MCP client and ask it to sync pages, prepare an import, export content or check a job. The plugin exposes its operations through the WordPress Abilities API and the official WordPress MCP Adapter. AI is optional: every workflow also works in WP Admin and WP-CLI, without an AI account or API key.
 
 Read [how to sync content between two WordPress websites without export files](https://wpimportexport.com/how-to-sync-content-between-two-wordpress-websites-without-export-files/) and [how to use the plugin with AI agents like Claude, Codex and Cursor](https://wpimportexport.com/how-to-use-the-wordpress-abilities-api-with-ai-agents-exports-imports-content-sync-and-backups/).
+
+**Multilingual sites with Polylang.** Content Sync, import and export keep the language of every post, page, product, term, menu and media file and its links to the translations, so a German page updates the German page on the other site. The free plugin filters exports by language; languages and translation links travel with the PRO addon.
 
 **Test: AI browser agent vs Content Sync.** We had an AI agent copy a WordPress page between two sites by clicking through wp-admin, then did the same with Content Sync. [See the time, the steps and what went missing](https://wpimportexport.com/ai-browser-agent-vs-content-sync-move-wordpress-page/).
 
@@ -73,6 +75,7 @@ Agent access requires the WordPress Abilities API and a client that can reach yo
 * 🚚 Move content to a new site with media, ACF, Elementor and SEO data
 * 📄 Import and export CSV, XML, JSON, XLSX and ODS files with field mapping
 * 💬 Run sync, import and export tasks from a connected AI agent
+* 🌍 Move multilingual Polylang content between sites with its languages and translations (PRO addon)
 * 🔎 Build a full public URL inventory for SEO audits
 * 🧾 Re-run imports, exports and sync jobs from history
 * 🤖 Convert public URLs into draft WordPress content with AI
@@ -93,6 +96,7 @@ Choose the WordPress admin interface or a connected AI agent for your data workf
 * 🧾 **Jobs Log**: Re-run previous imports, exports, and sync jobs without rebuilding the whole setup.
 * 🧪 **Live Plugin Preview**: Try the plugin in a temporary WordPress Playground demo powered by the included blueprint.
 * 🧩 **Metadata-Aware Workflows**: Designed for custom fields, SEO metadata, media references, and builder-heavy sites.
+* 🌍 **Polylang Support**: Filter exports by language; with PRO, sync, import and export keep languages and translation links (Polylang and Polylang for WooCommerce).
 
 == PRO Addon ==
 
@@ -304,6 +308,15 @@ Yes. The free plugin exports and imports Polylang sites and can filter an export
 
 == Changelog ==
 
+= 2.2.50 =
+* New: wpml-config.xml tells Polylang and WPML not to copy the plugin's sync and import bookkeeping fields into translations (a copied field could make the next sync take a translation for the original).
+* Fix (Polylang): synced patterns and navigation menus keep their language and translation links in Content Sync and in files.
+* Fix (Polylang): the Sync Terms dialog offers "Send with translations (Polylang)" for translated taxonomies.
+* Fix: sync-push and sync-pull abilities no longer report an invalid result when translations make the result longer than the 50 selected posts.
+* Fix: a restarted Content Sync job counts every synced post, translations included.
+* Fix: Media Library sync counts a new media translation of an existing file as created, not skipped.
+* Fix: WP-CLI `export --options` accepts filters for WooCommerce orders and other PRO types; `import --type=taxonomy` accepts `--taxonomy`.
+
 = 2.2.49 =
 * Fix (Polylang): Content Sync to a site without Polylang no longer lets one translation replace another that shares its slug; each arrives as its own post.
 * Fix: the WooCommerce order export and import offer the field "Language (Polylang)" when Polylang for WooCommerce is active (export, filter and import mapping).
@@ -328,10 +341,5 @@ Yes. The free plugin exports and imports Polylang sites and can filter an export
 * Fix: an order import with Product Stock keeps the stock right when the same order is imported again with Update. A cancelled or refunded order puts its stock back, a changed quantity is corrected, and stock is never taken twice. The option is now called "Reduce the stock of ordered products".
 * New: "Changes only" schedules work for exports of WooCommerce orders, so an order that was cancelled or refunded since the previous run is exported again.
 * New: Content Sync lets the PRO plugin add posts that belong to the selection to a push or pull (the product of a paid course) and bring related content after a pull.
-
-= 2.2.45 =
-* New: Product Stock option for WooCommerce order imports (PRO). "Reduce the stock of ordered products for new orders" lowers the stock of the products in orders that the import creates, so a second store that sells the same stock can send its orders to the main store. Orders that already exist change nothing.
-* New: Content Sync lets the PRO plugin send what belongs to a pushed post, such as the topics, sections, lessons and quizzes of a Tutor LMS or LifterLMS course. The push result names what came along.
-* New: WooCommerce Tax Rates in the import and export type lists, Jobs Log and WP-CLI (--type=tax-rate) when PRO is active.
 
 Older versions: see changelog.txt in the plugin folder.

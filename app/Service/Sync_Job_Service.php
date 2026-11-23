@@ -728,15 +728,17 @@ class Sync_Job_Service {
 		if ( is_wp_error( $valid ) ) {
 			return $this->fail( $job->id, 'invalid_result', true );
 		}
+		// Translations (Polylang) travel with the selected posts: the run can sync more than were selected.
+		$total  = max( (int) $job->total_items, is_array( $result['result']['selected_ids'] ?? null ) ? count( $result['result']['selected_ids'] ) : 0 );
 		$counts = [
-			'success_items' => (int) $job->total_items,
+			'success_items' => $total,
 			'skipped_items' => 0,
 			'failed_items'  => 0,
 		];
 		foreach ( $provider['definitions'][ $params['operation'] ]['background']['counters'] ?? [] as $column => $field ) {
 			$counts[ $column ] = $result[ $field ];
 		}
-		if ( array_sum( $counts ) !== (int) $job->total_items ) {
+		if ( array_sum( $counts ) !== $total && array_sum( $counts ) !== (int) $job->total_items ) {
 			return $this->fail( $job->id, 'invalid_result', true );
 		}
 		$partial = $counts['failed_items'] > 0;
@@ -750,7 +752,8 @@ class Sync_Job_Service {
 			],
 			[
 				'status'          => $partial ? 'failed' : 'completed',
-				'processed_items' => $job->total_items,
+				'total_items'     => $total,
+				'processed_items' => $total,
 				'progress'        => 100,
 				'result'          => wp_json_encode( $result ),
 				'completed_at'    => current_time( 'mysql' ),

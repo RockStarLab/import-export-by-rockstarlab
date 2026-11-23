@@ -11,7 +11,7 @@ msgstr ""
 #. Plugin Name of the plugin
 #: import-export-by-rockstarlab.php
 #: app/Controller/Abilities_Controller.php:106
-#: app/Controller/Init.php:1895
+#: app/Controller/Init.php:1897
 #: app/View/settings/welcome.php:18
 msgid "Content Sync, Media Sync, Import, Export with AI Agents Support"
 msgstr "Content Sync, Media Sync, Import, Export with AI Agents Support"
@@ -165,7 +165,7 @@ msgid "Check whether supported field and commerce integrations are present. Does
 msgstr "Перевірка наявності підтримуваних інтеграцій полів і магазинів. Не розкриває облікові дані, не перевіряє ШІ й не дає доступу до операцій Pro."
 
 #: app/Controller/Agent_Controller.php:30
-#: app/Controller/Init.php:2045
+#: app/Controller/Init.php:2047
 #: app/View/settings/agent-connection.php:18
 #: app/View/settings/partials/plugin-options-tabs.php:23
 msgid "AI Agent Connection"
@@ -349,13 +349,13 @@ msgstr "Запис не вдалося зберегти, тому його не 
 #: app/Controller/Init.php:578
 #: app/Controller/Init.php:1247
 #: app/Controller/Init.php:1308
-#: app/Controller/Init.php:1391
-#: app/Controller/Init.php:1452
-#: app/Controller/Init.php:1631
-#: app/Controller/Init.php:1934
-#: app/Controller/Init.php:1935
-#: app/Controller/Init.php:1949
-#: app/Controller/Init.php:1950
+#: app/Controller/Init.php:1393
+#: app/Controller/Init.php:1454
+#: app/Controller/Init.php:1633
+#: app/Controller/Init.php:1936
+#: app/Controller/Init.php:1937
+#: app/Controller/Init.php:1951
+#: app/Controller/Init.php:1952
 #: app/Helper/Admin_Menu_Settings.php:33
 #: app/Service/Job_Notification_Service.php:644
 #: app/Service/Trigger_Service.php:653
@@ -1278,8 +1278,8 @@ msgid "The meta key for the custom field (e.g., _custom_price, my_custom_field).
 msgstr "Мета-ключ довільного поля (наприклад, _custom_price, my_custom_field)."
 
 #: app/Controller/Init.php:497
-#: app/Controller/Init.php:1413
-#: app/Controller/Init.php:1658
+#: app/Controller/Init.php:1415
+#: app/Controller/Init.php:1660
 #: app/Controller/Media_Library_Sync_Controller.php:154
 #: app/View/settings/content_sync.php:174
 #: app/View/settings/jobs-log.php:134
@@ -1301,7 +1301,7 @@ msgstr "Мета-ключ довільного поля (наприклад, _cu
 #: assets/js/app.js:8717
 #: assets/js/app.js:24761
 #: assets/js/media-library-sync.js:773
-#: assets/js/taxonomy-quick-actions.js:614
+#: assets/js/taxonomy-quick-actions.js:632
 msgid "Cancel"
 msgstr "Скасувати"
 
@@ -1771,8 +1771,8 @@ msgid "All rows were imported. %d notes need your attention; they are also in th
 msgstr "Усі рядки імпортовано. Зауважень, що потребують уваги: %d; вони є й у журналі завдань."
 
 #: app/Controller/Init.php:577
-#: app/Controller/Init.php:1925
-#: app/Controller/Init.php:1926
+#: app/Controller/Init.php:1927
+#: app/Controller/Init.php:1928
 #: app/Helper/Admin_Menu_Settings.php:32
 #: app/Service/Job_Notification_Service.php:644
 #: app/Service/Trigger_Service.php:653
@@ -1814,8 +1814,8 @@ msgid "Content Sync - Product Variations"
 msgstr "Синхронізація контенту — варіації товарів"
 
 #: app/Controller/Init.php:583
-#: app/Controller/Init.php:1409
-#: app/Controller/Init.php:1654
+#: app/Controller/Init.php:1411
+#: app/Controller/Init.php:1656
 #: app/View/settings/jobs-log.php:43
 #: app/View/sync/browse-modal.php:51
 #: assets/js/admin-object-quick-actions.js:2
@@ -2309,8 +2309,8 @@ msgid "Error loading tables"
 msgstr "Помилка завантаження таблиць"
 
 #: app/Controller/Init.php:700
-#: app/Controller/Init.php:1405
-#: app/Controller/Init.php:1650
+#: app/Controller/Init.php:1407
+#: app/Controller/Init.php:1652
 #: app/Controller/Media_Library_Sync_Controller.php:143
 #: app/View/settings/ai_url_importer.php:140
 #: assets/js/admin-object-quick-actions.js:2
@@ -2334,9 +2334,9 @@ msgstr "Помилка завантаження таблиць"
 #: assets/js/media-library-sync.js:890
 #: assets/js/media-library-sync.js:1012
 #: assets/js/post-sync-standalone.js:8361
-#: assets/js/taxonomy-quick-actions.js:797
-#: assets/js/taxonomy-quick-actions.js:846
-#: assets/js/taxonomy-quick-actions.js:1161
+#: assets/js/taxonomy-quick-actions.js:815
+#: assets/js/taxonomy-quick-actions.js:873
+#: assets/js/taxonomy-quick-actions.js:1188
 msgid "Loading..."
 msgstr "Завантаження..."
 
@@ -4885,9 +4885,9 @@ msgstr "Показано завдання %1$s–%2$s з %3$s"
 msgid "Select one or more media files to enable export."
 msgstr "Виберіть один або кілька медіафайлів, щоб увімкнути експорт."
 
-#: app/Controller/Init.php:1392
-#: app/Controller/Init.php:1453
-#: app/Controller/Init.php:1632
+#: app/Controller/Init.php:1394
+#: app/Controller/Init.php:1455
+#: app/Controller/Init.php:1634
 #: app/Controller/Media_Library_Sync_Controller.php:134
 #: app/View/settings/button_settings.php:61
 #: assets/js/admin-object-quick-actions.js:2
@@ -4903,15 +4903,15 @@ msgstr "Виберіть один або кілька медіафайлів, щ
 msgid "Sync"
 msgstr "Синхронізація"
 
-#: app/Controller/Init.php:1393
-#: app/Controller/Init.php:1454
+#: app/Controller/Init.php:1395
+#: app/Controller/Init.php:1456
 #: assets/js/taxonomy-quick-actions.js:1
 #: assets/js/taxonomy-quick-actions.js:189
 msgid "Select one or more terms to enable export."
 msgstr "Виберіть один або кілька термінів, щоб увімкнути експорт."
 
-#: app/Controller/Init.php:1395
-#: app/Controller/Init.php:1643
+#: app/Controller/Init.php:1397
+#: app/Controller/Init.php:1645
 #: app/Controller/Media_Library_Sync_Controller.php:136
 #: assets/js/admin-object-quick-actions.js:2
 #: assets/js/media-library-sync.js:1
@@ -4925,12 +4925,12 @@ msgstr "Виберіть один або кілька термінів, щоб �
 #: assets/js/media-library-sync.js:657
 #: assets/js/media-library-sync.js:977
 #: assets/js/taxonomy-quick-actions.js:276
-#: assets/js/taxonomy-quick-actions.js:772
-#: assets/js/taxonomy-quick-actions.js:1096
+#: assets/js/taxonomy-quick-actions.js:790
+#: assets/js/taxonomy-quick-actions.js:1123
 msgid "Please select a site."
 msgstr "Виберіть сайт."
 
-#: app/Controller/Init.php:1396
+#: app/Controller/Init.php:1398
 #: app/View/sync/sync-modal.php:27
 #: assets/js/admin-object-quick-actions.js:2
 #: assets/js/media-library-sync.js:1
@@ -4941,72 +4941,72 @@ msgstr "Виберіть сайт."
 msgid "Select Site"
 msgstr "Виберіть сайт"
 
-#: app/Controller/Init.php:1397
+#: app/Controller/Init.php:1399
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:784
+#: assets/js/taxonomy-quick-actions.js:802
 msgid "Please select one or more terms."
 msgstr "Виберіть один або кілька термінів."
 
-#: app/Controller/Init.php:1398
+#: app/Controller/Init.php:1400
 #: assets/js/taxonomy-quick-actions.js:1
 #: assets/js/taxonomy-quick-actions.js:535
 msgid "Selected terms:"
 msgstr "Вибрані терміни:"
 
-#: app/Controller/Init.php:1399
+#: app/Controller/Init.php:1401
 #: assets/js/taxonomy-quick-actions.js:1
 #: assets/js/taxonomy-quick-actions.js:520
 msgid "Sync Terms"
 msgstr "Синхронізувати терміни"
 
-#: app/Controller/Init.php:1400
+#: app/Controller/Init.php:1402
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:556
-#: assets/js/taxonomy-quick-actions.js:830
+#: assets/js/taxonomy-quick-actions.js:574
+#: assets/js/taxonomy-quick-actions.js:857
 msgid "Push selected terms"
 msgstr "Надіслати вибрані терміни"
 
-#: app/Controller/Init.php:1401
+#: app/Controller/Init.php:1403
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:751
+#: assets/js/taxonomy-quick-actions.js:769
 msgid "Browse remote terms"
 msgstr "Переглянути терміни віддаленого сайту"
 
-#: app/Controller/Init.php:1402
+#: app/Controller/Init.php:1404
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:746
-#: assets/js/taxonomy-quick-actions.js:1112
+#: assets/js/taxonomy-quick-actions.js:764
+#: assets/js/taxonomy-quick-actions.js:1139
 msgid "Pull / update selected terms"
 msgstr "Отримати / оновити вибрані терміни"
 
-#: app/Controller/Init.php:1403
+#: app/Controller/Init.php:1405
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:587
+#: assets/js/taxonomy-quick-actions.js:605
 msgid "Remote Terms"
 msgstr "Терміни віддаленого сайту"
 
-#: app/Controller/Init.php:1404
+#: app/Controller/Init.php:1406
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:600
+#: assets/js/taxonomy-quick-actions.js:618
 msgid "Search terms..."
 msgstr "Пошук термінів..."
 
-#: app/Controller/Init.php:1406
+#: app/Controller/Init.php:1408
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:651
-#: assets/js/taxonomy-quick-actions.js:863
+#: assets/js/taxonomy-quick-actions.js:669
+#: assets/js/taxonomy-quick-actions.js:890
 msgid "No terms found."
 msgstr "Термінів не знайдено."
 
-#: app/Controller/Init.php:1407
+#: app/Controller/Init.php:1409
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:809
-#: assets/js/taxonomy-quick-actions.js:1175
+#: assets/js/taxonomy-quick-actions.js:836
+#: assets/js/taxonomy-quick-actions.js:1202
 msgid "Terms synced successfully."
 msgstr "Терміни синхронізовано."
 
-#: app/Controller/Init.php:1408
-#: app/Controller/Init.php:1653
+#: app/Controller/Init.php:1410
+#: app/Controller/Init.php:1655
 #: app/Controller/Media_Library_Sync_Controller.php:152
 #: assets/js/admin-object-quick-actions.js:2
 #: assets/js/media-library-sync.js:1
@@ -5025,29 +5025,29 @@ msgstr "Терміни синхронізовано."
 #: assets/js/media-library-sync.js:498
 #: assets/js/media-library-sync.js:688
 #: assets/js/media-library-sync.js:1020
-#: assets/js/taxonomy-quick-actions.js:708
-#: assets/js/taxonomy-quick-actions.js:723
-#: assets/js/taxonomy-quick-actions.js:820
-#: assets/js/taxonomy-quick-actions.js:1196
+#: assets/js/taxonomy-quick-actions.js:726
+#: assets/js/taxonomy-quick-actions.js:741
+#: assets/js/taxonomy-quick-actions.js:847
+#: assets/js/taxonomy-quick-actions.js:1223
 msgid "Sync failed."
 msgstr "Помилка синхронізації."
 
-#: app/Controller/Init.php:1410
-#: app/Controller/Init.php:1655
+#: app/Controller/Init.php:1412
+#: app/Controller/Init.php:1657
 #: assets/js/admin-object-quick-actions.js:2
 #: assets/js/admin-object-quick-actions.js:9019
 msgid "Spam"
 msgstr "Спам"
 
-#: app/Controller/Init.php:1411
-#: app/Controller/Init.php:1656
+#: app/Controller/Init.php:1413
+#: app/Controller/Init.php:1658
 #: assets/js/admin-object-quick-actions.js:2
 #: assets/js/admin-object-quick-actions.js:9022
 msgid "Trash"
 msgstr "Кошик"
 
-#: app/Controller/Init.php:1412
-#: app/Controller/Init.php:1657
+#: app/Controller/Init.php:1414
+#: app/Controller/Init.php:1659
 #: app/Controller/Media_Library_Sync_Controller.php:153
 #: app/View/settings/jobs-log.php:116
 #: assets/js/admin-object-quick-actions.js:2
@@ -5060,93 +5060,93 @@ msgstr "Кошик"
 #: assets/js/media-library-sync.js:473
 #: assets/js/media-library-sync.js:724
 #: assets/js/taxonomy-quick-actions.js:527
-#: assets/js/taxonomy-quick-actions.js:594
+#: assets/js/taxonomy-quick-actions.js:612
 msgid "Close"
 msgstr "Закрити"
 
-#: app/Controller/Init.php:1414
+#: app/Controller/Init.php:1416
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:618
-#: assets/js/taxonomy-quick-actions.js:1117
-#: assets/js/taxonomy-quick-actions.js:1205
+#: assets/js/taxonomy-quick-actions.js:636
+#: assets/js/taxonomy-quick-actions.js:1144
+#: assets/js/taxonomy-quick-actions.js:1232
 msgid "Pull selected terms"
 msgstr "Отримати вибрані терміни"
 
-#: app/Controller/Init.php:1415
+#: app/Controller/Init.php:1417
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:1149
+#: assets/js/taxonomy-quick-actions.js:1176
 msgid "Please select one or more remote terms."
 msgstr "Виберіть один або кілька термінів віддаленого сайту."
 
-#: app/Controller/Init.php:1416
+#: app/Controller/Init.php:1418
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:1009
+#: assets/js/taxonomy-quick-actions.js:1036
 msgid "Local term"
 msgstr "Локальний термін"
 
-#: app/Controller/Init.php:1417
+#: app/Controller/Init.php:1419
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:1017
+#: assets/js/taxonomy-quick-actions.js:1044
 msgid "Remote term to pull"
 msgstr "Термін віддаленого сайту для отримання"
 
-#: app/Controller/Init.php:1418
+#: app/Controller/Init.php:1420
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:1064
+#: assets/js/taxonomy-quick-actions.js:1091
 msgid "Choose which remote term should update each selected local term."
 msgstr "Виберіть, яким терміном віддаленого сайту оновити кожен вибраний локальний термін."
 
-#: app/Controller/Init.php:1455
+#: app/Controller/Init.php:1457
 #: assets/js/taxonomy-quick-actions.js:1
 #: assets/js/taxonomy-quick-actions.js:211
 msgid "Sync terms. Select terms first to push, or browse remote terms to pull."
 msgstr "Синхронізація термінів. Виберіть терміни, щоб надіслати їх, або перегляньте терміни віддаленого сайту, щоб отримати їх."
 
-#: app/Controller/Init.php:1642
+#: app/Controller/Init.php:1644
 msgid "Select one or more comments."
 msgstr "Виберіть один або кілька коментарів."
 
-#: app/Controller/Init.php:1644
+#: app/Controller/Init.php:1646
 #: assets/js/admin-object-quick-actions.js:2
 #: assets/js/admin-object-quick-actions.js:7177
 msgid "Sync Comments"
 msgstr "Синхронізувати коментарі"
 
-#: app/Controller/Init.php:1645
+#: app/Controller/Init.php:1647
 #: assets/js/admin-object-quick-actions.js:2
 #: assets/js/admin-object-quick-actions.js:7181
 msgid "Push selected comments"
 msgstr "Надіслати вибрані коментарі"
 
-#: app/Controller/Init.php:1646
+#: app/Controller/Init.php:1648
 #: assets/js/admin-object-quick-actions.js:2
 #: assets/js/admin-object-quick-actions.js:7185
 msgid "Browse remote comments"
 msgstr "Переглянути коментарі віддаленого сайту"
 
-#: app/Controller/Init.php:1647
+#: app/Controller/Init.php:1649
 #: assets/js/admin-object-quick-actions.js:2
 #: assets/js/admin-object-quick-actions.js:7189
 msgid "Remote Comments"
 msgstr "Коментарі віддаленого сайту"
 
-#: app/Controller/Init.php:1648
+#: app/Controller/Init.php:1650
 #: assets/js/admin-object-quick-actions.js:2
 #: assets/js/admin-object-quick-actions.js:7194
 msgid "Search comments..."
 msgstr "Пошук коментарів..."
 
-#: app/Controller/Init.php:1649
+#: app/Controller/Init.php:1651
 #: assets/js/admin-object-quick-actions.js:2
 #: assets/js/admin-object-quick-actions.js:7198
 msgid "Pull selected comments"
 msgstr "Отримати вибрані коментарі"
 
-#: app/Controller/Init.php:1651
+#: app/Controller/Init.php:1653
 msgid "No comments found."
 msgstr "Коментарів не знайдено."
 
-#: app/Controller/Init.php:1652
+#: app/Controller/Init.php:1654
 #: app/Controller/Media_Library_Sync_Controller.php:145
 #: assets/js/admin-object-quick-actions.js:2
 #: assets/js/media-library-sync.js:1
@@ -5156,37 +5156,37 @@ msgstr "Коментарів не знайдено."
 msgid "Sync completed successfully."
 msgstr "Синхронізацію успішно завершено."
 
-#: app/Controller/Init.php:1659
+#: app/Controller/Init.php:1661
 msgid "Please select one or more remote comments."
 msgstr "Виберіть один або кілька коментарів віддаленого сайту."
 
-#: app/Controller/Init.php:1876
+#: app/Controller/Init.php:1878
 msgid "Help"
 msgstr "Допомога"
 
-#: app/Controller/Init.php:1878
+#: app/Controller/Init.php:1880
 msgid "Need help with Content Sync, Media Sync, Import, Export? These resources can help you get started and learn common workflows."
 msgstr "Потрібна допомога з Content Sync, Media Sync, Import, Export? Ці матеріали допоможуть почати роботу й опанувати типові сценарії."
 
-#: app/Controller/Init.php:1880
+#: app/Controller/Init.php:1882
 #: app/View/settings/welcome.php:109
 #: app/View/settings/welcome.php:280
 msgid "Documentation"
 msgstr "Документація"
 
-#: app/Controller/Init.php:1881
+#: app/Controller/Init.php:1883
 #: app/View/settings/welcome.php:287
 msgid "Video Tutorials"
 msgstr "Відеоуроки"
 
-#: app/Controller/Init.php:1906
-#: app/Controller/Init.php:1907
+#: app/Controller/Init.php:1908
+#: app/Controller/Init.php:1909
 #: app/Helper/Admin_Menu_Settings.php:30
 msgid "Welcome"
 msgstr "Ласкаво просимо"
 
-#: app/Controller/Init.php:1916
-#: app/Controller/Init.php:1917
+#: app/Controller/Init.php:1918
+#: app/Controller/Init.php:1919
 #: app/Helper/Admin_Menu_Settings.php:31
 #: app/View/settings/content_sync.php:12
 #: app/View/settings/notifications.php:20
@@ -5195,8 +5195,8 @@ msgstr "Ласкаво просимо"
 msgid "Content Sync"
 msgstr "Синхронізація контенту"
 
-#: app/Controller/Init.php:1962
-#: app/Controller/Init.php:1963
+#: app/Controller/Init.php:1964
+#: app/Controller/Init.php:1965
 #: app/Helper/Admin_Menu_Settings.php:34
 #: app/Service/Migration_Service.php:189
 #: app/View/settings/notifications.php:21
@@ -5206,15 +5206,15 @@ msgstr "Синхронізація контенту"
 msgid "Content Migration"
 msgstr "Міграція контенту"
 
-#: app/Controller/Init.php:1971
-#: app/Controller/Init.php:1972
+#: app/Controller/Init.php:1973
+#: app/Controller/Init.php:1974
 #: app/Helper/Admin_Menu_Settings.php:35
 #: app/View/settings/tools.php:12
 msgid "Tools"
 msgstr "Інструменти"
 
-#: app/Controller/Init.php:1980
-#: app/Controller/Init.php:1981
+#: app/Controller/Init.php:1982
+#: app/Controller/Init.php:1983
 #: app/Helper/Admin_Menu_Settings.php:36
 #: app/View/settings/jobs-log.php:12
 #: app/View/settings/notifications.php:25
@@ -5224,16 +5224,16 @@ msgstr "Інструменти"
 msgid "Jobs Log"
 msgstr "Журнал завдань"
 
-#: app/Controller/Init.php:1989
-#: app/Controller/Init.php:1990
+#: app/Controller/Init.php:1991
+#: app/Controller/Init.php:1992
 #: app/Helper/Admin_Menu_Settings.php:37
 #: app/View/settings/partials/jobs-tabs.php:17
 #: app/View/settings/schedules.php:59
 msgid "Schedules"
 msgstr "Розклади"
 
-#: app/Controller/Init.php:1998
-#: app/Controller/Init.php:1999
+#: app/Controller/Init.php:2000
+#: app/Controller/Init.php:2001
 #: app/View/settings/button_settings.php:21
 #: app/View/settings/plugin_options.php:30
 #: app/View/settings/plugin_settings.php:22
@@ -5242,43 +5242,43 @@ msgstr "Розклади"
 msgid "Plugin Options"
 msgstr "Налаштування плагіна"
 
-#: app/Controller/Init.php:2008
-#: app/Controller/Init.php:2009
-#: app/Controller/Init.php:2046
+#: app/Controller/Init.php:2010
+#: app/Controller/Init.php:2011
+#: app/Controller/Init.php:2048
 #: app/View/settings/partials/plugin-options-tabs.php:20
 #: app/View/settings/plugin_options.php:43
 msgid "AI Integration"
 msgstr "Інтеграція з ШІ"
 
-#: app/Controller/Init.php:2018
-#: app/Controller/Init.php:2019
-#: app/Controller/Init.php:2047
+#: app/Controller/Init.php:2020
+#: app/Controller/Init.php:2021
+#: app/Controller/Init.php:2049
 #: app/View/settings/partials/plugin-options-tabs.php:17
 msgid "Export / Sync Buttons"
 msgstr "Кнопки експорту й синхронізації"
 
-#: app/Controller/Init.php:2042
+#: app/Controller/Init.php:2044
 #: app/Controller/Trigger_Controller.php:41
 #: app/View/settings/partials/jobs-tabs.php:23
 #: app/View/settings/triggers.php:64
 msgid "Triggers"
 msgstr "Тригери"
 
-#: app/Controller/Init.php:2043
+#: app/Controller/Init.php:2045
 #: app/Controller/Notification_Controller.php:64
 #: app/View/settings/notifications.php:48
 #: app/View/settings/partials/jobs-tabs.php:20
 msgid "Notifications"
 msgstr "Сповіщення"
 
-#: app/Controller/Init.php:2044
+#: app/Controller/Init.php:2046
 #: app/Controller/Remote_Server_Controller.php:63
 #: app/View/settings/partials/plugin-options-tabs.php:26
 #: app/View/settings/servers.php:54
 msgid "FTP / SFTP Servers"
 msgstr "Сервери FTP / SFTP"
 
-#: app/Controller/Init.php:2150
+#: app/Controller/Init.php:2152
 msgid "You do not have permission to perform this action."
 msgstr "У вас немає прав на цю дію."
 
@@ -8764,12 +8764,12 @@ msgstr "Операцію з папкою медіафайлів не викон�
 msgid "Check media selection, uploads file availability and permissions."
 msgstr "Перевірте вибір медіафайлів, наявність файлів в uploads і права."
 
-#: app/Service/Media_Library_Sync_Service.php:1234
-#: app/Service/Media_Library_Sync_Service.php:1239
+#: app/Service/Media_Library_Sync_Service.php:1244
+#: app/Service/Media_Library_Sync_Service.php:1249
 msgid "Cannot persist media move."
 msgstr "Не вдається зберегти переміщення медіафайлу."
 
-#: app/Service/Media_Library_Sync_Service.php:1543
+#: app/Service/Media_Library_Sync_Service.php:1553
 msgid "Media synchronization could not complete. Check selection, limits, registered ACF fields, connection and permissions. Inspect the destination before repeating a transfer."
 msgstr "Синхронізацію медіафайлів не виконано. Перевірте вибір, ліміти, зареєстровані поля ACF, підключення й права. Перевірте місце призначення, перш ніж повторювати передавання."
 
@@ -9211,33 +9211,33 @@ msgstr "Інший сайт не зміг підтвердити запитан�
 msgid "Sync checkpoint failed."
 msgstr "Не вдалося зберегти контрольну точку синхронізації."
 
-#: app/Service/Sync_Job_Service.php:797
+#: app/Service/Sync_Job_Service.php:800
 msgid "The connection was edited or its address changed after the job started, so nothing was sent. Start the sync again."
 msgstr "Підключення змінили або змінили його адресу після запуску завдання, тому нічого не надіслано. Запустіть синхронізацію знову."
 
-#: app/Service/Sync_Job_Service.php:798
+#: app/Service/Sync_Job_Service.php:801
 msgid "The connection is not active or does not allow this direction. Fix it in Content Sync and start the sync again."
 msgstr "Підключення неактивне або не дозволяє цей напрямок. Виправте його на сторінці «Синхронізація контенту» і запустіть синхронізацію знову."
 
-#: app/Service/Sync_Job_Service.php:799
+#: app/Service/Sync_Job_Service.php:802
 msgid "The job was interrupted by the server."
 msgstr "Завдання перервано сервером."
 
 #. translators: %s: error code.
-#: app/Service/Sync_Job_Service.php:801
+#: app/Service/Sync_Job_Service.php:804
 #, php-format
 msgid "The sync failed (%s)."
 msgstr "Помилка синхронізації (%s)."
 
-#: app/Service/Sync_Job_Service.php:803
+#: app/Service/Sync_Job_Service.php:806
 msgid "Some content may already have changed on the other site: check it before you start the sync again."
 msgstr "Частина контенту на іншому сайті вже могла змінитися: перевірте його, перш ніж знову запускати синхронізацію."
 
-#: app/Service/Sync_Job_Service.php:825
+#: app/Service/Sync_Job_Service.php:828
 msgid "This connection is busy with another sync transfer. Wait until it finishes (check rsl-ie/sync-job-status), then try again."
 msgstr "Це підключення зайняте іншою синхронізацією. Дочекайтеся її завершення (перевірте rsl-ie/sync-job-status) і спробуйте знову."
 
-#: app/Service/Sync_Job_Service.php:827
+#: app/Service/Sync_Job_Service.php:830
 msgid "The background sync cannot continue. Check its status, provider, connection and permissions before retrying."
 msgstr "Фонова синхронізація не може продовжитися. Перевірте її статус, провайдера, підключення й права, перш ніж повторювати."
 
@@ -13152,7 +13152,7 @@ msgstr "Масові дії для видимих записів"
 #: assets/js/admin-object-quick-actions.js:7924
 #: assets/js/app.js:29519
 #: assets/js/media-library-sync.js:740
-#: assets/js/taxonomy-quick-actions.js:905
+#: assets/js/taxonomy-quick-actions.js:932
 msgid "Select all"
 msgstr "Вибрати всі"
 
@@ -13164,7 +13164,7 @@ msgstr "Вибрати всі"
 #: assets/js/admin-object-quick-actions.js:7931
 #: assets/js/app.js:29522
 #: assets/js/media-library-sync.js:747
-#: assets/js/taxonomy-quick-actions.js:912
+#: assets/js/taxonomy-quick-actions.js:939
 msgid "Deselect all"
 msgstr "Зняти вибір"
 
@@ -15879,22 +15879,32 @@ msgid "Plugin data not loaded"
 msgstr "Дані плагіна не завантажено"
 
 #: assets/js/taxonomy-quick-actions.js:1
+#: assets/js/taxonomy-quick-actions.js:557
+msgid "Send with translations (Polylang)"
+msgstr "Надіслати разом із перекладами (Polylang)"
+
+#: assets/js/taxonomy-quick-actions.js:1
 #: assets/js/taxonomy-quick-actions.js:563
+msgid "The translations of the selected terms are synced too and stay linked on the other site."
+msgstr "Переклади вибраних термінів теж синхронізуються й лишаються пов’язаними на іншому сайті."
+
+#: assets/js/taxonomy-quick-actions.js:1
+#: assets/js/taxonomy-quick-actions.js:581
 msgid "Pull from remote"
 msgstr "Отримати з віддаленого сайту"
 
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:646
+#: assets/js/taxonomy-quick-actions.js:664
 msgid "Failed to load remote terms."
 msgstr "Не вдалося завантажити терміни віддаленого сайту."
 
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:984
+#: assets/js/taxonomy-quick-actions.js:1011
 msgid "Select remote term..."
 msgstr "Виберіть термін віддаленого сайту..."
 
 #: assets/js/taxonomy-quick-actions.js:1
-#: assets/js/taxonomy-quick-actions.js:894
+#: assets/js/taxonomy-quick-actions.js:921
 msgid "Bulk actions for visible terms"
 msgstr "Масові дії для видимих термінів"
 

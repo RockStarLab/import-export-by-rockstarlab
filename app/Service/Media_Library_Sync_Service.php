@@ -785,7 +785,16 @@ class Media_Library_Sync_Service {
 							 * @param array $item         Received item.
 							 * @param bool  $content_sync Part of a Content Sync.
 							 */
-							$id = (int) apply_filters( 'rsl_ie_media_sync_received', (int) $id, $item, (bool) $content_sync );
+							$made_new = false;
+							$on_made  = static function () use ( &$made_new ) {
+								$made_new = true;
+							};
+							add_action( 'rsl_ie_media_sync_attachment_created', $on_made );
+							try {
+								$id = (int) apply_filters( 'rsl_ie_media_sync_received', (int) $id, $item, (bool) $content_sync );
+							} finally {
+								remove_action( 'rsl_ie_media_sync_attachment_created', $on_made );
+							}
 							if ( $existing && $content_sync && ! $recovered ) {
 								$before_metadata = wp_get_attachment_metadata( $id );
 								$size_filter     = $this->image_size_filter();
@@ -807,7 +816,8 @@ class Media_Library_Sync_Service {
 							foreach ( $defer_fields ? [] : ( $item['acf'] ?? [] ) as $name => $value ) {
 								ACF_Fields::import_value( 'media', $id, $name, $value ); }
 							// Continuing this transfer's own attachment is still a creation, not a duplicate.
-							$status = $existing && ! $recovered ? 'skipped' : 'created';
+							// A new attachment made for the same file (Polylang media translation) is a creation too.
+							$status = $existing && ! $recovered && ! $made_new ? 'skipped' : 'created';
 							}
 						}
 				} catch ( \Throwable $exception ) {

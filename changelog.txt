@@ -1,5 +1,14 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.50 =
+* New: wpml-config.xml tells Polylang and WPML not to copy the plugin's sync and import bookkeeping fields into translations (a copied field could make the next sync take a translation for the original).
+* Fix (Polylang): synced patterns and navigation menus keep their language and translation links in Content Sync and in files.
+* Fix (Polylang): the Sync Terms dialog offers "Send with translations (Polylang)" for translated taxonomies.
+* Fix: sync-push and sync-pull abilities no longer report an invalid result when translations make the result longer than the 50 selected posts.
+* Fix: a restarted Content Sync job counts every synced post, translations included.
+* Fix: Media Library sync counts a new media translation of an existing file as created, not skipped.
+* Fix: WP-CLI `export --options` accepts filters for WooCommerce orders and other PRO types; `import --type=taxonomy` accepts `--taxonomy`.
+
 = 2.2.49 =
 * Fix (Polylang): Content Sync to a site without Polylang no longer lets one translation replace another that shares its slug; each arrives as its own post.
 * Fix: the WooCommerce order export and import offer the field "Language (Polylang)" when Polylang for WooCommerce is active (export, filter and import mapping).

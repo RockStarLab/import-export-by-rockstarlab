@@ -103,6 +103,33 @@ class Cli_Helper {
 	}
 
 	/**
+	 * Whether an ability takes a property at the top level of its input (not in "options") for a type.
+	 *
+	 * @param string $ability_name Ability.
+	 * @param string $type_key     Input key of the content type.
+	 * @param string $type         Content type.
+	 * @param string $property     Property.
+	 * @return bool
+	 */
+	public static function takes_top_level( $ability_name, $type_key, $type, $property ) {
+		$ability = self::find_ability( $ability_name );
+		if ( ! $ability ) {
+			return false;
+		}
+		$schema   = (array) $ability->get_input_schema();
+		$branches = isset( $schema['oneOf'] ) && is_array( $schema['oneOf'] ) ? $schema['oneOf'] : [ $schema ];
+		foreach ( $branches as $branch ) {
+			$type_schema = $branch['properties'][ $type_key ] ?? [];
+			$allowed     = (array) ( $type_schema['enum'] ?? ( isset( $type_schema['const'] ) ? [ $type_schema['const'] ] : [] ) );
+			if ( in_array( $type, $allowed, true ) ) {
+				$options = $branch['properties']['options']['properties'] ?? [];
+				return isset( $branch['properties'][ $property ] ) && ! isset( $options[ $property ] );
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Stop with a clear message when the options do not fit the schema branch of the chosen type.
 	 *
 	 * The import/export abilities validate input against a oneOf list (one branch per content
