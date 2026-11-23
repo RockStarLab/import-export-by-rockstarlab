@@ -58,7 +58,12 @@ class Notices_Controller extends Base_Controller {
 		if ( defined( 'POLYLANG_VERSION' ) || function_exists( 'pll_languages_list' ) ) {
 			$plugins[] = 'Polylang';
 		}
-		return $plugins;
+		/**
+		 * Multilingual plugins whose languages and translations are not kept (PRO removes Polylang).
+		 *
+		 * @param string[] $plugins Plugin names.
+		 */
+		return array_values( (array) apply_filters( 'rsl_ie_unsupported_multilingual_plugins', $plugins ) );
 	}
 
 	/**
@@ -102,7 +107,8 @@ class Notices_Controller extends Base_Controller {
 			return;
 		}
 		$plugins = $this->multilingual_plugins();
-		if ( $plugins ) {
+		$others  = array_values( array_diff( $plugins, [ 'Polylang' ] ) );
+		if ( $others ) {
 			printf(
 				'<div class="notice notice-warning"><p><strong>%s</strong> %s</p></div>',
 				esc_html__( 'Content Sync, Media Sync, Import, Export:', 'import-export-by-rockstarlab' ),
@@ -110,9 +116,19 @@ class Notices_Controller extends Base_Controller {
 					sprintf(
 					/* translators: %s: active multilingual plugin names. */
 						__( '%s is active. Content Sync, import and export may not preserve language assignments and translation relationships correctly. Verify multilingual content on a staging site before using these operations on your live site.', 'import-export-by-rockstarlab' ),
-						implode( ', ', $plugins )
+						implode( ', ', $others )
 					)
 				)
+			);
+		}
+		if ( in_array( 'Polylang', $plugins, true ) ) {
+			$cta = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_cta();
+			printf(
+				'<div class="notice notice-warning"><p><strong>%1$s</strong> %2$s <a href="%3$s">%4$s</a></p></div>',
+				esc_html__( 'Content Sync, Media Sync, Import, Export:', 'import-export-by-rockstarlab' ),
+				esc_html__( 'Polylang is active. The free version does not keep languages and translation links. Polylang and Polylang for WooCommerce are supported in the PRO version: languages, translation links, ACF fields and images are kept in Content Sync, import and export.', 'import-export-by-rockstarlab' ),
+				esc_url( $cta['url'] ),
+				esc_html( $cta['label'] )
 			);
 		}
 		echo '<div id="rsl-ie-rest-warning" class="notice notice-warning" style="display:none"><p><strong>' . esc_html__( 'Content Sync, Media Sync, Import, Export:', 'import-export-by-rockstarlab' ) . '</strong> ' . esc_html__( 'The plugin REST API is disabled or could not be reached from your browser. Content Sync and AI agent connections may not work. Check security plugins, REST API restrictions and your server configuration.', 'import-export-by-rockstarlab' ) . '</p></div>';

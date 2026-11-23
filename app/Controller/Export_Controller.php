@@ -679,7 +679,7 @@ class Export_Controller extends Base_Controller {
 			];
 		}
 
-		$this->send_success( [ 'taxonomies' => $taxonomy_list ] );
+		$this->send_success( [ 'taxonomies' => (array) apply_filters( 'rsl_ie_export_taxonomies', $taxonomy_list, $post_type ) ] );
 	}
 
 	/**

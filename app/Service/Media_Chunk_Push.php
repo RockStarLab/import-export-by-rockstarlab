@@ -110,7 +110,8 @@ class Media_Chunk_Push {
 					[
 						'action'       => 'finalize',
 						'transfer_id'  => $state['transfer']['transfer_id'],
-						'metadata'     => $state['metadata'],
+						// A receiver that does not know file languages refuses unknown keys.
+						'metadata'     => ! empty( $access['media_language'] ) ? $state['metadata'] : array_diff_key( $state['metadata'], [ 'pll' => true ] ),
 						'envelope'     => $state['envelope'],
 						'defer_fields' => false,
 					] + ( ! empty( $access['bounded_metadata'] ) ? [ 'bounded_metadata' => true ] : [] )

@@ -961,6 +961,9 @@ class Content_Sync_Controller extends Base_Controller {
 			'post_ids'     => $this->get_request_array( 'post_ids', array() ),
 			'post_mapping' => $this->get_request_param( 'post_mapping', array() ),
 		);
+		if ( null !== $this->get_request_param( 'with_translations', null ) ) {
+			$input['with_translations'] = (bool) absint( $this->get_request_param( 'with_translations', 0 ) );
+		}
 		$result = ( new \RockStarLab\ImportExport\Service\Content_Sync_Service() )->execute( 'push_content', $input );
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result->get_error_message() );
@@ -992,6 +995,9 @@ class Content_Sync_Controller extends Base_Controller {
 			'post_ids'     => $this->get_request_array( 'post_ids', array() ),
 			'post_mapping' => $this->get_request_param( 'post_mapping', array() ),
 		);
+		if ( null !== $this->get_request_param( 'with_translations', null ) ) {
+			$input['with_translations'] = (bool) absint( $this->get_request_param( 'with_translations', 0 ) );
+		}
 		$result = ( new \RockStarLab\ImportExport\Service\Content_Sync_Service() )->execute( 'pull_content', $input );
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result->get_error_message() );

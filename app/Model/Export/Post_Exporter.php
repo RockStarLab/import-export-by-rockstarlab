@@ -337,8 +337,10 @@ class Post_Exporter extends Abstract_Exporter {
 		if ( in_array( $post_type, [ 'product', 'woo_product' ], true ) ) {
 			$fields = array_values( array_unique( array_merge( $fields, self::product_default_fields() ) ) );
 		}
+		// Integrations add their own default columns (Polylang: language and translation group).
+		$fields = (array) apply_filters( 'rsl_ie_export_default_fields', $fields, (string) $post_type );
 		if ( ! class_exists( '\\RockStarLab\\ImportExport\\Helper\\ACF_Fields' ) || ! function_exists( 'acf_get_field_groups' ) ) {
-			return $fields;
+			return array_values( array_unique( $fields ) );
 		}
 		$post_type = '' === $post_type || 'any' === $post_type ? 'post' : $post_type;
 		foreach ( \RockStarLab\ImportExport\Helper\ACF_Fields::get_fields_for_content_type( $post_type ) as $field ) {
@@ -885,6 +887,9 @@ class Post_Exporter extends Abstract_Exporter {
 			'order'               => $options['order'] ?? 'DESC',
 			'ignore_sticky_posts' => true,
 			'suppress_filters'    => true,
+			// Every language: Polylang otherwise limits the query to the language picked in the admin
+			// bar (or to the default language in REST and agent requests). A Language filter narrows it.
+			'lang'                => '',
 		];
 
 		// Rows with the same date (bulk-created posts, coupons) came back in a different order
@@ -4828,12 +4833,26 @@ class Post_Exporter extends Abstract_Exporter {
 	protected function get_menu_locations( $term_id ) {
 		$locations = get_nav_menu_locations();
 
-		return array_keys(
-			array_filter(
-				$locations,
-				static function ( $menu_id ) use ( $term_id ) {
-					return (int) $menu_id === (int) $term_id;
-				}
+		/**
+		 * Theme locations of a menu (Polylang adds "location:language" for menus of a language).
+		 *
+		 * @param string[] $locations Location names.
+		 * @param int      $term_id   Menu term ID.
+		 */
+		return array_values(
+			array_unique(
+				(array) apply_filters(
+					'rsl_ie_export_menu_locations',
+					array_keys(
+						array_filter(
+							$locations,
+							static function ( $menu_id ) use ( $term_id ) {
+								return (int) $menu_id === (int) $term_id;
+							}
+						)
+					),
+					(int) $term_id
+				)
 			)
 		);
 	}
@@ -5030,6 +5049,11 @@ class Post_Exporter extends Abstract_Exporter {
 	private function get_portable_terms_json( int $post_id, string $taxonomy ): string {
 		if ( $post_id <= 0 || ! taxonomy_exists( $taxonomy ) ) {
 			return '';
+		}
+		// Integrations may export a taxonomy their own way (Polylang: the language code and translation group).
+		$custom = apply_filters( 'rsl_ie_export_terms_value', null, $post_id, $taxonomy );
+		if ( null !== $custom ) {
+			return (string) $custom;
 		}
 
 		$terms = wp_get_object_terms(

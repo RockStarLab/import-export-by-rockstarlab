@@ -37,6 +37,11 @@ defined( 'ABSPATH' ) || exit;
 				</select>
 			</div>
 
+			<?php
+			/** Extra options of the Content Sync dialog (for example: send translations along). */
+			do_action( 'rsl_ie_sync_modal_options' );
+			?>
+
 			<div class="rsl-ie-sync-direction">
 				<button type="button" id="rsl-ie-sync-push-btn" class="button button-primary" disabled>
 					<span class="dashicons dashicons-upload"></span>

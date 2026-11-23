@@ -59,6 +59,8 @@ class Media_Transport_Service {
 					'type'                 => 'object',
 					'additionalProperties' => Workflow_Schemas::value(),
 				],
+				// Language data of a Media Library sync item (Polylang); accepted so the same item can be sent here.
+				'pll'          => [ 'type' => 'object' ],
 			];
 			$required    = [ 'file_hash', 'file_name', 'file_data' ];
 		}

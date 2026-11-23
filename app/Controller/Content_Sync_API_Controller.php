@@ -433,6 +433,13 @@ class Content_Sync_API_Controller {
 				);
 				continue;
 			}
+			/**
+			 * Receiver: a received post was created or updated, before its terms and meta are written.
+			 *
+			 * @param int   $post_id   Local post.
+			 * @param array $post_data Received post.
+			 */
+			do_action( 'rsl_ie_sync_post_received', (int) $post_id, $post_data );
 
 			if ( isset( $post_data['sticky'] ) && 'post' === get_post_type( $post_id ) ) {
 				if ( $post_data['sticky'] ) {
@@ -760,6 +767,13 @@ class Content_Sync_API_Controller {
 			}
 		}
 
+		/**
+		 * Receiver: every post of a Content Sync batch was saved.
+		 *
+		 * @param array $map        Source post ID => local post ID.
+		 * @param array $posts_data Received posts.
+		 */
+		do_action( 'rsl_ie_sync_posts_received', $source_to_local_map, $posts_data );
 		$total_processed = $imported_count + $updated_count;
 		$message         = array();
 
@@ -1229,16 +1243,26 @@ class Content_Sync_API_Controller {
 			return false;
 		}
 
+		/**
+		 * Receiver: query args of the slug lookup for a received post (for example limited to its language).
+		 *
+		 * @param array $args      get_posts() args.
+		 * @param array $post_data Received post.
+		 */
 		$posts = get_posts(
-			array(
-				'name'                   => $post_name,
-				'post_type'              => $post_type,
-				'post_status'            => 'any',
-				'posts_per_page'         => 2,
-				'fields'                 => 'ids',
-				'no_found_rows'          => true,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
+			apply_filters(
+				'rsl_ie_sync_lookup_args',
+				array(
+					'name'                   => $post_name,
+					'post_type'              => $post_type,
+					'post_status'            => 'any',
+					'posts_per_page'         => 2,
+					'fields'                 => 'ids',
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+				),
+				$post_data
 			)
 		);
 
@@ -1701,6 +1725,19 @@ class Content_Sync_API_Controller {
 				400
 			);
 		}
+		/**
+		 * Posts the sender adds to a pull request (for example the translations of the selected posts).
+		 *
+		 * @param int[] $post_ids Requested post IDs.
+		 * @param array $params   Request params.
+		 */
+		$expanded = array_values( array_unique( array_filter( array_map( 'absint', (array) apply_filters( 'rsl_ie_sync_send_post_ids', $post_ids, $request->get_params() ) ) ) ) );
+		if ( array_diff( $expanded, array_map( 'absint', $post_ids ) ) ) {
+			$access = \RockStarLab\ImportExport\Abilities\Sync_Peer_Policy::check( 'send_content', array( 'post_ids' => $expanded ) + $request->get_params() );
+			if ( is_wp_error( $access ) ) {
+				return $access; }
+			$post_ids = $expanded;
+		}
 
 		if ( null !== $request->get_param( 'woo_variations_deferred_version' ) ) {
 			if ( 1 !== $request->get_param( 'woo_variations_deferred_version' ) ) {
@@ -2051,7 +2088,13 @@ class Content_Sync_API_Controller {
 		$args['post_type'] = array_values( array_intersect( (array) $args['post_type'], \RockStarLab\ImportExport\Abilities\Sync_Peer_Policy::browsable_types() ) );
 		if ( ! $args['post_type'] ) {
 			$args['post_type'] = [ '__rsl_ie_denied' ]; }
-		$query      = new \WP_Query( $args );
+		/**
+		 * Query args of a Content Sync post list (for example: every language).
+		 *
+		 * @param array $args   WP_Query args.
+		 * @param array $params Request params.
+		 */
+		$query      = new \WP_Query( apply_filters( 'rsl_ie_sync_list_args', $args, $request->get_params() ) );
 		$posts_list = array();
 		foreach ( $query->posts as $post ) {
 			$post_data = array(
@@ -2070,7 +2113,13 @@ class Content_Sync_API_Controller {
 				'original_id'    => (int) get_post_meta( $post->ID, '_rsl_ie_original_post_id', true ),
 			);
 
-			$posts_list[] = $post_data;
+			/**
+			 * One post of a Content Sync post list (for example with its language).
+			 *
+			 * @param array    $post_data Item.
+			 * @param \WP_Post $post      Post.
+			 */
+			$posts_list[] = (array) apply_filters( 'rsl_ie_sync_list_item', $post_data, $post );
 		}
 
 		return new \WP_REST_Response(
@@ -2299,7 +2348,7 @@ class Content_Sync_API_Controller {
 			}
 		}
 
-		return $data;
+		return (array) apply_filters( 'rsl_ie_sync_term_payload', $data, $term, $taxonomy );
 	}
 
 	private function get_term_acf_fields_for_sync( $term_id, $taxonomy ) {
@@ -3044,6 +3093,17 @@ class Content_Sync_API_Controller {
 		if ( ! taxonomy_exists( $taxonomy ) || empty( $term_info['name'] ) || empty( $term_info['slug'] ) ) {
 			return 0;
 		}
+		/**
+		 * Receiver: find or create the local term for a received one (null = default slug lookup).
+		 *
+		 * @param int|null $term_id   Local term ID.
+		 * @param string   $taxonomy  Taxonomy.
+		 * @param array    $term_info Received term.
+		 */
+		$pre = apply_filters( 'rsl_ie_sync_resolve_term', null, $taxonomy, $term_info );
+		if ( null !== $pre ) {
+			return (int) $pre;
+		}
 
 		$parent_id = 0;
 		if ( is_taxonomy_hierarchical( $taxonomy ) ) {
@@ -3374,6 +3434,7 @@ class Content_Sync_API_Controller {
 							}
 						}
 
+						$term_info                  = (array) apply_filters( 'rsl_ie_sync_term_payload', $term_info, $term, $taxonomy );
 						$terms_data[ $taxonomy ][] = $term_info;
 
 						// Extract images from term ACF fields
@@ -3519,6 +3580,13 @@ class Content_Sync_API_Controller {
 					$all_images = $enriched['images'];
 				}
 
+				/**
+				 * Sender: extend one post of a Content Sync payload (for example its language and translations).
+				 *
+				 * @param array    $post_data Post payload.
+				 * @param \WP_Post $post      Post.
+				 */
+				$post_data    = (array) apply_filters( 'rsl_ie_sync_post_payload', $post_data, $post );
 				$posts_data[] = $post_data;
 		}
 

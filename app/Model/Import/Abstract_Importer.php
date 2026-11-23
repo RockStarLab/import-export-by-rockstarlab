@@ -521,4 +521,20 @@ abstract class Abstract_Importer implements Importer_Interface {
 	protected function get_option( $key, $default = null ) {
 		return $this->options[ $key ] ?? $default;
 	}
+
+	/**
+	 * Tell integrations that an import row was saved (e.g. to set its language and translations).
+	 *
+	 * @param mixed $result  Result of the create or update: new ID, status string or WP_Error.
+	 * @param int   $post_id ID of the updated item (0 when created).
+	 * @param array $item    Import row.
+	 * @return mixed The result, unchanged.
+	 */
+	protected function item_saved( $result, $post_id, $item ) {
+		$id = is_int( $result ) && $result > 0 ? $result : (int) $post_id;
+		if ( $id > 0 && ! is_wp_error( $result ) && 'skipped' !== $result ) {
+			do_action( 'rsl_ie_import_item_saved', $id, (array) $item, $this );
+		}
+		return $result;
+	}
 }
