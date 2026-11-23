@@ -150,8 +150,9 @@ class Content_Sync_Service {
 		$site_id = absint( $input['site_id'] ?? 0 );
 		// Lists, searches and title matching only read the other site. A dropdown sends a new search
 		// while the previous one is still running, so wait briefly for it instead of
-		// failing with "connection busy". Writes still fail fast.
-		$wait    = in_array( $action, [ 'get_remote_posts', 'search_remote_posts', 'get_children_posts', 'get_remote_comments', 'auto_map_by_title', 'get_remote_terms' ], true ) ? 10 : 0;
+		// failing with "connection busy". A write waits a little too: the mapping dialog may still be
+		// loading the remote list when the user confirms.
+		$wait    = in_array( $action, [ 'get_remote_posts', 'search_remote_posts', 'get_children_posts', 'get_remote_comments', 'auto_map_by_title', 'get_remote_terms' ], true ) ? 10 : 5;
 		$lock    = $site_id ? Job_Lock::acquire_resource( 'connection', $site_id, $wait ) : null;
 		if ( false === $lock || is_wp_error( $lock ) ) {
 			return new \WP_Error( 'rsl_ie_connection_busy', __( 'This connection is already in use. Try again later.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
@@ -167,7 +168,7 @@ class Content_Sync_Service {
 					return new \WP_Error( 'rsl_ie_connection_unavailable', __( 'The last check of this connection failed (for example, the other site changed its API key or could not be reached). Open Content Sync, Import, Export > Content Sync, fix the connection with Edit if needed and click Test Connection.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
 				}
 				if ( $direction && ! in_array( $site['direction'], [ $direction, 'bidirectional' ], true ) ) {
-					return new \WP_Error( 'rsl_ie_connection_unavailable', 'push' === $direction ? __( 'This connection does not allow sending content to the other site. Change its direction with Edit in Content Sync.', 'import-export-by-rockstarlab' ) : __( 'This connection does not allow receiving content from the other site. Change its direction with Edit in Content Sync.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+					return new \WP_Error( 'rsl_ie_connection_unavailable', 'push' === $direction ? __( 'This connection only receives content from the other site. To send as well, click Edit for this site in Content Sync and save it: saved connections work in both directions.', 'import-export-by-rockstarlab' ) : __( 'This connection only sends content to the other site. To receive as well, click Edit for this site in Content Sync and save it: saved connections work in both directions.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
 				}
 				$guard = apply_filters( 'rsl_ie_sync_connection_guard', true, $site );
 				if ( is_wp_error( $guard ) ) {
@@ -2728,7 +2729,8 @@ class Content_Sync_Service {
 					$post_data['meta'],
 					$post_id,
 					$remote_post_id,
-					isset( $post_data['post_refs'] ) ? $post_data['post_refs'] : array()
+					isset( $post_data['post_refs'] ) ? $post_data['post_refs'] : array(),
+					isset( $post_data['user_refs'] ) && is_array( $post_data['user_refs'] ) ? $post_data['user_refs'] : array()
 				);
 			}
 
@@ -3204,6 +3206,8 @@ class Content_Sync_Service {
 					}
 					update_comment_meta( $result_id, sanitize_key( $key ), wp_slash( $this->resolve_synced_media_references( $value, 0 ) ) );
 				}
+				// ACF image, file and gallery fields of a comment hold source attachment IDs.
+				\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::map_comment_acf_media_ids( (int) $result_id );
 			}
 		}
 	}
@@ -4833,14 +4837,19 @@ class Content_Sync_Service {
 						if ( ! $term || is_wp_error( $term ) ) {
 							continue;
 						}
-						$terms_data[ $acf_taxonomy ][] = array(
-							'term_id'        => $term->term_id,
-							'name'           => $term->name,
-							'slug'           => $term->slug,
-							'parent_term_id' => (int) $term->parent,
-							'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $acf_taxonomy ),
-							'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $acf_taxonomy ),
-							'assign_to_post' => $assign_to_post,
+						$terms_data[ $acf_taxonomy ][] = (array) apply_filters(
+							'rsl_ie_sync_term_payload',
+							array(
+								'term_id'        => $term->term_id,
+								'name'           => $term->name,
+								'slug'           => $term->slug,
+								'parent_term_id' => (int) $term->parent,
+								'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $acf_taxonomy ),
+								'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $acf_taxonomy ),
+								'assign_to_post' => $assign_to_post,
+							),
+							$term,
+							$acf_taxonomy
 						);
 
 						$known_ids[] = $raw_id;
@@ -4871,6 +4880,7 @@ class Content_Sync_Service {
 					'sticky'            => 'post' === $post->post_type && is_sticky( $post->ID ),
 					'meta'              => $prepared_meta,
 					'post_refs'         => \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::collect_acf_post_reference_map_from_meta( $prepared_meta ),
+					'user_refs'         => \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::collect_acf_user_reference_map_from_meta( $prepared_meta ),
 					'terms'             => $terms_data,
 					'comments'          => $this->collect_post_comments_for_sync( $post->ID ),
 				);

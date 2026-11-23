@@ -11,6 +11,24 @@ import ExportStep3 from './export-step-3';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
+ * The "Language" filter option when Polylang is active (filters by its language taxonomy).
+ *
+ * @return {Array} Zero or one filter option.
+ */
+function languageFilterOptions() {
+	const languages = window.rslIeData?.languages || {};
+	return Object.keys( languages ).length
+		? [
+				{
+					value: '_language_filter',
+					label: __( 'Language (Polylang)', 'import-export-by-rockstarlab' ),
+					type: 'language_filter',
+				},
+		  ]
+		: [];
+}
+
+/**
  * Translated label of a customer billing or shipping field ("billing_city" → "City").
  *
  * @param {string} value Field key.
@@ -1763,6 +1781,19 @@ const ExportModule = {
 				return;
 			}
 
+			// Handle language_filter type (Polylang language taxonomy)
+			if ( fieldType === 'language_filter' ) {
+				const languages = $row.find( '.rsl-ie-language-terms' ).val() || [];
+				if ( languages.length ) {
+					taxonomyFilters.push( {
+						taxonomy: 'language',
+						condition: $row.find( '.rsl-ie-language-condition' ).val() || 'in',
+						terms: languages.join( ',' ),
+					} );
+				}
+				return;
+			}
+
 			// Handle taxonomy_filter type
 			if ( fieldType === 'taxonomy_filter' ) {
 				const taxonomy = $row.find( '.rsl-ie-taxonomy-name' ).val();
@@ -2847,6 +2878,44 @@ const ExportModule = {
 			return;
 		}
 
+		// Language (Polylang): choose languages instead of typing the taxonomy.
+		if ( fieldType === 'language_filter' ) {
+			const languages = window.rslIeData?.languages || {};
+			const $select = jQuery(
+				'<select multiple class="rsl-ie-language-terms rsl-ie-filter-value"></select>'
+			)
+				.attr( 'size', Math.min( 8, Object.keys( languages ).length ) )
+				.css( { width: '100%', height: 'auto', padding: '4px' } );
+			Object.keys( languages ).forEach( ( slug ) => {
+				$select.append(
+					jQuery( '<option>' ).val( slug ).text( languages[ slug ] )
+				);
+			} );
+			$valueWrap.html( `
+				<div class="rsl-ie-taxonomy-filter-inputs">
+					<div class="rsl-ie-input-group">
+						<label>${ __( 'Condition', 'import-export-by-rockstarlab' ) }</label>
+						<select class="rsl-ie-language-condition">
+							<option value="in">${ __( 'In these languages', 'import-export-by-rockstarlab' ) }</option>
+							<option value="not_in">${ __( 'Not in these languages', 'import-export-by-rockstarlab' ) }</option>
+						</select>
+					</div>
+					<div class="rsl-ie-input-group rsl-ie-language-terms-wrap">
+						<label>${ __( 'Languages', 'import-export-by-rockstarlab' ) }</label>
+					</div>
+				</div>
+			` );
+			$valueWrap.find( '.rsl-ie-language-terms-wrap' ).append( $select );
+			$condition.closest( '.rsl-ie-filter-condition-wrap' ).hide();
+			$row.find( '.rsl-ie-language-condition, .rsl-ie-language-terms' ).on(
+				'change',
+				() => {
+					this.queueCountRefresh();
+				}
+			);
+			return;
+		}
+
 		// Special handling for taxonomy_filter
 		if ( fieldType === 'taxonomy_filter' ) {
 			// Create custom interface for taxonomy filter
@@ -3695,6 +3764,7 @@ const ExportModule = {
 						label: window.rslIeData.i18n.fieldTaxonomyFilter,
 						type: 'taxonomy_filter',
 					},
+					...languageFilterOptions(),
 				],
 			},
 		];
@@ -4576,6 +4646,7 @@ const ExportModule = {
 							label: window.rslIeData.i18n.fieldTaxonomyFilter,
 							type: 'taxonomy_filter',
 						},
+						...languageFilterOptions(),
 					],
 				},
 			];
@@ -5110,6 +5181,7 @@ const ExportModule = {
 							label: window.rslIeData.i18n.fieldTaxonomyFilter,
 							type: 'taxonomy_filter',
 						},
+						...languageFilterOptions(),
 					],
 				},
 			];

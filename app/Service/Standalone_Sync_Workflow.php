@@ -59,7 +59,14 @@ class Standalone_Sync_Workflow {
 				]
 			); }
 		if ( ! $definition['readonly'] ) {
-			$selected = $input[ 'terms' === $definition['domain'] ? 'term_ids' : 'comment_ids' ];
+			/**
+			 * Objects the peer must confirm: the selection plus what an extension adds (Polylang translations).
+			 *
+			 * @param array  $selected Selected IDs.
+			 * @param string $action   Operation action.
+			 * @param array  $input    Validated input.
+			 */
+			$selected = (array) apply_filters( 'rsl_ie_standalone_sync_selection', $input[ 'terms' === $definition['domain'] ? 'term_ids' : 'comment_ids' ], (string) $definition['action'], $input );
 			if ( ! isset( $result['created'], $result['updated'] ) || false === ( $result['success'] ?? true ) || count( $selected ) !== (int) $result['created'] + (int) $result['updated'] ) {
 				return new \WP_Error( 'rsl_ie_standalone_sync_incomplete', __( 'The peer did not confirm all selected objects. Inspect the destination before repeating.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] ); }
 		}
