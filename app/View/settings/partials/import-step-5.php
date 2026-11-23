@@ -114,10 +114,10 @@ $rsl_ie_current_site_url = \RockStarLab\ImportExport\Helper\Site_URL::current_re
 				<td>
 					<label>
 						<input type="checkbox" id="rsl-ie-order-stock-management" name="stock_management" value="1">
-						<?php esc_html_e( 'Reduce the stock of ordered products for new orders', 'import-export-by-rockstarlab' ); ?>
+						<?php esc_html_e( 'Reduce the stock of ordered products', 'import-export-by-rockstarlab' ); ?>
 					</label>
 					<p class="description">
-						<?php esc_html_e( 'Use this when the orders were placed in another store that sells the same stock. Only orders that the import creates lower the stock; updated orders change nothing. Products are found by SKU.', 'import-export-by-rockstarlab' ); ?>
+						<?php esc_html_e( 'Use this when the orders were placed in another store that sells the same stock. A new order lowers the stock. When the same order is imported again with Update, a cancelled or refunded order puts its stock back and a changed quantity is corrected, so stock is never taken twice. Products are found by SKU.', 'import-export-by-rockstarlab' ); ?>
 					</p>
 				</td>
 			</tr>

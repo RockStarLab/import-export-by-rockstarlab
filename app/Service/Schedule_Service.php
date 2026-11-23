@@ -287,7 +287,7 @@ class Schedule_Service {
 	 */
 	private function error( $code, $status ) {
 		if ( 'changed_only_unsupported' === $code ) {
-			return new \WP_Error( 'rsl_ie_schedule_' . $code, __( '"Changes only" works with exports of posts or pages. Turn it off for this source job.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
+			return new \WP_Error( 'rsl_ie_schedule_' . $code, __( '"Changes only" works with exports of posts, pages and WooCommerce orders. Turn it off for this source job.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
 		}
 		return new \WP_Error( 'rsl_ie_schedule_' . $code, sprintf( /* translators: %s: error code. */ __( 'Schedule operation failed: %s', 'import-export-by-rockstarlab' ), $code ), [ 'status' => $status ] );
 	}

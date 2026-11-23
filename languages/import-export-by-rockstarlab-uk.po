@@ -15788,3 +15788,18 @@ msgstr "Зменшувати залишки замовлених товарів 
 
 msgid "Use this when the orders were placed in another store that sells the same stock. Only orders that the import creates lower the stock; updated orders change nothing. Products are found by SKU."
 msgstr "Вмикайте, якщо замовлення оформлено в іншому магазині, який продає товари з того самого складу. Залишки зменшують лише замовлення, які імпорт створює; оновлені замовлення нічого не змінюють. Товари шукаються за артикулом (SKU)."
+
+msgid "Reduce the stock of ordered products"
+msgstr "Зменшувати залишки замовлених товарів"
+
+msgid "Use this when the orders were placed in another store that sells the same stock. A new order lowers the stock. When the same order is imported again with Update, a cancelled or refunded order puts its stock back and a changed quantity is corrected, so stock is never taken twice. Products are found by SKU."
+msgstr "Вмикайте, якщо замовлення оформлено в іншому магазині, який продає товари з того самого складу. Нове замовлення зменшує залишки. Коли те саме замовлення імпортується знову з оновленням, скасоване або повернене замовлення повертає товари в залишки, а змінена кількість перераховується, тож залишки ніколи не списуються двічі. Товари шукаються за артикулом (SKU)."
+
+msgid "Export only items changed since the previous run"
+msgstr "Експортувати лише те, що змінилося від попереднього запуску"
+
+msgid "For exports of posts, pages and WooCommerce orders. The first run exports everything the filters select; each later run adds a Modified Date filter from the time the previous completed run started, so an order that was cancelled or refunded since then is exported again."
+msgstr "Для експорту записів, сторінок і замовлень WooCommerce. Перший запуск експортує все, що вибирають фільтри; кожен наступний додає фільтр за датою зміни від початку попереднього завершеного запуску, тож замовлення, скасоване або повернене відтоді, експортується знову."
+
+msgid "\"Changes only\" works with exports of posts, pages and WooCommerce orders. Turn it off for this source job."
+msgstr "«Лише зміни» працює з експортом записів, сторінок і замовлень WooCommerce. Вимкніть цю опцію для цього вихідного завдання."

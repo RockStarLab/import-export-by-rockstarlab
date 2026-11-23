@@ -134,9 +134,9 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 							<?php $rsl_ie_changed_only = $rsl_ie_selected ? ! empty( get_option( 'rsl_ie_schedule_meta_' . $rsl_ie_selected->id, [] )['changed_only'] ) : false; ?>
 							<label>
 								<input id="schedule-changed-only" name="changed_only" type="checkbox" value="1" <?php checked( $rsl_ie_changed_only ); ?> <?php disabled( $rsl_ie_readonly ); ?>>
-								<?php esc_html_e( 'Export only posts or pages changed since the previous run', 'import-export-by-rockstarlab' ); ?>
+								<?php esc_html_e( 'Export only items changed since the previous run', 'import-export-by-rockstarlab' ); ?>
 							</label>
-							<p class="description"><?php esc_html_e( 'For exports of posts and pages. The first run exports everything the filters select; each later run adds a Modified Date filter from the time the previous completed run started.', 'import-export-by-rockstarlab' ); ?></p>
+							<p class="description"><?php esc_html_e( 'For exports of posts, pages and WooCommerce orders. The first run exports everything the filters select; each later run adds a Modified Date filter from the time the previous completed run started, so an order that was cancelled or refunded since then is exported again.', 'import-export-by-rockstarlab' ); ?></p>
 						</td>
 					</tr>
 				</table>

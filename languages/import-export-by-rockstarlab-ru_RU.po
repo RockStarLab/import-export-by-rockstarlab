@@ -15788,3 +15788,18 @@ msgstr "Уменьшать остатки заказанных товаров д
 
 msgid "Use this when the orders were placed in another store that sells the same stock. Only orders that the import creates lower the stock; updated orders change nothing. Products are found by SKU."
 msgstr "Включайте, если заказы оформлены в другом магазине, который продаёт товары с того же склада. Остатки уменьшают только заказы, которые импорт создаёт; обновлённые заказы ничего не меняют. Товары ищутся по артикулу (SKU)."
+
+msgid "Reduce the stock of ordered products"
+msgstr "Уменьшать остатки заказанных товаров"
+
+msgid "Use this when the orders were placed in another store that sells the same stock. A new order lowers the stock. When the same order is imported again with Update, a cancelled or refunded order puts its stock back and a changed quantity is corrected, so stock is never taken twice. Products are found by SKU."
+msgstr "Включайте, если заказы оформлены в другом магазине, который продаёт товары с того же склада. Новый заказ уменьшает остатки. Когда тот же заказ импортируется снова с обновлением, отменённый или возвращённый заказ возвращает товары в остатки, а изменённое количество пересчитывается, поэтому остатки никогда не списываются дважды. Товары ищутся по артикулу (SKU)."
+
+msgid "Export only items changed since the previous run"
+msgstr "Экспортировать только то, что изменилось с прошлого запуска"
+
+msgid "For exports of posts, pages and WooCommerce orders. The first run exports everything the filters select; each later run adds a Modified Date filter from the time the previous completed run started, so an order that was cancelled or refunded since then is exported again."
+msgstr "Для экспорта записей, страниц и заказов WooCommerce. Первый запуск экспортирует всё, что выбирают фильтры; каждый следующий добавляет фильтр по дате изменения от начала предыдущего завершённого запуска, поэтому заказ, отменённый или возвращённый с тех пор, экспортируется снова."
+
+msgid "\"Changes only\" works with exports of posts, pages and WooCommerce orders. Turn it off for this source job."
+msgstr "«Только изменения» работает с экспортом записей, страниц и заказов WooCommerce. Отключите эту опцию для этого исходного задания."
