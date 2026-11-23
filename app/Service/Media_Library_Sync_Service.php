@@ -313,6 +313,8 @@ class Media_Library_Sync_Service {
 					'date' => 'DESC',
 					'ID'   => 'DESC',
 				],
+				// Lets a multilingual add-on leave out the language copies of a file.
+				'rsl_ie_media_originals' => true,
 			]
 		);
 		$media = [];

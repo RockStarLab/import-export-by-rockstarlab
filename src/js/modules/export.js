@@ -11,7 +11,7 @@ import ExportStep3 from './export-step-3';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
- * The "Language" filter option when Polylang is active (filters by its language taxonomy).
+ * The "Language" filter option when Polylang or WPML (PRO) is active.
  *
  * @return {Array} Zero or one filter option.
  */
@@ -21,9 +21,10 @@ function languageFilterOptions() {
 		? [
 				{
 					value: '_language_filter',
-					label: __(
-						'Language (Polylang)',
-						'import-export-by-rockstarlab'
+					label: sprintf(
+						/* translators: %s: multilingual plugin (Polylang, WPML). */
+						__( 'Language (%s)', 'import-export-by-rockstarlab' ),
+						window.rslIeData?.multilingualName || 'Polylang'
 					),
 					type: 'language_filter',
 				},
@@ -32,7 +33,7 @@ function languageFilterOptions() {
 }
 
 /**
- * The order "Language" field when Polylang for WooCommerce is active.
+ * The order "Language" field when Polylang for WooCommerce or WooCommerce Multilingual (PRO) is active.
  *
  * @return {Array} Zero or one field option.
  */
@@ -41,9 +42,10 @@ function orderLanguageOptions() {
 		? [
 				{
 					value: 'language',
-					label: __(
-						'Language (Polylang)',
-						'import-export-by-rockstarlab'
+					label: sprintf(
+						/* translators: %s: multilingual plugin (Polylang, WPML). */
+						__( 'Language (%s)', 'import-export-by-rockstarlab' ),
+						window.rslIeData?.multilingualName || 'Polylang'
 					),
 					type: 'string',
 				},

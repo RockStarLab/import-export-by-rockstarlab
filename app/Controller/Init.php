@@ -357,9 +357,20 @@ class Init {
 				'exportUrl'                   => Site_URL::admin_url( 'admin.php?page=rsl-ie-export' ),
 				'currentPage'                 => '' !== $current_page ? $current_page : sanitize_key( $admin_page ),
 				'postTypeLabels'              => wp_list_pluck( get_post_types( array( 'show_ui' => true ), 'objects' ), 'label' ),
-				// Polylang languages for the export "Language" filter (empty without Polylang).
-				'orderLanguages'              => function_exists( 'pll_languages_list' ) && class_exists( 'PLLWC_Data_Store' ),
-				'languages'                   => function_exists( 'pll_languages_list' ) ? array_combine( (array) pll_languages_list( array( 'fields' => 'slug' ) ), (array) pll_languages_list( array( 'fields' => 'name' ) ) ) : array(),
+				/**
+				 * Whether orders have a language column (Polylang for WooCommerce; PRO adds WooCommerce Multilingual).
+				 *
+				 * @param bool $on Order languages.
+				 */
+				'orderLanguages'              => (bool) apply_filters( 'rsl_ie_order_languages', function_exists( 'pll_languages_list' ) && class_exists( 'PLLWC_Data_Store' ) ),
+				/**
+				 * Languages for the export "Language" filter: code => name (Polylang; PRO adds WPML).
+				 *
+				 * @param array $languages Languages.
+				 */
+				'languages'                   => (array) apply_filters( 'rsl_ie_languages', function_exists( 'pll_languages_list' ) ? array_combine( (array) pll_languages_list( array( 'fields' => 'slug' ) ), (array) pll_languages_list( array( 'fields' => 'name' ) ) ) : array() ),
+				/** Name of the multilingual plugin in labels such as "Language (Polylang)". */
+				'multilingualName'            => (string) apply_filters( 'rsl_ie_multilingual_name', 'Polylang' ),
 				'fieldTransformationsEnabled' => \RockStarLab\ImportExport\Helper\Field_Transformation_Bridge::is_enabled(),
 				'fieldTransformationActions'  => apply_filters(
 					'rsl_ie_field_transformation_ajax_actions',
@@ -1388,8 +1399,9 @@ class Init {
 				'exportEnabled'  => $export_enabled,
 				'syncEnabled'    => $sync_enabled,
 				'connectedSites' => $sites_map,
-				/** Whether the Sync Terms dialog offers "Send with translations" (PRO with Polylang turns it on). */
+				/** Whether the Sync Terms dialog offers "Send with translations" (PRO with Polylang or WPML turns it on). */
 				'withTranslations' => (bool) apply_filters( 'rsl_ie_terms_sync_translations_option', false, $taxonomy ),
+				'multilingualName' => (string) apply_filters( 'rsl_ie_multilingual_name', 'Polylang' ),
 				'exportLabel'    => __( 'Export', 'import-export-by-rockstarlab' ),
 				'syncLabel'      => __( 'Sync', 'import-export-by-rockstarlab' ),
 				'disabledTitle'  => __( 'Select one or more terms to enable export.', 'import-export-by-rockstarlab' ),
