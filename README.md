@@ -123,6 +123,7 @@ PRO adds:
 * 🪄 Transformation functions for cleaning, combining, changing, or normalizing values during workflows
 * 🧬 Advanced custom-field and metadata workflows for ACF, SEO plugins, builders, and WooCommerce stores
 * 🔄 More site-to-site sync coverage for custom content models
+* 🌍 Polylang support: Content Sync, import and export keep the language of every post, page, product, term, menu and media file and link it to its translations
 * 💬 Premium agent operations for supported PRO import, export, sync, Content Updater, and transformation workflows
 * 🏢 Workflow tools built for agencies, WooCommerce teams, content teams, and developers managing staging-to-production releases
 
@@ -207,6 +208,7 @@ The PRO addon extends Import and Export with additional content types, adds the 
 
 * 🧱 WordPress
 * 🧩 ACF (Advanced Custom Fields) and ACF Pro (Flexible content, repeaters)
+* 🌍 Polylang and Polylang for WooCommerce (languages and translation links with the PRO addon)
 * 🛒 WooCommerce (PRO addon)
 * 🎨 Elementor
 * 🔎 Yoast SEO
@@ -348,7 +350,20 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 </details>
 
+<details>
+<summary><b>Does it work with Polylang?</b></summary>
+
+Yes. The free plugin exports and imports Polylang sites and can filter an export by language. With the PRO addon, Content Sync sends the selected posts, pages or products together with their translations, each item gets its language on the receiving site, and the translation links are kept. Export files get Language and Translation group columns, so a translator can work in a spreadsheet and the import links the new rows to their translations. Categories, tags, menus, media files, ACF fields and WooCommerce variations go to the version of their own language.
+
+</details>
+
 ## Changelog
+
+### 2.2.49
+
+* Fix (Polylang): Content Sync to a site without Polylang no longer lets one translation replace another that shares its slug; each arrives as its own post.
+* Fix: the WooCommerce order export and import offer the field "Language (Polylang)" when Polylang for WooCommerce is active (export, filter and import mapping).
+* Fix (Polylang): menu exports keep the options of the language switcher item.
 
 ### 2.2.48
 
@@ -379,10 +394,6 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 * New: Content Sync lets the PRO plugin send what belongs to a pushed post, such as the topics, sections, lessons and quizzes of a Tutor LMS or LifterLMS course. The push result names what came along.
 * New: WooCommerce Tax Rates in the import and export type lists, Jobs Log and WP-CLI (--type=tax-rate) when PRO is active.
 
-### 2.2.44
-
-* Fix: imports and exports work on sites that use SQLite instead of MySQL, such as WordPress Studio, WordPress Playground and Reprint copies. Before, they stopped with a "request busy" or "file busy" error because the database could not lock a running job.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -391,7 +402,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.48 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.49 |
 
 ---
 

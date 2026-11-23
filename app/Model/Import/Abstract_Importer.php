@@ -444,6 +444,15 @@ abstract class Abstract_Importer implements Importer_Interface {
 	}
 
 	/**
+	 * ID of the import job (0 outside a job).
+	 *
+	 * @return int
+	 */
+	public function get_job_id() {
+		return absint( $this->job_id );
+	}
+
+	/**
 	 * Log info message
 	 *
 	 * @param string $message Log message

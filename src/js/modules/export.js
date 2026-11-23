@@ -21,8 +21,31 @@ function languageFilterOptions() {
 		? [
 				{
 					value: '_language_filter',
-					label: __( 'Language (Polylang)', 'import-export-by-rockstarlab' ),
+					label: __(
+						'Language (Polylang)',
+						'import-export-by-rockstarlab'
+					),
 					type: 'language_filter',
+				},
+		  ]
+		: [];
+}
+
+/**
+ * The order "Language" field when Polylang for WooCommerce is active.
+ *
+ * @return {Array} Zero or one field option.
+ */
+function orderLanguageOptions() {
+	return window.rslIeData?.orderLanguages
+		? [
+				{
+					value: 'language',
+					label: __(
+						'Language (Polylang)',
+						'import-export-by-rockstarlab'
+					),
+					type: 'string',
 				},
 		  ]
 		: [];
@@ -1783,11 +1806,14 @@ const ExportModule = {
 
 			// Handle language_filter type (Polylang language taxonomy)
 			if ( fieldType === 'language_filter' ) {
-				const languages = $row.find( '.rsl-ie-language-terms' ).val() || [];
+				const languages =
+					$row.find( '.rsl-ie-language-terms' ).val() || [];
 				if ( languages.length ) {
 					taxonomyFilters.push( {
 						taxonomy: 'language',
-						condition: $row.find( '.rsl-ie-language-condition' ).val() || 'in',
+						condition:
+							$row.find( '.rsl-ie-language-condition' ).val() ||
+							'in',
 						terms: languages.join( ',' ),
 					} );
 				}
@@ -2896,8 +2922,14 @@ const ExportModule = {
 					<div class="rsl-ie-input-group">
 						<label>${ __( 'Condition', 'import-export-by-rockstarlab' ) }</label>
 						<select class="rsl-ie-language-condition">
-							<option value="in">${ __( 'In these languages', 'import-export-by-rockstarlab' ) }</option>
-							<option value="not_in">${ __( 'Not in these languages', 'import-export-by-rockstarlab' ) }</option>
+							<option value="in">${ __(
+								'In these languages',
+								'import-export-by-rockstarlab'
+							) }</option>
+							<option value="not_in">${ __(
+								'Not in these languages',
+								'import-export-by-rockstarlab'
+							) }</option>
 						</select>
 					</div>
 					<div class="rsl-ie-input-group rsl-ie-language-terms-wrap">
@@ -2907,12 +2939,11 @@ const ExportModule = {
 			` );
 			$valueWrap.find( '.rsl-ie-language-terms-wrap' ).append( $select );
 			$condition.closest( '.rsl-ie-filter-condition-wrap' ).hide();
-			$row.find( '.rsl-ie-language-condition, .rsl-ie-language-terms' ).on(
-				'change',
-				() => {
-					this.queueCountRefresh();
-				}
-			);
+			$row.find(
+				'.rsl-ie-language-condition, .rsl-ie-language-terms'
+			).on( 'change', () => {
+				this.queueCountRefresh();
+			} );
 			return;
 		}
 
@@ -5218,6 +5249,7 @@ const ExportModule = {
 							label: window.rslIeData.i18n.fieldCurrency,
 							type: 'string',
 						},
+						...orderLanguageOptions(),
 					],
 				},
 				{
