@@ -4557,6 +4557,19 @@ const ImportModule = {
 							labelEn: 'Currency',
 							type: 'string',
 						},
+						...( window.rslIeData?.orderLanguages
+							? [
+									{
+										value: 'language',
+										label: __(
+											'Language (Polylang)',
+											'import-export-by-rockstarlab'
+										),
+										labelEn: 'Language (Polylang)',
+										type: 'string',
+									},
+							  ]
+							: [] ),
 					],
 				},
 				{

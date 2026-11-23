@@ -1,5 +1,10 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.49 =
+* Fix (Polylang): Content Sync to a site without Polylang no longer lets one translation replace another that shares its slug; each arrives as its own post.
+* Fix: the WooCommerce order export and import offer the field "Language (Polylang)" when Polylang for WooCommerce is active (export, filter and import mapping).
+* Fix (Polylang): menu exports keep the options of the language switcher item.
+
 = 2.2.48 =
 * New: export filter "Language (Polylang)" for posts, pages, custom post types and products: pick the languages from a list instead of typing the language taxonomy.
 * Fix: Content Sync sets ACF User fields to the matching user of the receiving site (a synced user, or the same login or email) instead of keeping the user ID of the other site. Works for push and pull.

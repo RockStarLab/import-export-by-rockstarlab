@@ -20,6 +20,14 @@ defined( 'ABSPATH' ) || exit;
 
 /** Shared content sync business operations. */
 class Content_Sync_Service {
+	/**
+	 * Source IDs of the posts received in the current batch (a post synced from one of them is not
+	 * matched by slug for another, as happens with translations sharing a slug on a site without Polylang).
+	 *
+	 * @var int[]
+	 */
+	private $batch_source_ids = array();
+
 	/** Exception code of failures whose message is written for the user (see execute()). */
 	const USER_ERROR = 4151;
 
@@ -1559,6 +1567,7 @@ class Content_Sync_Service {
 		if ( is_wp_error( $posts_data ) ) {
 			return $posts_data;
 		}
+		$this->batch_source_ids = array_values( array_filter( array_map( static function ( $p ) { return is_array( $p ) ? (int) ( $p['ID'] ?? 0 ) : 0; }, (array) $posts_data ) ) );
 
 		if ( array_key_exists( 'woo_product_mapping', $input ) ) {
 			$posts_data = Sync_Product_Links::run(
@@ -3820,6 +3829,10 @@ class Content_Sync_Service {
 		);
 
 		if ( 1 === count( $posts ) ) {
+			$copy_of = (int) get_post_meta( (int) $posts[0], '_rsl_ie_original_post_id', true );
+			if ( $copy_of && $copy_of !== (int) ( $post_data['ID'] ?? 0 ) && in_array( $copy_of, $this->batch_source_ids, true ) ) {
+				return false;
+			}
 			return (int) $posts[0];
 		}
 

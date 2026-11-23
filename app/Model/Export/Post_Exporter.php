@@ -4669,6 +4669,12 @@ class Post_Exporter extends Abstract_Exporter {
 						'description'                => $this->portable_post_meta_value( (string) $item->description, (int) $item->ID ),
 					];
 
+					// Polylang's language switcher item (#pll_switcher) keeps its options in this meta.
+					$pll_menu_item = get_post_meta( (int) $item->ID, '_pll_menu_item', true );
+					if ( is_array( $pll_menu_item ) && $pll_menu_item ) {
+						$item_data['pll_menu_item'] = $pll_menu_item;
+					}
+
 					// Extra hints to allow cross-site ID mapping on import.
 					if ( $item->type === 'post_type' && ! empty( $item->object ) && ! empty( $item->object_id ) ) {
 						$post = get_post( (int) $item->object_id );

@@ -16,6 +16,14 @@ defined( 'ABSPATH' ) || exit;
 
 class Content_Sync_API_Controller {
 
+	/**
+	 * Source IDs of the posts received in the current batch (a post synced from one of them is not
+	 * matched by slug for another, as happens with translations sharing a slug on a site without Polylang).
+	 *
+	 * @var int[]
+	 */
+	private $batch_source_ids = array();
+
 	/** Parent-only source serialization supported by this core bridge. */
 	public const DEFERRED_VARIATION_PULL_VERSION = 1;
 
@@ -218,6 +226,7 @@ class Content_Sync_API_Controller {
 			);
 		}
 
+		$this->batch_source_ids = array_values( array_filter( array_map( static function ( $p ) { return is_array( $p ) ? (int) ( $p['ID'] ?? 0 ) : 0; }, $posts_data ) ) );
 		$deferred = \RockStarLab\ImportExport\Service\Sync_Product_Links::validate_deferred( $posts_data );
 		if ( is_wp_error( $deferred ) ) {
 			return $deferred; }
@@ -1268,6 +1277,10 @@ class Content_Sync_API_Controller {
 		);
 
 		if ( 1 === count( $posts ) ) {
+			$copy_of = (int) get_post_meta( (int) $posts[0], '_rsl_ie_original_post_id', true );
+			if ( $copy_of && $copy_of !== (int) ( $post_data['ID'] ?? 0 ) && in_array( $copy_of, $this->batch_source_ids, true ) ) {
+				return false;
+			}
 			return (int) $posts[0];
 		}
 
