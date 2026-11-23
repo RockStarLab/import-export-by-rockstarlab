@@ -211,6 +211,8 @@ class Sync_Catalog {
 			),
 			true
 		);
+		// The result can hold more posts than the 50 selected: translations (Polylang) and grouped
+		// children travel with them.
 		$result = Workflow_Schemas::object(
 			[
 				'job_id'        => $id,
@@ -219,16 +221,16 @@ class Sync_Catalog {
 				'result'        => Workflow_Schemas::object(
 					[
 						'direction'     => $s,
-						'selected_ids'  => $ids,
-						'post_mapping'  => $map,
+						'selected_ids'  => Workflow_Schemas::items( $id, 1000 ),
+						'post_mapping'  => array_merge( $map, [ 'maxProperties' => 1000 ] ),
 						'created'       => $n,
 						'updated'       => $n,
 						'failed'        => $n,
 						'images_synced' => $n,
-						'image_map'     => $map,
+						'image_map'     => array_merge( $map, [ 'maxProperties' => 1000 ] ),
 						'variation_map' => [
 							'type'                 => 'object',
-							'maxProperties'        => 50,
+							'maxProperties'        => 1000,
 							'additionalProperties' => $id,
 						],
 						'posts'         => Workflow_Schemas::items(
@@ -241,7 +243,7 @@ class Sync_Catalog {
 									'slug'      => $s,
 								]
 							),
-							50
+							1000
 						),
 					]
 				),

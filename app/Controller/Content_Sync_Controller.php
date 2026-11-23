@@ -753,6 +753,9 @@ class Content_Sync_Controller extends Base_Controller {
 			'taxonomy' => $this->get_request_param( 'taxonomy', '' ),
 			'term_ids' => $this->get_request_array( 'term_ids', array() ),
 		);
+		if ( null !== $this->get_request_param( 'with_translations', null ) ) {
+			$input['with_translations'] = (bool) absint( $this->get_request_param( 'with_translations', 0 ) );
+		}
 		$result = ( new \RockStarLab\ImportExport\Service\Content_Sync_Service() )->execute( 'push_terms', $input );
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result->get_error_message() );

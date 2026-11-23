@@ -50,6 +50,9 @@ class Main_Command {
 	 * [--post-type=<post_type>]
 	 * : PRO, with --type=custom_post_types: the post type, for example event.
 	 *
+	 * [--taxonomy=<taxonomy>]
+	 * : PRO, with --type=taxonomy: the taxonomy of rows without a taxonomy column, for example category.
+	 *
 	 * [--table=<table>]
 	 * : PRO, with --type=database_table: the full table name.
 	 *
@@ -145,6 +148,9 @@ class Main_Command {
 				'import_type' => $type,
 			];
 			$target  = Cli_Helper::target_options( [], $assoc );
+			if ( 'taxonomy' === $type ) {
+				unset( $target['taxonomy'] ); // Rows name their taxonomy; it is an import option, not a target.
+			}
 			if ( $target && 'rsl-ie-pro/' === $ns ) {
 				$prepare['options'] = $target;
 			}
@@ -158,6 +164,11 @@ class Main_Command {
 			$options = array_merge( $options, Cli_Helper::json_arg( $assoc['options'], 'options' ) );
 		}
 		$options = Cli_Helper::target_options( $options, $assoc );
+		if ( 'taxonomy' === $type && isset( $options['taxonomy'] ) ) {
+			// The taxonomy importer calls it default_taxonomy.
+			$options['default_taxonomy'] = $options['default_taxonomy'] ?? $options['taxonomy'];
+			unset( $options['taxonomy'] );
+		}
 		if ( isset( $assoc['if-exists'] ) ) {
 			$options['if_exists'] = (string) $assoc['if-exists'];
 		}
@@ -311,6 +322,11 @@ class Main_Command {
 		];
 		if ( isset( $assoc['fields'] ) ) {
 			$input['fields'] = Cli_Helper::csv_list( $assoc['fields'] );
+		}
+		// Filters given in --options go where the ability takes them (PRO types read a top-level "filters").
+		if ( isset( $input['options']['filters'] ) && Cli_Helper::takes_top_level( $ns . 'export-start', 'export_type', $type, 'filters' ) ) {
+			$input['filters'] = $input['options']['filters'];
+			unset( $input['options']['filters'] );
 		}
 		Cli_Helper::check_options( $ns . 'export-start', 'export_type', $type, (array) ( $input['options'] ?? [] ) );
 		$started = Cli_Helper::call( $ns . 'export-start', $input );

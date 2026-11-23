@@ -117,7 +117,14 @@ class Sync_Synced_Patterns {
 					'origin_site' => (string) get_post_meta( $id, self::SOURCE_SITE_META, true ),
 					'categories'  => self::categories_of( $id ),
 				);
-				$next = array_merge( $next, self::refs( $block->post_content ) );
+				/**
+				 * Sender: data of a synced pattern or navigation menu sent with posts (for example its language).
+				 *
+				 * @param array    $data  Pattern data.
+				 * @param \WP_Post $block Pattern.
+				 */
+				$out[ $id ] = (array) apply_filters( 'rsl_ie_sync_pattern_payload', $out[ $id ], $block );
+				$next       = array_merge( $next, self::refs( $block->post_content ) );
 			}
 			$queue = $next;
 		}
@@ -176,6 +183,13 @@ class Sync_Synced_Patterns {
 			}
 			$map[ $source_id ] = (int) $id;
 		}
+		/**
+		 * Receiver: the synced patterns and navigation menus of a sync were saved.
+		 *
+		 * @param array $map      Source ID => local ID.
+		 * @param array $patterns Source ID => received data.
+		 */
+		do_action( 'rsl_ie_sync_patterns_received', $map, $patterns );
 		// Patterns used inside other patterns.
 		foreach ( $map as $local ) {
 			$content = get_post_field( 'post_content', $local, 'raw' );

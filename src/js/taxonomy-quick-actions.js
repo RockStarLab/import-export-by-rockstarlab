@@ -500,6 +500,24 @@ import { __, sprintf } from '@wordpress/i18n';
 							) }</label>
 							<select id="rsl-ie-taxonomy-sync-site" class="rsl-ie-form-control" style="display:block;width:100%;">${ getSitesOptions() }</select>
 						</div>
+						${
+							config.withTranslations
+								? `<p class="rsl-ie-sync-translations-option" style="text-align:left;">
+							<label><input type="checkbox" id="rsl-ie-taxonomy-with-translations" value="1" checked> ${ escapeHtml(
+								__(
+									'Send with translations (Polylang)',
+									'import-export-by-rockstarlab'
+								)
+							) }</label>
+							<span class="description" style="display:block;margin-left:24px;">${ escapeHtml(
+								__(
+									'The translations of the selected terms are synced too and stay linked on the other site.',
+									'import-export-by-rockstarlab'
+								)
+							) }</span>
+						</p>`
+								: ''
+						}
 						<div class="rsl-ie-taxonomy-sync-actions" style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
 							<button type="button" class="button button-primary" id="rsl-ie-taxonomy-push-btn" style="width:auto;flex:0 0 auto;">${ escapeHtml(
 								config.i18n?.pushTerms ||
@@ -751,6 +769,15 @@ import { __, sprintf } from '@wordpress/i18n';
 			site_id: siteId,
 			taxonomy: config.taxonomy || '',
 			term_ids: ids,
+			...( config.withTranslations
+				? {
+						with_translations: $(
+							'#rsl-ie-taxonomy-with-translations'
+						).is( ':checked' )
+							? 1
+							: 0,
+				  }
+				: {} ),
 		} )
 			.done( ( data ) => {
 				showMessage(

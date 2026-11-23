@@ -1,0 +1,78 @@
+<wpml-config>
+	<!--
+	Content Sync, Media Sync, Import, Export with AI Agents Support (and its PRO addon).
+
+	The plugin adds no translatable texts to the front end: no custom post types, taxonomies,
+	shortcodes, blocks or front-end options. It keeps bookkeeping fields on the content it
+	imports or syncs. Most of them name the original item on the other site or in the import
+	file; a translation must never copy them, or the next sync or import takes the
+	translation for the original. They are marked "ignore". The fields that describe a
+	media file itself are the same for every translation of that file and are copied.
+	-->
+	<custom-fields>
+		<!-- The original post, page, product, attachment or menu item on the other site. -->
+		<custom-field action="ignore">_rsl_ie_original_post_id</custom-field>
+		<custom-field action="ignore">_rsl_ie_source_id</custom-field>
+		<custom-field action="ignore">_rsl_ie_source_post_id</custom-field>
+		<custom-field action="ignore">_rsl_ie_source_post_type</custom-field>
+		<custom-field action="ignore">_rsl_ie_source_post_name</custom-field>
+		<custom-field action="ignore">_rsl_ie_source_post_slug</custom-field>
+		<custom-field action="ignore">_rsl_ie_source_post_permalink</custom-field>
+		<custom-field action="ignore">_rsl_ie_source_parent_id</custom-field>
+		<custom-field action="ignore">_rsl_ie_source_url</custom-field>
+		<custom-field action="ignore">_rsl_ie_original_attachment_id</custom-field>
+		<custom-field action="ignore">_rsl_ie_source_attachment_id</custom-field>
+		<custom-field action="ignore">_rsl_ie_source_origin_attachment_id</custom-field>
+		<custom-field action="ignore">_rsl_ie_source_menu_item_id</custom-field>
+		<custom-field action="ignore">_rsl_ie_source_pattern_id</custom-field>
+		<custom-field action="ignore">_rsl_ie_source_pattern_site</custom-field>
+		<custom-field action="ignore">_rsl_ie_lms_source</custom-field>
+		<custom-field action="ignore">_aie_original_post_id</custom-field>
+		<custom-field action="ignore">_aie_source_post_id</custom-field>
+		<custom-field action="ignore">_aie_source_post_type</custom-field>
+		<custom-field action="ignore">_aie_source_post_slug</custom-field>
+		<custom-field action="ignore">_aie_source_post_permalink</custom-field>
+		<!-- Work in progress of an import or sync (parents, linked products, references still to resolve). -->
+		<custom-field action="ignore">_rsl_ie_pending_parent</custom-field>
+		<custom-field action="ignore">_rsl_ie_pending_source_parent</custom-field>
+		<custom-field action="ignore">_rsl_ie_pending_grouped_products</custom-field>
+		<custom-field action="ignore">_rsl_ie_pending_upsells</custom-field>
+		<custom-field action="ignore">_rsl_ie_pending_crosssells</custom-field>
+		<custom-field action="ignore">_rsl_ie_pending_acf_refs</custom-field>
+		<custom-field action="ignore">_rsl_ie_import_job_id</custom-field>
+		<custom-field action="ignore">_rsl_ie_import_job_action</custom-field>
+		<custom-field action="ignore">_rsl_ie_chunk_sideload_complete</custom-field>
+		<custom-field action="ignore">_rsl_ie_imported_images</custom-field>
+		<custom-field action="ignore">_rsl_ie_type_inferred</custom-field>
+		<!-- Raw data kept from the imported file (WordPress export files, repeated meta rows). -->
+		<custom-field action="ignore">_rsl_ie_raw_post_meta</custom-field>
+		<custom-field action="ignore">_rsl_ie_meta_rows</custom-field>
+		<custom-field action="ignore">_rsl_ie_primary_terms</custom-field>
+		<custom-field action="ignore">_rsl_ie_wxr_item</custom-field>
+		<custom-field action="ignore">_rsl_ie_wxr_comments</custom-field>
+		<custom-field action="ignore">_rsl_ie_wxr_author_email</custom-field>
+		<custom-field action="ignore">rsl_ie_synced_patterns</custom-field>
+		<!-- Polylang translation group named in an import file (PRO). -->
+		<custom-field action="ignore">_rsl_ie_pll_group</custom-field>
+		<!-- The media file itself: the same for every translation of an attachment. -->
+		<custom-field action="copy">_rsl_ie_file_hash</custom-field>
+		<custom-field action="copy">_rsl_ie_image_hash</custom-field>
+		<custom-field action="copy">rsl_ie_original_path</custom-field>
+		<custom-field action="copy">rsl_ie_hash_added</custom-field>
+		<custom-field action="copy">rsl_ie_file_size</custom-field>
+		<custom-field action="copy">rsl_ie_file_url</custom-field>
+		<custom-field action="copy">rsl_ie_source_url</custom-field>
+		<custom-field action="copy">rsl_ie_source_url_hash</custom-field>
+	</custom-fields>
+	<custom-term-fields>
+		<!-- The original term and its parent on the other site or in the import file. -->
+		<custom-term-field action="ignore">_rsl_ie_source_term_id</custom-term-field>
+		<custom-term-field action="ignore">_rsl_ie_source_parent_term_id</custom-term-field>
+		<custom-term-field action="ignore">_rsl_ie_source_parent_slug</custom-term-field>
+		<custom-term-field action="ignore">_aie_source_term_id</custom-term-field>
+		<custom-term-field action="ignore">_aie_source_parent_term_id</custom-term-field>
+		<custom-term-field action="ignore">_aie_source_parent_slug</custom-term-field>
+		<!-- Polylang translation group named in an import file (PRO). -->
+		<custom-term-field action="ignore">_rsl_ie_pll_term_group</custom-term-field>
+	</custom-term-fields>
+</wpml-config>

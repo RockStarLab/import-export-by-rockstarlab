@@ -1388,6 +1388,8 @@ class Init {
 				'exportEnabled'  => $export_enabled,
 				'syncEnabled'    => $sync_enabled,
 				'connectedSites' => $sites_map,
+				/** Whether the Sync Terms dialog offers "Send with translations" (PRO with Polylang turns it on). */
+				'withTranslations' => (bool) apply_filters( 'rsl_ie_terms_sync_translations_option', false, $taxonomy ),
 				'exportLabel'    => __( 'Export', 'import-export-by-rockstarlab' ),
 				'syncLabel'      => __( 'Sync', 'import-export-by-rockstarlab' ),
 				'disabledTitle'  => __( 'Select one or more terms to enable export.', 'import-export-by-rockstarlab' ),
