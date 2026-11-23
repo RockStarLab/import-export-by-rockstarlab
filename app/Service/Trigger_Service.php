@@ -647,6 +647,7 @@ class Trigger_Service {
 			'woo_customer'      => __( 'WooCommerce Customers', 'import-export-by-rockstarlab' ),
 			'woo_attribute'     => __( 'WooCommerce Attributes', 'import-export-by-rockstarlab' ),
 			'woo_shipping_zone' => __( 'WooCommerce Shipping Zones', 'import-export-by-rockstarlab' ),
+			'woo_tax_rate'      => __( 'WooCommerce Tax Rates', 'import-export-by-rockstarlab' ),
 		];
 		$what   = $object ? $object->labels->name : ( $names[ (string) $job->data_type ] ?? ucwords( str_replace( [ 'woo_', '_' ], [ 'WooCommerce ', ' ' ], (string) $job->data_type ) ) );
 		$label  = sprintf( '#%d %s · %s', (int) $job->id, 'export' === $job->type ? __( 'Export', 'import-export-by-rockstarlab' ) : __( 'Import', 'import-export-by-rockstarlab' ), $what );

@@ -1054,6 +1054,7 @@ export default class ExportStep3 {
 			'woo_refund',
 			'woo_customer',
 			'woo_shipping_zone',
+			'woo_tax_rate',
 		];
 		if (
 			this.isIntegrationActive( 'yoast' ) &&

@@ -1779,6 +1779,16 @@ class Content_Sync_Service {
 		if ( ! isset( $data['data']['total'] ) || ! is_numeric( $data['data']['total'] ) || (int) $data['data']['total'] < 0 || (int) $data['data']['total'] > count( $posts_data ) ) {
 			return $this->error( __( 'The remote site did not confirm how many records were synchronized.', 'import-export-by-rockstarlab' ) );
 		}
+		/**
+		 * After a push: let an addon send what belongs to the pushed posts (for example the
+		 * lessons and quizzes of an LMS course) to the same site. Returns notes for the message.
+		 *
+		 * @param string[] $notes      Notes.
+		 * @param array    $site       Connected site.
+		 * @param array    $post_map   Source post ID => target post ID.
+		 * @param array    $posts_data Pushed posts.
+		 */
+		$after_push = (array) apply_filters( 'rsl_ie_content_sync_after_push', [], $site, isset( $data['data']['post_map'] ) ? (array) $data['data']['post_map'] : [], $posts_data );
 		$this->complete_content_sync_job(
 			$job_id,
 			(int) $data['data']['total'],
@@ -1816,10 +1826,12 @@ class Content_Sync_Service {
 
 		return $this->success(
 			array(
-				'message'       => sprintf(
-					/* translators: %d: number of posts */
-					_n( 'Successfully pushed %d post to the remote site', 'Successfully pushed %d posts to the remote site', count( $posts_data ), 'import-export-by-rockstarlab' ),
-					count( $posts_data )
+				'message'       => trim(
+					sprintf(
+						/* translators: %d: number of posts */
+						_n( 'Successfully pushed %d post to the remote site', 'Successfully pushed %d posts to the remote site', count( $posts_data ), 'import-export-by-rockstarlab' ),
+						count( $posts_data )
+					) . ( $after_push ? '. ' . implode( ' ', array_map( 'strval', array_filter( $after_push, 'is_scalar' ) ) ) : '' )
 				),
 				'images_synced' => count( $image_map ),
 			)

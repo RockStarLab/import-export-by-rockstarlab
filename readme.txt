@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.44
+Stable tag: 2.2.45
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -298,6 +298,11 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.2.45 =
+* New: Product Stock option for WooCommerce order imports (PRO). "Reduce the stock of ordered products for new orders" lowers the stock of the products in orders that the import creates, so a second store that sells the same stock can send its orders to the main store. Orders that already exist change nothing.
+* New: Content Sync lets the PRO plugin send what belongs to a pushed post, such as the topics, sections, lessons and quizzes of a Tutor LMS or LifterLMS course. The push result names what came along.
+* New: WooCommerce Tax Rates in the import and export type lists, Jobs Log and WP-CLI (--type=tax-rate) when PRO is active.
+
 = 2.2.44 =
 * Fix: imports and exports work on sites that use SQLite instead of MySQL, such as WordPress Studio, WordPress Playground and Reprint copies. Before, they stopped with a "request busy" or "file busy" error because the database could not lock a running job.
 
@@ -311,8 +316,5 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 * Fix: AI agents can filter an export by category, tag or another taxonomy in filters[] (field "_taxonomy_filter" with "taxonomy", or type "taxonomy"). Such a filter matched nothing before; a rule without a taxonomy now returns a clear error.
 * Fix: WP-CLI import and export name the options that the chosen type does not support and list the supported ones, instead of a general schema error.
 * Tweak: array and object values in CSV, Excel, XML and JSON exports keep non-Latin text readable ("Говерла" instead of "\u0413..."). Such files import back exactly as before.
-
-= 2.2.40 =
-* Tweak: replace links rules keep non-Latin text readable in JSON custom fields. Cyrillic, Greek and other letters were saved as \uXXXX escapes before: the same values, but hard to read and to search for.
 
 Older versions: see changelog.txt in the plugin folder.
