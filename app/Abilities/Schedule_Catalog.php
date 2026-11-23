@@ -50,7 +50,7 @@ class Schedule_Catalog {
 			'status'        => $s + [ 'enum' => [ 'active', 'paused' ] ],
 			'changed_only'  => [
 				'type'        => 'boolean',
-				'description' => 'Export sources only: each run after the first exports only posts or pages modified since the previous completed run started.',
+				'description' => 'Export sources only: each run after the first exports only posts, pages or WooCommerce orders modified since the previous completed run started.',
 			],
 		];
 		$page        = [

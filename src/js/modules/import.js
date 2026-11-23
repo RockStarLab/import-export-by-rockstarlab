@@ -9472,7 +9472,10 @@ const ImportModule = {
 				options.default_taxonomy
 			);
 		}
-		setChecked( '#rsl-ie-order-stock-management', options.stock_management );
+		setChecked(
+			'#rsl-ie-order-stock-management',
+			options.stock_management
+		);
 		jQuery( '[name="date_order"]' ).val(
 			[ 'dmy', 'mdy' ].includes( options.date_order )
 				? options.date_order

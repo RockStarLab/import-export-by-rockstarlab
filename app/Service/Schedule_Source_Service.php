@@ -15,7 +15,10 @@ defined( 'ABSPATH' ) || exit;
 /** Never copy a completed worker checkpoint into a new queue job. */
 class Schedule_Source_Service {
 	/** Content types whose export can be limited to items modified since a time. */
-	const CHANGED_ONLY_TYPES = [ 'post', 'page' ];
+	const CHANGED_ONLY_TYPES = [ 'post', 'page', 'woo_order' ];
+
+	/** Modified-date filter field per export type (orders keep theirs in date_modified). */
+	const CHANGED_FIELD = [ 'woo_order' => 'date_modified' ];
 
 	/** @var string Local MySQL time; empty exports everything. */
 	private $changed_since = '';
@@ -197,7 +200,7 @@ class Schedule_Source_Service {
 			if ( $start && '' !== $this->changed_since && in_array( $input['export_type'] ?? '', self::CHANGED_ONLY_TYPES, true ) ) {
 				// Stored requests keep their filters under options; requests from agents may have them at the top level.
 				$changed = [
-					'field'     => 'post_modified',
+					'field'     => self::CHANGED_FIELD[ $input['export_type'] ] ?? 'post_modified',
 					'condition' => 'equals_or_greater',
 					'value'     => $this->changed_since,
 				];

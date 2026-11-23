@@ -350,6 +350,12 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 ## Changelog
 
+### 2.2.46
+
+* Fix: an order import with Product Stock keeps the stock right when the same order is imported again with Update. A cancelled or refunded order puts its stock back, a changed quantity is corrected, and stock is never taken twice. The option is now called "Reduce the stock of ordered products".
+* New: "Changes only" schedules work for exports of WooCommerce orders, so an order that was cancelled or refunded since the previous run is exported again.
+* New: Content Sync lets the PRO plugin add posts that belong to the selection to a push or pull (the product of a paid course) and bring related content after a pull.
+
 ### 2.2.45
 
 * New: Product Stock option for WooCommerce order imports (PRO). "Reduce the stock of ordered products for new orders" lowers the stock of the products in orders that the import creates, so a second store that sells the same stock can send its orders to the main store. Orders that already exist change nothing.
@@ -368,12 +374,6 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 * Fix: export filters "contains", "does not contain", "starts with" and "ends with" ignore letter case in Cyrillic, Greek and other alphabets, not only in Latin. "мягк" now finds "Мягкая" in posts, pages, comments and media.
 
-### 2.2.41
-
-* Fix: AI agents can filter an export by category, tag or another taxonomy in filters[] (field "_taxonomy_filter" with "taxonomy", or type "taxonomy"). Such a filter matched nothing before; a rule without a taxonomy now returns a clear error.
-* Fix: WP-CLI import and export name the options that the chosen type does not support and list the supported ones, instead of a general schema error.
-* Tweak: array and object values in CSV, Excel, XML and JSON exports keep non-Latin text readable ("Говерла" instead of "\u0413..."). Such files import back exactly as before.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -382,7 +382,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.45 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.46 |
 
 ---
 

@@ -1497,6 +1497,15 @@ class Content_Sync_Service {
 			if ( is_wp_error( $access ) ) {
 				return $access; }
 		}
+		if ( ! $this->free_scope ) {
+			/**
+			 * Posts that travel with the selection (for example the WooCommerce product of a paid course).
+			 *
+			 * @param int[] $post_ids Selected local post IDs.
+			 * @param array $site     Connected site.
+			 */
+			$post_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) apply_filters( 'rsl_ie_content_sync_push_post_ids', $post_ids, $site ) ) ) ) );
+		}
 		$job_id = $this->create_content_sync_job( 'push', $site, $post_ids, $post_mapping );
 		if ( ! $job_id ) {
 			return $this->error( __( 'Could not create a sync history job.', 'import-export-by-rockstarlab' ) );
@@ -2226,6 +2235,15 @@ class Content_Sync_Service {
 		if ( ! $site ) {
 			return $this->error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
+		if ( ! $this->free_scope ) {
+			/**
+			 * Remote posts that travel with the selection on a pull.
+			 *
+			 * @param int[] $post_ids Selected remote post IDs.
+			 * @param array $site     Connected site.
+			 */
+			$post_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) apply_filters( 'rsl_ie_content_sync_pull_post_ids', $post_ids, $site ) ) ) ) );
+		}
 		$job_id = $this->create_content_sync_job( 'pull', $site, $post_ids, $post_mapping );
 		if ( ! $job_id ) {
 			return $this->error( __( 'Could not create a sync history job.', 'import-export-by-rockstarlab' ) );
@@ -2884,6 +2902,15 @@ class Content_Sync_Service {
 			}
 		}
 
+		/**
+		 * After a pull: let an addon bring what belongs to the pulled posts. Returns notes for the message.
+		 *
+		 * @param string[] $notes      Notes.
+		 * @param array    $site       Connected site.
+		 * @param array    $post_map   Remote post ID => local post ID.
+		 * @param array    $posts_data Pulled posts.
+		 */
+		$after_pull      = (array) apply_filters( 'rsl_ie_content_sync_after_pull', [], $site, $imported_remote_to_local, $posts_data );
 		$total_processed = $imported_count + $updated_count;
 		$this->complete_content_sync_job(
 			$job_id,
@@ -2942,7 +2969,7 @@ class Content_Sync_Service {
 
 		return $this->success(
 			array(
-				'message' => ! empty( $message ) ? implode( ', ', $message ) : __( 'No posts were processed', 'import-export-by-rockstarlab' ),
+				'message' => ( ! empty( $message ) ? implode( ', ', $message ) : __( 'No posts were processed', 'import-export-by-rockstarlab' ) ) . ( $after_pull ? '. ' . implode( ' ', array_map( 'strval', array_filter( $after_pull, 'is_scalar' ) ) ) : '' ),
 			)
 		);
 	}

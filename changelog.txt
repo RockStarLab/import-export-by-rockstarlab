@@ -1,5 +1,10 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.46 =
+* Fix: an order import with Product Stock keeps the stock right when the same order is imported again with Update. A cancelled or refunded order puts its stock back, a changed quantity is corrected, and stock is never taken twice. The option is now called "Reduce the stock of ordered products".
+* New: "Changes only" schedules work for exports of WooCommerce orders, so an order that was cancelled or refunded since the previous run is exported again.
+* New: Content Sync lets the PRO plugin add posts that belong to the selection to a push or pull (the product of a paid course) and bring related content after a pull.
+
 = 2.2.45 =
 * New: Product Stock option for WooCommerce order imports (PRO). "Reduce the stock of ordered products for new orders" lowers the stock of the products in orders that the import creates, so a second store that sells the same stock can send its orders to the main store. Orders that already exist change nothing.
 * New: Content Sync lets the PRO plugin send what belongs to a pushed post, such as the topics, sections, lessons and quizzes of a Tutor LMS or LifterLMS course. The push result names what came along.
