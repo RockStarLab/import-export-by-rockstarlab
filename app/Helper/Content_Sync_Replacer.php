@@ -159,6 +159,43 @@ class Content_Sync_Replacer {
 			$post_data['meta'] = self::replace_in_meta( $post_data['meta'], $source_domain, $target_domain, $image_map, $image_sources );
 		}
 
+		// Elementor templates sent with the post: links of the other site.
+		if ( ! empty( $post_data['elementor_templates'] ) && is_array( $post_data['elementor_templates'] ) ) {
+			foreach ( $post_data['elementor_templates'] as &$template ) {
+				if ( ! is_array( $template ) ) {
+					continue;
+				}
+				$meta                      = self::replace_in_meta(
+					[
+						'_elementor_data'          => (string) ( $template['data'] ?? '' ),
+						'_elementor_page_settings' => (array) ( $template['page_settings'] ?? [] ),
+					],
+					$source_domain,
+					$target_domain,
+					$image_map,
+					$image_sources
+				);
+				$template['data']          = (string) $meta['_elementor_data'];
+				$template['page_settings'] = (array) $meta['_elementor_page_settings'];
+			}
+			unset( $template );
+		}
+
+		// SEO settings of the post's terms (canonical, social images).
+		if ( ! empty( $post_data['terms'] ) && is_array( $post_data['terms'] ) && '' !== (string) $source_domain ) {
+			$map_url = static function ( $value ) use ( $source_domain, $target_domain ) {
+				return self::replace_in_text( (string) $value, $source_domain, $target_domain );
+			};
+			foreach ( $post_data['terms'] as &$taxonomy_terms ) {
+				foreach ( is_array( $taxonomy_terms ) ? $taxonomy_terms : [] as $index => $term_info ) {
+					if ( is_array( $term_info ) && ( ! empty( $term_info['yoast_seo'] ) || ! empty( $term_info['seo_meta'] ) ) ) {
+						$taxonomy_terms[ $index ] = \RockStarLab\ImportExport\Helper\Seo_Fields::map_term_seo_urls( $term_info, $map_url );
+					}
+				}
+			}
+			unset( $taxonomy_terms );
+		}
+
 		// Replace domain and image IDs in variation meta (variable products).
 		if ( ! empty( $post_data['variations'] ) && is_array( $post_data['variations'] ) ) {
 			foreach ( $post_data['variations'] as &$variation ) {
@@ -877,6 +914,10 @@ class Content_Sync_Replacer {
 						}
 					}
 				}
+			} elseif ( is_array( $value ) && '_elementor_page_settings' === $key ) {
+				// Page Settings use element controls: map image IDs the same way.
+				$settings = self::replace_in_elementor( array( array( 'settings' => $value ) ), $source_domain, $target_domain, $image_map );
+				$value    = $settings[0]['settings'];
 			} elseif ( is_array( $value ) ) {
 				$acf_field_type = self::get_acf_field_type( $key, $meta );
 				if ( ! empty( $image_map ) && self::is_acf_media_field_type( $acf_field_type ) ) {

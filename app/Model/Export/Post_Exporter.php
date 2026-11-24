@@ -2771,6 +2771,11 @@ class Post_Exporter extends Abstract_Exporter {
 		// Post meta
 		if ( in_array( 'post_meta', $fields, true ) ) {
 			$data['post_meta'] = $this->get_post_meta( $post->ID );
+			// Elementor templates the page uses travel with it (imported before its design).
+			$elementor_templates = is_array( $data['post_meta'] ) && isset( $data['post_meta']['_elementor_data'] ) ? \RockStarLab\ImportExport\Helper\Elementor_Templates::records_for_post( (int) $post->ID ) : [];
+			if ( $elementor_templates ) {
+				$data['post_meta'][ \RockStarLab\ImportExport\Helper\Elementor_Templates::META_KEY ] = $elementor_templates;
+			}
 		}
 
 		// Taxonomies
@@ -5090,6 +5095,9 @@ class Post_Exporter extends Abstract_Exporter {
 			if ( ! empty( $acf ) ) {
 				$item['acf'] = $acf;
 			}
+
+			// Yoast / Rank Math settings of the term (titles, descriptions, social images).
+			$item += array_intersect_key( \RockStarLab\ImportExport\Helper\Seo_Fields::add_term_seo_to_payload( [], $term, $taxonomy ), [ 'yoast_seo' => 1, 'seo_meta' => 1 ] );
 
 			$out[] = $item;
 		}

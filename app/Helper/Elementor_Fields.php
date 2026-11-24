@@ -182,13 +182,17 @@ class Elementor_Fields {
 			return '';
 		}
 
-		return (string) wp_json_encode(
-			[
-				'version'           => 1,
-				'elementor_version' => defined( 'ELEMENTOR_VERSION' ) ? ELEMENTOR_VERSION : '',
-				'meta'              => $meta,
-			]
-		);
+		$packet = [
+			'version'           => 1,
+			'elementor_version' => defined( 'ELEMENTOR_VERSION' ) ? ELEMENTOR_VERSION : '',
+			'meta'              => $meta,
+		];
+		// Templates the page uses (Template widget, shortcode, global widgets) travel with it.
+		$templates = Elementor_Templates::records_for_post( $post_id );
+		if ( $templates ) {
+			$packet['templates'] = $templates;
+		}
+		return (string) wp_json_encode( $packet );
 	}
 
 	/**
@@ -220,10 +224,14 @@ class Elementor_Fields {
 			return false;
 		}
 
+		$template_map = ! empty( $packet['templates'] ) ? self::import_templates( $packet['templates'], $download_media ) : [];
 		foreach ( $meta as $key => $meta_value ) {
 			$key = (string) $key;
 			if ( ! self::is_elementor_meta_key( $key ) || self::is_generated_cache_key( $key ) ) {
 				continue;
+			}
+			if ( $template_map && in_array( $key, [ '_elementor_data', '_elementor_page_settings' ], true ) ) {
+				$meta_value = is_string( $meta_value ) ? Elementor_Templates::remap_json( $meta_value, $template_map ) : Elementor_Templates::remap( $meta_value, $template_map );
 			}
 
 			self::import_meta_value( $post_id, $key, $meta_value, false, $download_media );
@@ -266,6 +274,45 @@ class Elementor_Fields {
 		}
 
 		return true;
+	}
+
+	/**
+	 * A value of _elementor_data / _elementor_page_settings prepared for this site (media imported).
+	 *
+	 * @param int    $post_id        Post the media is attached to.
+	 * @param string $key            Meta key.
+	 * @param mixed  $value          Value.
+	 * @param bool   $download_media Import media URLs.
+	 * @return mixed
+	 */
+	public static function prepare_for_import( $post_id, $key, $value, $download_media = true ) {
+		if ( '_elementor_data' === $key ) {
+			return self::prepare_elementor_data_for_import( (int) $post_id, $value, $download_media );
+		}
+		if ( '_elementor_page_settings' === $key && $download_media ) {
+			return self::prepare_nested_value_for_import( (int) $post_id, $value );
+		}
+		return $value;
+	}
+
+	/**
+	 * Import the Elementor templates that came with a post in a file.
+	 *
+	 * @param int   $post_id        Post ID (media are attached to the templates themselves).
+	 * @param mixed $records        Template records.
+	 * @param bool  $download_media Import media URLs.
+	 * @return array<int,int> Source template ID => local template ID.
+	 */
+	public static function import_templates( $records, $download_media = true ) {
+		return Elementor_Templates::import(
+			$records,
+			static function ( $template_id, array $meta ) use ( $download_media ) {
+				foreach ( $meta as $key => $value ) {
+					$meta[ $key ] = self::prepare_for_import( (int) $template_id, (string) $key, $value, $download_media );
+				}
+				return $meta;
+			}
+		);
 	}
 
 	/**
@@ -349,6 +396,19 @@ class Elementor_Fields {
 						$value = str_replace( $media_url, esc_url( $local ), $value );
 					}
 				}
+				// The wp-image-N class still holds the source attachment ID: point it at the local one.
+				$value = preg_replace_callback(
+					'#<img\b[^>]*>#i',
+					static function ( $tag ) {
+						if ( ! preg_match( '/\bwp-image-(\d+)\b/', $tag[0], $class ) || ! preg_match( '#\bsrc\s*=\s*["\']([^"\']+)["\']#i', $tag[0], $src ) ) {
+							return $tag[0];
+						}
+						$url   = preg_replace( '#-\d+x\d+(\.[a-z0-9]+)$#i', '$1', html_entity_decode( $src[1] ) );
+						$local = attachment_url_to_postid( $url );
+						return $local && (int) $class[1] !== $local ? str_replace( $class[0], 'wp-image-' . $local, $tag[0] ) : $tag[0];
+					},
+					$value
+				);
 			}
 			return $value;
 		}

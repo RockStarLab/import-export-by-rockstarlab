@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.52
+Stable tag: 2.2.53
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,17 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.53 =
+* New: Elementor templates used by a page (Template widget, [elementor-template] shortcode, global widgets, templates inside templates) travel with it in Content Sync, export/import and Content Migration: their images are copied, links point to the new site, a template with the same slug is updated, and the page uses the new template IDs.
+* New: Yoast SEO and Rank Math settings of categories, tags and other terms travel with the posts in Content Sync, export/import and Content Migration, with their social images.
+* New: WP-CLI and AI agents (abilities) download the media of an imported file by default, like the Import screen; turn it off with "auto_import_media": false.
+* Fix: Content Sync lost ACF Post Object and Relationship values that pointed to a post later in the same batch.
+* Fix: Elementor Page Settings images (page background) were not copied by Content Sync; a Text Editor image kept the old attachment ID after a file import.
+* Fix: Rank Math schema image URLs became attachment IDs after import; an ACF text or URL field with a media URL keeps a URL.
+* Fix: Gravity Forms export: a form field labelled Date, Status, Entry ID or Page URL replaced the entry column with the same name.
+* Fix: WP-CLI shows why a job failed before its first row (for example a wrong filter).
+* Fix: the strict ACF reference mode (acf_post_mapping) explains what it needs, and accepts Page Link fields that hold an archive URL.
+
 = 2.2.52 =
 * Security: CSV exports protect against formula injection: a text cell that starts with =, +, -, @ (for example =HYPERLINK(...)) gets a leading apostrophe, so spreadsheet apps show it as text. Numbers such as -5 are not changed, and importing the plugin's own CSV removes the apostrophe again.
 * New: media copied to another site keeps its year/month uploads folder (2019/05/photo.jpg stays in 2019/05) in Content Sync, Media Library push, media import and Content Migration.
@@ -322,13 +333,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 * Fix (Polylang): Content Sync to a site without Polylang no longer lets one translation replace another that shares its slug; each arrives as its own post.
 * Fix: the WooCommerce order export and import offer the field "Language (Polylang)" when Polylang for WooCommerce is active (export, filter and import mapping).
 * Fix (Polylang): menu exports keep the options of the language switcher item.
-
-= 2.2.48 =
-* New: export filter "Language (Polylang)" for posts, pages, custom post types and products: pick the languages from a list instead of typing the language taxonomy.
-* Fix: Content Sync sets ACF User fields to the matching user of the receiving site (a synced user, or the same login or email) instead of keeping the user ID of the other site. Works for push and pull.
-* Fix: Content Sync no longer renames a category that has the same slug as a category used in an ACF Taxonomy field, for example an English and a German category that both use the slug "coffee".
-* Fix: comments imported from a file keep the link to their ACF fields, so ACF shows the values.
-* Fix: confirming a sync while the list of remote posts was still loading could fail with "This connection is already in use".
-* Tweak: the message for a connection that works in one direction only says how to make it work in both.
 
 Older versions: see changelog.txt in the plugin folder.

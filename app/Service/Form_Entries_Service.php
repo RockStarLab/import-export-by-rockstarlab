@@ -141,6 +141,27 @@ class Form_Entries_Service {
 		if ( is_wp_error( $map ) ) {
 			return $map;
 		}
+		$labels = self::base_labels( $source );
+		$out    = [];
+		foreach ( $labels as $key => $label ) {
+			if ( in_array( $key, self::BASE_END, true ) ) {
+				foreach ( $map as $column => $unused ) {
+					$out[ $column ] = $column;
+				}
+				$map = [];
+			}
+			$out[ $key ] = $label;
+		}
+		return $out;
+	}
+
+	/**
+	 * Headers of the entry columns that are not form fields.
+	 *
+	 * @param string $source Source.
+	 * @return array key => label
+	 */
+	private static function base_labels( $source ) {
 		$labels = [
 			'entry_id'     => __( 'Entry ID', 'import-export-by-rockstarlab' ),
 			'date_created' => __( 'Date', 'import-export-by-rockstarlab' ),
@@ -157,17 +178,7 @@ class Form_Entries_Service {
 				'from_email' => __( 'From email', 'import-export-by-rockstarlab' ),
 			] + array_slice( $labels, 3, null, true );
 		}
-		$out = [];
-		foreach ( $labels as $key => $label ) {
-			if ( in_array( $key, self::BASE_END, true ) ) {
-				foreach ( $map as $column => $unused ) {
-					$out[ $column ] = $column;
-				}
-				$map = [];
-			}
-			$out[ $key ] = $label;
-		}
-		return $out;
+		return $labels;
 	}
 
 	/**
@@ -259,14 +270,17 @@ class Form_Entries_Service {
 		if ( is_wp_error( $check ) ) {
 			return $check;
 		}
-		$taken = array_merge( self::BASE_START, self::BASE_END, [ 'subject', 'from_name', 'from_email' ] );
+		// Column headers of the entry columns are taken too: a form field labelled "Date" must not
+		// share the header of the entry date.
+		$lower = static function ( $s ) { return function_exists( 'mb_strtolower' ) ? mb_strtolower( $s ) : strtolower( $s ); };
+		$taken = array_map( $lower, array_merge( self::BASE_START, self::BASE_END, [ 'subject', 'from_name', 'from_email' ], array_values( self::base_labels( $source ) ) ) );
 		$out   = [];
-		$add   = static function ( $label, $ref ) use ( &$out, $taken ) {
+		$add   = static function ( $label, $ref ) use ( &$out, $taken, $lower ) {
 			$label = trim( wp_strip_all_tags( (string) $label ) );
 			$label = '' === $label ? 'Field ' . $ref : $label;
 			$label = function_exists( 'mb_substr' ) ? mb_substr( $label, 0, 80 ) : substr( $label, 0, 80 );
 			$key   = $label;
-			for ( $n = 2; isset( $out[ $key ] ) || in_array( strtolower( $key ), $taken, true ); $n++ ) {
+			for ( $n = 2; isset( $out[ $key ] ) || in_array( $lower( $key ), $taken, true ); $n++ ) {
 				$key = $label . ' (' . $n . ')';
 			}
 			$out[ $key ] = $ref;

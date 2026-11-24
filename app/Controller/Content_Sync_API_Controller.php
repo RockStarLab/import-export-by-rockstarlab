@@ -570,6 +570,17 @@ class Content_Sync_API_Controller {
 							$term_ids[] = (int) $term_id;
 						}
 
+						// Yoast / Rank Math settings of the term (the sender already replaced its domain).
+						\RockStarLab\ImportExport\Helper\Seo_Fields::apply_synced_term_seo(
+							(int) $term_id,
+							$taxonomy,
+							$term_info,
+							static function ( $value ) use ( $image_map, $image_sources ) {
+								return \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content( (string) $value, (array) $image_map, (array) $image_sources );
+							},
+							(array) $image_map
+						);
+
 						// Record source → local term ID mapping.
 						if ( ! empty( $term_info['term_id'] ) ) {
 							$term_id_map[ (int) $term_info['term_id'] ] = (int) $term_id;
@@ -615,6 +626,18 @@ class Content_Sync_API_Controller {
 					isset( $post_data['post_refs'] ) ? $post_data['post_refs'] : array(),
 					isset( $post_data['user_refs'] ) && is_array( $post_data['user_refs'] ) ? $post_data['user_refs'] : array()
 				);
+			}
+
+			// Elementor templates the post uses: created or updated here (matched by slug),
+			// media mapped like the post's, and the post's template IDs renumbered.
+			if ( ! empty( $post_data['elementor_templates'] ) && is_array( $post_data['elementor_templates'] ) ) {
+				$template_map = \RockStarLab\ImportExport\Helper\Elementor_Templates::import(
+					$post_data['elementor_templates'],
+					static function ( $template_id, array $meta ) use ( $image_map, $image_sources ) {
+						return \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_in_meta_public( $meta, '', '', (array) $image_map, (array) $image_sources );
+					}
+				);
+				\RockStarLab\ImportExport\Helper\Elementor_Templates::remap_post( (int) $post_id, $template_map );
 			}
 
 				// Import WooCommerce product variations and recalculate the variable
@@ -726,6 +749,24 @@ class Content_Sync_API_Controller {
 					$this->restore_synced_post_modified_dates( (int) $local_id, (array) $post_data );
 					break;
 				}
+			}
+		}
+
+		// ACF Post Object / Relationship fields that pointed to a post later in this batch were
+		// emptied in the first pass (the target did not exist yet). Every post exists now: translate again.
+		if ( null === $request->get_param( 'acf_post_mapping' ) && count( $posts_data ) > 1 ) {
+			foreach ( $posts_data as $post_data ) {
+				$source_id = (int) ( $post_data['ID'] ?? 0 );
+				if ( empty( $post_data['meta'] ) || empty( $source_to_local_map[ $source_id ] ) ) {
+					continue;
+				}
+				\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::translate_acf_post_reference_fields_in_meta(
+					$post_data['meta'],
+					(int) $source_to_local_map[ $source_id ],
+					$source_id,
+					isset( $post_data['post_refs'] ) ? $post_data['post_refs'] : array(),
+					isset( $post_data['user_refs'] ) && is_array( $post_data['user_refs'] ) ? $post_data['user_refs'] : array()
+				);
 			}
 		}
 
@@ -3450,8 +3491,19 @@ class Content_Sync_API_Controller {
 							}
 						}
 
+						// Yoast / Rank Math settings of the term travel with the post.
+						$term_info                  = \RockStarLab\ImportExport\Helper\Seo_Fields::add_term_seo_to_payload( $term_info, $term, $taxonomy );
 						$term_info                  = (array) apply_filters( 'rsl_ie_sync_term_payload', $term_info, $term, $taxonomy );
 						$terms_data[ $taxonomy ][] = $term_info;
+
+						foreach ( \RockStarLab\ImportExport\Helper\Seo_Fields::term_seo_image_ids( $term_info ) as $image_id ) {
+							if ( ! isset( $all_images[ $image_id ] ) ) {
+								$image_data = \RockStarLab\ImportExport\Helper\Content_Sync_Media::prepare_image_data( $image_id, 'term_seo' );
+								if ( $image_data ) {
+									$all_images[ $image_id ] = $image_data;
+								}
+							}
+						}
 
 						// Extract images from term ACF fields
 						if ( ! empty( $term_info['acf'] ) ) {
@@ -3576,6 +3628,11 @@ class Content_Sync_API_Controller {
 					'comments'          => $this->collect_post_comments_for_sync( $post->ID ),
 				);
 				$post_data += \RockStarLab\ImportExport\Helper\Sync_Post_Author::payload( $post->post_author ); // Portable author identity: email + login.
+				// Elementor templates the post uses (Template widget, shortcode, global widgets) travel with it.
+				$elementor_templates = \RockStarLab\ImportExport\Helper\Elementor_Templates::records_for_post( (int) $post->ID );
+				if ( $elementor_templates ) {
+					$post_data['elementor_templates'] = $elementor_templates;
+				}
 
 				if ( 'product' === $post->post_type ) {
 					$helpers    = [

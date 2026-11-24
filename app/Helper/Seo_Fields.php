@@ -62,6 +62,150 @@ class Seo_Fields {
 	}
 
 	/**
+	 * Add the SEO settings of a post's term to its Content Sync payload (filter rsl_ie_sync_term_payload).
+	 * Yoast keeps them in an option (yoast_seo), Rank Math in rank_math_* term meta (seo_meta).
+	 *
+	 * @param array    $term_info Term payload.
+	 * @param \WP_Term $term      Term.
+	 * @param string   $taxonomy  Taxonomy.
+	 * @return array
+	 */
+	public static function add_term_seo_to_payload( $term_info, $term, $taxonomy ) {
+		if ( ! is_array( $term_info ) || ! $term instanceof \WP_Term ) {
+			return $term_info;
+		}
+		if ( empty( $term_info['yoast_seo'] ) ) {
+			$yoast = self::export_yoast_term( (int) $term->term_id, (string) $taxonomy );
+			if ( $yoast ) {
+				$term_info['yoast_seo'] = $yoast;
+			}
+		}
+		$rank_math = [];
+		foreach ( (array) get_term_meta( (int) $term->term_id ) as $key => $values ) {
+			if ( is_string( $key ) && 0 === strpos( $key, 'rank_math_' ) && isset( $values[0] ) ) {
+				$rank_math[ $key ] = maybe_unserialize( $values[0] );
+			}
+		}
+		if ( $rank_math ) {
+			$term_info['seo_meta'] = $rank_math;
+		}
+		// The receiver maps images by attachment ID: name the image of every social URL.
+		foreach ( self::term_social_pairs() as list( $group, $url_key, $id_key ) ) {
+			$url = $term_info[ $group ][ $url_key ] ?? '';
+			if ( is_string( $url ) && '' !== $url && empty( $term_info[ $group ][ $id_key ] ) ) {
+				$id = attachment_url_to_postid( $url );
+				if ( $id > 0 ) {
+					$term_info[ $group ][ $id_key ] = (string) $id;
+				}
+			}
+		}
+		return $term_info;
+	}
+
+	/**
+	 * Social image URL / attachment ID pairs of a term payload: [ group, URL key, ID key ].
+	 *
+	 * @return array<int,array{0:string,1:string,2:string}>
+	 */
+	private static function term_social_pairs() {
+		return [
+			[ 'yoast_seo', 'wpseo_opengraph-image', 'wpseo_opengraph-image-id' ],
+			[ 'yoast_seo', 'wpseo_twitter-image', 'wpseo_twitter-image-id' ],
+			[ 'seo_meta', 'rank_math_facebook_image', 'rank_math_facebook_image_id' ],
+			[ 'seo_meta', 'rank_math_twitter_image', 'rank_math_twitter_image_id' ],
+		];
+	}
+
+	/**
+	 * Attachment IDs of the social images in a term payload, so they travel with the post.
+	 *
+	 * @param array $term_info Term payload.
+	 * @return int[]
+	 */
+	public static function term_seo_image_ids( array $term_info ) {
+		$ids = [];
+		foreach ( (array) ( $term_info['yoast_seo'] ?? [] ) as $key => $value ) {
+			if ( is_string( $key ) && preg_match( '/-image-id$/', $key ) && is_numeric( $value ) && (int) $value > 0 ) {
+				$ids[] = (int) $value;
+			}
+		}
+		foreach ( [ 'rank_math_facebook_image_id', 'rank_math_twitter_image_id' ] as $key ) {
+			if ( isset( $term_info['seo_meta'][ $key ] ) && is_numeric( $term_info['seo_meta'][ $key ] ) && (int) $term_info['seo_meta'][ $key ] > 0 ) {
+				$ids[] = (int) $term_info['seo_meta'][ $key ];
+			}
+		}
+		return array_values( array_unique( $ids ) );
+	}
+
+	/**
+	 * Replace the other site's domain in the URLs of a term payload's SEO settings.
+	 *
+	 * @param array    $term_info Term payload.
+	 * @param callable $url       Maps a URL.
+	 * @return array
+	 */
+	public static function map_term_seo_urls( array $term_info, callable $url ) {
+		foreach ( (array) ( $term_info['yoast_seo'] ?? [] ) as $key => $value ) {
+			if ( is_string( $key ) && is_string( $value ) && '' !== $value && ( preg_match( '/-image$/', $key ) || 'wpseo_canonical' === $key ) ) {
+				$term_info['yoast_seo'][ $key ] = (string) $url( $value );
+			}
+		}
+		foreach ( [ 'rank_math_facebook_image', 'rank_math_twitter_image', 'rank_math_canonical_url' ] as $key ) {
+			if ( isset( $term_info['seo_meta'][ $key ] ) && is_string( $term_info['seo_meta'][ $key ] ) && '' !== $term_info['seo_meta'][ $key ] ) {
+				$term_info['seo_meta'][ $key ] = (string) $url( $term_info['seo_meta'][ $key ] );
+			}
+		}
+		return $term_info;
+	}
+
+	/**
+	 * Save the SEO settings that came with a synced post's term.
+	 *
+	 * @param int      $term_id   Local term ID.
+	 * @param string   $taxonomy  Taxonomy.
+	 * @param array    $term_info Term payload.
+	 * @param callable $url       Maps a URL of the other site to this site (images to the local copies).
+	 * @return void
+	 */
+	public static function apply_synced_term_seo( $term_id, $taxonomy, array $term_info, callable $url, array $image_map = [] ) {
+		if ( (int) $term_id <= 0 ) {
+			return;
+		}
+		// Images that travelled with the post: use the URL of the local copy.
+		foreach ( self::term_social_pairs() as list( $group, $url_key, $id_key ) ) {
+			$source = (int) ( $term_info[ $group ][ $id_key ] ?? 0 );
+			$local  = $source > 0 && isset( $image_map[ $source ] ) ? wp_get_attachment_url( (int) $image_map[ $source ] ) : '';
+			if ( $local && ! empty( $term_info[ $group ][ $url_key ] ) ) {
+				$term_info[ $group ][ $url_key ] = $local;
+			}
+		}
+		if ( ! empty( $term_info['yoast_seo'] ) && is_array( $term_info['yoast_seo'] ) ) {
+			self::import_yoast_term( (int) $term_id, (string) $taxonomy, $term_info['yoast_seo'], $url );
+		}
+		if ( empty( $term_info['seo_meta'] ) || ! is_array( $term_info['seo_meta'] ) ) {
+			return;
+		}
+		$meta = self::map_term_seo_urls( [ 'seo_meta' => $term_info['seo_meta'] ], $url )['seo_meta'];
+		foreach ( self::social_image_pairs() as $url_key => $id_key ) {
+			if ( 0 !== strpos( $url_key, 'rank_math_' ) ) {
+				continue;
+			}
+			unset( $meta[ $id_key ] ); // The other site's attachment ID: use the ID of the local copy.
+			$local = ! empty( $meta[ $url_key ] ) && is_string( $meta[ $url_key ] ) ? attachment_url_to_postid( esc_url_raw( $meta[ $url_key ] ) ) : 0;
+			if ( $local > 0 ) {
+				$meta[ $id_key ] = (string) $local;
+			} else {
+				delete_term_meta( (int) $term_id, $id_key );
+			}
+		}
+		foreach ( $meta as $key => $value ) {
+			if ( is_string( $key ) && 0 === strpos( $key, 'rank_math_' ) ) {
+				update_term_meta( (int) $term_id, sanitize_key( $key ), is_array( $value ) ? map_deep( $value, 'sanitize_text_field' ) : sanitize_text_field( (string) $value ) );
+			}
+		}
+	}
+
+	/**
 	 * Yoast SEO data of a term. Yoast keeps it in the wpseo_taxonomy_meta option, not in term meta.
 	 *
 	 * @param int    $term_id  Term ID.

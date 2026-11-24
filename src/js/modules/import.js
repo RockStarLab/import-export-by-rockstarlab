@@ -2673,7 +2673,8 @@ const ImportModule = {
 							'Categories, Tags and Terms (JSON from an export)',
 							'import-export-by-rockstarlab'
 						),
-						labelEn: 'Categories, Tags and Terms (JSON from an export)',
+						labelEn:
+							'Categories, Tags and Terms (JSON from an export)',
 						type: 'string',
 					},
 					{

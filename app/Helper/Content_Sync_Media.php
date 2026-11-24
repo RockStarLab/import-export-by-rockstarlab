@@ -1322,20 +1322,21 @@ class Content_Sync_Media {
 		}
 
 		$elementor_data = get_post_meta( $post_id, '_elementor_data', true );
-
-		if ( empty( $elementor_data ) ) {
-			return $images;
-		}
-
-		$elements = json_decode( $elementor_data, true );
-
+		$elements       = empty( $elementor_data ) ? array() : json_decode( $elementor_data, true );
 		if ( ! is_array( $elements ) ) {
-			return $images;
+			$elements = array();
 		}
 
-		$images = self::extract_elementor_images_recursive( $elements );
+		// Page Settings (background image, etc.) use the same controls as an element.
+		$page_settings = get_post_meta( $post_id, '_elementor_page_settings', true );
+		if ( is_array( $page_settings ) && $page_settings ) {
+			$elements[] = array( 'settings' => $page_settings );
+		}
 
-		return $images;
+		// Media of the templates the page uses: the templates travel with it.
+		$elements = array_merge( $elements, Elementor_Templates::media_elements( Elementor_Templates::records_for_post( (int) $post_id ) ) );
+
+		return $elements ? self::extract_elementor_images_recursive( $elements ) : $images;
 	}
 
 	/**

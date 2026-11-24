@@ -273,6 +273,15 @@ class Sync_ACF_Posts {
 			if ( ! in_array( $field['type'] ?? '', [ 'post_object', 'relationship', 'page_link' ], true ) ) {
 				continue;
 			}
+			// Page Link may hold an archive or custom URL instead of a post ID: that is a link, not a
+			// post reference, and travels with the normal URL replacement.
+			if ( 'page_link' === $field['type'] ) {
+				$raw = \RockStarLab\ImportExport\Helper\Serialized::maybe( $value );
+				$raw = is_array( $raw ) && array_key_exists( 0, $raw ) && 1 === count( $raw ) && ! is_array( $raw[0] ) ? $raw[0] : $raw;
+				if ( is_string( $raw ) && '' !== $raw && ! preg_match( '/^[0-9]+$/D', $raw ) ) {
+					continue;
+				}
+			}
 			if ( ! empty( $field['bidirectional'] ) || empty( $field['name'] ) || ! ( $name === $field['name'] || substr( $name, -strlen( '_' . $field['name'] ) ) === '_' . $field['name'] ) ) {
 				return Migration_Sync_Maps::error();
 			}

@@ -365,6 +365,8 @@ class Import_Service {
 			return new \WP_Error( 'rsl_ie_invalid_encoding', __( 'Unsupported file encoding.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
 		}
 		$options['batch_size'] = max( 1, min( 500, (int) ( $options['batch_size'] ?? 50 ) ) );
+		// Media from the file is downloaded unless the caller turns it off, as the Import screen does.
+		$options['auto_import_media'] = filter_var( $options['auto_import_media'] ?? true, FILTER_VALIDATE_BOOLEAN );
 		$row_filters           = Import_Row_Filter::normalize( $options['row_filters'] ?? [] );
 		if ( is_wp_error( $row_filters ) ) {
 			return $row_filters;

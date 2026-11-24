@@ -247,8 +247,8 @@ msgid "Failed to import post: %s"
 msgstr "Не удалось импортировать запись: %s"
 
 #. translators: %d: number of posts
-#: app/Controller/Content_Sync_API_Controller.php:793
-#: app/Service/Content_Sync_Service.php:3080
+#: app/Controller/Content_Sync_API_Controller.php:834
+#: app/Service/Content_Sync_Service.php:3123
 #, php-format
 msgid "Created %d post"
 msgid_plural "Created %d posts"
@@ -257,8 +257,8 @@ msgstr[1] "Создано %d записи"
 msgstr[2] "Создано %d записей"
 
 #. translators: %d: number of posts
-#: app/Controller/Content_Sync_API_Controller.php:801
-#: app/Service/Content_Sync_Service.php:3088
+#: app/Controller/Content_Sync_API_Controller.php:842
+#: app/Service/Content_Sync_Service.php:3131
 #, php-format
 msgid "Updated %d post"
 msgid_plural "Updated %d posts"
@@ -266,22 +266,22 @@ msgstr[0] "Обновлена %d запись"
 msgstr[1] "Обновлено %d записи"
 msgstr[2] "Обновлено %d записей"
 
-#: app/Controller/Content_Sync_API_Controller.php:1739
+#: app/Controller/Content_Sync_API_Controller.php:1780
 msgid "No post IDs provided"
 msgstr "Не переданы ID записей"
 
-#: app/Controller/Content_Sync_API_Controller.php:1781
+#: app/Controller/Content_Sync_API_Controller.php:1822
 msgid "No valid posts found"
 msgstr "Подходящие записи не найдены"
 
 #. translators: %s: comma-separated list of post IDs
-#: app/Controller/Content_Sync_API_Controller.php:1785
+#: app/Controller/Content_Sync_API_Controller.php:1826
 #, php-format
 msgid ". Post IDs not found: %s"
 msgstr ". Не найдены записи с ID: %s"
 
 #. translators: %d: number of posts
-#: app/Controller/Content_Sync_API_Controller.php:1873
+#: app/Controller/Content_Sync_API_Controller.php:1914
 #, php-format
 msgid "Found %d post"
 msgid_plural "Found %d posts"
@@ -289,22 +289,22 @@ msgstr[0] "Найдена %d запись"
 msgstr[1] "Найдено %d записи"
 msgstr[2] "Найдено %d записей"
 
-#: app/Controller/Content_Sync_API_Controller.php:2633
+#: app/Controller/Content_Sync_API_Controller.php:2674
 #: app/Service/Content_Sync_Service.php:724
 msgid "No comments selected."
 msgstr "Комментарии не выбраны."
 
-#: app/Controller/Content_Sync_API_Controller.php:2699
+#: app/Controller/Content_Sync_API_Controller.php:2740
 msgid "No comments data provided."
 msgstr "Нет данных комментариев."
 
 #. translators: 1: created comments, 2: updated comments, 3: failed comments.
-#: app/Controller/Content_Sync_API_Controller.php:2720
+#: app/Controller/Content_Sync_API_Controller.php:2761
 #, php-format
 msgid "Comments synced. Created: %1$d, Updated: %2$d, Failed: %3$d"
 msgstr "Комментарии синхронизированы. Создано: %1$d, обновлено: %2$d, ошибок: %3$d"
 
-#: app/Controller/Content_Sync_API_Controller.php:3296
+#: app/Controller/Content_Sync_API_Controller.php:3337
 msgid "Parent ID is required."
 msgstr "Нужен ID родителя."
 
@@ -398,7 +398,7 @@ msgstr "Не удалось загрузить записи с удалённо�
 
 #: app/Controller/Content_Sync_Controller.php:398
 #: app/Controller/Init.php:798
-#: app/Model/Import/Post_Importer.php:4962
+#: app/Model/Import/Post_Importer.php:5000
 #: assets/js/app.js:2
 #: assets/js/post-sync-standalone.js:2
 #: assets/js/app.js:733
@@ -1664,7 +1664,7 @@ msgstr "Формат файла"
 #: app/Controller/Init.php:573
 #: app/Controller/Init.php:847
 #: app/Controller/Init.php:883
-#: app/Service/Form_Entries_Service.php:147
+#: app/Service/Form_Entries_Service.php:168
 #: app/View/settings/content_sync.php:110
 #: app/View/settings/jobs-log.php:74
 #: app/View/settings/schedules.php:175
@@ -3174,7 +3174,7 @@ msgid "Excerpt"
 msgstr "Отрывок"
 
 #: app/Controller/Init.php:882
-#: app/Service/Form_Entries_Service.php:146
+#: app/Service/Form_Entries_Service.php:167
 #: assets/js/app.js:2
 #: assets/js/app.js:3912
 #: assets/js/app.js:6742
@@ -5680,13 +5680,13 @@ msgid "Unknown action."
 msgstr "Неизвестное действие."
 
 #: app/Helper/ACF_Fields.php:1967
-#: app/Model/Import/Post_Importer.php:6128
+#: app/Model/Import/Post_Importer.php:6166
 msgid "Could not create a temporary file for download."
 msgstr "Не удалось создать временный файл для скачивания."
 
 #. translators: %d: code.
 #: app/Helper/ACF_Fields.php:1988
-#: app/Model/Import/Post_Importer.php:6149
+#: app/Model/Import/Post_Importer.php:6187
 #, php-format
 msgid "Download failed with HTTP %d"
 msgstr "Ошибка скачивания, HTTP %d"
@@ -5893,18 +5893,18 @@ msgstr "Используемые глобальные классы Elementor (п
 msgid "Page Template"
 msgstr "Шаблон страницы"
 
-#: app/Helper/Elementor_Fields.php:535
-#: app/Helper/Seo_Fields.php:827
+#: app/Helper/Elementor_Fields.php:595
+#: app/Helper/Seo_Fields.php:971
 msgid "Could not download media URL."
 msgstr "Не удалось скачать медиафайл по URL."
 
-#: app/Helper/Elementor_Fields.php:543
-#: app/Helper/Seo_Fields.php:835
+#: app/Helper/Elementor_Fields.php:603
+#: app/Helper/Seo_Fields.php:979
 msgid "Could not create temporary media file."
 msgstr "Не удалось создать временный медиафайл."
 
-#: app/Helper/Elementor_Fields.php:548
-#: app/Helper/Seo_Fields.php:840
+#: app/Helper/Elementor_Fields.php:608
+#: app/Helper/Seo_Fields.php:984
 msgid "Could not write temporary media file."
 msgstr "Не удалось записать временный медиафайл."
 
@@ -6429,129 +6429,129 @@ msgstr "Я уже оставил отзыв"
 msgid "Dismiss this notice"
 msgstr "Скрыть это уведомление"
 
-#: app/Helper/Seo_Fields.php:161
-#: app/Helper/Seo_Fields.php:282
+#: app/Helper/Seo_Fields.php:305
+#: app/Helper/Seo_Fields.php:426
 msgid "SEO Title"
 msgstr "SEO-заголовок"
 
-#: app/Helper/Seo_Fields.php:166
-#: app/Helper/Seo_Fields.php:287
+#: app/Helper/Seo_Fields.php:310
+#: app/Helper/Seo_Fields.php:431
 msgid "Meta Description"
 msgstr "Мета-описание"
 
-#: app/Helper/Seo_Fields.php:171
-#: app/Helper/Seo_Fields.php:292
+#: app/Helper/Seo_Fields.php:315
+#: app/Helper/Seo_Fields.php:436
 msgid "Focus Keyword"
 msgstr "Ключевое слово"
 
-#: app/Helper/Seo_Fields.php:176
-#: app/Helper/Seo_Fields.php:297
+#: app/Helper/Seo_Fields.php:320
+#: app/Helper/Seo_Fields.php:441
 msgid "Canonical URL"
 msgstr "Канонический URL"
 
-#: app/Helper/Seo_Fields.php:181
+#: app/Helper/Seo_Fields.php:325
 msgid "Meta Robots (Index)"
 msgstr "Meta Robots (индексация)"
 
-#: app/Helper/Seo_Fields.php:186
+#: app/Helper/Seo_Fields.php:330
 msgid "Meta Robots (Follow)"
 msgstr "Meta Robots (переход по ссылкам)"
 
-#: app/Helper/Seo_Fields.php:191
+#: app/Helper/Seo_Fields.php:335
 msgid "Social Title"
 msgstr "Заголовок для соцсетей"
 
-#: app/Helper/Seo_Fields.php:196
+#: app/Helper/Seo_Fields.php:340
 msgid "Social Description"
 msgstr "Описание для соцсетей"
 
-#: app/Helper/Seo_Fields.php:201
+#: app/Helper/Seo_Fields.php:345
 msgid "Social Image"
 msgstr "Изображение для соцсетей"
 
-#: app/Helper/Seo_Fields.php:206
-#: app/Helper/Seo_Fields.php:362
+#: app/Helper/Seo_Fields.php:350
+#: app/Helper/Seo_Fields.php:506
 msgid "X (Twitter) Title"
 msgstr "Заголовок для X (Twitter)"
 
-#: app/Helper/Seo_Fields.php:211
-#: app/Helper/Seo_Fields.php:367
+#: app/Helper/Seo_Fields.php:355
+#: app/Helper/Seo_Fields.php:511
 msgid "X (Twitter) Description"
 msgstr "Описание для X (Twitter)"
 
-#: app/Helper/Seo_Fields.php:216
-#: app/Helper/Seo_Fields.php:372
+#: app/Helper/Seo_Fields.php:360
+#: app/Helper/Seo_Fields.php:516
 msgid "X (Twitter) Image"
 msgstr "Изображение для X (Twitter)"
 
 #. translators: %s: taxonomy label.
-#: app/Helper/Seo_Fields.php:253
-#: app/Helper/Seo_Fields.php:429
+#: app/Helper/Seo_Fields.php:397
+#: app/Helper/Seo_Fields.php:573
 #, php-format
 msgid "Primary %s"
 msgstr "Основная таксономия: %s"
 
-#: app/Helper/Seo_Fields.php:302
+#: app/Helper/Seo_Fields.php:446
 msgid "Robots Meta"
 msgstr "Robots Meta"
 
-#: app/Helper/Seo_Fields.php:307
+#: app/Helper/Seo_Fields.php:451
 msgid "Advanced Robots Meta"
 msgstr "Расширенные Robots Meta"
 
-#: app/Helper/Seo_Fields.php:312
+#: app/Helper/Seo_Fields.php:456
 msgid "Breadcrumb Title"
 msgstr "Заголовок для хлебных крошек"
 
-#: app/Helper/Seo_Fields.php:317
+#: app/Helper/Seo_Fields.php:461
 msgid "Pillar Content"
 msgstr "Ключевой контент"
 
-#: app/Helper/Seo_Fields.php:322
+#: app/Helper/Seo_Fields.php:466
 msgid "Schema Markup"
 msgstr "Разметка Schema"
 
-#: app/Helper/Seo_Fields.php:327
+#: app/Helper/Seo_Fields.php:471
 msgid "Facebook Title"
 msgstr "Заголовок для Facebook"
 
-#: app/Helper/Seo_Fields.php:332
+#: app/Helper/Seo_Fields.php:476
 msgid "Facebook Description"
 msgstr "Описание для Facebook"
 
-#: app/Helper/Seo_Fields.php:337
+#: app/Helper/Seo_Fields.php:481
 msgid "Facebook Image"
 msgstr "Изображение для Facebook"
 
-#: app/Helper/Seo_Fields.php:342
+#: app/Helper/Seo_Fields.php:486
 msgid "Facebook Image ID"
 msgstr "ID изображения для Facebook"
 
-#: app/Helper/Seo_Fields.php:347
+#: app/Helper/Seo_Fields.php:491
 msgid "Enable Facebook Image Overlay"
 msgstr "Включить наложение на изображение для Facebook"
 
-#: app/Helper/Seo_Fields.php:352
+#: app/Helper/Seo_Fields.php:496
 msgid "Facebook Image Overlay"
 msgstr "Наложение на изображение для Facebook"
 
-#: app/Helper/Seo_Fields.php:357
+#: app/Helper/Seo_Fields.php:501
 msgid "X (Twitter) Card Type"
 msgstr "Тип карточки X (Twitter)"
 
-#: app/Helper/Seo_Fields.php:377
+#: app/Helper/Seo_Fields.php:521
 msgid "X (Twitter) Image ID"
 msgstr "ID изображения для X (Twitter)"
 
-#: app/Helper/Seo_Fields.php:382
+#: app/Helper/Seo_Fields.php:526
 msgid "Use Facebook Data for X (Twitter)"
 msgstr "Использовать данные Facebook для X (Twitter)"
 
-#: app/Helper/Seo_Fields.php:387
+#: app/Helper/Seo_Fields.php:531
 msgid "Enable X (Twitter) Image Overlay"
 msgstr "Включить наложение на изображение для X (Twitter)"
 
-#: app/Helper/Seo_Fields.php:392
+#: app/Helper/Seo_Fields.php:536
 msgid "X (Twitter) Image Overlay"
 msgstr "Наложение на изображение для X (Twitter)"
 
@@ -7264,7 +7264,7 @@ msgstr "XML-файл не найден"
 #: app/Model/Format/XML_Format.php:1078
 #: app/Model/Format/XML_Format.php:1113
 #: app/Service/File_Service.php:1009
-#: app/Service/Import_Service.php:610
+#: app/Service/Import_Service.php:612
 msgid "Invalid XML file"
 msgstr "Недопустимый XML-файл"
 
@@ -7591,91 +7591,91 @@ msgid "Author not found for \"%1$s\" (%2$s); the post was assigned to the defaul
 msgstr "Автор для «%1$s» (%2$s) не найден; запись назначена автору по умолчанию."
 
 #. translators: %s: image.
-#: app/Model/Import/Post_Importer.php:4193
+#: app/Model/Import/Post_Importer.php:4231
 #, php-format
 msgid "Featured image value is not a valid URL: %s"
 msgstr "Значение изображения записи — недопустимый URL: %s"
 
 #. translators: %s: image.
-#: app/Model/Import/Post_Importer.php:4194
+#: app/Model/Import/Post_Importer.php:4232
 msgid "The featured image value is not a valid URL."
 msgstr "Значение изображения записи — недопустимый URL."
 
-#: app/Model/Import/Post_Importer.php:4206
+#: app/Model/Import/Post_Importer.php:4244
 msgid "The featured image could not be downloaded."
 msgstr "Не удалось скачать изображение записи."
 
 #. translators: %1$s: url, %2$s: reason.
-#: app/Model/Import/Post_Importer.php:4207
+#: app/Model/Import/Post_Importer.php:4245
 #, php-format
 msgid "Failed to import featured image from URL: %1$s (%2$s)"
 msgstr "Не удалось импортировать изображение записи по URL: %1$s (%2$s)"
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4736
-#: app/Model/Import/Post_Importer.php:4929
+#: app/Model/Import/Post_Importer.php:4774
+#: app/Model/Import/Post_Importer.php:4967
 #, php-format
 msgid "Skipped duplicate media: %1$s (using existing ID: %2$d)"
 msgstr "Повторяющийся медиафайл пропущен: %1$s (используется существующий ID: %2$d)"
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4743
-#: app/Model/Import/Post_Importer.php:4934
+#: app/Model/Import/Post_Importer.php:4781
+#: app/Model/Import/Post_Importer.php:4972
 #, php-format
 msgid "Deleted existing media for replacement: %1$s (ID: %2$d)"
 msgstr "Существующий медиафайл удалён для замены: %1$s (ID: %2$d)"
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4745
+#: app/Model/Import/Post_Importer.php:4783
 #, php-format
 msgid "Using existing media: %1$s (ID: %2$d)"
 msgstr "Используется существующий медиафайл: %1$s (ID: %2$d)"
 
 #. translators: %1$s: filename, %2$d: attachment id.
-#: app/Model/Import/Post_Importer.php:4765
-#: app/Model/Import/Post_Importer.php:4959
+#: app/Model/Import/Post_Importer.php:4803
+#: app/Model/Import/Post_Importer.php:4997
 #, php-format
 msgid "Imported media: %1$s (new ID: %2$d)"
 msgstr "Медиафайл импортирован: %1$s (новый ID: %2$d)"
 
-#: app/Model/Import/Post_Importer.php:4880
+#: app/Model/Import/Post_Importer.php:4918
 msgid "The file does not exist in the Media Library of this site."
 msgstr "Этого файла нет в библиотеке медиафайлов сайта."
 
 #. translators: %s: url.
-#: app/Model/Import/Post_Importer.php:4881
+#: app/Model/Import/Post_Importer.php:4919
 #, php-format
 msgid "Media file not found on this site: %s"
 msgstr "Медиафайл не найден на этом сайте: %s"
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4942
+#: app/Model/Import/Post_Importer.php:4980
 #, php-format
 msgid "Updated duplicate media: %1$s (using existing ID: %2$d)"
 msgstr "Повторяющийся медиафайл обновлён: %1$s (используется существующий ID: %2$d)"
 
 #. translators: %1$s: filename, %2$s: error message.
-#: app/Model/Import/Post_Importer.php:4964
+#: app/Model/Import/Post_Importer.php:5002
 #, php-format
 msgid "Failed to import media: %1$s - %2$s"
 msgstr "Не удалось импортировать медиафайл: %1$s — %2$s"
 
 #. translators: %1$d: post id, %2$d: imported count, %3$d: skipped count, %4$d: error count.
-#: app/Model/Import/Post_Importer.php:4989
+#: app/Model/Import/Post_Importer.php:5027
 #, php-format
 msgid "Media import summary for post %1$d: %2$d imported, %3$d skipped, %4$d errors"
 msgstr "Итог импорта медиафайлов для записи %1$d: импортировано %2$d, пропущено %3$d, ошибок %4$d"
 
-#: app/Model/Import/Post_Importer.php:6011
+#: app/Model/Import/Post_Importer.php:6049
 msgid "The media URL is not importable."
 msgstr "Этот медиа-URL нельзя импортировать."
 
-#: app/Model/Import/Post_Importer.php:6056
+#: app/Model/Import/Post_Importer.php:6094
 msgid "The address did not return an image file."
 msgstr "По адресу нет файла изображения."
 
 #. translators: %d: cleaned.
-#: app/Model/Import/Post_Importer.php:6182
+#: app/Model/Import/Post_Importer.php:6220
 #, php-format
 msgid "Cleaned up %d temporary media files"
 msgstr "Удалено временных медиафайлов: %d"
@@ -8249,15 +8249,15 @@ msgstr "Получение завершилось с кодом статуса: 
 msgid "No posts found on remote site"
 msgstr "На удалённом сайте не найдено записей"
 
-#: app/Service/Content_Sync_Service.php:3095
+#: app/Service/Content_Sync_Service.php:3138
 msgid "No posts were processed"
 msgstr "Ни одна запись не обработана"
 
-#: app/Service/Content_Sync_Service.php:3113
+#: app/Service/Content_Sync_Service.php:3156
 msgid "Content Sync media pull failed."
 msgstr "Не удалось получить медиафайлы при синхронизации контента."
 
-#: app/Service/Content_Sync_Service.php:3135
+#: app/Service/Content_Sync_Service.php:3178
 msgid "Content Sync media fields failed."
 msgstr "Не удалось обработать медиаполя при синхронизации контента."
 
@@ -8410,67 +8410,67 @@ msgstr "Ошибка операции с файлом: %s."
 msgid "Unknown operation."
 msgstr "Неизвестная операция."
 
-#: app/Service/Form_Entries_Service.php:145
+#: app/Service/Form_Entries_Service.php:166
 msgid "Entry ID"
 msgstr "ID записи формы"
 
-#: app/Service/Form_Entries_Service.php:148
+#: app/Service/Form_Entries_Service.php:169
 msgid "Page URL"
 msgstr "URL страницы"
 
-#: app/Service/Form_Entries_Service.php:149
+#: app/Service/Form_Entries_Service.php:170
 msgid "IP address"
 msgstr "IP-адрес"
 
-#: app/Service/Form_Entries_Service.php:150
+#: app/Service/Form_Entries_Service.php:171
 msgid "Browser (user agent)"
 msgstr "Браузер (user agent)"
 
-#: app/Service/Form_Entries_Service.php:151
+#: app/Service/Form_Entries_Service.php:172
 msgid "WordPress user"
 msgstr "Пользователь WordPress"
 
-#: app/Service/Form_Entries_Service.php:155
+#: app/Service/Form_Entries_Service.php:176
 #: app/View/settings/notifications.php:107
 msgid "Subject"
 msgstr "Тема"
 
-#: app/Service/Form_Entries_Service.php:156
+#: app/Service/Form_Entries_Service.php:177
 msgid "From name"
 msgstr "Имя отправителя"
 
-#: app/Service/Form_Entries_Service.php:157
+#: app/Service/Form_Entries_Service.php:178
 msgid "From email"
 msgstr "Email отправителя"
 
-#: app/Service/Form_Entries_Service.php:240
+#: app/Service/Form_Entries_Service.php:251
 msgid "Choose Gravity Forms or Contact Form 7 (Flamingo); the plugin must be active."
 msgstr "Выберите Gravity Forms или Contact Form 7 (Flamingo); плагин должен быть активен."
 
-#: app/Service/Form_Entries_Service.php:244
-#: app/Service/Form_Entries_Service.php:247
+#: app/Service/Form_Entries_Service.php:255
+#: app/Service/Form_Entries_Service.php:258
 msgid "Form not found."
 msgstr "Форма не найдена."
 
-#: app/Service/Form_Entries_Service.php:340
+#: app/Service/Form_Entries_Service.php:354
 msgid "Filter Status by one value: active, spam or trash."
 msgstr "Фильтр по статусу — одно значение: active, spam или trash."
 
-#: app/Service/Form_Entries_Service.php:352
+#: app/Service/Form_Entries_Service.php:366
 msgid "Filter Entry ID with \"equals\" or \"in\"."
 msgstr "Фильтр по ID записи формы — «равно» или «входит в»."
 
-#: app/Service/Form_Entries_Service.php:360
+#: app/Service/Form_Entries_Service.php:374
 msgid "Filter form fields with equals, not equals, contains or does not contain."
 msgstr "Фильтр по полям формы — равно, не равно, содержит или не содержит."
 
 #. translators: %s: column name.
-#: app/Service/Form_Entries_Service.php:369
+#: app/Service/Form_Entries_Service.php:383
 #, php-format
 msgid "This form cannot be filtered by \"%s\"."
 msgstr "Эту форму нельзя фильтровать по «%s»."
 
-#: app/Service/Form_Entries_Service.php:460
+#: app/Service/Form_Entries_Service.php:474
 msgid "Filter Date with a date like 2026-10-01 (between takes two dates separated by a comma)."
 msgstr "Фильтр по дате — дата вида 2026-10-01 (для «между» две даты через запятую)."
 
@@ -8500,9 +8500,9 @@ msgstr "Подготовленные строки импорта недосту�
 
 #: app/Service/Import_Service.php:201
 #: app/Service/Import_Service.php:223
-#: app/Service/Import_Service.php:1223
-#: app/Service/Import_Service.php:1264
-#: app/Service/Import_Service.php:1438
+#: app/Service/Import_Service.php:1225
+#: app/Service/Import_Service.php:1266
+#: app/Service/Import_Service.php:1440
 msgid "Import job not found."
 msgstr "Задание импорта не найдено."
 
@@ -8538,12 +8538,12 @@ msgstr "Разделитель должен быть одним байтом."
 msgid "Unsupported file encoding."
 msgstr "Неподдерживаемая кодировка файла."
 
-#: app/Service/Import_Service.php:427
+#: app/Service/Import_Service.php:429
 msgid "The import file did not contain a list of rows."
 msgstr "Файл импорта не содержит списка строк."
 
 #. translators: %d: number of rows
-#: app/Service/Import_Service.php:873
+#: app/Service/Import_Service.php:875
 #, php-format
 msgid "%d row did not match the row filter and was not imported."
 msgid_plural "%d rows did not match the row filter and were not imported."
@@ -8551,24 +8551,24 @@ msgstr[0] "%d строка не подошла под фильтр строк и
 msgstr[1] "%d строки не подошли под фильтр строк и не импортированы."
 msgstr[2] "%d строк не подошли под фильтр строк и не импортированы."
 
-#: app/Service/Import_Service.php:893
+#: app/Service/Import_Service.php:895
 msgid "The source column index is outside the file columns."
 msgstr "Индекс столбца источника вне столбцов файла."
 
-#: app/Service/Import_Service.php:1230
-#: app/Service/Import_Service.php:1434
+#: app/Service/Import_Service.php:1232
+#: app/Service/Import_Service.php:1436
 msgid "Could not save import progress."
 msgstr "Не удалось сохранить прогресс импорта."
 
-#: app/Service/Import_Service.php:2599
+#: app/Service/Import_Service.php:2601
 msgid "Only CSV, JSON, XML, XLSX, and ODS import files are supported."
 msgstr "Поддерживаются только файлы импорта CSV, JSON, XML, XLSX и ODS."
 
-#: app/Service/Import_Service.php:2604
+#: app/Service/Import_Service.php:2606
 msgid "Invalid import file path."
 msgstr "Недопустимый путь к файлу импорта."
 
-#: app/Service/Import_Service.php:2619
+#: app/Service/Import_Service.php:2621
 msgid "Import file must be inside the plugin upload directory."
 msgstr "Файл импорта должен находиться в папке загрузок плагина."
 
@@ -9344,6 +9344,10 @@ msgid "Unknown sync ability."
 msgstr "Неизвестная возможность синхронизации."
 
 #: app/Service/Sync_Workflow_Service.php:63
+msgid "ACF Post Object, Relationship or Page Link references could not be confirmed. Every referenced post must be in this batch or listed in acf_post_mapping as post_type:TYPE:SOURCE_ID => destination ID, both sites need the same ACF field definitions, and bidirectional fields are not supported. Leave out acf_post_mapping to resolve references automatically."
+msgstr "Не удалось подтвердить ссылки ACF Post Object, Relationship или Page Link. Каждая запись, на которую есть ссылка, должна быть в этом пакете или указана в acf_post_mapping как post_type:TYPE:SOURCE_ID => ID на сайте назначения, на обоих сайтах нужны одинаковые определения полей ACF, а двунаправленные поля не поддерживаются. Не передавайте acf_post_mapping, чтобы ссылки сопоставлялись автоматически."
+
+#: app/Service/Sync_Workflow_Service.php:67
 msgid "The sync operation failed. Check connection status, selection and job history."
 msgstr "Операция синхронизации не выполнена. Проверьте статус подключения, выбор и историю заданий."
 
