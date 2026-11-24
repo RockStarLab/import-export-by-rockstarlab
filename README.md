@@ -341,6 +341,14 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 ## Changelog
 
+### 2.2.55
+
+* New: hidden custom fields (names starting with "_", such as a plugin's "_price_note") are listed among the export's Custom Fields; add them one by one ("Add all" leaves them out). WordPress, WooCommerce, page builder, SEO and ACF internal keys stay out of the list.
+* New: WP-CLI and AI agent imports map the "meta_" custom field columns of this plugin's own export automatically, hidden fields included.
+* New: WooCommerce product export has the columns upsell_skus, crosssell_skus and default_attributes (the PRO import restores them).
+* Fix: WooCommerce product export stopped with a strpos() error on products whose default attributes were stored next to a custom field of the same name.
+* Fix: Content Sync pull kept the other site's product IDs in up-sells and cross-sells; they now point to the local copies (push already did).
+
 ### 2.2.54
 
 * New: Elementor Pro widgets keep their links to posts, categories and authors on the other site: Posts, Portfolio, Loop Grid, Loop Carousel, Search and Sitemap queries, and Internal URL / Post URL dynamic tags point to the same posts there (found by slug); popups opened by a button or a form travel with the page.
@@ -386,16 +394,6 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 * Fix: Content Sync of grouped products keeps the featured image of the child products on the receiving site.
 * Readme: shorter description (WordPress.org shows up to 2,500 words), WPML in features, Works With and FAQ.
 
-### 2.2.50
-
-* New: wpml-config.xml tells Polylang and WPML not to copy the plugin's sync and import bookkeeping fields into translations (a copied field could make the next sync take a translation for the original).
-* Fix (Polylang): synced patterns and navigation menus keep their language and translation links in Content Sync and in files.
-* Fix (Polylang): the Sync Terms dialog offers "Send with translations (Polylang)" for translated taxonomies.
-* Fix: sync-push and sync-pull abilities no longer report an invalid result when translations make the result longer than the 50 selected posts.
-* Fix: a restarted Content Sync job counts every synced post, translations included.
-* Fix: Media Library sync counts a new media translation of an existing file as created, not skipped.
-* Fix: WP-CLI `export --options` accepts filters for WooCommerce orders and other PRO types; `import --type=taxonomy` accepts `--taxonomy`.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -404,7 +402,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.54 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.55 |
 
 ---
 

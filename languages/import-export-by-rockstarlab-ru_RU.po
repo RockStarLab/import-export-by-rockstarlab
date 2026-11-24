@@ -248,7 +248,7 @@ msgstr "Не удалось импортировать запись: %s"
 
 #. translators: %d: number of posts
 #: app/Controller/Content_Sync_API_Controller.php:845
-#: app/Service/Content_Sync_Service.php:3134
+#: app/Service/Content_Sync_Service.php:3144
 #, php-format
 msgid "Created %d post"
 msgid_plural "Created %d posts"
@@ -258,7 +258,7 @@ msgstr[2] "Создано %d записей"
 
 #. translators: %d: number of posts
 #: app/Controller/Content_Sync_API_Controller.php:853
-#: app/Service/Content_Sync_Service.php:3142
+#: app/Service/Content_Sync_Service.php:3152
 #, php-format
 msgid "Updated %d post"
 msgid_plural "Updated %d posts"
@@ -373,7 +373,7 @@ msgstr "Запись не удалось сохранить, поэтому он
 #: assets/js/admin-object-quick-actions.js:7045
 #: assets/js/admin-object-quick-actions.js:7048
 #: assets/js/app.js:41
-#: assets/js/app.js:25799
+#: assets/js/app.js:25806
 #: assets/js/media-library-export.js:115
 #: assets/js/media-library-export.js:118
 #: assets/js/post-sync-standalone.js:6645
@@ -404,8 +404,8 @@ msgstr "Не удалось загрузить записи с удалённо�
 #: assets/js/app.js:733
 #: assets/js/app.js:769
 #: assets/js/app.js:12324
-#: assets/js/app.js:30033
-#: assets/js/app.js:30056
+#: assets/js/app.js:30040
+#: assets/js/app.js:30063
 #: assets/js/post-sync-standalone.js:7642
 #: assets/js/post-sync-standalone.js:7671
 msgid "Unknown error"
@@ -503,7 +503,7 @@ msgstr "Готово!"
 #: app/Controller/Init.php:656
 #: assets/js/app.js:2
 #: assets/js/post-sync-standalone.js:2
-#: assets/js/app.js:27317
+#: assets/js/app.js:27324
 #: assets/js/post-sync-standalone.js:8413
 msgid "Sync completed successfully"
 msgstr "Синхронизация успешно завершена"
@@ -518,8 +518,8 @@ msgstr "Получение записей..."
 #: app/Controller/Init.php:661
 #: assets/js/app.js:2
 #: assets/js/post-sync-standalone.js:2
-#: assets/js/app.js:27350
-#: assets/js/app.js:27360
+#: assets/js/app.js:27357
+#: assets/js/app.js:27367
 #: assets/js/post-sync-standalone.js:8425
 msgid "Sync failed"
 msgstr "Ошибка синхронизации"
@@ -528,7 +528,7 @@ msgstr "Ошибка синхронизации"
 #: app/Controller/Init.php:662
 #: assets/js/app.js:2
 #: assets/js/post-sync-standalone.js:2
-#: assets/js/app.js:27374
+#: assets/js/app.js:27381
 #: assets/js/post-sync-standalone.js:8435
 msgid "An error occurred during sync"
 msgstr "Во время синхронизации произошла ошибка"
@@ -702,6 +702,10 @@ msgstr "Эндпоинт коллекции REST API для этого типа 
 msgid "Could not retrieve table columns"
 msgstr "Не удалось получить столбцы таблицы"
 
+#: app/Controller/Export_Controller.php:819
+msgid "Hidden field (its name starts with \"_\"). Not added by \"Add all\"; add it on its own if you need it."
+msgstr "Скрытое поле (имя начинается с «_»). «Add all» его не добавляет; добавьте его отдельно, если оно нужно."
+
 #: app/Controller/Files_Controller.php:38
 msgid "Use GET to download an export."
 msgstr "Чтобы скачать экспорт, используйте GET."
@@ -761,9 +765,9 @@ msgstr "Обработка..."
 #: app/Controller/Init.php:597
 #: app/View/settings/jobs-log.php:47
 #: assets/js/app.js:2
-#: assets/js/app.js:23819
-#: assets/js/app.js:25519
-#: assets/js/app.js:25970
+#: assets/js/app.js:23826
+#: assets/js/app.js:25526
+#: assets/js/app.js:25977
 msgid "Completed"
 msgstr "Завершено"
 
@@ -772,13 +776,13 @@ msgstr "Завершено"
 #: app/View/settings/jobs-log.php:48
 #: app/View/settings/partials/import-step-6.php:101
 #: assets/js/app.js:2
-#: assets/js/app.js:23822
-#: assets/js/app.js:23967
-#: assets/js/app.js:24749
-#: assets/js/app.js:25489
-#: assets/js/app.js:25973
-#: assets/js/app.js:28404
-#: assets/js/app.js:30286
+#: assets/js/app.js:23829
+#: assets/js/app.js:23974
+#: assets/js/app.js:24756
+#: assets/js/app.js:25496
+#: assets/js/app.js:25980
+#: assets/js/app.js:28411
+#: assets/js/app.js:30293
 msgid "Failed"
 msgstr "Ошибка"
 
@@ -873,7 +877,7 @@ msgstr "Введите путь к файлу на сервере или наж�
 #. translators: 1: server name, 2: path on the server.
 #: app/Controller/Init.php:424
 #: assets/js/app.js:2
-#: assets/js/app.js:18533
+#: assets/js/app.js:18540
 #, php-format,js-format
 msgid "Uploaded to %1$s: %2$s"
 msgstr "Загружено на %1$s: %2$s"
@@ -1054,7 +1058,7 @@ msgstr "Перед сохранением шаблона сопоставьте 
 #: app/Controller/Init.php:464
 #: assets/js/app.js:2
 #: assets/js/app.js:11044
-#: assets/js/app.js:25132
+#: assets/js/app.js:25139
 msgid "Template name (for example \"Supplier price list\"):"
 msgstr "Название шаблона (например, «Прайс поставщика»):"
 
@@ -1062,7 +1066,7 @@ msgstr "Название шаблона (например, «Прайс пост
 #: app/Controller/Init.php:466
 #: assets/js/app.js:2
 #: assets/js/app.js:11064
-#: assets/js/app.js:25159
+#: assets/js/app.js:25166
 #, php-format,js-format
 msgid "A template named \"%s\" already exists. Replace it?"
 msgstr "Шаблон «%s» уже существует. Заменить его?"
@@ -1100,26 +1104,26 @@ msgstr "Удалить шаблон «%s»? Импорты, сделанные �
 #: app/Controller/Init.php:474
 #: assets/js/app.js:2
 #: assets/js/app.js:12153
-#: assets/js/app.js:25709
+#: assets/js/app.js:25716
 msgid "Download rows with errors (CSV)"
 msgstr "Скачать строки с ошибками (CSV)"
 
 #: app/Controller/Init.php:475
 #: assets/js/app.js:2
-#: assets/js/app.js:25670
+#: assets/js/app.js:25677
 msgid "Rows with errors"
 msgstr "Строки с ошибками"
 
 #: app/Controller/Init.php:476
 #: assets/js/app.js:2
-#: assets/js/app.js:25697
+#: assets/js/app.js:25704
 msgid "The first 50 rows are shown. The CSV has all of them."
 msgstr "Показаны первые 50 строк. В CSV есть все."
 
 #: app/Controller/Init.php:477
 #: app/Helper/Import_Row_Error.php:192
 #: assets/js/app.js:2
-#: assets/js/app.js:25688
+#: assets/js/app.js:25695
 msgid "How to fix"
 msgstr "Как исправить"
 
@@ -1128,7 +1132,7 @@ msgstr "Как исправить"
 #: app/Helper/Import_Row_Error.php:189
 #: assets/js/app.js:2
 #: assets/js/app.js:12116
-#: assets/js/app.js:25676
+#: assets/js/app.js:25683
 msgid "Row"
 msgstr "Строка"
 
@@ -1146,14 +1150,14 @@ msgstr "Одну строку не удалось импортировать. П
 
 #: app/Controller/Init.php:482
 #: assets/js/app.js:2
-#: assets/js/app.js:24992
+#: assets/js/app.js:24999
 msgid "Save field mapping as template"
 msgstr "Сохранить сопоставление полей как шаблон"
 
 #. translators: %s: template name or column name.
 #: app/Controller/Init.php:484
 #: assets/js/app.js:2
-#: assets/js/app.js:25173
+#: assets/js/app.js:25180
 #, php-format,js-format
 msgid "Template \"%s\" saved. Choose it in step 4 of the import wizard."
 msgstr "Шаблон «%s» сохранён. Выберите его на шаге 4 мастера импорта."
@@ -1299,7 +1303,7 @@ msgstr "Мета-ключ произвольного поля (например,
 #: assets/js/app.js:1404
 #: assets/js/app.js:3717
 #: assets/js/app.js:8764
-#: assets/js/app.js:24816
+#: assets/js/app.js:24823
 #: assets/js/media-library-sync.js:773
 #: assets/js/taxonomy-quick-actions.js:636
 msgid "Cancel"
@@ -1336,7 +1340,7 @@ msgstr "Преобразования полей"
 #: app/View/settings/partials/export-step-2.php:143
 #: assets/js/app.js:2
 #: assets/js/app.js:8568
-#: assets/js/app.js:25680
+#: assets/js/app.js:25687
 msgid "Field"
 msgstr "Поле"
 
@@ -1345,7 +1349,7 @@ msgstr "Поле"
 #: app/View/settings/jobs-log.php:73
 #: assets/js/app.js:2
 #: assets/js/app.js:8577
-#: assets/js/app.js:25437
+#: assets/js/app.js:25444
 msgid "Type"
 msgstr "Тип"
 
@@ -1461,7 +1465,7 @@ msgstr "Применить преобразования"
 #: app/Controller/Init.php:534
 #: assets/js/app.js:2
 #: assets/js/app.js:9141
-#: assets/js/app.js:15769
+#: assets/js/app.js:15776
 msgid "Initial Value"
 msgstr "Исходное значение"
 
@@ -1488,32 +1492,32 @@ msgstr "Перетащите столбцы источника на поля Wor
 
 #: app/Controller/Init.php:541
 #: assets/js/app.js:2
-#: assets/js/app.js:24917
+#: assets/js/app.js:24924
 msgid "View Details"
 msgstr "Подробнее"
 
 #: app/Controller/Init.php:542
 #: app/View/settings/jobs-log.php:72
 #: assets/js/app.js:2
-#: assets/js/app.js:25428
+#: assets/js/app.js:25435
 msgid "Job Name"
 msgstr "Название задания"
 
 #: app/Controller/Init.php:543
 #: assets/js/app.js:2
-#: assets/js/app.js:24724
+#: assets/js/app.js:24731
 msgid "Click to rename this job"
 msgstr "Нажмите, чтобы переименовать задание"
 
 #: app/Controller/Init.php:544
 #: assets/js/app.js:2
-#: assets/js/app.js:24804
+#: assets/js/app.js:24811
 msgid "Custom job name..."
 msgstr "Своё название задания..."
 
 #: app/Controller/Init.php:545
 #: assets/js/app.js:2
-#: assets/js/app.js:24812
+#: assets/js/app.js:24819
 msgid "Save"
 msgstr "Сохранить"
 
@@ -1521,31 +1525,31 @@ msgstr "Сохранить"
 #: app/Controller/Init.php:1175
 #: app/View/settings/triggers.php:133
 #: assets/js/app.js:2
-#: assets/js/app.js:24950
+#: assets/js/app.js:24957
 msgid "Resume"
 msgstr "Возобновить"
 
 #: app/Controller/Init.php:547
 #: assets/js/app.js:2
-#: assets/js/app.js:24937
+#: assets/js/app.js:24944
 msgid "Continue in this window"
 msgstr "Продолжить в этом окне"
 
 #: app/Controller/Init.php:548
 #: assets/js/app.js:2
-#: assets/js/app.js:24960
+#: assets/js/app.js:24967
 msgid "Restart"
 msgstr "Перезапустить"
 
 #: app/Controller/Init.php:549
 #: assets/js/app.js:2
-#: assets/js/app.js:24970
+#: assets/js/app.js:24977
 msgid "Retry (Create new job with same parameters)"
 msgstr "Повторить (создать новое задание с теми же параметрами)"
 
 #: app/Controller/Init.php:550
 #: assets/js/app.js:2
-#: assets/js/app.js:25009
+#: assets/js/app.js:25016
 msgid "Download"
 msgstr "Скачать"
 
@@ -1556,8 +1560,8 @@ msgstr "Скачать"
 #: app/View/settings/schedules.php:286
 #: app/View/settings/triggers.php:141
 #: assets/js/app.js:2
-#: assets/js/app.js:25019
-#: assets/js/app.js:26255
+#: assets/js/app.js:25026
+#: assets/js/app.js:26262
 msgid "Delete"
 msgstr "Удалить"
 
@@ -1606,13 +1610,13 @@ msgstr "Ошибка повтора задания: "
 #: app/Controller/Init.php:562
 #: app/Controller/Job_Controller.php:350
 #: assets/js/app.js:2
-#: assets/js/app.js:24846
+#: assets/js/app.js:24853
 msgid "Job name updated successfully"
 msgstr "Название задания обновлено"
 
 #: app/Controller/Init.php:563
 #: assets/js/app.js:2
-#: assets/js/app.js:24858
+#: assets/js/app.js:24865
 msgid "Error renaming job: "
 msgstr "Ошибка переименования задания: "
 
@@ -1643,21 +1647,21 @@ msgstr "Ошибка загрузки сведений о задании: "
 #: app/Controller/Init.php:958
 #: app/View/settings/jobs-log.php:71
 #: assets/js/app.js:2
-#: assets/js/app.js:19757
-#: assets/js/app.js:19982
-#: assets/js/app.js:25419
+#: assets/js/app.js:19764
+#: assets/js/app.js:19989
+#: assets/js/app.js:25426
 msgid "ID"
 msgstr "ID"
 
 #: app/Controller/Init.php:571
 #: assets/js/app.js:2
-#: assets/js/app.js:25446
+#: assets/js/app.js:25453
 msgid "Data Type"
 msgstr "Тип данных"
 
 #: app/Controller/Init.php:572
 #: assets/js/app.js:2
-#: assets/js/app.js:25457
+#: assets/js/app.js:25464
 msgid "File Format"
 msgstr "Формат файла"
 
@@ -1676,16 +1680,16 @@ msgstr "Формат файла"
 #: assets/js/app.js:7198
 #: assets/js/app.js:7327
 #: assets/js/app.js:9373
-#: assets/js/app.js:21934
-#: assets/js/app.js:22037
-#: assets/js/app.js:25466
+#: assets/js/app.js:21941
+#: assets/js/app.js:22044
+#: assets/js/app.js:25473
 msgid "Status"
 msgstr "Статус"
 
 #: app/Controller/Init.php:574
 #: app/View/settings/jobs-log.php:75
 #: assets/js/app.js:2
-#: assets/js/app.js:25475
+#: assets/js/app.js:25482
 msgid "Progress"
 msgstr "Прогресс"
 
@@ -1693,14 +1697,14 @@ msgstr "Прогресс"
 #: app/View/settings/jobs-log.php:76
 #: assets/js/app.js:2
 #: assets/js/app.js:4420
-#: assets/js/app.js:25482
+#: assets/js/app.js:25489
 msgid "Items"
 msgstr "Элементы"
 
 #: app/Controller/Init.php:576
 #: assets/js/app.js:2
-#: assets/js/app.js:25486
-#: assets/js/app.js:28402
+#: assets/js/app.js:25493
+#: assets/js/app.js:28409
 msgid "Success"
 msgstr "Успешно"
 
@@ -1708,13 +1712,13 @@ msgstr "Успешно"
 #: app/View/settings/jobs-log.php:77
 #: app/View/settings/partials/import-step-6.php:83
 #: assets/js/app.js:2
-#: assets/js/app.js:25497
+#: assets/js/app.js:25504
 msgid "Created"
 msgstr "Создано"
 
 #: app/Controller/Init.php:578
 #: assets/js/app.js:2
-#: assets/js/app.js:25508
+#: assets/js/app.js:25515
 msgid "Started"
 msgstr "Запущено"
 
@@ -1722,26 +1726,26 @@ msgstr "Запущено"
 #: app/Controller/Init.php:840
 #: assets/js/app.js:2
 #: assets/js/app.js:4182
-#: assets/js/app.js:25530
+#: assets/js/app.js:25537
 msgid "File"
 msgstr "Файл"
 
 #: app/Controller/Init.php:581
 #: app/View/settings/partials/export-step-5.php:73
 #: assets/js/app.js:2
-#: assets/js/app.js:25548
+#: assets/js/app.js:25555
 msgid "File Size"
 msgstr "Размер файла"
 
 #: app/Controller/Init.php:582
 #: assets/js/app.js:2
-#: assets/js/app.js:25564
+#: assets/js/app.js:25571
 msgid "Parameters"
 msgstr "Параметры"
 
 #: app/Controller/Init.php:583
 #: assets/js/app.js:2
-#: assets/js/app.js:25629
+#: assets/js/app.js:25636
 msgid "Warnings"
 msgstr "Предупреждения"
 
@@ -1782,7 +1786,7 @@ msgstr "Все строки импортированы. Замечаний, тр
 #: assets/js/app.js:2
 #: assets/js/post-sync-standalone.js:2
 #: assets/js/app.js:37
-#: assets/js/app.js:25796
+#: assets/js/app.js:25803
 #: assets/js/post-sync-standalone.js:6641
 msgid "Import"
 msgstr "Импорт"
@@ -1790,26 +1794,26 @@ msgstr "Импорт"
 #: app/Controller/Init.php:591
 #: app/View/settings/jobs-log.php:32
 #: assets/js/app.js:2
-#: assets/js/app.js:25802
+#: assets/js/app.js:25809
 msgid "Content Sync - Push"
 msgstr "Синхронизация контента — отправка"
 
 #: app/Controller/Init.php:592
 #: app/View/settings/jobs-log.php:33
 #: assets/js/app.js:2
-#: assets/js/app.js:25805
+#: assets/js/app.js:25812
 msgid "Content Sync - Pull"
 msgstr "Синхронизация контента — получение"
 
 #: app/Controller/Init.php:593
 #: assets/js/app.js:2
-#: assets/js/app.js:25808
+#: assets/js/app.js:25815
 msgid "Content Sync - Background"
 msgstr "Синхронизация контента — в фоне"
 
 #: app/Controller/Init.php:594
 #: assets/js/app.js:2
-#: assets/js/app.js:25833
+#: assets/js/app.js:25840
 msgid "Content Sync - Product Variations"
 msgstr "Синхронизация контента — вариации товаров"
 
@@ -1821,7 +1825,7 @@ msgstr "Синхронизация контента — вариации тов�
 #: assets/js/admin-object-quick-actions.js:2
 #: assets/js/app.js:2
 #: assets/js/admin-object-quick-actions.js:9016
-#: assets/js/app.js:25964
+#: assets/js/app.js:25971
 msgid "Pending"
 msgstr "В очереди"
 
@@ -1830,7 +1834,7 @@ msgstr "В очереди"
 #: assets/js/app.js:2
 #: assets/js/post-sync-standalone.js:2
 #: assets/js/app.js:90
-#: assets/js/app.js:25967
+#: assets/js/app.js:25974
 #: assets/js/post-sync-standalone.js:6694
 msgid "Processing"
 msgstr "Обработка"
@@ -1841,18 +1845,18 @@ msgstr "Обработка"
 #: app/View/settings/schedules.php:228
 #: app/View/settings/triggers.php:109
 #: assets/js/app.js:2
-#: assets/js/app.js:23828
-#: assets/js/app.js:25976
-#: assets/js/app.js:30288
+#: assets/js/app.js:23835
+#: assets/js/app.js:25983
+#: assets/js/app.js:30295
 msgid "Paused"
 msgstr "На паузе"
 
 #: app/Controller/Init.php:600
 #: app/View/settings/jobs-log.php:50
 #: assets/js/app.js:2
-#: assets/js/app.js:23825
-#: assets/js/app.js:25979
-#: assets/js/app.js:30290
+#: assets/js/app.js:23832
+#: assets/js/app.js:25986
+#: assets/js/app.js:30297
 msgid "Cancelled"
 msgstr "Отменено"
 
@@ -1870,7 +1874,7 @@ msgstr "Не удалось удалить сайт"
 
 #: app/Controller/Init.php:606
 #: assets/js/app.js:2
-#: assets/js/app.js:28018
+#: assets/js/app.js:28025
 msgid "Connection test failed"
 msgstr "Проверка подключения не пройдена"
 
@@ -1909,71 +1913,71 @@ msgstr "Не удалось создать новый API-ключ"
 
 #: app/Controller/Init.php:616
 #: assets/js/app.js:2
-#: assets/js/app.js:23185
+#: assets/js/app.js:23192
 msgid "No files found matching the criteria"
 msgstr "Файлы по заданным условиям не найдены"
 
 #. translators: %d is a dynamic value.
 #: app/Controller/Init.php:618
 #: assets/js/app.js:2
-#: assets/js/app.js:23196
+#: assets/js/app.js:23203
 #, php-format,js-format
 msgid "Found %d files ready to sync"
 msgstr "Найдено файлов, готовых к синхронизации: %d"
 
 #: app/Controller/Init.php:619
 #: assets/js/app.js:2
-#: assets/js/app.js:23244
+#: assets/js/app.js:23251
 msgid "No Files Found"
 msgstr "Файлы не найдены"
 
 #: app/Controller/Init.php:620
 #: assets/js/app.js:2
-#: assets/js/app.js:23248
+#: assets/js/app.js:23255
 msgid "No files matching your criteria were found in the selected folder."
 msgstr "В выбранной папке нет файлов, подходящих под условия."
 
 #. translators: %s = content placeholder.
 #: app/Controller/Init.php:622
 #: assets/js/app.js:2
-#: assets/js/app.js:23256
+#: assets/js/app.js:23263
 msgid "Suggestions"
 msgstr "Советы"
 
 #: app/Controller/Init.php:623
 #: assets/js/app.js:2
-#: assets/js/app.js:23261
+#: assets/js/app.js:23268
 msgid "Check if the folder path is correct"
 msgstr "Проверьте, правильно ли указан путь к папке"
 
 #: app/Controller/Init.php:624
 #: assets/js/app.js:2
-#: assets/js/app.js:23268
+#: assets/js/app.js:23275
 msgid "Try enabling \"Scan Recursive\" to search in subfolders"
 msgstr "Включите «Сканировать вложенные папки», чтобы искать в подпапках"
 
 #: app/Controller/Init.php:625
 #: assets/js/app.js:2
-#: assets/js/app.js:23275
+#: assets/js/app.js:23282
 msgid "Change the file type filter"
 msgstr "Измените фильтр типов файлов"
 
 #: app/Controller/Init.php:626
 #: assets/js/app.js:2
-#: assets/js/app.js:23282
+#: assets/js/app.js:23289
 msgid "Make sure the folder contains supported media files"
 msgstr "Убедитесь, что в папке есть поддерживаемые медиафайлы"
 
 #: app/Controller/Init.php:627
 #: assets/js/app.js:2
-#: assets/js/app.js:23346
+#: assets/js/app.js:23353
 msgid "Scan Complete"
 msgstr "Сканирование завершено"
 
 #. translators: %1$s is a dynamic value, %2$s is a dynamic value.
 #: app/Controller/Init.php:629
 #: assets/js/app.js:2
-#: assets/js/app.js:23327
+#: assets/js/app.js:23334
 #, php-format,js-format
 msgid "Found %1$s files ready for synchronization (Total: %2$s)"
 msgstr "Найдено файлов, готовых к синхронизации: %1$s (всего: %2$s)"
@@ -1981,13 +1985,13 @@ msgstr "Найдено файлов, готовых к синхронизаци�
 #: app/Controller/Init.php:630
 #: app/View/settings/partials/media-sync-step-1.php:141
 #: assets/js/app.js:2
-#: assets/js/app.js:23352
+#: assets/js/app.js:23359
 msgid "File Types"
 msgstr "Типы файлов"
 
 #: app/Controller/Init.php:631
 #: assets/js/app.js:2
-#: assets/js/app.js:23365
+#: assets/js/app.js:23372
 msgid "All files will be processed in batches. Click \"Start Sync\" below to begin."
 msgstr "Все файлы будут обработаны партиями. Нажмите «Начать синхронизацию» ниже."
 
@@ -2037,13 +2041,13 @@ msgstr "Синхронизация отменена"
 
 #: app/Controller/Init.php:646
 #: assets/js/app.js:2
-#: assets/js/app.js:27177
+#: assets/js/app.js:27184
 msgid "push to"
 msgstr "отправить на"
 
 #: app/Controller/Init.php:647
 #: assets/js/app.js:2
-#: assets/js/app.js:27179
+#: assets/js/app.js:27186
 msgid "pull from"
 msgstr "получить с"
 
@@ -2062,7 +2066,7 @@ msgstr "Это затронет записей: %3$s."
 #: app/Controller/Init.php:650
 #: assets/js/app.js:2
 #: assets/js/post-sync-standalone.js:2
-#: assets/js/app.js:27203
+#: assets/js/app.js:27210
 #: assets/js/post-sync-standalone.js:8478
 msgid "Preparing to push content..."
 msgstr "Подготовка к отправке контента..."
@@ -2070,7 +2074,7 @@ msgstr "Подготовка к отправке контента..."
 #: app/Controller/Init.php:651
 #: assets/js/app.js:2
 #: assets/js/post-sync-standalone.js:2
-#: assets/js/app.js:27208
+#: assets/js/app.js:27215
 #: assets/js/post-sync-standalone.js:8483
 msgid "Preparing to pull content..."
 msgstr "Подготовка к получению контента..."
@@ -2079,7 +2083,7 @@ msgstr "Подготовка к получению контента..."
 #: app/Controller/Init.php:653
 #: assets/js/app.js:2
 #: assets/js/post-sync-standalone.js:2
-#: assets/js/app.js:27238
+#: assets/js/app.js:27245
 #: assets/js/post-sync-standalone.js:8489
 msgid "Uploading content..."
 msgstr "Отправка контента..."
@@ -2088,7 +2092,7 @@ msgstr "Отправка контента..."
 #: app/Controller/Init.php:655
 #: assets/js/app.js:2
 #: assets/js/post-sync-standalone.js:2
-#: assets/js/app.js:27243
+#: assets/js/app.js:27250
 #: assets/js/post-sync-standalone.js:8491
 msgid "Downloading content..."
 msgstr "Получение контента..."
@@ -2102,7 +2106,7 @@ msgstr "✓ Создано записей: %1$d, обновлено: %2$d"
 #. translators: %d is a dynamic value.
 #: app/Controller/Init.php:660
 #: assets/js/app.js:2
-#: assets/js/app.js:27336
+#: assets/js/app.js:27343
 #, php-format,js-format
 msgid "✓ Synced %d image(s)"
 msgstr "✓ Синхронизировано изображений: %d"
@@ -2110,7 +2114,7 @@ msgstr "✓ Синхронизировано изображений: %d"
 #. translators: %1$s is a dynamic value, %2$s is a dynamic value.
 #: app/Controller/Init.php:664
 #: assets/js/app.js:2
-#: assets/js/app.js:27416
+#: assets/js/app.js:27423
 #, php-format,js-format
 msgid "Posts: %1$s/%2$s"
 msgstr "Записи: %1$s/%2$s"
@@ -2118,7 +2122,7 @@ msgstr "Записи: %1$s/%2$s"
 #. translators: %d is a dynamic value.
 #: app/Controller/Init.php:666
 #: assets/js/app.js:2
-#: assets/js/app.js:27426
+#: assets/js/app.js:27433
 #, php-format,js-format
 msgid "Images synced: %d"
 msgstr "Синхронизировано изображений: %d"
@@ -2203,7 +2207,7 @@ msgstr "Проверка..."
 #: app/View/settings/plugin_options.php:153
 #: app/View/settings/servers.php:86
 #: assets/js/app.js:2
-#: assets/js/app.js:26236
+#: assets/js/app.js:26243
 msgid "Test Connection"
 msgstr "Проверить подключение"
 
@@ -2221,14 +2225,14 @@ msgstr "Создать предпросмотр"
 #: app/View/settings/partials/import-step-5.php:300
 #: assets/js/app.js:2
 #: assets/js/app.js:11648
-#: assets/js/app.js:28248
+#: assets/js/app.js:28255
 msgid "Start Import"
 msgstr "Начать импорт"
 
 #: app/Controller/Init.php:694
 #: assets/js/app.js:2
 #: assets/js/app.js:11641
-#: assets/js/app.js:28259
+#: assets/js/app.js:28266
 msgid "Starting import..."
 msgstr "Запуск импорта..."
 
@@ -2262,10 +2266,10 @@ msgstr "Не удалось отменить импорт. Попробуйте 
 #: app/View/settings/content_sync.php:45
 #: assets/js/app.js:2
 #: assets/js/app.js:2433
-#: assets/js/app.js:19439
-#: assets/js/app.js:25684
-#: assets/js/app.js:26220
-#: assets/js/app.js:26618
+#: assets/js/app.js:19446
+#: assets/js/app.js:25691
+#: assets/js/app.js:26227
+#: assets/js/app.js:26625
 msgid "Error"
 msgstr "Ошибка"
 
@@ -2327,7 +2331,7 @@ msgstr "Ошибка загрузки таблиц"
 #: assets/js/admin-object-quick-actions.js:9599
 #: assets/js/admin-object-quick-actions.js:9817
 #: assets/js/admin-object-quick-actions.js:9844
-#: assets/js/app.js:27222
+#: assets/js/app.js:27229
 #: assets/js/media-library-sync.js:508
 #: assets/js/media-library-sync.js:681
 #: assets/js/media-library-sync.js:762
@@ -2392,8 +2396,8 @@ msgstr "Выберите поле..."
 #: app/View/settings/partials/export-step-2.php:151
 #: app/View/settings/partials/import-step-5.php:168
 #: assets/js/app.js:2
-#: assets/js/app.js:18867
-#: assets/js/app.js:18907
+#: assets/js/app.js:18874
+#: assets/js/app.js:18914
 msgid "Condition"
 msgstr "Условие"
 
@@ -2417,7 +2421,7 @@ msgstr "Назначить преобразования"
 
 #: app/Controller/Init.php:735
 #: assets/js/app.js:2
-#: assets/js/app.js:15588
+#: assets/js/app.js:15595
 msgid "Assign function"
 msgstr "Назначить функцию"
 
@@ -2451,32 +2455,32 @@ msgstr "Переименовать столбец"
 
 #: app/Controller/Init.php:741
 #: assets/js/app.js:2
-#: assets/js/app.js:20861
+#: assets/js/app.js:20868
 msgid "Parent SKU"
 msgstr "Артикул родителя"
 
 #: app/Controller/Init.php:742
 #: assets/js/app.js:2
-#: assets/js/app.js:20871
+#: assets/js/app.js:20878
 msgid "Product Title (parent on variation rows)"
 msgstr "Название товара (родительского в строках вариаций)"
 
 #: app/Controller/Init.php:743
 #: assets/js/app.js:2
-#: assets/js/app.js:20881
+#: assets/js/app.js:20888
 msgid "Product Slug (parent on variation rows)"
 msgstr "Ярлык товара (родительского в строках вариаций)"
 
 #: app/Controller/Init.php:744
 #: assets/js/app.js:2
-#: assets/js/app.js:20891
+#: assets/js/app.js:20898
 msgid "Variation Options"
 msgstr "Параметры вариации"
 
 #. translators: %d: option number, 1 to 3.
 #: app/Controller/Init.php:746
 #: assets/js/app.js:2
-#: assets/js/app.js:20902
+#: assets/js/app.js:20909
 #, php-format,js-format
 msgid "Option %d Name"
 msgstr "Название параметра %d"
@@ -2484,7 +2488,7 @@ msgstr "Название параметра %d"
 #. translators: %d: option number, 1 to 3.
 #: app/Controller/Init.php:748
 #: assets/js/app.js:2
-#: assets/js/app.js:20913
+#: assets/js/app.js:20920
 #, php-format,js-format
 msgid "Option %d Value"
 msgstr "Значение параметра %d"
@@ -2592,26 +2596,26 @@ msgstr "Нужна форма"
 
 #: app/Controller/Init.php:772
 #: assets/js/app.js:2
-#: assets/js/app.js:17505
+#: assets/js/app.js:17512
 msgid "Please choose the form whose entries you want to export."
 msgstr "Выберите форму, записи которой хотите экспортировать."
 
 #: app/Controller/Init.php:773
 #: assets/js/app.js:2
-#: assets/js/app.js:19392
+#: assets/js/app.js:19399
 msgid "Select a form..."
 msgstr "Выберите форму..."
 
 #: app/Controller/Init.php:774
 #: assets/js/app.js:2
-#: assets/js/app.js:19397
+#: assets/js/app.js:19404
 msgid "No forms found"
 msgstr "Формы не найдены"
 
 #: app/Controller/Init.php:775
 #: assets/js/app.js:2
-#: assets/js/app.js:19500
-#: assets/js/app.js:19532
+#: assets/js/app.js:19507
+#: assets/js/app.js:19539
 msgid "Entry"
 msgstr "Запись формы"
 
@@ -2621,7 +2625,7 @@ msgstr "Поля формы"
 
 #: app/Controller/Init.php:777
 #: assets/js/app.js:2
-#: assets/js/app.js:19552
+#: assets/js/app.js:19559
 msgid "Visitor"
 msgstr "Посетитель"
 
@@ -2647,7 +2651,7 @@ msgstr "Введите имя произвольного поля..."
 
 #: app/Controller/Init.php:782
 #: assets/js/app.js:2
-#: assets/js/app.js:18781
+#: assets/js/app.js:18788
 msgid "Custom field name"
 msgstr "Имя произвольного поля"
 
@@ -2758,7 +2762,7 @@ msgstr "Дополнительно"
 #: app/Controller/Init.php:813
 #: assets/js/app.js:2
 #: assets/js/app.js:6692
-#: assets/js/app.js:17288
+#: assets/js/app.js:17295
 msgid "Standard"
 msgstr "Основные"
 
@@ -2813,7 +2817,7 @@ msgstr "Даты"
 #: assets/js/app.js:6818
 #: assets/js/app.js:7144
 #: assets/js/app.js:9379
-#: assets/js/app.js:21910
+#: assets/js/app.js:21917
 msgid "Author"
 msgstr "Автор"
 
@@ -2887,8 +2891,8 @@ msgstr "Выбор таксономии"
 #: assets/js/app.js:6586
 #: assets/js/app.js:6942
 #: assets/js/app.js:8106
-#: assets/js/app.js:17287
-#: assets/js/app.js:20662
+#: assets/js/app.js:17294
+#: assets/js/app.js:20669
 msgid "Taxonomy"
 msgstr "Таксономия"
 
@@ -2899,7 +2903,7 @@ msgstr "Таксономия"
 #: assets/js/app.js:6708
 #: assets/js/app.js:7189
 #: assets/js/app.js:9361
-#: assets/js/app.js:21926
+#: assets/js/app.js:21933
 msgid "Content"
 msgstr "Содержимое"
 
@@ -2923,7 +2927,7 @@ msgstr "Тип товара"
 #: assets/js/app.js:2
 #: assets/js/app.js:5297
 #: assets/js/app.js:7769
-#: assets/js/app.js:22443
+#: assets/js/app.js:22450
 msgid "Shipping"
 msgstr "Доставка"
 
@@ -2935,9 +2939,9 @@ msgstr "Доставка"
 #: assets/js/app.js:2
 #: assets/js/app.js:3988
 #: assets/js/app.js:6862
-#: assets/js/app.js:20551
-#: assets/js/app.js:25891
-#: assets/js/app.js:29475
+#: assets/js/app.js:20558
+#: assets/js/app.js:25898
+#: assets/js/app.js:29482
 msgid "Media"
 msgstr "Медиафайлы"
 
@@ -2946,10 +2950,10 @@ msgstr "Медиафайлы"
 #: app/Model/Queue/AI_URL_Import_Processor.php:179
 #: assets/js/app.js:2
 #: assets/js/app.js:9415
-#: assets/js/app.js:19628
-#: assets/js/app.js:20557
-#: assets/js/app.js:20982
-#: assets/js/app.js:22539
+#: assets/js/app.js:19635
+#: assets/js/app.js:20564
+#: assets/js/app.js:20989
+#: assets/js/app.js:22546
 msgid "Featured Image"
 msgstr "Изображение записи"
 
@@ -2957,7 +2961,7 @@ msgstr "Изображение записи"
 #: assets/js/app.js:2
 #: assets/js/app.js:4242
 #: assets/js/app.js:6629
-#: assets/js/app.js:20715
+#: assets/js/app.js:20722
 msgid "Image"
 msgstr "Изображение"
 
@@ -3012,7 +3016,7 @@ msgstr "Произвольные поля (мета комментария)"
 #: app/Controller/Init.php:852
 #: assets/js/app.js:2
 #: assets/js/app.js:6659
-#: assets/js/app.js:20728
+#: assets/js/app.js:20735
 msgid "Custom Fields (Term Meta)"
 msgstr "Произвольные поля (мета термина)"
 
@@ -3030,8 +3034,8 @@ msgstr "Произвольные поля"
 #: assets/js/app.js:2
 #: assets/js/app.js:6937
 #: assets/js/app.js:8101
-#: assets/js/app.js:17221
-#: assets/js/app.js:29537
+#: assets/js/app.js:17228
+#: assets/js/app.js:29544
 msgid "Taxonomies"
 msgstr "Таксономии"
 
@@ -3069,7 +3073,7 @@ msgstr "Суммы"
 #: assets/js/app.js:2
 #: assets/js/app.js:6082
 #: assets/js/app.js:7603
-#: assets/js/app.js:22290
+#: assets/js/app.js:22297
 msgid "Customer"
 msgstr "Клиент"
 
@@ -3140,7 +3144,7 @@ msgstr "Настройки"
 #: app/Controller/Init.php:874
 #: assets/js/app.js:2
 #: assets/js/app.js:7045
-#: assets/js/app.js:18915
+#: assets/js/app.js:18922
 msgid "Terms"
 msgstr "Термины"
 
@@ -3179,7 +3183,7 @@ msgstr "Отрывок"
 #: assets/js/app.js:3912
 #: assets/js/app.js:6743
 #: assets/js/app.js:9385
-#: assets/js/app.js:21966
+#: assets/js/app.js:21973
 msgid "Date"
 msgstr "Дата"
 
@@ -3370,7 +3374,7 @@ msgstr "Имя автора"
 #: assets/js/app.js:4881
 #: assets/js/app.js:6852
 #: assets/js/app.js:7153
-#: assets/js/app.js:21918
+#: assets/js/app.js:21925
 msgid "Author Email"
 msgstr "Email автора"
 
@@ -3408,8 +3412,8 @@ msgstr "Области темы"
 #: assets/js/app.js:2
 #: assets/js/app.js:4482
 #: assets/js/app.js:7654
-#: assets/js/app.js:19989
-#: assets/js/app.js:22334
+#: assets/js/app.js:19996
+#: assets/js/app.js:22341
 msgid "Username"
 msgstr "Имя пользователя"
 
@@ -3418,8 +3422,8 @@ msgstr "Имя пользователя"
 #: assets/js/app.js:2
 #: assets/js/app.js:1442
 #: assets/js/app.js:4491
-#: assets/js/app.js:16009
-#: assets/js/app.js:19999
+#: assets/js/app.js:16016
+#: assets/js/app.js:20006
 msgid "Email"
 msgstr "Email"
 
@@ -3427,7 +3431,7 @@ msgstr "Email"
 #: assets/js/app.js:2
 #: assets/js/app.js:4509
 #: assets/js/app.js:7681
-#: assets/js/app.js:22358
+#: assets/js/app.js:22365
 msgid "Display Name"
 msgstr "Отображаемое имя"
 
@@ -3442,8 +3446,8 @@ msgstr "Ник (ярлык)"
 #: assets/js/app.js:6150
 #: assets/js/app.js:6235
 #: assets/js/app.js:7663
-#: assets/js/app.js:16006
-#: assets/js/app.js:22342
+#: assets/js/app.js:16013
+#: assets/js/app.js:22349
 msgid "First Name"
 msgstr "Имя"
 
@@ -3454,8 +3458,8 @@ msgstr "Имя"
 #: assets/js/app.js:6159
 #: assets/js/app.js:6244
 #: assets/js/app.js:7672
-#: assets/js/app.js:16007
-#: assets/js/app.js:22350
+#: assets/js/app.js:16014
+#: assets/js/app.js:22357
 msgid "Last Name"
 msgstr "Фамилия"
 
@@ -3474,7 +3478,7 @@ msgstr "Биография"
 #: app/Controller/Init.php:928
 #: assets/js/app.js:2
 #: assets/js/app.js:4566
-#: assets/js/app.js:20046
+#: assets/js/app.js:20053
 msgid "Website"
 msgstr "Сайт"
 
@@ -3491,7 +3495,7 @@ msgstr "Права (массив)"
 #: app/Controller/Init.php:932
 #: assets/js/app.js:2
 #: assets/js/app.js:4714
-#: assets/js/app.js:20192
+#: assets/js/app.js:20199
 msgid "Language"
 msgstr "Язык"
 
@@ -3562,7 +3566,7 @@ msgstr "IP автора"
 #: assets/js/app.js:2
 #: assets/js/app.js:4473
 #: assets/js/app.js:7225
-#: assets/js/app.js:20358
+#: assets/js/app.js:20365
 msgid "User ID"
 msgstr "ID пользователя"
 
@@ -3786,9 +3790,9 @@ msgstr "Класс доставки"
 #: assets/js/app.js:4011
 #: assets/js/app.js:5742
 #: assets/js/app.js:6885
-#: assets/js/app.js:19634
-#: assets/js/app.js:20567
-#: assets/js/app.js:20988
+#: assets/js/app.js:19641
+#: assets/js/app.js:20574
+#: assets/js/app.js:20995
 msgid "Featured Image ID"
 msgstr "ID изображения записи"
 
@@ -3797,9 +3801,9 @@ msgstr "ID изображения записи"
 #: assets/js/app.js:4002
 #: assets/js/app.js:5751
 #: assets/js/app.js:6876
-#: assets/js/app.js:19644
-#: assets/js/app.js:20577
-#: assets/js/app.js:20998
+#: assets/js/app.js:19651
+#: assets/js/app.js:20584
+#: assets/js/app.js:21005
 msgid "Featured Image URL"
 msgstr "URL изображения записи"
 
@@ -3808,9 +3812,9 @@ msgstr "URL изображения записи"
 #: assets/js/app.js:4020
 #: assets/js/app.js:5760
 #: assets/js/app.js:6894
-#: assets/js/app.js:19654
-#: assets/js/app.js:20587
-#: assets/js/app.js:21008
+#: assets/js/app.js:19661
+#: assets/js/app.js:20594
+#: assets/js/app.js:21015
 msgid "Featured Image Title"
 msgstr "Заголовок изображения записи"
 
@@ -3819,7 +3823,7 @@ msgstr "Заголовок изображения записи"
 #: assets/js/app.js:4029
 #: assets/js/app.js:5769
 #: assets/js/app.js:6903
-#: assets/js/app.js:19664
+#: assets/js/app.js:19671
 msgid "Featured Image Caption"
 msgstr "Подпись изображения записи"
 
@@ -3859,7 +3863,7 @@ msgstr "Отзывы включены"
 
 #: app/Controller/Init.php:1000
 #: assets/js/app.js:2
-#: assets/js/app.js:28176
+#: assets/js/app.js:28183
 msgid "Featured"
 msgstr "Рекомендуемый"
 
@@ -3904,7 +3908,7 @@ msgstr "Ключ заказа"
 #: assets/js/app.js:2
 #: assets/js/app.js:6009
 #: assets/js/app.js:7381
-#: assets/js/app.js:22085
+#: assets/js/app.js:22092
 msgid "Currency"
 msgstr "Валюта"
 
@@ -3943,7 +3947,7 @@ msgstr "Примечание клиента"
 #: assets/js/app.js:1441
 #: assets/js/app.js:6168
 #: assets/js/app.js:6253
-#: assets/js/app.js:16008
+#: assets/js/app.js:16015
 msgid "Company"
 msgstr "Компания"
 
@@ -3952,7 +3956,7 @@ msgstr "Компания"
 #: assets/js/app.js:1444
 #: assets/js/app.js:6177
 #: assets/js/app.js:6262
-#: assets/js/app.js:16011
+#: assets/js/app.js:16018
 msgid "Address 1"
 msgstr "Адрес 1"
 
@@ -3961,7 +3965,7 @@ msgstr "Адрес 1"
 #: assets/js/app.js:1445
 #: assets/js/app.js:6185
 #: assets/js/app.js:6270
-#: assets/js/app.js:16012
+#: assets/js/app.js:16019
 msgid "Address 2"
 msgstr "Адрес 2"
 
@@ -3970,7 +3974,7 @@ msgstr "Адрес 2"
 #: assets/js/app.js:1446
 #: assets/js/app.js:6193
 #: assets/js/app.js:6278
-#: assets/js/app.js:16013
+#: assets/js/app.js:16020
 msgid "City"
 msgstr "Город"
 
@@ -3979,7 +3983,7 @@ msgstr "Город"
 #: assets/js/app.js:1447
 #: assets/js/app.js:6199
 #: assets/js/app.js:6284
-#: assets/js/app.js:16014
+#: assets/js/app.js:16021
 msgid "State"
 msgstr "Область"
 
@@ -3988,7 +3992,7 @@ msgstr "Область"
 #: assets/js/app.js:1448
 #: assets/js/app.js:6208
 #: assets/js/app.js:6293
-#: assets/js/app.js:16015
+#: assets/js/app.js:16022
 msgid "Postcode"
 msgstr "Почтовый индекс"
 
@@ -3997,14 +4001,14 @@ msgstr "Почтовый индекс"
 #: assets/js/app.js:1449
 #: assets/js/app.js:6217
 #: assets/js/app.js:6302
-#: assets/js/app.js:16016
+#: assets/js/app.js:16023
 msgid "Country"
 msgstr "Страна"
 
 #: app/Controller/Init.php:1022
 #: assets/js/app.js:2
 #: assets/js/app.js:1443
-#: assets/js/app.js:16010
+#: assets/js/app.js:16017
 msgid "Phone"
 msgstr "Телефон"
 
@@ -4067,7 +4071,7 @@ msgstr "Заметки к заказу (массив)"
 
 #: app/Controller/Init.php:1033
 #: assets/js/app.js:2
-#: assets/js/app.js:21576
+#: assets/js/app.js:21583
 msgid "Refunds (Array)"
 msgstr "Возвраты (массив)"
 
@@ -4145,7 +4149,7 @@ msgstr "Количество использований"
 
 #: app/Controller/Init.php:1051
 #: assets/js/app.js:2
-#: assets/js/app.js:21745
+#: assets/js/app.js:21752
 msgid "Used By (Array)"
 msgstr "Кем использован (массив)"
 
@@ -4270,14 +4274,14 @@ msgstr "После"
 #: app/View/settings/content_sync.php:99
 #: app/View/settings/content_sync.php:132
 #: assets/js/app.js:2
-#: assets/js/app.js:26283
+#: assets/js/app.js:26290
 msgid "Add New Site"
 msgstr "Добавить сайт"
 
 #: app/Controller/Init.php:1086
 #: assets/js/app.js:2
-#: assets/js/app.js:17217
-#: assets/js/app.js:29478
+#: assets/js/app.js:17224
+#: assets/js/app.js:29485
 msgid "Posts"
 msgstr "Записи"
 
@@ -4285,9 +4289,9 @@ msgstr "Записи"
 #: app/View/settings/partials/export-step-1.php:71
 #: app/View/settings/partials/import-step-1.php:71
 #: assets/js/app.js:2
-#: assets/js/app.js:25880
-#: assets/js/app.js:25890
-#: assets/js/app.js:29481
+#: assets/js/app.js:25887
+#: assets/js/app.js:25897
+#: assets/js/app.js:29488
 msgid "Pages"
 msgstr "Страницы"
 
@@ -4297,8 +4301,8 @@ msgstr "Страницы"
 #: app/View/settings/partials/export-step-1.php:80
 #: app/View/settings/partials/import-step-1.php:80
 #: assets/js/app.js:2
-#: assets/js/app.js:25903
-#: assets/js/app.js:29484
+#: assets/js/app.js:25910
+#: assets/js/app.js:29491
 msgid "Comments"
 msgstr "Комментарии"
 
@@ -4308,8 +4312,8 @@ msgstr "Комментарии"
 #: app/Helper/Pro_Addon.php:306
 #: app/Service/Trigger_Service.php:638
 #: assets/js/app.js:2
-#: assets/js/app.js:25902
-#: assets/js/app.js:29487
+#: assets/js/app.js:25909
+#: assets/js/app.js:29494
 msgid "Users"
 msgstr "Пользователи"
 
@@ -4318,85 +4322,85 @@ msgstr "Пользователи"
 #: app/Helper/Pro_Addon.php:189
 #: app/Service/Trigger_Service.php:639
 #: assets/js/app.js:2
-#: assets/js/app.js:25901
-#: assets/js/app.js:29464
-#: assets/js/app.js:29490
-#: assets/js/app.js:29529
+#: assets/js/app.js:25908
+#: assets/js/app.js:29471
+#: assets/js/app.js:29497
+#: assets/js/app.js:29536
 msgid "Menus"
 msgstr "Меню"
 
 #: app/Controller/Init.php:1091
 #: assets/js/app.js:2
-#: assets/js/app.js:29493
+#: assets/js/app.js:29500
 msgid "Product attributes"
 msgstr "Атрибуты товаров"
 
 #: app/Controller/Init.php:1092
 #: assets/js/app.js:2
-#: assets/js/app.js:29496
+#: assets/js/app.js:29503
 msgid "Products"
 msgstr "Товары"
 
 #: app/Controller/Init.php:1093
 #: app/Controller/Site_Migration_Controller.php:496
 #: assets/js/app.js:2
-#: assets/js/app.js:29499
+#: assets/js/app.js:29506
 msgid "Coupons"
 msgstr "Купоны"
 
 #: app/Controller/Init.php:1094
 #: assets/js/app.js:2
-#: assets/js/app.js:29502
+#: assets/js/app.js:29509
 msgid "Customers"
 msgstr "Клиенты"
 
 #: app/Controller/Init.php:1095
 #: assets/js/app.js:2
-#: assets/js/app.js:29505
+#: assets/js/app.js:29512
 msgid "Orders"
 msgstr "Заказы"
 
 #: app/Controller/Init.php:1096
 #: assets/js/app.js:2
-#: assets/js/app.js:29508
+#: assets/js/app.js:29515
 msgid "Refunds"
 msgstr "Возвраты"
 
 #: app/Controller/Init.php:1097
 #: assets/js/app.js:2
-#: assets/js/app.js:29511
+#: assets/js/app.js:29518
 msgid "Product reviews"
 msgstr "Отзывы о товарах"
 
 #: app/Controller/Init.php:1098
 #: assets/js/app.js:2
-#: assets/js/app.js:26310
+#: assets/js/app.js:26317
 msgid "Edit Site"
 msgstr "Изменить сайт"
 
 #: app/Controller/Init.php:1099
 #: assets/js/app.js:2
-#: assets/js/app.js:26322
+#: assets/js/app.js:26329
 msgid "Leave empty to keep the current key"
 msgstr "Оставьте пустым, чтобы сохранить текущий ключ"
 
 #: app/Controller/Init.php:1100
 #: app/View/settings/content_sync.php:177
 #: assets/js/app.js:2
-#: assets/js/app.js:26666
+#: assets/js/app.js:26673
 msgid "Save Connection"
 msgstr "Сохранить подключение"
 
 #: app/Controller/Init.php:1101
 #: assets/js/app.js:2
-#: assets/js/app.js:26821
+#: assets/js/app.js:26828
 msgid "Hide Details"
 msgstr "Скрыть подробности"
 
 #: app/Controller/Init.php:1102
 #: app/View/settings/content_sync.php:56
 #: assets/js/app.js:2
-#: assets/js/app.js:26828
+#: assets/js/app.js:26835
 msgid "Show Details"
 msgstr "Показать подробности"
 
@@ -4404,210 +4408,210 @@ msgstr "Показать подробности"
 #: app/View/settings/agent-connection.php:142
 #: app/View/settings/partials/agent-client-settings.php:41
 #: assets/js/app.js:2
-#: assets/js/app.js:26850
-#: assets/js/app.js:29053
+#: assets/js/app.js:26857
+#: assets/js/app.js:29060
 msgid "Copied!"
 msgstr "Скопировано!"
 
 #. translators: %s = content placeholder.
 #: app/Controller/Init.php:1105
 #: assets/js/app.js:2
-#: assets/js/app.js:26877
+#: assets/js/app.js:26884
 msgid "Regenerating..."
 msgstr "Создание нового ключа..."
 
 #: app/Controller/Init.php:1106
 #: assets/js/app.js:2
-#: assets/js/app.js:26900
+#: assets/js/app.js:26907
 msgid "Regenerated!"
 msgstr "Новый ключ создан!"
 
 #: app/Controller/Init.php:1107
 #: assets/js/app.js:2
-#: assets/js/app.js:26394
+#: assets/js/app.js:26401
 msgid "Updating..."
 msgstr "Обновление..."
 
 #: app/Controller/Init.php:1108
 #: assets/js/app.js:2
-#: assets/js/app.js:26396
+#: assets/js/app.js:26403
 msgid "Validating & Saving..."
 msgstr "Проверка и сохранение..."
 
 #: app/Controller/Init.php:1109
 #: assets/js/app.js:2
-#: assets/js/app.js:26407
+#: assets/js/app.js:26414
 msgid "Validating API key..."
 msgstr "Проверка API-ключа..."
 
 #: app/Controller/Init.php:1110
 #: assets/js/app.js:2
-#: assets/js/app.js:26412
+#: assets/js/app.js:26419
 msgid "Please wait while we verify the connection to the remote site."
 msgstr "Подождите, пока мы проверим подключение к удалённому сайту."
 
 #: app/Controller/Init.php:1111
 #: assets/js/app.js:2
-#: assets/js/app.js:26429
+#: assets/js/app.js:26436
 msgid "Operation completed successfully"
 msgstr "Операция успешно выполнена"
 
 #: app/Controller/Init.php:1112
 #: assets/js/app.js:2
-#: assets/js/app.js:26439
+#: assets/js/app.js:26446
 msgid "No Changes"
 msgstr "Без изменений"
 
 #: app/Controller/Init.php:1113
 #: assets/js/app.js:2
-#: assets/js/app.js:26453
+#: assets/js/app.js:26460
 msgid "Success!"
 msgstr "Готово!"
 
 #: app/Controller/Init.php:1114
 #: assets/js/app.js:2
-#: assets/js/app.js:26470
+#: assets/js/app.js:26477
 msgid "Validation Failed"
 msgstr "Проверка не пройдена"
 
 #: app/Controller/Init.php:1115
 #: assets/js/app.js:2
-#: assets/js/app.js:26477
+#: assets/js/app.js:26484
 msgid "Failed to save site connection"
 msgstr "Не удалось сохранить подключение к сайту"
 
 #: app/Controller/Init.php:1116
 #: assets/js/app.js:2
-#: assets/js/app.js:26487
+#: assets/js/app.js:26494
 msgid "Connection Error"
 msgstr "Ошибка подключения"
 
 #: app/Controller/Init.php:1117
 #: assets/js/app.js:2
-#: assets/js/app.js:26490
+#: assets/js/app.js:26497
 msgid "An unexpected error occurred while trying to save the site connection."
 msgstr "При сохранении подключения к сайту произошла непредвиденная ошибка."
 
 #: app/Controller/Init.php:1118
 #: assets/js/app.js:2
-#: assets/js/app.js:26515
+#: assets/js/app.js:26522
 msgid "Connection Failed"
 msgstr "Не удалось подключиться"
 
 #: app/Controller/Init.php:1119
 #: assets/js/app.js:2
-#: assets/js/app.js:26521
+#: assets/js/app.js:26528
 msgid "Possible reasons:"
 msgstr "Возможные причины:"
 
 #: app/Controller/Init.php:1120
 #: assets/js/app.js:2
-#: assets/js/app.js:26528
+#: assets/js/app.js:26535
 msgid "- The URL is incorrect or not accessible"
 msgstr "- URL указан неверно или недоступен"
 
 #: app/Controller/Init.php:1121
 #: assets/js/app.js:2
-#: assets/js/app.js:26535
+#: assets/js/app.js:26542
 msgid "- The remote site is offline"
 msgstr "- Удалённый сайт не работает"
 
 #: app/Controller/Init.php:1122
 #: assets/js/app.js:2
-#: assets/js/app.js:26542
+#: assets/js/app.js:26549
 msgid "- Network or firewall issues are blocking the connection"
 msgstr "- Подключение блокирует сеть или брандмауэр"
 
 #: app/Controller/Init.php:1123
 #: assets/js/app.js:2
-#: assets/js/app.js:26550
+#: assets/js/app.js:26557
 msgid "Invalid API Key"
 msgstr "Неверный API-ключ"
 
 #: app/Controller/Init.php:1124
 #: assets/js/app.js:2
-#: assets/js/app.js:26556
+#: assets/js/app.js:26563
 msgid "To resolve this issue:"
 msgstr "Как это исправить:"
 
 #: app/Controller/Init.php:1125
 #: assets/js/app.js:2
-#: assets/js/app.js:26563
+#: assets/js/app.js:26570
 msgid "- Go to Content Sync page on the remote site"
 msgstr "- Откройте страницу «Синхронизация контента» на удалённом сайте"
 
 #: app/Controller/Init.php:1126
 #: assets/js/app.js:2
-#: assets/js/app.js:26570
+#: assets/js/app.js:26577
 msgid "- Click \"Show Details\" to reveal the API key"
 msgstr "- Нажмите «Показать подробности», чтобы увидеть API-ключ"
 
 #. translators: %s = content placeholder.
 #: app/Controller/Init.php:1128
 #: assets/js/app.js:2
-#: assets/js/app.js:26577
+#: assets/js/app.js:26584
 msgid "- Copy the entire key and paste it here"
 msgstr "- Скопируйте ключ целиком и вставьте его сюда"
 
 #: app/Controller/Init.php:1129
 #: assets/js/app.js:2
-#: assets/js/app.js:26588
+#: assets/js/app.js:26595
 msgid "Plugin Not Found"
 msgstr "Плагин не найден"
 
 #: app/Controller/Init.php:1130
 #: assets/js/app.js:2
-#: assets/js/app.js:26596
+#: assets/js/app.js:26603
 msgid "Duplicate Connection"
 msgstr "Подключение уже есть"
 
 #: app/Controller/Init.php:1131
 #: assets/js/app.js:2
-#: assets/js/app.js:26602
+#: assets/js/app.js:26609
 msgid "This site URL is already in your connected sites list."
 msgstr "Этот адрес сайта уже есть в списке подключённых сайтов."
 
 #: app/Controller/Init.php:1132
 #: assets/js/app.js:2
-#: assets/js/app.js:26610
+#: assets/js/app.js:26617
 msgid "Validation Error"
 msgstr "Ошибка проверки"
 
 #: app/Controller/Init.php:1133
 #: assets/js/app.js:2
-#: assets/js/app.js:26624
+#: assets/js/app.js:26631
 msgid "Network Error"
 msgstr "Ошибка сети"
 
 #: app/Controller/Init.php:1134
 #: assets/js/app.js:2
-#: assets/js/app.js:26627
+#: assets/js/app.js:26634
 msgid "Unable to connect to the server. Please check your internet connection."
 msgstr "Не удаётся связаться с сервером. Проверьте подключение к интернету."
 
 #: app/Controller/Init.php:1135
 #: assets/js/app.js:2
-#: assets/js/app.js:26634
+#: assets/js/app.js:26641
 msgid "Server Error"
 msgstr "Ошибка сервера"
 
 #. translators: %s is a dynamic value.
 #: app/Controller/Init.php:1137
 #: assets/js/app.js:2
-#: assets/js/app.js:26637
+#: assets/js/app.js:26644
 #, php-format,js-format
 msgid "The server returned an error (%s). Please try again later."
 msgstr "Сервер вернул ошибку (%s). Попробуйте позже."
 
 #: app/Controller/Init.php:1138
 #: assets/js/app.js:2
-#: assets/js/app.js:26645
+#: assets/js/app.js:26652
 msgid "Not Found"
 msgstr "Не найдено"
 
 #: app/Controller/Init.php:1139
 #: assets/js/app.js:2
-#: assets/js/app.js:26648
+#: assets/js/app.js:26655
 msgid "The requested endpoint was not found. Please check if the plugin is properly installed."
 msgstr "Запрошенный эндпоинт не найден. Проверьте, правильно ли установлен плагин."
 
@@ -4672,13 +4676,13 @@ msgstr "Перейти в настройки плагина сейчас?"
 #: app/View/settings/schedules.php:227
 #: app/View/settings/triggers.php:109
 #: assets/js/app.js:2
-#: assets/js/app.js:26212
+#: assets/js/app.js:26219
 msgid "Active"
 msgstr "Активно"
 
 #: app/Controller/Init.php:1161
 #: assets/js/app.js:2
-#: assets/js/app.js:26216
+#: assets/js/app.js:26223
 msgid "Inactive"
 msgstr "Неактивно"
 
@@ -4691,7 +4695,7 @@ msgstr "Без описания"
 #: app/View/settings/schedules.php:281
 #: app/View/settings/servers.php:88
 #: assets/js/app.js:2
-#: assets/js/app.js:26247
+#: assets/js/app.js:26254
 msgid "Edit"
 msgstr "Изменить"
 
@@ -4712,7 +4716,7 @@ msgstr "Сканирование..."
 #: app/Controller/Init.php:1171
 #: app/View/settings/partials/media-sync-step-3.php:27
 #: assets/js/app.js:2
-#: assets/js/app.js:23810
+#: assets/js/app.js:23817
 msgid "Starting..."
 msgstr "Запуск..."
 
@@ -4723,8 +4727,8 @@ msgstr "Синхронизация приостановлена"
 #: app/Controller/Init.php:1176
 #: app/View/settings/partials/media-sync-step-3.php:16
 #: assets/js/app.js:2
-#: assets/js/app.js:23813
-#: assets/js/app.js:24241
+#: assets/js/app.js:23820
+#: assets/js/app.js:24248
 msgid "Synchronization in Progress"
 msgstr "Идёт синхронизация"
 
@@ -4732,7 +4736,7 @@ msgstr "Идёт синхронизация"
 #: app/View/settings/partials/media-sync-step-3.php:53
 #: app/View/settings/triggers.php:133
 #: assets/js/app.js:2
-#: assets/js/app.js:24230
+#: assets/js/app.js:24237
 msgid "Pause"
 msgstr "Пауза"
 
@@ -4743,14 +4747,14 @@ msgstr "Начать синхронизацию"
 #: app/Controller/Init.php:1179
 #: app/View/settings/partials/media-sync-step-1.php:222
 #: assets/js/app.js:2
-#: assets/js/app.js:23228
+#: assets/js/app.js:23235
 msgid "Scan Folder"
 msgstr "Сканировать папку"
 
 #. translators: %s: number of indexed media files.
 #: app/Controller/Init.php:1181
 #: assets/js/app.js:2
-#: assets/js/app.js:29153
+#: assets/js/app.js:29160
 #, php-format,js-format
 msgid "Scan complete. Indexed %s files."
 msgstr "Сканирование завершено. Проиндексировано файлов: %s."
@@ -4758,41 +4762,41 @@ msgstr "Сканирование завершено. Проиндексиров�
 #. translators: %1$s: indexed files, %2$s: unreadable files.
 #: app/Controller/Init.php:1183
 #: assets/js/app.js:2
-#: assets/js/app.js:29144
+#: assets/js/app.js:29151
 #, php-format,js-format
 msgid "Scan complete. Indexed %1$s files; %2$s files could not be read."
 msgstr "Сканирование завершено. Проиндексировано файлов: %1$s; не удалось прочитать: %2$s."
 
 #: app/Controller/Init.php:1184
 #: assets/js/app.js:2
-#: assets/js/app.js:29180
+#: assets/js/app.js:29187
 msgid "The media hash scan failed."
 msgstr "Не удалось просканировать хеши медиафайлов."
 
 #. translators: %d is a dynamic value.
 #: app/Controller/Init.php:1186
 #: assets/js/app.js:2
-#: assets/js/app.js:23869
+#: assets/js/app.js:23876
 #, php-format,js-format
 msgid "... and %d more errors"
 msgstr "... и ещё ошибок: %d"
 
 #: app/Controller/Init.php:1189
 #: assets/js/app.js:2
-#: assets/js/app.js:23931
+#: assets/js/app.js:23938
 msgid "Synchronization Complete!"
 msgstr "Синхронизация завершена!"
 
 #: app/Controller/Init.php:1190
 #: assets/js/app.js:2
-#: assets/js/app.js:23978
+#: assets/js/app.js:23985
 msgid "Skipped files are already in the Media Library, so they were not imported again."
 msgstr "Пропущенные файлы уже есть в библиотеке медиафайлов, поэтому повторно они не импортированы."
 
 #. translators: %s is a dynamic value.
 #: app/Controller/Init.php:1192
 #: assets/js/app.js:2
-#: assets/js/app.js:23920
+#: assets/js/app.js:23927
 #, php-format,js-format
 msgid "Successfully processed %s file"
 msgstr "Успешно обработан %s файл"
@@ -4800,46 +4804,46 @@ msgstr "Успешно обработан %s файл"
 #. translators: %s is a dynamic value.
 #: app/Controller/Init.php:1194
 #: assets/js/app.js:2
-#: assets/js/app.js:23913
+#: assets/js/app.js:23920
 #, php-format,js-format
 msgid "Successfully processed %s files"
 msgstr "Успешно обработано файлов: %s"
 
 #: app/Controller/Init.php:1195
 #: assets/js/app.js:2
-#: assets/js/app.js:23944
+#: assets/js/app.js:23951
 msgid "Imported"
 msgstr "Импортировано"
 
 #: app/Controller/Init.php:1196
 #: app/View/settings/partials/import-step-6.php:92
 #: assets/js/app.js:2
-#: assets/js/app.js:23954
+#: assets/js/app.js:23961
 msgid "Skipped"
 msgstr "Пропущено"
 
 #: app/Controller/Init.php:1197
 #: assets/js/app.js:2
-#: assets/js/app.js:23993
+#: assets/js/app.js:24000
 msgid "Synchronization Failed"
 msgstr "Ошибка синхронизации"
 
 #: app/Controller/Init.php:1198
 #: assets/js/app.js:2
-#: assets/js/app.js:24001
+#: assets/js/app.js:24008
 msgid "The synchronization process encountered an error and could not complete."
 msgstr "При синхронизации произошла ошибка, и она не завершилась."
 
 #: app/Controller/Init.php:1199
 #: assets/js/app.js:2
-#: assets/js/app.js:24030
+#: assets/js/app.js:24037
 msgid "Synchronization Cancelled"
 msgstr "Синхронизация отменена"
 
 #. translators: %s is a dynamic value.
 #: app/Controller/Init.php:1201
 #: assets/js/app.js:2
-#: assets/js/app.js:24019
+#: assets/js/app.js:24026
 #, php-format,js-format
 msgid "Processed %s file before cancellation."
 msgstr "До отмены обработан %s файл."
@@ -4852,13 +4856,13 @@ msgstr "До отмены обработано файлов: %s."
 
 #: app/Controller/Init.php:1206
 #: assets/js/app.js:2
-#: assets/js/app.js:24436
+#: assets/js/app.js:24443
 msgid "Go Up"
 msgstr "Вверх"
 
 #: app/Controller/Init.php:1207
 #: assets/js/app.js:2
-#: assets/js/app.js:24452
+#: assets/js/app.js:24459
 msgid ". (Use this folder)"
 msgstr ". (Использовать эту папку)"
 
@@ -5202,7 +5206,7 @@ msgstr "Синхронизация контента"
 #: app/View/settings/notifications.php:21
 #: app/View/settings/site_migration.php:19
 #: assets/js/app.js:2
-#: assets/js/app.js:25893
+#: assets/js/app.js:25900
 msgid "Content Migration"
 msgstr "Миграция контента"
 
@@ -5631,7 +5635,7 @@ msgstr "Отзывы WooCommerce"
 
 #: app/Controller/Site_Migration_Controller.php:497
 #: assets/js/app.js:2
-#: assets/js/app.js:29532
+#: assets/js/app.js:29539
 msgid "Custom post types"
 msgstr "Произвольные типы записей"
 
@@ -5719,7 +5723,7 @@ msgstr "Дополнения"
 
 #: app/Helper/Admin_Menu_Settings.php:49
 #: assets/js/app.js:2
-#: assets/js/app.js:25897
+#: assets/js/app.js:25904
 msgid "Content Updater"
 msgstr "Обновление контента"
 
@@ -6131,7 +6135,7 @@ msgstr "Купить дополнение PRO"
 #: app/Helper/Pro_Addon.php:320
 #: app/Service/Trigger_Service.php:642
 #: assets/js/app.js:2
-#: assets/js/app.js:25905
+#: assets/js/app.js:25912
 msgid "WooCommerce Products"
 msgstr "Товары WooCommerce"
 
@@ -6148,7 +6152,7 @@ msgstr "Экспорт товаров WooCommerce"
 #: app/Helper/Pro_Addon.php:129
 #: app/Service/Trigger_Service.php:643
 #: assets/js/app.js:2
-#: assets/js/app.js:25909
+#: assets/js/app.js:25916
 msgid "WooCommerce Orders"
 msgstr "Заказы WooCommerce"
 
@@ -6166,7 +6170,7 @@ msgstr "Экспорт заказов WooCommerce"
 #: app/Helper/Pro_Addon.php:255
 #: app/Service/Trigger_Service.php:646
 #: assets/js/app.js:2
-#: assets/js/app.js:25925
+#: assets/js/app.js:25932
 msgid "WooCommerce Refunds"
 msgstr "Возвраты WooCommerce"
 
@@ -6184,7 +6188,7 @@ msgstr "Экспорт возвратов WooCommerce"
 #: app/Helper/Pro_Addon.php:263
 #: app/Service/Trigger_Service.php:647
 #: assets/js/app.js:2
-#: assets/js/app.js:25929
+#: assets/js/app.js:25936
 msgid "WooCommerce Customers"
 msgstr "Клиенты WooCommerce"
 
@@ -6202,7 +6206,7 @@ msgstr "Экспорт клиентов WooCommerce"
 #: app/Helper/Pro_Addon.php:231
 #: app/Service/Trigger_Service.php:644
 #: assets/js/app.js:2
-#: assets/js/app.js:25913
+#: assets/js/app.js:25920
 msgid "WooCommerce Coupons"
 msgstr "Купоны WooCommerce"
 
@@ -6220,7 +6224,7 @@ msgstr "Экспорт купонов WooCommerce"
 #: app/Helper/Pro_Addon.php:239
 #: app/Service/Trigger_Service.php:648
 #: assets/js/app.js:2
-#: assets/js/app.js:25917
+#: assets/js/app.js:25924
 msgid "WooCommerce Attributes"
 msgstr "Атрибуты WooCommerce"
 
@@ -6245,7 +6249,7 @@ msgstr "Преобразование данных при импорте или �
 #: app/Helper/Pro_Addon.php:181
 #: app/Helper/Pro_Addon.php:300
 #: assets/js/app.js:2
-#: assets/js/app.js:25941
+#: assets/js/app.js:25948
 msgid "Custom Post Types"
 msgstr "Произвольные типы записей"
 
@@ -6277,7 +6281,7 @@ msgstr "Экспорт учётных записей пользователей"
 #: app/Helper/Pro_Addon.php:312
 #: app/Service/Trigger_Service.php:636
 #: assets/js/app.js:2
-#: assets/js/app.js:25904
+#: assets/js/app.js:25911
 msgid "Taxonomy Terms"
 msgstr "Термины таксономий"
 
@@ -6296,7 +6300,7 @@ msgstr "Заказы WooCommerce (8.0+)"
 #: app/Helper/Pro_Addon.php:247
 #: app/Service/Trigger_Service.php:645
 #: assets/js/app.js:2
-#: assets/js/app.js:25921
+#: assets/js/app.js:25928
 msgid "WooCommerce Reviews"
 msgstr "Отзывы WooCommerce"
 
@@ -6311,7 +6315,7 @@ msgstr "Экспорт отзывов о товарах WooCommerce"
 #: app/Helper/Pro_Addon.php:271
 #: app/Service/Trigger_Service.php:649
 #: assets/js/app.js:2
-#: assets/js/app.js:25933
+#: assets/js/app.js:25940
 msgid "WooCommerce Shipping Zones"
 msgstr "Зоны доставки WooCommerce"
 
@@ -6326,7 +6330,7 @@ msgstr "Экспорт зон доставки с регионами и спос
 #: app/Helper/Pro_Addon.php:279
 #: app/Service/Trigger_Service.php:650
 #: assets/js/app.js:2
-#: assets/js/app.js:25937
+#: assets/js/app.js:25944
 msgid "WooCommerce Tax Rates"
 msgstr "Налоговые ставки WooCommerce"
 
@@ -6342,8 +6346,8 @@ msgstr "Экспорт налоговых ставок всех классов"
 #: app/Helper/Pro_Addon.php:328
 #: app/Service/Trigger_Service.php:641
 #: assets/js/app.js:2
-#: assets/js/app.js:25946
-#: assets/js/app.js:25950
+#: assets/js/app.js:25953
+#: assets/js/app.js:25957
 msgid "MySQL Database Table"
 msgstr "Таблица базы данных MySQL"
 
@@ -6746,11 +6750,11 @@ msgstr "Параметры запроса по таксономиям"
 msgid "Taxonomy filters: array of [taxonomy, terms, condition]"
 msgstr "Фильтры по таксономиям: массив [taxonomy, terms, condition]"
 
-#: app/Model/Export/Post_Exporter.php:493
+#: app/Model/Export/Post_Exporter.php:497
 msgid "Querying posts"
 msgstr "Запрос записей"
 
-#: app/Model/Export/Post_Exporter.php:694
+#: app/Model/Export/Post_Exporter.php:698
 msgid "Any"
 msgstr "Любой"
 
@@ -8249,15 +8253,15 @@ msgstr "Получение завершилось с кодом статуса: 
 msgid "No posts found on remote site"
 msgstr "На удалённом сайте не найдено записей"
 
-#: app/Service/Content_Sync_Service.php:3149
+#: app/Service/Content_Sync_Service.php:3159
 msgid "No posts were processed"
 msgstr "Ни одна запись не обработана"
 
-#: app/Service/Content_Sync_Service.php:3167
+#: app/Service/Content_Sync_Service.php:3177
 msgid "Content Sync media pull failed."
 msgstr "Не удалось получить медиафайлы при синхронизации контента."
 
-#: app/Service/Content_Sync_Service.php:3189
+#: app/Service/Content_Sync_Service.php:3199
 msgid "Content Sync media fields failed."
 msgstr "Не удалось обработать медиаполя при синхронизации контента."
 
@@ -9429,7 +9433,7 @@ msgstr "Неизвестный триггер или неверный токен
 #: app/Service/Trigger_Service.php:635
 #: app/View/settings/partials/export-step-1.php:89
 #: assets/js/app.js:2
-#: assets/js/app.js:25888
+#: assets/js/app.js:25895
 msgid "All Site URLs"
 msgstr "Все URL сайта"
 
@@ -9485,7 +9489,7 @@ msgstr "Запустить задание #%d"
 msgid "Trigger not found."
 msgstr "Триггер не найден."
 
-#: app/Service/Workflow_Service.php:401
+#: app/Service/Workflow_Service.php:404
 msgid "The workflow request is not available or is invalid."
 msgstr "Запрос сценария недоступен или недопустим."
 
@@ -10229,7 +10233,7 @@ msgstr "Действия"
 
 #: app/View/settings/content_sync.php:119
 #: assets/js/app.js:2
-#: assets/js/app.js:26178
+#: assets/js/app.js:26185
 msgid "No connected sites yet. Add your first connection!"
 msgstr "Подключённых сайтов пока нет. Добавьте первое подключение!"
 
@@ -10271,37 +10275,37 @@ msgstr "Все типы"
 #: app/View/settings/partials/import-step-1.php:98
 #: app/View/settings/partials/import-steps-indicator.php:12
 #: assets/js/app.js:2
-#: assets/js/app.js:25892
+#: assets/js/app.js:25899
 msgid "Media Sync"
 msgstr "Синхронизация медиа"
 
 #: app/View/settings/jobs-log.php:30
 #: assets/js/app.js:2
-#: assets/js/app.js:25790
+#: assets/js/app.js:25797
 msgid "Content Update"
 msgstr "Обновление контента"
 
 #: app/View/settings/jobs-log.php:34
 #: assets/js/app.js:2
-#: assets/js/app.js:25812
+#: assets/js/app.js:25819
 msgid "Content Migration - Export File"
 msgstr "Миграция контента — файл экспорта"
 
 #: app/View/settings/jobs-log.php:35
 #: assets/js/app.js:2
-#: assets/js/app.js:25816
+#: assets/js/app.js:25823
 msgid "Content Migration - Import File"
 msgstr "Миграция контента — файл импорта"
 
 #: app/View/settings/jobs-log.php:36
 #: assets/js/app.js:2
-#: assets/js/app.js:25820
+#: assets/js/app.js:25827
 msgid "Content Migration - Sync Push"
 msgstr "Миграция контента — отправка синхронизацией"
 
 #: app/View/settings/jobs-log.php:37
 #: assets/js/app.js:2
-#: assets/js/app.js:25824
+#: assets/js/app.js:25831
 msgid "Content Migration - Sync Pull"
 msgstr "Миграция контента — получение синхронизацией"
 
@@ -10495,7 +10499,7 @@ msgstr "Канал"
 #: app/View/settings/notifications.php:137
 #: app/View/settings/triggers.php:241
 #: assets/js/app.js:2
-#: assets/js/app.js:25577
+#: assets/js/app.js:25584
 msgid "Result"
 msgstr "Результат"
 
@@ -10771,7 +10775,7 @@ msgstr "Попробуйте изменить запрос"
 #: app/View/settings/partials/export-step-1.php:62
 #: app/View/settings/partials/import-step-1.php:62
 #: assets/js/app.js:2
-#: assets/js/app.js:25889
+#: assets/js/app.js:25896
 msgid "Blog Posts"
 msgstr "Записи блога"
 
@@ -10789,7 +10793,7 @@ msgstr "Экспорт комментариев и отзывов"
 
 #: app/View/settings/partials/export-step-1.php:99
 #: assets/js/app.js:2
-#: assets/js/app.js:25945
+#: assets/js/app.js:25952
 msgid "Form Entries"
 msgstr "Записи форм"
 
@@ -10892,7 +10896,7 @@ msgstr "Выберите публичные типы контента, адре�
 
 #: app/View/settings/partials/export-step-2.php:109
 #: assets/js/app.js:2
-#: assets/js/app.js:17039
+#: assets/js/app.js:17046
 msgid "Loading URL content types..."
 msgstr "Загрузка типов контента для URL..."
 
@@ -12129,7 +12133,7 @@ msgstr "Пропущено:"
 
 #: app/View/settings/partials/media-sync-step-3.php:64
 #: assets/js/app.js:2
-#: assets/js/app.js:25603
+#: assets/js/app.js:25610
 msgid "Errors"
 msgstr "Ошибки"
 
@@ -12335,7 +12339,7 @@ msgstr "Исходное задание"
 
 #: app/View/settings/schedules.php:92
 #: assets/js/app.js:2
-#: assets/js/app.js:29226
+#: assets/js/app.js:29233
 msgid "Search Jobs..."
 msgstr "Поиск заданий..."
 
@@ -12640,31 +12644,31 @@ msgstr "Ожидание запуска..."
 
 #: app/View/settings/site_migration.php:183
 #: assets/js/app.js:2
-#: assets/js/app.js:30492
+#: assets/js/app.js:30499
 msgid "Migration Package Ready!"
 msgstr "Пакет миграции готов!"
 
 #: app/View/settings/site_migration.php:184
 #: assets/js/app.js:2
-#: assets/js/app.js:30496
+#: assets/js/app.js:30503
 msgid "Your content migration export has been packaged and is ready to download."
 msgstr "Экспорт для миграции контента упакован и готов к скачиванию."
 
 #: app/View/settings/site_migration.php:192
 #: assets/js/app.js:2
-#: assets/js/app.js:30500
+#: assets/js/app.js:30507
 msgid "Export Files"
 msgstr "Файлы экспорта"
 
 #: app/View/settings/site_migration.php:201
 #: assets/js/app.js:2
-#: assets/js/app.js:30502
+#: assets/js/app.js:30509
 msgid "Exported Items"
 msgstr "Экспортировано элементов"
 
 #: app/View/settings/site_migration.php:210
 #: assets/js/app.js:2
-#: assets/js/app.js:30504
+#: assets/js/app.js:30511
 msgid "Package Size"
 msgstr "Размер пакета"
 
@@ -12846,7 +12850,7 @@ msgstr[2] "задание #%1$d · %2$d запусков"
 
 #: app/View/settings/triggers.php:126
 #: assets/js/app.js:2
-#: assets/js/app.js:26194
+#: assets/js/app.js:26201
 msgid "Never"
 msgstr "Никогда"
 
@@ -13254,7 +13258,7 @@ msgstr "Массовые действия для видимых записей"
 #: assets/js/media-library-sync.js:1
 #: assets/js/taxonomy-quick-actions.js:1
 #: assets/js/admin-object-quick-actions.js:7924
-#: assets/js/app.js:29574
+#: assets/js/app.js:29581
 #: assets/js/media-library-sync.js:740
 #: assets/js/taxonomy-quick-actions.js:936
 msgid "Select all"
@@ -13266,7 +13270,7 @@ msgstr "Выбрать все"
 #: assets/js/media-library-sync.js:1
 #: assets/js/taxonomy-quick-actions.js:1
 #: assets/js/admin-object-quick-actions.js:7931
-#: assets/js/app.js:29577
+#: assets/js/app.js:29584
 #: assets/js/media-library-sync.js:747
 #: assets/js/taxonomy-quick-actions.js:943
 msgid "Deselect all"
@@ -13929,9 +13933,9 @@ msgstr "Изображение записи (устаревший URL)"
 #: assets/js/app.js:4038
 #: assets/js/app.js:5778
 #: assets/js/app.js:6912
-#: assets/js/app.js:19672
-#: assets/js/app.js:20603
-#: assets/js/app.js:21024
+#: assets/js/app.js:19679
+#: assets/js/app.js:20610
+#: assets/js/app.js:21031
 msgid "Featured Image Alt Text"
 msgstr "Альтернативный текст изображения записи"
 
@@ -13944,7 +13948,7 @@ msgstr "Статус пингов"
 #: assets/js/app.js:2
 #: assets/js/app.js:4071
 #: assets/js/app.js:6809
-#: assets/js/app.js:19711
+#: assets/js/app.js:19718
 msgid "Post Password"
 msgstr "Пароль записи"
 
@@ -13961,7 +13965,7 @@ msgstr "Рубрики, метки и термины (JSON из экспорта
 #: assets/js/app.js:2
 #: assets/js/app.js:4108
 #: assets/js/app.js:6758
-#: assets/js/app.js:19692
+#: assets/js/app.js:19699
 msgid "Menu Order"
 msgstr "Порядок в меню"
 
@@ -13969,8 +13973,8 @@ msgstr "Порядок в меню"
 #: assets/js/app.js:4117
 #: assets/js/app.js:6767
 #: assets/js/app.js:9397
-#: assets/js/app.js:19699
-#: assets/js/app.js:20538
+#: assets/js/app.js:19706
+#: assets/js/app.js:20545
 msgid "Sticky"
 msgstr "Прилеплена"
 
@@ -13981,7 +13985,7 @@ msgstr "Путь к файлу"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:4365
-#: assets/js/app.js:19916
+#: assets/js/app.js:19923
 msgid "Source Menu ID"
 msgstr "Исходный ID меню"
 
@@ -14007,7 +14011,7 @@ msgstr "Ник (ярлык)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:4585
-#: assets/js/app.js:20059
+#: assets/js/app.js:20066
 msgid "Social Media"
 msgstr "Социальные сети"
 
@@ -14073,25 +14077,25 @@ msgstr "Права (JSON)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:4804
-#: assets/js/app.js:20256
+#: assets/js/app.js:20263
 msgid "Comment ID (local/source reference)"
 msgstr "ID комментария (локальный/исходный)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:4813
-#: assets/js/app.js:20264
+#: assets/js/app.js:20271
 msgid "Source Comment ID (for updates)"
 msgstr "Исходный ID комментария (для обновления)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:4822
-#: assets/js/app.js:20272
+#: assets/js/app.js:20279
 msgid "Post ID (source/local fallback)"
 msgstr "ID записи (исходный, иначе локальный)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:4830
-#: assets/js/app.js:20280
+#: assets/js/app.js:20287
 msgid "Source Post ID (matches imported posts)"
 msgstr "Исходный ID записи (совпадает с импортированными записями)"
 
@@ -14107,13 +14111,13 @@ msgstr "ID пользователя (локальный запасной вар�
 
 #: assets/js/app.js:2
 #: assets/js/app.js:4933
-#: assets/js/app.js:20290
+#: assets/js/app.js:20297
 msgid "Post Permalink (matching hint)"
 msgstr "Постоянная ссылка записи (подсказка для сопоставления)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:4949
-#: assets/js/app.js:20308
+#: assets/js/app.js:20315
 msgid "Post Slug (recommended matching)"
 msgstr "Ярлык записи (рекомендуется для сопоставления)"
 
@@ -14124,13 +14128,13 @@ msgstr "Заголовок записи (запасное сопоставлен
 
 #: assets/js/app.js:2
 #: assets/js/app.js:5003
-#: assets/js/app.js:20403
+#: assets/js/app.js:20410
 msgid "Parent Comment ID (source reference)"
 msgstr "ID родительского комментария (исходный)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:5012
-#: assets/js/app.js:20411
+#: assets/js/app.js:20418
 msgid "Source Parent Comment ID (for threaded comments)"
 msgstr "Исходный ID родительского комментария (для веток)"
 
@@ -14167,13 +14171,13 @@ msgstr "Тип товара (simple, variable, grouped, external)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:5175
-#: assets/js/app.js:20923
+#: assets/js/app.js:20930
 msgid "External Product URL"
 msgstr "URL внешнего товара"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:5184
-#: assets/js/app.js:20931
+#: assets/js/app.js:20938
 msgid "External Button Text"
 msgstr "Текст кнопки внешнего товара"
 
@@ -14439,19 +14443,19 @@ msgstr "ID изображений галереи (через запятую)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:5806
-#: assets/js/app.js:21044
+#: assets/js/app.js:21051
 msgid "Variations (JSON)"
 msgstr "Вариации (JSON)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:5815
-#: assets/js/app.js:21052
+#: assets/js/app.js:21059
 msgid "Product Attributes (JSON)"
 msgstr "Атрибуты товара (JSON)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:5824
-#: assets/js/app.js:21060
+#: assets/js/app.js:21067
 msgid "Grouped Products (JSON)"
 msgstr "Сгруппированные товары (JSON)"
 
@@ -14493,8 +14497,8 @@ msgstr "Статус заказа (pending, processing, completed, ...)"
 #. translators: %s: multilingual plugin (Polylang, WPML).
 #: assets/js/app.js:2
 #: assets/js/app.js:6022
-#: assets/js/app.js:15968
-#: assets/js/app.js:15989
+#: assets/js/app.js:15975
+#: assets/js/app.js:15996
 #, js-format
 msgid "Language (%s)"
 msgstr "Язык (%s)"
@@ -14511,13 +14515,13 @@ msgstr "Телефон для оплаты"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:6123
-#: assets/js/app.js:21281
+#: assets/js/app.js:21288
 msgid "Customer IP Address"
 msgstr "IP-адрес клиента"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:6132
-#: assets/js/app.js:21289
+#: assets/js/app.js:21296
 msgid "Customer User Agent"
 msgstr "User Agent клиента"
 
@@ -14538,25 +14542,25 @@ msgstr "Скидка заказа"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:6395
-#: assets/js/app.js:21229
+#: assets/js/app.js:21236
 msgid "Cart Tax"
 msgstr "Налог корзины"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:6404
-#: assets/js/app.js:21237
+#: assets/js/app.js:21244
 msgid "Shipping Tax"
 msgstr "Налог на доставку"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:6413
-#: assets/js/app.js:21245
+#: assets/js/app.js:21252
 msgid "Total Tax"
 msgstr "Всего налогов"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:6422
-#: assets/js/app.js:21253
+#: assets/js/app.js:21260
 msgid "Tax Lines (Array)"
 msgstr "Налоговые строки (массив)"
 
@@ -14607,7 +14611,7 @@ msgstr "Мета заказа (JSON)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:6595
-#: assets/js/app.js:20670
+#: assets/js/app.js:20677
 msgid "Term Taxonomy ID"
 msgstr "ID таксономии термина"
 
@@ -14618,7 +14622,7 @@ msgstr "Ярлык или название родителя"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:6634
-#: assets/js/app.js:20719
+#: assets/js/app.js:20726
 msgid "Image URL"
 msgstr "URL изображения"
 
@@ -14629,13 +14633,13 @@ msgstr "Количество"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:6667
-#: assets/js/app.js:20735
+#: assets/js/app.js:20742
 msgid "Term Meta (JSON)"
 msgstr "Мета термина (JSON)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:6927
-#: assets/js/app.js:20701
+#: assets/js/app.js:20708
 msgid "Parent Slug"
 msgstr "Ярлык родителя"
 
@@ -14676,49 +14680,49 @@ msgstr "Количество терминов"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7075
-#: assets/js/app.js:21850
+#: assets/js/app.js:21857
 msgid "Review"
 msgstr "Отзыв"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7080
-#: assets/js/app.js:21854
+#: assets/js/app.js:21861
 msgid "Review ID (local/source reference)"
 msgstr "ID отзыва (локальный/исходный)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7089
-#: assets/js/app.js:21862
+#: assets/js/app.js:21869
 msgid "Source Review ID (for updates)"
 msgstr "Исходный ID отзыва (для обновления)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7098
-#: assets/js/app.js:21870
+#: assets/js/app.js:21877
 msgid "Product ID (source/local fallback)"
 msgstr "ID товара (исходный, иначе локальный)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7107
-#: assets/js/app.js:21878
+#: assets/js/app.js:21885
 msgid "Source Product ID (matches imported products)"
 msgstr "Исходный ID товара (совпадает с импортированными товарами)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7117
-#: assets/js/app.js:21886
+#: assets/js/app.js:21893
 msgid "Product Title (fallback matching)"
 msgstr "Название товара (запасное сопоставление)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7126
-#: assets/js/app.js:21894
+#: assets/js/app.js:21901
 msgid "Product Slug (recommended matching)"
 msgstr "Ярлык товара (рекомендуется для сопоставления)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7135
-#: assets/js/app.js:21902
+#: assets/js/app.js:21909
 msgid "Product SKU (best matching)"
 msgstr "Артикул товара (лучшее сопоставление)"
 
@@ -14729,19 +14733,19 @@ msgstr "Дата отзыва"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7216
-#: assets/js/app.js:21942
+#: assets/js/app.js:21949
 msgid "Parent Review ID"
 msgstr "ID родительского отзыва"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7234
-#: assets/js/app.js:21950
+#: assets/js/app.js:21957
 msgid "Rating"
 msgstr "Оценка"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7243
-#: assets/js/app.js:21958
+#: assets/js/app.js:21965
 msgid "Verified Owner"
 msgstr "Подтверждённый покупатель"
 
@@ -14752,235 +14756,235 @@ msgstr "Мета отзыва (JSON)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7267
-#: assets/js/app.js:21985
+#: assets/js/app.js:21992
 msgid "Refund"
 msgstr "Возврат"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7272
-#: assets/js/app.js:21989
+#: assets/js/app.js:21996
 msgid "Refund ID (local/source reference)"
 msgstr "ID возврата (локальный/исходный)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7281
-#: assets/js/app.js:21997
+#: assets/js/app.js:22004
 msgid "Source Refund ID (for updates)"
 msgstr "Исходный ID возврата (для обновления)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7290
-#: assets/js/app.js:22005
+#: assets/js/app.js:22012
 msgid "Parent Order ID (source/local fallback)"
 msgstr "ID родительского заказа (исходный, иначе локальный)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7299
-#: assets/js/app.js:22013
+#: assets/js/app.js:22020
 msgid "Source Parent Order ID (matches imported orders)"
 msgstr "Исходный ID родительского заказа (совпадает с импортированными заказами)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7309
-#: assets/js/app.js:22021
+#: assets/js/app.js:22028
 msgid "Parent Order Key (best matching)"
 msgstr "Ключ родительского заказа (лучшее сопоставление)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7318
-#: assets/js/app.js:22029
+#: assets/js/app.js:22036
 msgid "Parent Order Number"
 msgstr "Номер родительского заказа"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7336
 #: assets/js/app.js:7690
-#: assets/js/app.js:22045
-#: assets/js/app.js:22366
+#: assets/js/app.js:22052
+#: assets/js/app.js:22373
 msgid "Date Created"
 msgstr "Дата создания"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7345
 #: assets/js/app.js:7699
-#: assets/js/app.js:21546
-#: assets/js/app.js:22053
-#: assets/js/app.js:22374
+#: assets/js/app.js:21553
+#: assets/js/app.js:22060
+#: assets/js/app.js:22381
 msgid "Date Modified"
 msgstr "Дата изменения"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7354
 #: assets/js/app.js:7870
-#: assets/js/app.js:22061
+#: assets/js/app.js:22068
 msgid "Amount"
 msgstr "Сумма"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7363
-#: assets/js/app.js:22069
+#: assets/js/app.js:22076
 msgid "Reason"
 msgstr "Причина"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7372
-#: assets/js/app.js:22077
+#: assets/js/app.js:22084
 msgid "Refunded By User ID"
 msgstr "ID пользователя, оформившего возврат"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7390
-#: assets/js/app.js:22093
+#: assets/js/app.js:22100
 msgid "Line Items JSON"
 msgstr "Позиции (JSON)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7399
-#: assets/js/app.js:22101
+#: assets/js/app.js:22108
 msgid "Meta JSON"
 msgstr "Мета (JSON)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7414
-#: assets/js/app.js:22115
+#: assets/js/app.js:22122
 msgid "Tax Rate"
 msgstr "Налоговая ставка"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7419
-#: assets/js/app.js:22119
+#: assets/js/app.js:22126
 msgid "Tax Rate ID (reference)"
 msgstr "ID налоговой ставки (справочно)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7428
-#: assets/js/app.js:22127
+#: assets/js/app.js:22134
 msgid "Tax Class (slug, empty = Standard)"
 msgstr "Налоговый класс (ярлык, пусто = стандартный)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7437
-#: assets/js/app.js:22135
+#: assets/js/app.js:22142
 msgid "Tax Class Name"
 msgstr "Название налогового класса"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7446
-#: assets/js/app.js:22143
+#: assets/js/app.js:22150
 msgid "Country Code"
 msgstr "Код страны"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7455
-#: assets/js/app.js:22151
+#: assets/js/app.js:22158
 msgid "State Code"
 msgstr "Код штата"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7464
-#: assets/js/app.js:22159
+#: assets/js/app.js:22166
 msgid "Postcodes / ZIPs (separated by ;)"
 msgstr "Почтовые индексы (через ;)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7473
-#: assets/js/app.js:22167
+#: assets/js/app.js:22174
 msgid "Cities (separated by ;)"
 msgstr "Города (через ;)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7482
-#: assets/js/app.js:22175
+#: assets/js/app.js:22182
 msgid "Rate %"
 msgstr "Ставка %"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7491
-#: assets/js/app.js:22183
+#: assets/js/app.js:22190
 msgid "Tax Name"
 msgstr "Название налога"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7500
-#: assets/js/app.js:22191
+#: assets/js/app.js:22198
 msgid "Priority"
 msgstr "Приоритет"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7509
-#: assets/js/app.js:22199
+#: assets/js/app.js:22206
 msgid "Compound (1/0)"
 msgstr "Составной (1/0)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7518
-#: assets/js/app.js:22207
+#: assets/js/app.js:22214
 msgid "Shipping (1/0)"
 msgstr "Доставка (1/0)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7527
-#: assets/js/app.js:22215
+#: assets/js/app.js:22222
 msgid "Order"
 msgstr "Порядок"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7542
-#: assets/js/app.js:22229
+#: assets/js/app.js:22236
 msgid "Shipping Zone"
 msgstr "Зона доставки"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7550
-#: assets/js/app.js:22236
+#: assets/js/app.js:22243
 msgid "Zone ID (reference, 0 = Locations not covered by your other zones)"
 msgstr "ID зоны (справочно, 0 = регионы, не входящие в другие зоны)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7560
-#: assets/js/app.js:22244
+#: assets/js/app.js:22251
 msgid "Zone Name (matches zones on import)"
 msgstr "Название зоны (по нему сопоставляются зоны при импорте)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7569
-#: assets/js/app.js:22252
+#: assets/js/app.js:22259
 msgid "Zone Order"
 msgstr "Порядок зоны"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7578
-#: assets/js/app.js:22260
+#: assets/js/app.js:22267
 msgid "Zone Regions (country:DE, state:US:CA, postcode:90210)"
 msgstr "Регионы зоны (country:DE, state:US:CA, postcode:90210)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7588
-#: assets/js/app.js:22268
+#: assets/js/app.js:22275
 msgid "Shipping Methods JSON"
 msgstr "Способы доставки (JSON)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7608
-#: assets/js/app.js:22294
+#: assets/js/app.js:22301
 msgid "Customer ID (reference)"
 msgstr "ID клиента (справочно)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7617
-#: assets/js/app.js:22302
+#: assets/js/app.js:22309
 msgid "Source Customer ID (reference)"
 msgstr "Исходный ID клиента (справочно)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7626
-#: assets/js/app.js:22310
+#: assets/js/app.js:22317
 msgid "User ID (reference)"
 msgstr "ID пользователя (справочно)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7635
-#: assets/js/app.js:22318
+#: assets/js/app.js:22325
 msgid "Source User ID (reference)"
 msgstr "Исходный ID пользователя (справочно)"
 
@@ -14996,37 +15000,37 @@ msgstr "Платящий клиент"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7717
-#: assets/js/app.js:22390
+#: assets/js/app.js:22397
 msgid "Order Count"
 msgstr "Количество заказов"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7726
-#: assets/js/app.js:22398
+#: assets/js/app.js:22405
 msgid "Total Spent"
 msgstr "Всего потрачено"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7735
-#: assets/js/app.js:22406
+#: assets/js/app.js:22413
 msgid "Last Order ID"
 msgstr "ID последнего заказа"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7745
-#: assets/js/app.js:22423
+#: assets/js/app.js:22430
 msgid "Billing"
 msgstr "Оплата"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7792
-#: assets/js/app.js:22462
+#: assets/js/app.js:22469
 msgid "Meta"
 msgstr "Мета"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:7797
-#: assets/js/app.js:22466
+#: assets/js/app.js:22473
 msgid "Customer Meta JSON"
 msgstr "Мета клиента (JSON)"
 
@@ -15082,7 +15086,7 @@ msgstr "Лимит использований (всего)"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:8024
-#: assets/js/app.js:21734
+#: assets/js/app.js:21741
 msgid "Limit Usage to X Items"
 msgstr "Ограничить использование X товарами"
 
@@ -15235,7 +15239,7 @@ msgstr "📈 Rank Math SEO"
 
 #: assets/js/app.js:2
 #: assets/js/app.js:12780
-#: assets/js/app.js:15124
+#: assets/js/app.js:15131
 msgid "rank math"
 msgstr "rank math"
 
@@ -15267,426 +15271,426 @@ msgid "Loading custom fields..."
 msgstr "Загрузка произвольных полей..."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17056
+#: assets/js/app.js:17063
 msgid "No public URL content types found."
 msgstr "Публичные типы контента для URL не найдены."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17074
+#: assets/js/app.js:17081
 msgid "Could not load URL content types."
 msgstr "Не удалось загрузить типы контента для URL."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17108
+#: assets/js/app.js:17115
 msgid "Standard WordPress URLs"
 msgstr "Стандартные URL WordPress"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17109
+#: assets/js/app.js:17116
 msgid "Homepage, archives, feeds, search and REST URLs"
 msgstr "Главная, архивы, ленты, поиск и адреса REST"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17145
+#: assets/js/app.js:17152
 msgid "Single URLs, archives, feeds, REST endpoint and related taxonomies"
 msgstr "Отдельные URL, архивы, ленты, эндпоинт REST и связанные таксономии"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17156
+#: assets/js/app.js:17163
 msgid "Related URL sources"
 msgstr "Связанные источники URL"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17191
+#: assets/js/app.js:17198
 msgid "Other URL sources"
 msgstr "Другие источники URL"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17192
+#: assets/js/app.js:17199
 msgid "Sources not attached to the visible post type groups"
 msgstr "Источники, не относящиеся к видимым группам типов записей"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17225
+#: assets/js/app.js:17232
 msgid "REST API Endpoints"
 msgstr "Эндпоинты REST API"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17232
+#: assets/js/app.js:17239
 msgid "RSS Feeds"
 msgstr "RSS-ленты"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17236
+#: assets/js/app.js:17243
 msgid "Atom Feeds"
 msgstr "Ленты Atom"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17240
+#: assets/js/app.js:17247
 msgid "Comments Feeds"
 msgstr "Ленты комментариев"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17247
+#: assets/js/app.js:17254
 msgid "Bulk select URL groups"
 msgstr "Массовый выбор групп URL"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17248
+#: assets/js/app.js:17255
 msgid "Quickly select or deselect matching sources across all registered content types."
 msgstr "Быстро выберите или снимите выбор с подходящих источников во всех зарегистрированных типах контента."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17286
-#: assets/js/app.js:20300
+#: assets/js/app.js:17293
+#: assets/js/app.js:20307
 msgid "Post type"
 msgstr "Тип записей"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17289
+#: assets/js/app.js:17296
 msgid "Feed"
 msgstr "Лента"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17290
-#: assets/js/app.js:17299
+#: assets/js/app.js:17297
+#: assets/js/app.js:17306
 msgid "REST endpoint"
 msgstr "Эндпоинт REST"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17291
+#: assets/js/app.js:17298
 msgid "Post type archive"
 msgstr "Архив типа записей"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17295
+#: assets/js/app.js:17302
 msgid "Post type feed"
 msgstr "Лента типа записей"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17308
+#: assets/js/app.js:17315
 msgid "URL source"
 msgstr "Источник URL"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17502
+#: assets/js/app.js:17509
 msgid "Select a form"
 msgstr "Выберите форму"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17516
+#: assets/js/app.js:17523
 msgid "Select URL types"
 msgstr "Выберите типы URL"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:17520
+#: assets/js/app.js:17527
 msgid "Please select at least one public content type."
 msgstr "Выберите хотя бы один публичный тип контента."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:18153
+#: assets/js/app.js:18160
 msgid "Please enter a custom export file name."
 msgstr "Введите своё имя файла экспорта."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:18250
+#: assets/js/app.js:18257
 msgid "Please choose a form."
 msgstr "Выберите форму."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:18266
+#: assets/js/app.js:18273
 msgid "Please select at least one URL content type."
 msgstr "Выберите хотя бы один тип контента для URL."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:18334
+#: assets/js/app.js:18341
 msgid "Start export"
 msgstr "Начать экспорт"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:18537
+#: assets/js/app.js:18544
 #, js-format
 msgid "Upload to %1$s failed: %2$s"
 msgstr "Не удалось загрузить на %1$s: %2$s"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:18608
+#: assets/js/app.js:18615
 msgid "Download file"
 msgstr "Скачать файл"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:18667
+#: assets/js/app.js:18674
 msgid "Cancel export"
 msgstr "Отменить экспорт"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:18869
+#: assets/js/app.js:18876
 msgid "In these languages"
 msgstr "На этих языках"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:18873
+#: assets/js/app.js:18880
 msgid "Not in these languages"
 msgstr "Не на этих языках"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:18880
+#: assets/js/app.js:18887
 msgid "Languages"
 msgstr "Языки"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:18901
+#: assets/js/app.js:18908
 msgid "Taxonomy Name"
 msgstr "Название таксономии"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:19404
+#: assets/js/app.js:19411
 msgid "Gravity Forms"
 msgstr "Gravity Forms"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:19408
+#: assets/js/app.js:19415
 msgid "Contact Form 7 (Flamingo)"
 msgstr "Contact Form 7 (Flamingo)"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:19506
+#: assets/js/app.js:19513
 msgid "Please choose a form first."
 msgstr "Сначала выберите форму."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:19540
+#: assets/js/app.js:19547
 msgid "Form fields"
 msgstr "Поля формы"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:19930
+#: assets/js/app.js:19937
 msgid "Menu Items Portable JSON"
 msgstr "Переносимый JSON элементов меню"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:19936
+#: assets/js/app.js:19943
 msgid "(includes ACF fields)"
 msgstr "(включая поля ACF)"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20006
+#: assets/js/app.js:20013
 msgid "Display name"
 msgstr "Отображаемое имя"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20065
+#: assets/js/app.js:20072
 msgid "Facebook profile URL"
 msgstr "URL профиля Facebook"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20075
+#: assets/js/app.js:20082
 msgid "Instagram profile URL"
 msgstr "URL профиля Instagram"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20085
+#: assets/js/app.js:20092
 msgid "LinkedIn profile URL"
 msgstr "URL профиля LinkedIn"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20095
+#: assets/js/app.js:20102
 msgid "MySpace profile URL"
 msgstr "URL профиля MySpace"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20105
+#: assets/js/app.js:20112
 msgid "Pinterest profile URL"
 msgstr "URL профиля Pinterest"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20115
+#: assets/js/app.js:20122
 msgid "SoundCloud profile URL"
 msgstr "URL профиля SoundCloud"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20125
+#: assets/js/app.js:20132
 msgid "Tumblr profile URL"
 msgstr "URL профиля Tumblr"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20135
+#: assets/js/app.js:20142
 msgid "Wikipedia page about you"
 msgstr "Страница о вас в Википедии"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20145
+#: assets/js/app.js:20152
 msgid "X username"
 msgstr "Имя пользователя в X"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20155
+#: assets/js/app.js:20162
 msgid "YouTube profile URL"
 msgstr "URL профиля YouTube"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20175
+#: assets/js/app.js:20182
 msgid "Roles"
 msgstr "Роли"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20232
+#: assets/js/app.js:20239
 msgid "User meta"
 msgstr "Мета пользователя"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20365
+#: assets/js/app.js:20372
 msgid "User agent"
 msgstr "User agent"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20431
+#: assets/js/app.js:20438
 msgid "Comment meta"
 msgstr "Мета комментария"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:20678
+#: assets/js/app.js:20685
 msgid "Term Group"
 msgstr "Группа терминов"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:21083
+#: assets/js/app.js:21090
 msgid "Brands"
 msgstr "Бренды"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:21412
+#: assets/js/app.js:21419
 msgid "Item Name"
 msgstr "Название позиции"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:21420
+#: assets/js/app.js:21427
 msgid "Item SKU"
 msgstr "Артикул позиции"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:21428
+#: assets/js/app.js:21435
 msgid "Item Quantity"
 msgstr "Количество позиции"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:21436
+#: assets/js/app.js:21443
 msgid "Item Subtotal"
 msgstr "Подытог позиции"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:21444
+#: assets/js/app.js:21451
 msgid "Item Total"
 msgstr "Сумма позиции"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:21452
+#: assets/js/app.js:21459
 msgid "Item Tax"
 msgstr "Налог позиции"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:21460
+#: assets/js/app.js:21467
 msgid "Item Product ID"
 msgstr "ID товара позиции"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:21468
+#: assets/js/app.js:21475
 msgid "Item Variation ID"
 msgstr "ID вариации позиции"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:21481
+#: assets/js/app.js:21488
 msgid "Shipping Lines"
 msgstr "Строки доставки"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:21489
+#: assets/js/app.js:21496
 msgid "Fee Lines"
 msgstr "Строки сборов"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:21497
+#: assets/js/app.js:21504
 msgid "Coupon Lines"
 msgstr "Строки купонов"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:21584
+#: assets/js/app.js:21591
 msgid "Order Meta"
 msgstr "Мета заказа"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:21971
+#: assets/js/app.js:21978
 msgid "Review Meta"
 msgstr "Мета отзыва"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:22276
+#: assets/js/app.js:22283
 msgid "Shipping Methods (summary)"
 msgstr "Способы доставки (кратко)"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:22326
+#: assets/js/app.js:22333
 msgid "Email (matches customers on import)"
 msgstr "Email (по нему сопоставляются клиенты при импорте)"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:22382
+#: assets/js/app.js:22389
 msgid "Paying Customer"
 msgstr "Платящий клиент"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:22414
+#: assets/js/app.js:22421
 msgid "Last Order Date"
 msgstr "Дата последнего заказа"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:23209
+#: assets/js/app.js:23216
 msgid "Scan failed"
 msgstr "Ошибка сканирования"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:23643
+#: assets/js/app.js:23650
 msgid "Failed to start sync"
 msgstr "Не удалось запустить синхронизацию"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:23543
+#: assets/js/app.js:23550
 msgid "Please select at least one file to sync"
 msgstr "Выберите хотя бы один файл для синхронизации"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:24326
+#: assets/js/app.js:24333
 msgid "Failed to load folders"
 msgstr "Не удалось загрузить папки"
 
 #. translators: %s: error page title from the server
 #. translators: %s: first line of the server response
 #: assets/js/app.js:2
-#: assets/js/app.js:24356
-#: assets/js/app.js:24370
+#: assets/js/app.js:24363
+#: assets/js/app.js:24377
 #, js-format
 msgid "Server error: %s"
 msgstr "Ошибка сервера: %s"
 
 #. translators: %s: HTTP error text
 #: assets/js/app.js:2
-#: assets/js/app.js:24386
+#: assets/js/app.js:24393
 #, js-format
 msgid "Request failed: %s"
 msgstr "Ошибка запроса: %s"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:24704
+#: assets/js/app.js:24711
 msgid "Completed, upload failed"
 msgstr "Завершено, загрузка не удалась"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:25265
+#: assets/js/app.js:25272
 msgid "Unknown error occurred"
 msgstr "Произошла неизвестная ошибка"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:27183
+#: assets/js/app.js:27190
 #, js-format
 msgid ""
 "Are you sure you want to %1$s %2$s?\n"
@@ -15698,85 +15702,85 @@ msgstr ""
 "Это затронет записей: %3$s."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:27298
+#: assets/js/app.js:27305
 msgid "Completed successfully!"
 msgstr "Успешно завершено!"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:27324
+#: assets/js/app.js:27331
 #, js-format
 msgid "✓ Created %d post(s), Updated %d post(s)"
 msgstr "✓ Создано записей: %d, обновлено: %d"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:28133
+#: assets/js/app.js:28140
 msgid "words"
 msgstr "слов"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:28136
+#: assets/js/app.js:28143
 msgid "characters"
 msgstr "символов"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:28142
+#: assets/js/app.js:28149
 msgid "Warning: the article content was truncated by the AI because it exceeded the token limit. The imported post will contain incomplete content. Consider using a shorter article or a more powerful model."
 msgstr "Внимание: ИИ обрезал текст статьи, потому что он превысил лимит токенов. Импортированная запись будет содержать неполный текст. Используйте статью покороче или более мощную модель."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29017
+#: assets/js/app.js:29024
 msgid "Site info loaded."
 msgstr "Сведения о сайте загружены."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29031
+#: assets/js/app.js:29038
 msgid "Failed to load site info."
 msgstr "Не удалось загрузить сведения о сайте."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29331
+#: assets/js/app.js:29338
 msgid "The download did not start. Please try again."
 msgstr "Скачивание не началось. Попробуйте ещё раз."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29336
+#: assets/js/app.js:29343
 msgid "Download migration package"
 msgstr "Скачать пакет миграции"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29433
+#: assets/js/app.js:29440
 msgid "Content migration notice"
 msgstr "Уведомление миграции контента"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29447
+#: assets/js/app.js:29454
 msgid "Load migration plan"
 msgstr "Загрузка плана миграции"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29526
+#: assets/js/app.js:29533
 msgid "Posts & media"
 msgstr "Записи и медиафайлы"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29542
+#: assets/js/app.js:29549
 msgid "People & discussion"
 msgstr "Люди и обсуждения"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29673
+#: assets/js/app.js:29680
 msgid "Available through export file"
 msgstr "Доступно через файл экспорта"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29679
+#: assets/js/app.js:29686
 #, js-format
 msgid "Select %s first"
 msgstr "Сначала выберите: %s"
 
 #. translators: %s: number of selected content types.
 #: assets/js/app.js:2
-#: assets/js/app.js:29708
+#: assets/js/app.js:29715
 #, js-format
 msgid "%s selected"
 msgid_plural "%s selected"
@@ -15785,27 +15789,27 @@ msgstr[1] "выбрано %s"
 msgstr[2] "выбрано %s"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29780
+#: assets/js/app.js:29787
 msgid "Please choose a ZIP migration package."
 msgstr "Выберите ZIP-пакет миграции."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29808
+#: assets/js/app.js:29815
 msgid "Uploading and checking package…"
 msgstr "Загрузка и проверка пакета…"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29834
+#: assets/js/app.js:29841
 msgid "Package upload failed"
 msgstr "Не удалось загрузить пакет"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29841
+#: assets/js/app.js:29848
 msgid "Reading package contents…"
 msgstr "Чтение содержимого пакета…"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29861
+#: assets/js/app.js:29868
 #, js-format
 msgid "Reading package contents… %1$s part read (%2$s s)"
 msgid_plural "Reading package contents… %1$s parts read (%2$s s)"
@@ -15814,158 +15818,158 @@ msgstr[1] "Чтение содержимого пакета… прочитан�
 msgstr[2] "Чтение содержимого пакета… прочитано %1$s частей (%2$s с)"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29871
+#: assets/js/app.js:29878
 #, js-format
 msgid "Reading package contents… (%s s)"
 msgstr "Чтение содержимого пакета… (%s с)"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29898
+#: assets/js/app.js:29905
 msgid "WooCommerce is inactive. WooCommerce data is excluded from this import, including when All content is selected. Other content can be imported."
 msgstr "WooCommerce не активен. Данные WooCommerce исключены из этого импорта, даже если выбран весь контент. Остальной контент можно импортировать."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29911
+#: assets/js/app.js:29918
 msgid "Some content in this package (for example menus, users, categories or custom post types) needs the PRO addon with an active license. It is skipped; posts, pages, media and comments can be imported."
 msgstr "Часть контента в этом пакете (например, меню, пользователи, рубрики или произвольные типы записей) требует дополнения PRO с активной лицензией. Она будет пропущена; записи, страницы, медиафайлы и комментарии можно импортировать."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29928
+#: assets/js/app.js:29935
 msgid "Read migration package"
 msgstr "Чтение пакета миграции"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29959
+#: assets/js/app.js:29966
 msgid "Starting migration..."
 msgstr "Запуск миграции..."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29972
-#: assets/js/app.js:30119
+#: assets/js/app.js:29979
+#: assets/js/app.js:30126
 msgid "Select at least one content type to migrate."
 msgstr "Выберите хотя бы один тип контента для миграции."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29994
+#: assets/js/app.js:30001
 msgid "Migration request interrupted"
 msgstr "Запрос миграции прерван"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:29998
+#: assets/js/app.js:30005
 msgid "Migration failed"
 msgstr "Ошибка миграции"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30007
+#: assets/js/app.js:30014
 msgid "The server job may still be running. Refresh its status before starting another migration."
 msgstr "Задание на сервере может ещё выполняться. Обновите его статус, прежде чем запускать новую миграцию."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30023
+#: assets/js/app.js:30030
 msgid "Content migration"
 msgstr "Миграция контента"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30061
+#: assets/js/app.js:30068
 msgid "Preparing export…"
 msgstr "Подготовка экспорта…"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30087
+#: assets/js/app.js:30094
 msgid "Please choose a migration ZIP file."
 msgstr "Выберите ZIP-файл миграции."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30110
+#: assets/js/app.js:30117
 msgid "Upload and validate the migration ZIP first."
 msgstr "Сначала загрузите и проверьте ZIP миграции."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30142
+#: assets/js/app.js:30149
 msgid "Preparing import…"
 msgstr "Подготовка импорта…"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30291
+#: assets/js/app.js:30298
 msgid "Connection interrupted"
 msgstr "Соединение прервано"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30317
+#: assets/js/app.js:30324
 msgid "The imported content or a matching destination item is outside the allowed content type."
 msgstr "Импортируемый контент или подходящий элемент назначения вне разрешённого типа контента."
 
 #. translators: %s: job status (failed, cancelled or paused).
 #: assets/js/app.js:2
-#: assets/js/app.js:30324
+#: assets/js/app.js:30331
 #, js-format
 msgid "Migration %s."
 msgstr "Миграция: %s."
 
 #. translators: 1: processed items, 2: total items.
 #: assets/js/app.js:2
-#: assets/js/app.js:30343
+#: assets/js/app.js:30350
 #, js-format
 msgid ": %1$s / %2$s items"
 msgstr ": элементов %1$s / %2$s"
 
 #. translators: 1: processed files, 2: total files.
 #: assets/js/app.js:2
-#: assets/js/app.js:30353
-#: assets/js/app.js:30362
+#: assets/js/app.js:30360
+#: assets/js/app.js:30369
 #, js-format
 msgid "%1$s / %2$s files"
 msgstr "файлов %1$s / %2$s"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30370
+#: assets/js/app.js:30377
 msgid "Building package…"
 msgstr "Сборка пакета…"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30374
+#: assets/js/app.js:30381
 msgid "Preparing…"
 msgstr "Подготовка…"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30398
+#: assets/js/app.js:30405
 msgid "Migration Import Completed Successfully!"
 msgstr "Импорт миграции успешно завершён!"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30403
+#: assets/js/app.js:30410
 msgid "Import Files"
 msgstr "Файлы импорта"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30405
+#: assets/js/app.js:30412
 msgid "Imported Items"
 msgstr "Импортировано элементов"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30407
+#: assets/js/app.js:30414
 msgid "URLs Replaced"
 msgstr "Заменено URL"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30409
+#: assets/js/app.js:30416
 msgid "Migration import completed."
 msgstr "Импорт миграции завершён."
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30428
+#: assets/js/app.js:30435
 #, js-format
 msgid "%1$s created, %2$s updated"
 msgstr "Создано: %1$s, обновлено: %2$s"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30434
+#: assets/js/app.js:30441
 #, js-format
 msgid ", %s skipped because they already exist on this site"
 msgstr ", пропущено %s, так как они уже есть на этом сайте"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30444
+#: assets/js/app.js:30451
 #, js-format
 msgid ". %s media file could not be imported (missing on the source site, or a file type this site does not accept, such as SVG); see Jobs Log"
 msgid_plural ". %s media files could not be imported (missing on the source site, or a file type this site does not accept, such as SVG); see Jobs Log"
@@ -15974,7 +15978,7 @@ msgstr[1] ". Не удалось импортировать %s медиафай�
 msgstr[2] ". Не удалось импортировать %s медиафайлов (их нет на исходном сайте, или этот сайт не принимает такой тип файлов, например SVG); см. журнал задач"
 
 #: assets/js/app.js:2
-#: assets/js/app.js:30506
+#: assets/js/app.js:30513
 msgid "Migration package is ready."
 msgstr "Пакет миграции готов."
 

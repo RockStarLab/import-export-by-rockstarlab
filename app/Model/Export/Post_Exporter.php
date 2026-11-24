@@ -167,6 +167,10 @@ class Post_Exporter extends Abstract_Exporter {
 			'product_attributes',
 			// WooCommerce: grouped product child references (JSON)
 			'grouped_products',
+			// WooCommerce: upsells / cross-sells (SKUs) and the default variation (JSON)
+			'upsell_skus',
+			'crosssell_skus',
+			'default_attributes',
 			// WooCommerce Product fields (with underscore prefix)
 			'_sku',
 			'_regular_price',
@@ -325,7 +329,7 @@ class Post_Exporter extends Abstract_Exporter {
 	 * @return string[]
 	 */
 	public static function product_default_fields() {
-		return [ 'product_type', 'sku', 'regular_price', 'sale_price', 'tax_status', 'tax_class', 'manage_stock', 'stock_quantity', 'stock_status', 'backorders', 'weight', 'length', 'width', 'height', 'shipping_class', 'virtual', 'downloadable', 'product_url', 'button_text', 'featured', 'visibility', 'product_gallery', 'product_cat', 'product_tag', 'product_brand', 'product_attributes', 'variations', 'grouped_products', 'parent_sku', '_product_image_gallery', '_sale_price_dates_from', '_sale_price_dates_to', '_downloadable_files', '_download_limit', '_download_expiry', '_purchase_note', '_sold_individually', '_low_stock_amount' ];
+		return [ 'product_type', 'sku', 'regular_price', 'sale_price', 'tax_status', 'tax_class', 'manage_stock', 'stock_quantity', 'stock_status', 'backorders', 'weight', 'length', 'width', 'height', 'shipping_class', 'virtual', 'downloadable', 'product_url', 'button_text', 'featured', 'visibility', 'product_gallery', 'product_cat', 'product_tag', 'product_brand', 'product_attributes', 'variations', 'grouped_products', 'upsell_skus', 'crosssell_skus', 'default_attributes', 'parent_sku', '_product_image_gallery', '_sale_price_dates_from', '_sale_price_dates_to', '_downloadable_files', '_download_limit', '_download_expiry', '_purchase_note', '_sold_individually', '_low_stock_amount' ];
 	}
 
 	/**
@@ -2910,7 +2914,7 @@ class Post_Exporter extends Abstract_Exporter {
 					// which can become unreliable in export/background contexts, especially
 					// for nested fields like repeaters.
 					$field_key_ref = get_post_meta( $post->ID, "_{$acf_field_name}", true );
-					if ( $field_key_ref && 0 === strpos( $field_key_ref, 'field_' ) ) {
+					if ( is_string( $field_key_ref ) && 0 === strpos( $field_key_ref, 'field_' ) ) { // The "_" twin can be any meta (WooCommerce _default_attributes is an array).
 						$field_cfg = $this->acf_db_load_field_config_by_key( $field_key_ref );
 						if ( ! $field_cfg && function_exists( 'acf_get_field' ) ) {
 							// Fields registered in PHP or acf-json are not in the database. Export them
@@ -3058,7 +3062,7 @@ class Post_Exporter extends Abstract_Exporter {
 				// This is important for edge cases like nested fields with empty names
 				// (their meta key ends with an underscore, so there is no matching acf_* column).
 				$field_key_ref = get_post_meta( $post->ID, "_{$meta_key}", true );
-				if ( $field_key_ref && 0 === strpos( $field_key_ref, 'field_' ) ) {
+				if ( is_string( $field_key_ref ) && 0 === strpos( $field_key_ref, 'field_' ) ) { // The "_" twin can be any meta (WooCommerce _default_attributes is an array).
 					$field_cfg  = $this->acf_db_load_field_config_by_key( $field_key_ref );
 					$field_type = is_array( $field_cfg ) ? ( $field_cfg['type'] ?? '' ) : '';
 
@@ -3209,6 +3213,25 @@ class Post_Exporter extends Abstract_Exporter {
 								];
 							}
 							$data[ $field ] = empty( $refs ) ? '' : wp_json_encode( $refs, JSON_UNESCAPED_UNICODE );
+							continue;
+						}
+
+						// Upsells / cross-sells by SKU (the importer resolves them, also for products later in the file).
+						if ( 'upsell_skus' === $field || 'crosssell_skus' === $field ) {
+							$linked = 'upsell_skus' === $field ? (array) $wc_product->get_upsell_ids() : (array) $wc_product->get_cross_sell_ids();
+							$skus   = [];
+							foreach ( $linked as $linked_id ) {
+								$linked_product = wc_get_product( (int) $linked_id );
+								$skus[]         = $linked_product && '' !== (string) $linked_product->get_sku() ? (string) $linked_product->get_sku() : 'id:' . (int) $linked_id;
+							}
+							$data[ $field ] = implode( ',', $skus );
+							continue;
+						}
+
+						// Default variation of a variable product: JSON { attribute: value }.
+						if ( 'default_attributes' === $field ) {
+							$defaults       = method_exists( $wc_product, 'get_default_attributes' ) ? (array) $wc_product->get_default_attributes() : [];
+							$data[ $field ] = $defaults ? wp_json_encode( $defaults, JSON_UNESCAPED_UNICODE ) : '';
 							continue;
 						}
 

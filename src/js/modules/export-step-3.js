@@ -769,7 +769,7 @@ export default class ExportStep3 {
 		if ( ! category ) return;
 
 		const fieldItems = category.querySelectorAll(
-			'.rsl-ie-field-item:not([style*="display: none"])'
+			'.rsl-ie-field-item:not([style*="display: none"]):not([data-hidden-meta])'
 		);
 
 		if (
@@ -1655,9 +1655,16 @@ export default class ExportStep3 {
 			item.dataset.field = 'meta_' + field.name;
 			item.dataset.label = field.name;
 			item.dataset.type = 'meta';
+			if ( field.hidden ) {
+				// Hidden ("_") fields are offered one by one; "Add all" leaves them out.
+				item.dataset.hiddenMeta = '1';
+				item.title = field.description || '';
+			}
 
 			item.innerHTML = `
-				<span class="rsl-ie-field-icon dashicons dashicons-admin-generic"></span>
+				<span class="rsl-ie-field-icon dashicons dashicons-${
+					field.hidden ? 'hidden' : 'admin-generic'
+				}"></span>
 				<span class="rsl-ie-field-label">${ this.escapeHtml( field.name ) }</span>
 				<span class="rsl-ie-field-type">meta</span>
 			`;
