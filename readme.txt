@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.55
+Stable tag: 2.2.56
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,9 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.56 =
+* Fix: content migration of WooCommerce products kept the sale dates, purchase note, downloadable files, download limit and download expiry out of the package; they now travel like in a normal product export (PRO).
+
 = 2.2.55 =
 * New: hidden custom fields (names starting with "_", such as a plugin's "_price_note") are listed among the export's Custom Fields; add them one by one ("Add all" leaves them out). WordPress, WooCommerce, page builder, SEO and ACF internal keys stay out of the list.
 * New: WP-CLI and AI agent imports map the "meta_" custom field columns of this plugin's own export automatically, hidden fields included.
@@ -323,12 +326,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 * Fix: WP-CLI `import --no-header` works; the help explains the `--if-exists` default.
 * Fix: PHP 8.1+ "strip_tags(): Passing null" notice on six hidden admin screens.
 * Fix: uninstalling the plugin also removes its file hashes and sync links stored on posts, media, terms, comments and users.
-
-= 2.2.51 =
-* New: WPML support in the PRO addon. Content Sync, import and export keep the language of every post, page, product, term, menu and media file and link it to its WPML translations; the free plugin's admin notice for WPML now explains what PRO adds.
-* New: the labels "Language (%s)" and "Send with translations (%s)" name the active multilingual plugin (Polylang or WPML).
-* Fix: the Media Library sync list lets a multilingual add-on leave out the language copies of a file, so each file is listed once.
-* Fix: Content Sync of grouped products keeps the featured image of the child products on the receiving site.
-* Readme: shorter description (WordPress.org shows up to 2,500 words), WPML in features, Works With and FAQ.
 
 Older versions: see changelog.txt in the plugin folder.
