@@ -2922,6 +2922,16 @@ class Content_Sync_Service {
 			\RockStarLab\ImportExport\Helper\Elementor_Refs::$touched = array();
 		}
 
+		// Upsells and cross-sells hold product IDs of the remote site: point them at the local
+		// copies now that every product of this pull exists (the push receiver does the same).
+		if ( ! array_key_exists( 'woo_product_mapping', $input ) ) {
+			foreach ( $imported_remote_to_local as $remote_id => $local_id ) {
+				if ( 'product' === ( $imported_remote_type[ $remote_id ] ?? get_post_type( (int) $local_id ) ) ) {
+					$this->remap_linked_product_ids( (int) $local_id, array_map( 'intval', (array) $imported_remote_to_local ) );
+				}
+			}
+		}
+
 		// ACF Post Object / Relationship fields that pointed to a post later in this pull were emptied
 		// in the first pass (the target did not exist yet). Every post exists now: translate again.
 		if ( ! isset( $input['acf_post_mapping'] ) && count( $imported_remote_to_local ) > 1 ) {
@@ -3872,6 +3882,35 @@ class Content_Sync_Service {
 		}
 
 		return $this->find_existing_post_by_source_meta( $original_post_id );
+	}
+
+	/**
+	 * Point pulled upsells and cross-sells at the local copies (from this pull, or synced
+	 * earlier); drop IDs with no local copy instead of linking whatever product has that ID here.
+	 *
+	 * @param int   $product_id          Local product.
+	 * @param array $remote_to_local_map Remote post ID => local post ID of this pull.
+	 * @return void
+	 */
+	private function remap_linked_product_ids( $product_id, array $remote_to_local_map ) {
+		foreach ( array( '_upsell_ids', '_crosssell_ids' ) as $key ) {
+			$ids = get_post_meta( $product_id, $key, true );
+			if ( ! is_array( $ids ) || ! $ids ) {
+				continue;
+			}
+			$local = array();
+			foreach ( $ids as $remote_id ) {
+				$remote_id = absint( $remote_id );
+				$mapped    = (int) ( $remote_to_local_map[ $remote_id ] ?? 0 );
+				if ( ! $mapped ) {
+					$mapped = (int) $this->find_existing_post_by_source_meta( $remote_id, 'product' );
+				}
+				if ( $mapped > 0 && $mapped !== (int) $product_id ) {
+					$local[] = $mapped;
+				}
+			}
+			update_post_meta( $product_id, $key, array_values( array_unique( $local ) ) );
+		}
 	}
 
 	/**

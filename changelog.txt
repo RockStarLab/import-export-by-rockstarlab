@@ -1,5 +1,12 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.55 =
+* New: hidden custom fields (names starting with "_", such as a plugin's "_price_note") are listed among the export's Custom Fields; add them one by one ("Add all" leaves them out). WordPress, WooCommerce, page builder, SEO and ACF internal keys stay out of the list.
+* New: WP-CLI and AI agent imports map the "meta_" custom field columns of this plugin's own export automatically, hidden fields included.
+* New: WooCommerce product export has the columns upsell_skus, crosssell_skus and default_attributes (the PRO import restores them).
+* Fix: WooCommerce product export stopped with a strpos() error on products whose default attributes were stored next to a custom field of the same name.
+* Fix: Content Sync pull kept the other site's product IDs in up-sells and cross-sells; they now point to the local copies (push already did).
+
 = 2.2.54 =
 * New: Elementor Pro widgets keep their links to posts, categories and authors on the other site: Posts, Portfolio, Loop Grid, Loop Carousel, Search and Sitemap queries, and Internal URL / Post URL dynamic tags point to the same posts there (found by slug); popups opened by a button or a form travel with the page.
 * Fix: Content Sync of a page with an Elementor Pro Lottie animation failed because .json files were not allowed; Lottie files are now copied by Content Sync and file import.

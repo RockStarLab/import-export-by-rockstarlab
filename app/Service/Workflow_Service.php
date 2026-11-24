@@ -292,6 +292,9 @@ class Workflow_Service {
 			$dynamic = '';
 			if ( preg_match( '/^\x{FEFF}?meta:\s*(\S+)$/iu', $header, $meta_match ) ) {
 				$dynamic = 'meta_' . $meta_match[1];
+			} elseif ( '' === $target && preg_match( '/^\x{FEFF}?(meta_[A-Za-z0-9_\-]+)$/u', $header, $meta_match ) && ! isset( $mapped_targets[ $meta_match[1] ] ) ) {
+				// Custom field columns of this plugin's own export ("meta_<key>", hidden keys included).
+				$target = $meta_match[1];
 			} elseif ( in_array( $input['import_type'], [ 'post', 'page' ], true ) && 'category' === $header && taxonomy_exists( 'category' ) && in_array( 'taxonomies', $fields, true ) ) {
 				$dynamic = 'taxonomy_category';
 			} elseif ( in_array( $input['import_type'], [ 'post', 'page' ], true ) && 'tag' === $header && taxonomy_exists( 'post_tag' ) && in_array( 'taxonomies', $fields, true ) ) {

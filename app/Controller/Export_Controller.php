@@ -764,15 +764,62 @@ class Export_Controller extends Base_Controller {
 		);
 		// phpcs:enable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery
 
-		$fields = [];
+		$fields  = [];
+		$visible = [];
 		foreach ( $meta_keys as $meta ) {
+			$visible[ (string) $meta->meta_key ] = true;
 			$fields[] = [
 				'name'  => $meta->meta_key,
 				'label' => $meta->meta_key,
 			];
 		}
 
-		$this->send_success( [ 'fields' => $fields ] );
+		$this->send_success( [ 'fields' => array_merge( $fields, self::hidden_post_meta_fields( (string) $post_type, $visible, $limit ) ) ] );
+	}
+
+	/**
+	 * Hidden ("_") meta keys of a post type that the user may want as columns, such as a
+	 * plugin's "_price_note". Keys that WordPress, WooCommerce, page builders, SEO plugins
+	 * or this plugin manage, and ACF companion keys ("_field" next to "field"), are left out:
+	 * they have their own columns or are internal.
+	 *
+	 * @param string $post_type Post type.
+	 * @param array  $visible   Visible meta keys of the post type (key => true).
+	 * @param int    $limit     Maximum number of keys.
+	 * @return array<int,array{name:string,label:string,hidden:bool,description:string}>
+	 */
+	public static function hidden_post_meta_fields( $post_type, array $visible, $limit ) {
+		global $wpdb;
+		// phpcs:disable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Distinct keys need a direct query; \\_% is a LIKE escape.
+		$keys = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT DISTINCT pm.meta_key FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+				WHERE p.post_type = %s AND pm.meta_key LIKE '\\_%%' AND pm.meta_value <> '' AND pm.meta_value NOT LIKE 'field\\_%%'
+				ORDER BY pm.meta_key ASC LIMIT %d",
+				$post_type,
+				$limit
+			)
+		);
+		// phpcs:enable
+		$internal = [
+			'_edit_lock', '_edit_last', '_thumbnail_id', '_wp_page_template', '_wp_old_slug', '_wp_old_date', '_wp_trash_meta_status', '_wp_trash_meta_time', '_wp_desired_post_slug', '_wp_attached_file', '_wp_attachment_metadata', '_wp_attachment_image_alt', '_encloseme', '_pingme', '_customize_changeset_uuid', '_menu_item_type', '_menu_item_object', '_menu_item_object_id', '_menu_item_menu_item_parent', '_menu_item_target', '_menu_item_classes', '_menu_item_xfn', '_menu_item_url',
+			'_sku', '_global_unique_id', '_price', '_regular_price', '_sale_price', '_sale_price_dates_from', '_sale_price_dates_to', '_tax_status', '_tax_class', '_manage_stock', '_stock', '_stock_status', '_backorders', '_low_stock_amount', '_sold_individually', '_weight', '_length', '_width', '_height', '_upsell_ids', '_crosssell_ids', '_purchase_note', '_default_attributes', '_virtual', '_downloadable', '_product_image_gallery', '_download_limit', '_download_expiry', '_downloadable_files', '_product_attributes', '_product_version', '_children', '_product_url', '_button_text', '_variation_description', '_wc_average_rating', '_wc_review_count', '_wc_rating_count',
+		];
+		$out = [];
+		foreach ( (array) $keys as $key ) {
+			$key = (string) $key;
+			if ( in_array( $key, $internal, true ) || isset( $visible[ substr( $key, 1 ) ] )
+				|| preg_match( '/^_(?:_|wp_|oembed_|elementor|yoast_|rank_math|rsl_ie_|wc_|wpml_|icl_|pll_|transient|edit_|menu_item_|acf|aioseo|et_|fl_builder|brizy|vc_|wpb_|kadence|uag_|astra|blocksy|ct_|generate|spectra|gform|jetpack)/i', $key ) ) {
+				continue;
+			}
+			$out[] = [
+				'name'        => $key,
+				'label'       => $key,
+				'hidden'      => true,
+				'description' => __( 'Hidden field (its name starts with "_"). Not added by "Add all"; add it on its own if you need it.', 'import-export-by-rockstarlab' ),
+			];
+		}
+		return $out;
 	}
 
 	/**
