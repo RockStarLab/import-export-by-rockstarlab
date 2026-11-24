@@ -442,7 +442,12 @@ class Cli_Helper {
 	 * @param array  $extra  Extra fields (file path).
 	 */
 	public static function finish( array $result, $format, array $extra = [] ) {
-		$row = array_intersect_key( $result, array_flip( [ 'job_id', 'operation', 'content_type', 'job_name', 'status', 'total', 'processed', 'success', 'failed', 'skipped', 'remote_upload' ] ) ) + $extra;
+		$row    = array_intersect_key( $result, array_flip( [ 'job_id', 'operation', 'content_type', 'job_name', 'status', 'total', 'processed', 'success', 'failed', 'skipped', 'remote_upload' ] ) ) + $extra;
+		$reason = self::failure_reason( $result );
+		if ( '' !== $reason ) {
+			// A job that failed before any row (bad filter, missing form...) has no row errors: say why.
+			$row['error'] = $reason;
+		}
 		if ( 'table' === $format ) {
 			foreach ( $row as $key => $value ) {
 				WP_CLI::log( str_pad( $key . ':', 14 ) . ( is_scalar( $value ) ? $value : wp_json_encode( $value ) ) );
@@ -458,6 +463,20 @@ class Cli_Helper {
 			WP_CLI::print_value( $row, [ 'format' => $format ] );
 		}
 		self::exit_for( $result );
+	}
+
+	/**
+	 * Last error event of a failed job that reports no row errors.
+	 *
+	 * @param array $result Job result.
+	 * @return string
+	 */
+	private static function failure_reason( array $result ) {
+		if ( 'failed' !== ( $result['status'] ?? '' ) || ! empty( $result['errors'] ) || empty( $result['job_id'] ) ) {
+			return '';
+		}
+		global $wpdb;
+		return (string) $wpdb->get_var( $wpdb->prepare( "SELECT message FROM {$wpdb->prefix}rsl_ie_job_logs WHERE job_id = %d AND level = 'error' ORDER BY id DESC LIMIT 1", (int) $result['job_id'] ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- One row of this job's own log.
 	}
 
 	/**

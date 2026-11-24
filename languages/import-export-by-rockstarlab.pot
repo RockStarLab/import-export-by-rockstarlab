@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Content Sync, Media Sync, Import, Export with AI Agents Support 2.2.52\n"
+"Project-Id-Version: Content Sync, Media Sync, Import, Export with AI Agents Support 2.2.53\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/import-export-by-rockstarlab\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-24T08:53:17+00:00\n"
+"POT-Creation-Date: 2026-11-24T11:06:03+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: import-export-by-rockstarlab\n"
@@ -253,8 +253,8 @@ msgid "Failed to import post: %s"
 msgstr ""
 
 #. translators: %d: number of posts
-#: app/Controller/Content_Sync_API_Controller.php:793
-#: app/Service/Content_Sync_Service.php:3080
+#: app/Controller/Content_Sync_API_Controller.php:834
+#: app/Service/Content_Sync_Service.php:3123
 #, php-format
 msgid "Created %d post"
 msgid_plural "Created %d posts"
@@ -262,52 +262,52 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of posts
-#: app/Controller/Content_Sync_API_Controller.php:801
-#: app/Service/Content_Sync_Service.php:3088
+#: app/Controller/Content_Sync_API_Controller.php:842
+#: app/Service/Content_Sync_Service.php:3131
 #, php-format
 msgid "Updated %d post"
 msgid_plural "Updated %d posts"
 msgstr[0] ""
 msgstr[1] ""
 
-#: app/Controller/Content_Sync_API_Controller.php:1739
+#: app/Controller/Content_Sync_API_Controller.php:1780
 msgid "No post IDs provided"
 msgstr ""
 
-#: app/Controller/Content_Sync_API_Controller.php:1781
+#: app/Controller/Content_Sync_API_Controller.php:1822
 msgid "No valid posts found"
 msgstr ""
 
 #. translators: %s: comma-separated list of post IDs
-#: app/Controller/Content_Sync_API_Controller.php:1785
+#: app/Controller/Content_Sync_API_Controller.php:1826
 #, php-format
 msgid ". Post IDs not found: %s"
 msgstr ""
 
 #. translators: %d: number of posts
-#: app/Controller/Content_Sync_API_Controller.php:1873
+#: app/Controller/Content_Sync_API_Controller.php:1914
 #, php-format
 msgid "Found %d post"
 msgid_plural "Found %d posts"
 msgstr[0] ""
 msgstr[1] ""
 
-#: app/Controller/Content_Sync_API_Controller.php:2633
+#: app/Controller/Content_Sync_API_Controller.php:2674
 #: app/Service/Content_Sync_Service.php:724
 msgid "No comments selected."
 msgstr ""
 
-#: app/Controller/Content_Sync_API_Controller.php:2699
+#: app/Controller/Content_Sync_API_Controller.php:2740
 msgid "No comments data provided."
 msgstr ""
 
 #. translators: 1: created comments, 2: updated comments, 3: failed comments.
-#: app/Controller/Content_Sync_API_Controller.php:2720
+#: app/Controller/Content_Sync_API_Controller.php:2761
 #, php-format
 msgid "Comments synced. Created: %1$d, Updated: %2$d, Failed: %3$d"
 msgstr ""
 
-#: app/Controller/Content_Sync_API_Controller.php:3296
+#: app/Controller/Content_Sync_API_Controller.php:3337
 msgid "Parent ID is required."
 msgstr ""
 
@@ -401,7 +401,7 @@ msgstr ""
 
 #: app/Controller/Content_Sync_Controller.php:398
 #: app/Controller/Init.php:798
-#: app/Model/Import/Post_Importer.php:4962
+#: app/Model/Import/Post_Importer.php:5000
 #: assets/js/app.js:2
 #: assets/js/post-sync-standalone.js:2
 #: assets/js/app.js:733
@@ -1667,7 +1667,7 @@ msgstr ""
 #: app/Controller/Init.php:573
 #: app/Controller/Init.php:847
 #: app/Controller/Init.php:883
-#: app/Service/Form_Entries_Service.php:147
+#: app/Service/Form_Entries_Service.php:168
 #: app/View/settings/content_sync.php:110
 #: app/View/settings/jobs-log.php:74
 #: app/View/settings/schedules.php:175
@@ -3174,7 +3174,7 @@ msgid "Excerpt"
 msgstr ""
 
 #: app/Controller/Init.php:882
-#: app/Service/Form_Entries_Service.php:146
+#: app/Service/Form_Entries_Service.php:167
 #: assets/js/app.js:2
 #: assets/js/app.js:3912
 #: assets/js/app.js:6742
@@ -5679,13 +5679,13 @@ msgid "Unknown action."
 msgstr ""
 
 #: app/Helper/ACF_Fields.php:1967
-#: app/Model/Import/Post_Importer.php:6128
+#: app/Model/Import/Post_Importer.php:6166
 msgid "Could not create a temporary file for download."
 msgstr ""
 
 #. translators: %d: code.
 #: app/Helper/ACF_Fields.php:1988
-#: app/Model/Import/Post_Importer.php:6149
+#: app/Model/Import/Post_Importer.php:6187
 #, php-format
 msgid "Download failed with HTTP %d"
 msgstr ""
@@ -5892,18 +5892,18 @@ msgstr ""
 msgid "Page Template"
 msgstr ""
 
-#: app/Helper/Elementor_Fields.php:535
-#: app/Helper/Seo_Fields.php:827
+#: app/Helper/Elementor_Fields.php:595
+#: app/Helper/Seo_Fields.php:971
 msgid "Could not download media URL."
 msgstr ""
 
-#: app/Helper/Elementor_Fields.php:543
-#: app/Helper/Seo_Fields.php:835
+#: app/Helper/Elementor_Fields.php:603
+#: app/Helper/Seo_Fields.php:979
 msgid "Could not create temporary media file."
 msgstr ""
 
-#: app/Helper/Elementor_Fields.php:548
-#: app/Helper/Seo_Fields.php:840
+#: app/Helper/Elementor_Fields.php:608
+#: app/Helper/Seo_Fields.php:984
 msgid "Could not write temporary media file."
 msgstr ""
 
@@ -6428,129 +6428,129 @@ msgstr ""
 msgid "Dismiss this notice"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:161
-#: app/Helper/Seo_Fields.php:282
+#: app/Helper/Seo_Fields.php:305
+#: app/Helper/Seo_Fields.php:426
 msgid "SEO Title"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:166
-#: app/Helper/Seo_Fields.php:287
+#: app/Helper/Seo_Fields.php:310
+#: app/Helper/Seo_Fields.php:431
 msgid "Meta Description"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:171
-#: app/Helper/Seo_Fields.php:292
+#: app/Helper/Seo_Fields.php:315
+#: app/Helper/Seo_Fields.php:436
 msgid "Focus Keyword"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:176
-#: app/Helper/Seo_Fields.php:297
+#: app/Helper/Seo_Fields.php:320
+#: app/Helper/Seo_Fields.php:441
 msgid "Canonical URL"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:181
+#: app/Helper/Seo_Fields.php:325
 msgid "Meta Robots (Index)"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:186
+#: app/Helper/Seo_Fields.php:330
 msgid "Meta Robots (Follow)"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:191
+#: app/Helper/Seo_Fields.php:335
 msgid "Social Title"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:196
+#: app/Helper/Seo_Fields.php:340
 msgid "Social Description"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:201
+#: app/Helper/Seo_Fields.php:345
 msgid "Social Image"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:206
-#: app/Helper/Seo_Fields.php:362
+#: app/Helper/Seo_Fields.php:350
+#: app/Helper/Seo_Fields.php:506
 msgid "X (Twitter) Title"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:211
-#: app/Helper/Seo_Fields.php:367
+#: app/Helper/Seo_Fields.php:355
+#: app/Helper/Seo_Fields.php:511
 msgid "X (Twitter) Description"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:216
-#: app/Helper/Seo_Fields.php:372
+#: app/Helper/Seo_Fields.php:360
+#: app/Helper/Seo_Fields.php:516
 msgid "X (Twitter) Image"
 msgstr ""
 
 #. translators: %s: taxonomy label.
-#: app/Helper/Seo_Fields.php:253
-#: app/Helper/Seo_Fields.php:429
+#: app/Helper/Seo_Fields.php:397
+#: app/Helper/Seo_Fields.php:573
 #, php-format
 msgid "Primary %s"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:302
+#: app/Helper/Seo_Fields.php:446
 msgid "Robots Meta"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:307
+#: app/Helper/Seo_Fields.php:451
 msgid "Advanced Robots Meta"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:312
+#: app/Helper/Seo_Fields.php:456
 msgid "Breadcrumb Title"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:317
+#: app/Helper/Seo_Fields.php:461
 msgid "Pillar Content"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:322
+#: app/Helper/Seo_Fields.php:466
 msgid "Schema Markup"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:327
+#: app/Helper/Seo_Fields.php:471
 msgid "Facebook Title"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:332
+#: app/Helper/Seo_Fields.php:476
 msgid "Facebook Description"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:337
+#: app/Helper/Seo_Fields.php:481
 msgid "Facebook Image"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:342
+#: app/Helper/Seo_Fields.php:486
 msgid "Facebook Image ID"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:347
+#: app/Helper/Seo_Fields.php:491
 msgid "Enable Facebook Image Overlay"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:352
+#: app/Helper/Seo_Fields.php:496
 msgid "Facebook Image Overlay"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:357
+#: app/Helper/Seo_Fields.php:501
 msgid "X (Twitter) Card Type"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:377
+#: app/Helper/Seo_Fields.php:521
 msgid "X (Twitter) Image ID"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:382
+#: app/Helper/Seo_Fields.php:526
 msgid "Use Facebook Data for X (Twitter)"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:387
+#: app/Helper/Seo_Fields.php:531
 msgid "Enable X (Twitter) Image Overlay"
 msgstr ""
 
-#: app/Helper/Seo_Fields.php:392
+#: app/Helper/Seo_Fields.php:536
 msgid "X (Twitter) Image Overlay"
 msgstr ""
 
@@ -7263,7 +7263,7 @@ msgstr ""
 #: app/Model/Format/XML_Format.php:1078
 #: app/Model/Format/XML_Format.php:1113
 #: app/Service/File_Service.php:1009
-#: app/Service/Import_Service.php:610
+#: app/Service/Import_Service.php:612
 msgid "Invalid XML file"
 msgstr ""
 
@@ -7590,91 +7590,91 @@ msgid "Author not found for \"%1$s\" (%2$s); the post was assigned to the defaul
 msgstr ""
 
 #. translators: %s: image.
-#: app/Model/Import/Post_Importer.php:4193
+#: app/Model/Import/Post_Importer.php:4231
 #, php-format
 msgid "Featured image value is not a valid URL: %s"
 msgstr ""
 
 #. translators: %s: image.
-#: app/Model/Import/Post_Importer.php:4194
+#: app/Model/Import/Post_Importer.php:4232
 msgid "The featured image value is not a valid URL."
 msgstr ""
 
-#: app/Model/Import/Post_Importer.php:4206
+#: app/Model/Import/Post_Importer.php:4244
 msgid "The featured image could not be downloaded."
 msgstr ""
 
 #. translators: %1$s: url, %2$s: reason.
-#: app/Model/Import/Post_Importer.php:4207
+#: app/Model/Import/Post_Importer.php:4245
 #, php-format
 msgid "Failed to import featured image from URL: %1$s (%2$s)"
 msgstr ""
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4736
-#: app/Model/Import/Post_Importer.php:4929
+#: app/Model/Import/Post_Importer.php:4774
+#: app/Model/Import/Post_Importer.php:4967
 #, php-format
 msgid "Skipped duplicate media: %1$s (using existing ID: %2$d)"
 msgstr ""
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4743
-#: app/Model/Import/Post_Importer.php:4934
+#: app/Model/Import/Post_Importer.php:4781
+#: app/Model/Import/Post_Importer.php:4972
 #, php-format
 msgid "Deleted existing media for replacement: %1$s (ID: %2$d)"
 msgstr ""
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4745
+#: app/Model/Import/Post_Importer.php:4783
 #, php-format
 msgid "Using existing media: %1$s (ID: %2$d)"
 msgstr ""
 
 #. translators: %1$s: filename, %2$d: attachment id.
-#: app/Model/Import/Post_Importer.php:4765
-#: app/Model/Import/Post_Importer.php:4959
+#: app/Model/Import/Post_Importer.php:4803
+#: app/Model/Import/Post_Importer.php:4997
 #, php-format
 msgid "Imported media: %1$s (new ID: %2$d)"
 msgstr ""
 
-#: app/Model/Import/Post_Importer.php:4880
+#: app/Model/Import/Post_Importer.php:4918
 msgid "The file does not exist in the Media Library of this site."
 msgstr ""
 
 #. translators: %s: url.
-#: app/Model/Import/Post_Importer.php:4881
+#: app/Model/Import/Post_Importer.php:4919
 #, php-format
 msgid "Media file not found on this site: %s"
 msgstr ""
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4942
+#: app/Model/Import/Post_Importer.php:4980
 #, php-format
 msgid "Updated duplicate media: %1$s (using existing ID: %2$d)"
 msgstr ""
 
 #. translators: %1$s: filename, %2$s: error message.
-#: app/Model/Import/Post_Importer.php:4964
+#: app/Model/Import/Post_Importer.php:5002
 #, php-format
 msgid "Failed to import media: %1$s - %2$s"
 msgstr ""
 
 #. translators: %1$d: post id, %2$d: imported count, %3$d: skipped count, %4$d: error count.
-#: app/Model/Import/Post_Importer.php:4989
+#: app/Model/Import/Post_Importer.php:5027
 #, php-format
 msgid "Media import summary for post %1$d: %2$d imported, %3$d skipped, %4$d errors"
 msgstr ""
 
-#: app/Model/Import/Post_Importer.php:6011
+#: app/Model/Import/Post_Importer.php:6049
 msgid "The media URL is not importable."
 msgstr ""
 
-#: app/Model/Import/Post_Importer.php:6056
+#: app/Model/Import/Post_Importer.php:6094
 msgid "The address did not return an image file."
 msgstr ""
 
 #. translators: %d: cleaned.
-#: app/Model/Import/Post_Importer.php:6182
+#: app/Model/Import/Post_Importer.php:6220
 #, php-format
 msgid "Cleaned up %d temporary media files"
 msgstr ""
@@ -8247,15 +8247,15 @@ msgstr ""
 msgid "No posts found on remote site"
 msgstr ""
 
-#: app/Service/Content_Sync_Service.php:3095
+#: app/Service/Content_Sync_Service.php:3138
 msgid "No posts were processed"
 msgstr ""
 
-#: app/Service/Content_Sync_Service.php:3113
+#: app/Service/Content_Sync_Service.php:3156
 msgid "Content Sync media pull failed."
 msgstr ""
 
-#: app/Service/Content_Sync_Service.php:3135
+#: app/Service/Content_Sync_Service.php:3178
 msgid "Content Sync media fields failed."
 msgstr ""
 
@@ -8408,67 +8408,67 @@ msgstr ""
 msgid "Unknown operation."
 msgstr ""
 
-#: app/Service/Form_Entries_Service.php:145
+#: app/Service/Form_Entries_Service.php:166
 msgid "Entry ID"
 msgstr ""
 
-#: app/Service/Form_Entries_Service.php:148
+#: app/Service/Form_Entries_Service.php:169
 msgid "Page URL"
 msgstr ""
 
-#: app/Service/Form_Entries_Service.php:149
+#: app/Service/Form_Entries_Service.php:170
 msgid "IP address"
 msgstr ""
 
-#: app/Service/Form_Entries_Service.php:150
+#: app/Service/Form_Entries_Service.php:171
 msgid "Browser (user agent)"
 msgstr ""
 
-#: app/Service/Form_Entries_Service.php:151
+#: app/Service/Form_Entries_Service.php:172
 msgid "WordPress user"
 msgstr ""
 
-#: app/Service/Form_Entries_Service.php:155
+#: app/Service/Form_Entries_Service.php:176
 #: app/View/settings/notifications.php:107
 msgid "Subject"
 msgstr ""
 
-#: app/Service/Form_Entries_Service.php:156
+#: app/Service/Form_Entries_Service.php:177
 msgid "From name"
 msgstr ""
 
-#: app/Service/Form_Entries_Service.php:157
+#: app/Service/Form_Entries_Service.php:178
 msgid "From email"
 msgstr ""
 
-#: app/Service/Form_Entries_Service.php:240
+#: app/Service/Form_Entries_Service.php:251
 msgid "Choose Gravity Forms or Contact Form 7 (Flamingo); the plugin must be active."
 msgstr ""
 
-#: app/Service/Form_Entries_Service.php:244
-#: app/Service/Form_Entries_Service.php:247
+#: app/Service/Form_Entries_Service.php:255
+#: app/Service/Form_Entries_Service.php:258
 msgid "Form not found."
 msgstr ""
 
-#: app/Service/Form_Entries_Service.php:340
+#: app/Service/Form_Entries_Service.php:354
 msgid "Filter Status by one value: active, spam or trash."
 msgstr ""
 
-#: app/Service/Form_Entries_Service.php:352
+#: app/Service/Form_Entries_Service.php:366
 msgid "Filter Entry ID with \"equals\" or \"in\"."
 msgstr ""
 
-#: app/Service/Form_Entries_Service.php:360
+#: app/Service/Form_Entries_Service.php:374
 msgid "Filter form fields with equals, not equals, contains or does not contain."
 msgstr ""
 
 #. translators: %s: column name.
-#: app/Service/Form_Entries_Service.php:369
+#: app/Service/Form_Entries_Service.php:383
 #, php-format
 msgid "This form cannot be filtered by \"%s\"."
 msgstr ""
 
-#: app/Service/Form_Entries_Service.php:460
+#: app/Service/Form_Entries_Service.php:474
 msgid "Filter Date with a date like 2026-10-01 (between takes two dates separated by a comma)."
 msgstr ""
 
@@ -8498,9 +8498,9 @@ msgstr ""
 
 #: app/Service/Import_Service.php:201
 #: app/Service/Import_Service.php:223
-#: app/Service/Import_Service.php:1223
-#: app/Service/Import_Service.php:1264
-#: app/Service/Import_Service.php:1438
+#: app/Service/Import_Service.php:1225
+#: app/Service/Import_Service.php:1266
+#: app/Service/Import_Service.php:1440
 msgid "Import job not found."
 msgstr ""
 
@@ -8536,36 +8536,36 @@ msgstr ""
 msgid "Unsupported file encoding."
 msgstr ""
 
-#: app/Service/Import_Service.php:427
+#: app/Service/Import_Service.php:429
 msgid "The import file did not contain a list of rows."
 msgstr ""
 
 #. translators: %d: number of rows
-#: app/Service/Import_Service.php:873
+#: app/Service/Import_Service.php:875
 #, php-format
 msgid "%d row did not match the row filter and was not imported."
 msgid_plural "%d rows did not match the row filter and were not imported."
 msgstr[0] ""
 msgstr[1] ""
 
-#: app/Service/Import_Service.php:893
+#: app/Service/Import_Service.php:895
 msgid "The source column index is outside the file columns."
 msgstr ""
 
-#: app/Service/Import_Service.php:1230
-#: app/Service/Import_Service.php:1434
+#: app/Service/Import_Service.php:1232
+#: app/Service/Import_Service.php:1436
 msgid "Could not save import progress."
 msgstr ""
 
-#: app/Service/Import_Service.php:2599
+#: app/Service/Import_Service.php:2601
 msgid "Only CSV, JSON, XML, XLSX, and ODS import files are supported."
 msgstr ""
 
-#: app/Service/Import_Service.php:2604
+#: app/Service/Import_Service.php:2606
 msgid "Invalid import file path."
 msgstr ""
 
-#: app/Service/Import_Service.php:2619
+#: app/Service/Import_Service.php:2621
 msgid "Import file must be inside the plugin upload directory."
 msgstr ""
 
@@ -9335,6 +9335,10 @@ msgid "Unknown sync ability."
 msgstr ""
 
 #: app/Service/Sync_Workflow_Service.php:63
+msgid "ACF Post Object, Relationship or Page Link references could not be confirmed. Every referenced post must be in this batch or listed in acf_post_mapping as post_type:TYPE:SOURCE_ID => destination ID, both sites need the same ACF field definitions, and bidirectional fields are not supported. Leave out acf_post_mapping to resolve references automatically."
+msgstr ""
+
+#: app/Service/Sync_Workflow_Service.php:67
 msgid "The sync operation failed. Check connection status, selection and job history."
 msgstr ""
 

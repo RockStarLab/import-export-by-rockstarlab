@@ -152,7 +152,7 @@ class Post_Importer extends Abstract_Importer {
 			'comment_status'       => 'Default comment status: open, closed',
 			'ping_status'          => 'Default ping status: open, closed',
 			'duplicate_check'      => 'Field to check for duplicates: post_title, post_name, ID. With duplicate_mode=update matched by ID or post_name, post_title is not required and only mapped fields change',
-			'auto_import_media'    => 'Automatically import media files from content: true, false',
+			'auto_import_media'    => 'Download media files from the file (images, files, galleries): true (default), false',
 			'media_duplicate_mode' => 'How to handle duplicate media: skip, create, replace',
 		];
 	}
@@ -1939,6 +1939,14 @@ class Post_Importer extends Abstract_Importer {
 			}
 		}
 
+		// Elementor templates that came with the page: created or updated first, then the
+		// page's references to them are renumbered as its design is imported.
+		$template_map = [];
+		if ( isset( $meta[ \RockStarLab\ImportExport\Helper\Elementor_Templates::META_KEY ] ) ) {
+			$template_map = \RockStarLab\ImportExport\Helper\Elementor_Fields::import_templates( $meta[ \RockStarLab\ImportExport\Helper\Elementor_Templates::META_KEY ], true );
+			unset( $meta[ \RockStarLab\ImportExport\Helper\Elementor_Templates::META_KEY ] );
+		}
+
 		foreach ( $meta as $key => $value ) {
 			// Several rows of one meta key (see Post_Exporter::META_ROWS_KEY): written back as rows.
 			$rows = is_string( $value ) && '' !== $value && '{' === $value[0] && false !== strpos( $value, '_rsl_ie_meta_rows' ) ? json_decode( $value, true ) : $value;
@@ -1964,6 +1972,9 @@ class Post_Importer extends Abstract_Importer {
 			}
 
 			if ( is_string( $key ) && \RockStarLab\ImportExport\Helper\Elementor_Fields::is_elementor_meta_key( $key ) ) {
+				if ( $template_map && in_array( $key, [ '_elementor_data', '_elementor_page_settings' ], true ) ) {
+					$value = is_string( $value ) ? \RockStarLab\ImportExport\Helper\Elementor_Templates::remap_json( $value, $template_map ) : \RockStarLab\ImportExport\Helper\Elementor_Templates::remap( $value, $template_map );
+				}
 				\RockStarLab\ImportExport\Helper\Elementor_Fields::import_meta_value( (int) $post_id, $key, $value, true, true );
 				continue;
 			}
@@ -2112,6 +2123,8 @@ class Post_Importer extends Abstract_Importer {
 				// (or unknown ones) turn this site's upload URLs into attachment IDs.
 				$top_type                     = ( $has_acf && ! preg_match( '/_\d+_/', (string) $key ) ) ? $this->get_acf_field_type_for_meta_key( $post_id, (string) $key ) : '';
 				$this->keep_plain_media_urls  = '' !== $top_type && ! in_array( $top_type, [ 'image', 'file', 'gallery', 'repeater', 'group', 'flexible_content', 'clone' ], true );
+				// Rank Math schema JSON-LD needs image URLs ("image": {"url": ...}), never attachment IDs.
+				$this->keep_plain_media_urls = $this->keep_plain_media_urls || 0 === strpos( (string) $key, 'rank_math_schema_' );
 				try {
 					$value = $this->resolve_acf_meta_value( $value, $post_id );
 				} finally {
@@ -3358,6 +3371,11 @@ class Post_Importer extends Abstract_Importer {
 			$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
 			if ( in_array( $ext, $media_exts, true ) ) {
 				$id = $this->import_media_for_acf( $value, $post_id, $media_duplicate_mode );
+				if ( $id && $this->keep_plain_media_urls ) {
+					// Text/URL fields and schema JSON keep a URL: point it at the imported copy.
+					$local = wp_get_attachment_url( (int) $id );
+					return $local ? $local : $value;
+				}
 				if ( $id ) {
 					return (int) $id;
 				}
@@ -4017,6 +4035,26 @@ class Post_Importer extends Abstract_Importer {
 			foreach ( $term_data['acf'] as $field_name => $field_value ) {
 				ACF_Fields::import_value( 'term', $term_id, sanitize_text_field( (string) $field_name ), $field_value, $taxonomy );
 			}
+		}
+
+		// Yoast / Rank Math settings of the term; social images point at the local copies.
+		if ( $term_id > 0 && ( ! empty( $term_data['yoast_seo'] ) || ! empty( $term_data['seo_meta'] ) ) ) {
+			\RockStarLab\ImportExport\Helper\Seo_Fields::apply_synced_term_seo(
+				$term_id,
+				$taxonomy,
+				$term_data,
+				function ( $value ) {
+					$value = (string) $value;
+					if ( ! Content_Sync_Media::is_valid_url( $value ) || ! $this->looks_like_downloadable_media_url( $value ) ) {
+						return $value;
+					}
+					$id = $this->get_option( 'auto_import_media', true )
+						? $this->import_media_for_acf( $value, 0, (string) $this->get_option( 'media_duplicate_mode', 'skip' ) )
+						: $this->local_media_id( $value );
+					$local = $id && ! is_wp_error( $id ) ? wp_get_attachment_url( (int) $id ) : '';
+					return $local ? $local : $value;
+				}
+			);
 		}
 
 		return $term_id;

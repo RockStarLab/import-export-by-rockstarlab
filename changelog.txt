@@ -1,5 +1,16 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.53 =
+* New: Elementor templates used by a page (Template widget, [elementor-template] shortcode, global widgets, templates inside templates) travel with it in Content Sync, export/import and Content Migration: their images are copied, links point to the new site, a template with the same slug is updated, and the page uses the new template IDs.
+* New: Yoast SEO and Rank Math settings of categories, tags and other terms travel with the posts in Content Sync, export/import and Content Migration, with their social images.
+* New: WP-CLI and AI agents (abilities) download the media of an imported file by default, like the Import screen; turn it off with "auto_import_media": false.
+* Fix: Content Sync lost ACF Post Object and Relationship values that pointed to a post later in the same batch.
+* Fix: Elementor Page Settings images (page background) were not copied by Content Sync; a Text Editor image kept the old attachment ID after a file import.
+* Fix: Rank Math schema image URLs became attachment IDs after import; an ACF text or URL field with a media URL keeps a URL.
+* Fix: Gravity Forms export: a form field labelled Date, Status, Entry ID or Page URL replaced the entry column with the same name.
+* Fix: WP-CLI shows why a job failed before its first row (for example a wrong filter).
+* Fix: the strict ACF reference mode (acf_post_mapping) explains what it needs, and accepts Page Link fields that hold an archive URL.
+
 = 2.2.52 =
 * Security: CSV exports protect against formula injection: a text cell that starts with =, +, -, @ (for example =HYPERLINK(...)) gets a leading apostrophe, so spreadsheet apps show it as text. Numbers such as -5 are not changed, and importing the plugin's own CSV removes the apostrophe again.
 * New: media copied to another site keeps its year/month uploads folder (2019/05/photo.jpg stays in 2019/05) in Content Sync, Media Library push, media import and Content Migration.
