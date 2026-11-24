@@ -84,6 +84,16 @@ class Migration_Plan {
 			if ( is_string( $field ) && '' !== $field ) {
 				$fields[] = sanitize_text_field( $field ); }
 		}
+		// The default export columns too: for products they carry the sale dates, downloadable
+		// files, download limits and purchase note, which the generic field list leaves out.
+		$defaults = is_callable( [ $exporter, 'get_default_fields' ] ) ? (array) $exporter->get_default_fields() : [];
+		if ( 'woo_product' === $type && is_callable( [ \RockStarLab\ImportExport\Model\Export\Post_Exporter::class, 'product_default_fields' ] ) ) {
+			$defaults = array_merge( $defaults, \RockStarLab\ImportExport\Model\Export\Post_Exporter::product_default_fields() );
+		}
+		foreach ( $defaults as $field ) {
+			if ( is_string( $field ) && '' !== $field ) {
+				$fields[] = sanitize_text_field( $field ); }
+		}
 		/**
 		 * Columns of a migration step (Polylang adds the language and translation group).
 		 *

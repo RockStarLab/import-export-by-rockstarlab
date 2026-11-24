@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.56 =
+* Fix: content migration of WooCommerce products kept the sale dates, purchase note, downloadable files, download limit and download expiry out of the package; they now travel like in a normal product export (PRO).
+
 = 2.2.55 =
 * New: hidden custom fields (names starting with "_", such as a plugin's "_price_note") are listed among the export's Custom Fields; add them one by one ("Add all" leaves them out). WordPress, WooCommerce, page builder, SEO and ACF internal keys stay out of the list.
 * New: WP-CLI and AI agent imports map the "meta_" custom field columns of this plugin's own export automatically, hidden fields included.
