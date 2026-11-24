@@ -1429,6 +1429,8 @@ class Import_Service {
 			// ACF post references to rows that came later in the file exist only now.
 			if ( $importer instanceof \RockStarLab\ImportExport\Model\Import\Post_Importer ) {
 				$importer->resolve_pending_acf_references();
+				// Elementor query controls / dynamic tags pointing to posts of this file.
+				\RockStarLab\ImportExport\Helper\Elementor_Refs::resolve_pending( [], empty( $parameters['migration_parent_id'] ) ); // A migration retries in its later steps.
 			}
 			global $wpdb;
 			$updated = $wpdb->query( $wpdb->prepare( "UPDATE %i SET status = 'completed', progress = 100, completed_at = %s WHERE id = %d AND status = 'processing'", $wpdb->prefix . 'rsl_ie_jobs', current_time( 'mysql' ), $job_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Preserve concurrent lifecycle changes.

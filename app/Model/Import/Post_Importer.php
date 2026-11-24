@@ -1946,6 +1946,11 @@ class Post_Importer extends Abstract_Importer {
 			$template_map = \RockStarLab\ImportExport\Helper\Elementor_Fields::import_templates( $meta[ \RockStarLab\ImportExport\Helper\Elementor_Templates::META_KEY ], true );
 			unset( $meta[ \RockStarLab\ImportExport\Helper\Elementor_Templates::META_KEY ] );
 		}
+		// Posts, terms and users of Elementor query controls and dynamic tags: renumbered when the job ends.
+		if ( isset( $meta[ \RockStarLab\ImportExport\Helper\Elementor_Refs::META_KEY ] ) ) {
+			\RockStarLab\ImportExport\Helper\Elementor_Refs::remember( (int) $post_id, $meta[ \RockStarLab\ImportExport\Helper\Elementor_Refs::META_KEY ], array_values( $template_map ) );
+			unset( $meta[ \RockStarLab\ImportExport\Helper\Elementor_Refs::META_KEY ] );
+		}
 
 		foreach ( $meta as $key => $value ) {
 			// Several rows of one meta key (see Post_Exporter::META_ROWS_KEY): written back as rows.

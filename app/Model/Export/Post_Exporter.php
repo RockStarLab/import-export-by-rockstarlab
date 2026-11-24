@@ -2776,6 +2776,11 @@ class Post_Exporter extends Abstract_Exporter {
 			if ( $elementor_templates ) {
 				$data['post_meta'][ \RockStarLab\ImportExport\Helper\Elementor_Templates::META_KEY ] = $elementor_templates;
 			}
+			// Posts, terms and users of Elementor query controls and dynamic tags, by slug / login.
+			$elementor_refs = is_array( $data['post_meta'] ) && isset( $data['post_meta']['_elementor_data'] ) ? \RockStarLab\ImportExport\Helper\Elementor_Refs::describe_for_post( (int) $post->ID, $elementor_templates ) : [];
+			if ( $elementor_refs ) {
+				$data['post_meta'][ \RockStarLab\ImportExport\Helper\Elementor_Refs::META_KEY ] = $elementor_refs;
+			}
 		}
 
 		// Taxonomies

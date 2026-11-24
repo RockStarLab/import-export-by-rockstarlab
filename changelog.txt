@@ -1,5 +1,9 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.54 =
+* New: Elementor Pro widgets keep their links to posts, categories and authors on the other site: Posts, Portfolio, Loop Grid, Loop Carousel, Search and Sitemap queries, and Internal URL / Post URL dynamic tags point to the same posts there (found by slug); popups opened by a button or a form travel with the page.
+* Fix: Content Sync of a page with an Elementor Pro Lottie animation failed because .json files were not allowed; Lottie files are now copied by Content Sync and file import.
+
 = 2.2.53 =
 * New: Elementor templates used by a page (Template widget, [elementor-template] shortcode, global widgets, templates inside templates) travel with it in Content Sync, export/import and Content Migration: their images are copied, links point to the new site, a template with the same slug is updated, and the page uses the new template IDs.
 * New: Yoast SEO and Rank Math settings of categories, tags and other terms travel with the posts in Content Sync, export/import and Content Migration, with their social images.

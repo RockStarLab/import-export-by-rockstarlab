@@ -630,6 +630,7 @@ class Content_Sync_API_Controller {
 
 			// Elementor templates the post uses: created or updated here (matched by slug),
 			// media mapped like the post's, and the post's template IDs renumbered.
+			$template_map = array();
 			if ( ! empty( $post_data['elementor_templates'] ) && is_array( $post_data['elementor_templates'] ) ) {
 				$template_map = \RockStarLab\ImportExport\Helper\Elementor_Templates::import(
 					$post_data['elementor_templates'],
@@ -638,6 +639,10 @@ class Content_Sync_API_Controller {
 					}
 				);
 				\RockStarLab\ImportExport\Helper\Elementor_Templates::remap_post( (int) $post_id, $template_map );
+			}
+			// Posts, terms and users of Elementor query controls and dynamic tags: renumbered after the batch.
+			if ( ! empty( $post_data['elementor_refs'] ) && is_array( $post_data['elementor_refs'] ) ) {
+				\RockStarLab\ImportExport\Helper\Elementor_Refs::remember( (int) $post_id, $post_data['elementor_refs'], array_values( $template_map ) );
 			}
 
 				// Import WooCommerce product variations and recalculate the variable
@@ -750,6 +755,12 @@ class Content_Sync_API_Controller {
 					break;
 				}
 			}
+		}
+
+		// Elementor query controls / dynamic tags of this batch: every post exists now.
+		if ( \RockStarLab\ImportExport\Helper\Elementor_Refs::$touched ) {
+			\RockStarLab\ImportExport\Helper\Elementor_Refs::resolve_pending( array_map( 'intval', (array) $source_to_local_map ), true, array_unique( \RockStarLab\ImportExport\Helper\Elementor_Refs::$touched ) );
+			\RockStarLab\ImportExport\Helper\Elementor_Refs::$touched = array();
 		}
 
 		// ACF Post Object / Relationship fields that pointed to a post later in this batch were
@@ -3632,6 +3643,10 @@ class Content_Sync_API_Controller {
 				$elementor_templates = \RockStarLab\ImportExport\Helper\Elementor_Templates::records_for_post( (int) $post->ID );
 				if ( $elementor_templates ) {
 					$post_data['elementor_templates'] = $elementor_templates;
+				}
+				$elementor_refs = \RockStarLab\ImportExport\Helper\Elementor_Refs::describe_for_post( (int) $post->ID, $elementor_templates );
+				if ( $elementor_refs ) {
+					$post_data['elementor_refs'] = $elementor_refs;
 				}
 
 				if ( 'product' === $post->post_type ) {
