@@ -52,6 +52,10 @@ class Media_Chunk_Push {
 					return $payload; }
 				$item                         = $payload['media'][0];
 				$item['source_attachment_id'] = $item['attachment_id'];
+				$subdir                       = \RockStarLab\ImportExport\Helper\Upload_Subdir::of_attachment( (int) $item['attachment_id'] );
+				if ( '' !== $subdir ) {
+					$item['upload_subdir'] = $subdir; // Sent only to receivers that announce upload_subdir.
+				}
 				unset( $item['attachment_id'], $item['file_name'], $item['file_size'], $item['file_sha256'], $payload['media'] );
 				$state['metadata'] = $item;
 				$state['envelope'] = $payload;
@@ -111,7 +115,7 @@ class Media_Chunk_Push {
 						'action'       => 'finalize',
 						'transfer_id'  => $state['transfer']['transfer_id'],
 						// A receiver that does not know file languages refuses unknown keys.
-						'metadata'     => ! empty( $access['media_language'] ) ? $state['metadata'] : array_diff_key( $state['metadata'], [ 'pll' => true ] ),
+						'metadata'     => array_diff_key( $state['metadata'], ( ! empty( $access['media_language'] ) ? [] : [ 'pll' => true ] ) + ( ! empty( $access['upload_subdir'] ) ? [] : [ 'upload_subdir' => true ] ) ),
 						'envelope'     => $state['envelope'],
 						'defer_fields' => false,
 					] + ( ! empty( $access['bounded_metadata'] ) ? [ 'bounded_metadata' => true ] : [] )

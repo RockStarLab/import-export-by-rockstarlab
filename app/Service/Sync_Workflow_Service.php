@@ -54,6 +54,10 @@ class Sync_Workflow_Service {
 			// Connection checks explain the cause in text this plugin writes (never remote text or the key).
 			return $result;
 		}
+		if ( $is_connection && is_wp_error( $result ) && ! empty( $result->get_error_data()['plugin_message'] ) ) {
+			// "Invalid URL format", "This site is already connected"...: written here, safe to show.
+			return new \WP_Error( $result->get_error_code(), $result->get_error_message(), [ 'status' => $result->get_error_data()['status'] ?? 400 ] );
+		}
 		if ( is_wp_error( $result ) ) {
 			// Remote error text is untrusted and may echo a bearer key or payload.
 			return new \WP_Error( $result->get_error_code(), __( 'The sync operation failed. Check connection status, selection and job history.', 'import-export-by-rockstarlab' ), [ 'status' => $result->get_error_data()['status'] ?? 400 ] + array_intersect_key( (array) $result->get_error_data(), [ 'job_id' => true ] ) );

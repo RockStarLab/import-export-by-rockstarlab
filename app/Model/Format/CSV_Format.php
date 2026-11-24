@@ -94,6 +94,7 @@ class CSV_Format implements File_Format_Interface {
 					$row
 				);
 			}
+			$row = $this->unprotect_formulas( $row );
 
 			if ( 0 === $row_num && $has_header ) {
 				$headers = $this->strip_header_bom( $row );
@@ -184,6 +185,7 @@ class CSV_Format implements File_Format_Interface {
 						$row
 					);
 				}
+				$row = $this->unprotect_formulas( $row );
 
 				// A blank line (no cells, or only empty cells) is not a record or a header.
 				if ( '' === implode( '', array_map( 'trim', array_map( 'strval', $row ) ) ) ) {
@@ -319,6 +321,7 @@ class CSV_Format implements File_Format_Interface {
 					$row
 				);
 			}
+			$row = $this->unprotect_formulas( $row );
 
 			// A blank line is not a record (same rule as rows()).
 			if ( '' === implode( '', array_map( 'trim', array_map( 'strval', (array) $row ) ) ) ) {
@@ -436,6 +439,9 @@ class CSV_Format implements File_Format_Interface {
 				);
 			}
 
+			if ( false !== ( $options['protect_formulas'] ?? true ) ) {
+				$row = array_map( [ $this, 'protect_formula' ], $row );
+			}
 			$this->write_csv_row( $handle, $row, $delimiter, $enclosure, $escape );
 		}
 
@@ -704,6 +710,43 @@ class CSV_Format implements File_Format_Interface {
 	}
 
 	/**
+	 * Characters that make a spreadsheet read a cell as a formula (CSV injection).
+	 */
+	const FORMULA_START = [ '=', '+', '-', '@', "\t", "\r" ];
+
+	/**
+	 * Exported text that a spreadsheet would run as a formula (=HYPERLINK(...), +cmd, @SUM) gets a
+	 * leading apostrophe, the OWASP CSV-injection defence. Numbers such as -5 or +1.5 stay as they are.
+	 *
+	 * @param mixed $value Cell value.
+	 * @return mixed
+	 */
+	protected function protect_formula( $value ) {
+		if ( ! is_string( $value ) || '' === $value || ! in_array( $value[0], self::FORMULA_START, true ) || is_numeric( $value ) ) {
+			return $value;
+		}
+		return "'" . $value;
+	}
+
+	/**
+	 * Undo protect_formula() on import, so the plugin's own CSV files import back unchanged.
+	 *
+	 * @param array $row Cells.
+	 * @return array
+	 */
+	protected function unprotect_formulas( $row ) {
+		if ( ! is_array( $row ) ) {
+			return $row;
+		}
+		foreach ( $row as $key => $value ) {
+			if ( is_string( $value ) && isset( $value[1] ) && "'" === $value[0] && in_array( $value[1], self::FORMULA_START, true ) && ! is_numeric( substr( $value, 1 ) ) ) {
+				$row[ $key ] = substr( $value, 1 );
+			}
+		}
+		return $row;
+	}
+
+	/**
 	 * Remove a UTF-8 byte order mark from the first header cell.
 	 *
 	 * Spreadsheet applications (and WooCommerce's own CSV export) prepend a BOM,
@@ -715,6 +758,11 @@ class CSV_Format implements File_Format_Interface {
 	protected function strip_header_bom( $row ) {
 		if ( is_array( $row ) && isset( $row[0] ) && is_string( $row[0] ) && 0 === strpos( $row[0], "\xEF\xBB\xBF" ) ) {
 			$row[0] = substr( $row[0], 3 );
+			// With the BOM in front, the CSV reader does not see the opening quote of a quoted
+			// first header ("title") and keeps the quotes as part of the name; unquote it here.
+			if ( strlen( $row[0] ) >= 2 && '"' === $row[0][0] && '"' === substr( $row[0], -1 ) ) {
+				$row[0] = str_replace( '""', '"', substr( $row[0], 1, -1 ) );
+			}
 		}
 		return $row;
 	}

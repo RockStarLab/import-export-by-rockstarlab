@@ -129,7 +129,8 @@ class Sync_Catalog {
 				'minLength' => 1,
 				'maxLength' => 512,
 			],
-			'direction'  => Workflow_Schemas::string( [ 'push', 'pull', 'bidirectional' ] ),
+			// Informational label only (owner, 24 Nov 2026): every Push/Pull action works on any connection.
+			'direction'  => Workflow_Schemas::string( [ 'push', 'pull', 'bidirectional' ] ) + [ 'description' => 'Informational label kept for compatibility; it does not restrict push or pull. Default bidirectional.' ],
 		];
 		$add(
 			'connection-create',

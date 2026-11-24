@@ -620,7 +620,9 @@ class Media_Folder_Service {
 				$item    = $settings['pending_image'];
 				$pending = $this->image_metadata_step( (int) $item['attachment_id'] );
 				if ( is_wp_error( $pending ) ) {
-					return $pending;
+					// One unreadable image fails that file, not the whole folder import.
+					$item    = [ 'action' => 'failed', 'file' => $item['file'], 'attachment_id' => (int) $item['attachment_id'], 'reason' => $pending->get_error_code() ];
+					$pending = false;
 				}
 				if ( $pending ) {
 					return $this->snapshot( rsl_ie()->Model->job->find( $job->id ) );
@@ -647,7 +649,8 @@ class Media_Folder_Service {
 					}
 					$pending = $this->image_metadata_step( (int) $item['attachment_id'] );
 					if ( is_wp_error( $pending ) ) {
-						return $pending;
+						$item    = [ 'action' => 'failed', 'file' => $item['file'], 'attachment_id' => (int) $item['attachment_id'], 'reason' => $pending->get_error_code() ];
+						$pending = false;
 					}
 					if ( $pending ) {
 						return $this->snapshot( rsl_ie()->Model->job->find( $job->id ) );

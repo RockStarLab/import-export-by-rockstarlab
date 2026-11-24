@@ -1959,6 +1959,9 @@ class ACF_Fields {
 		 * @return string|\WP_Error
 		 */
 	private static function download_url_unrestricted( $url, $timeout ) {
+		if ( ! function_exists( 'wp_tempnam' ) ) { // Not loaded in WP-Cron, REST and front-end requests.
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
 		$tmp = wp_tempnam( $url );
 		if ( ! $tmp ) {
 			return new \WP_Error( 'rsl_ie_temp_file_failed', __( 'Could not create a temporary file for download.', 'import-export-by-rockstarlab' ) );

@@ -24,6 +24,8 @@ defined( 'ABSPATH' ) || exit;
 					<option value=""><?php esc_html_e( 'All Types', 'import-export-by-rockstarlab' ); ?></option>
 					<option value="import"><?php esc_html_e( 'Import', 'import-export-by-rockstarlab' ); ?></option>
 					<option value="export"><?php esc_html_e( 'Export', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="media_sync"><?php esc_html_e( 'Media Sync', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="ai_url"><?php esc_html_e( 'AI URL Importer', 'import-export-by-rockstarlab' ); ?></option>
 					<?php if ( \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) : ?>
 					<option value="content_update"><?php esc_html_e( 'Content Update', 'import-export-by-rockstarlab' ); ?></option>
 					<?php endif; ?>

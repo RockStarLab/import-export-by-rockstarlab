@@ -587,6 +587,9 @@ class Media_Importer extends Abstract_Importer {
 
 		$timeout = $this->get_option( 'download_timeout', 30 );
 
+		if ( ! function_exists( 'wp_tempnam' ) ) { // Not loaded in WP-Cron, REST and front-end requests.
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
 		$args = [
 			'timeout'  => $timeout,
 			'stream'   => true,
@@ -677,11 +680,17 @@ class Media_Importer extends Abstract_Importer {
 			return $mimes + $sync_mimes;
 		};
 		add_filter( 'upload_mimes', $svg_mimes );
+		// Keep the source year/month folder (…/uploads/2008/06/photo.jpg stays in 2008/06).
+		$subdir = '';
+		foreach ( [ 'url', 'file', 'guid', 'file_url' ] as $key ) {
+			$subdir = '' === $subdir && ! empty( $item[ $key ] ) && is_string( $item[ $key ] ) ? \RockStarLab\ImportExport\Helper\Upload_Subdir::of_url( $item[ $key ] ) : $subdir;
+		}
 		try {
-			$attachment_id = media_handle_sideload(
-				$file_array,
-				$parent_id,
-				$title
+			$attachment_id = \RockStarLab\ImportExport\Helper\Upload_Subdir::with(
+				$subdir,
+				static function () use ( $file_array, $parent_id, $title ) {
+					return media_handle_sideload( $file_array, $parent_id, $title );
+				}
 			);
 		} finally {
 			remove_filter( 'upload_mimes', $svg_mimes );

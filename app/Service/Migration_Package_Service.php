@@ -82,6 +82,9 @@ class Migration_Package_Service {
 			}
 			if ( ! $entries->consume( 'manifest.json' ) ) {
 				return $this->error( 'manifest_missing' ); }
+			if ( ! function_exists( 'wp_tempnam' ) ) { // Not loaded in WP-Cron, REST and front-end requests.
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+			}
 			$temporary = wp_tempnam( 'rsl-migration-manifest' );
 			if ( ! $temporary ) {
 				return $this->error( 'file_write', 500 );

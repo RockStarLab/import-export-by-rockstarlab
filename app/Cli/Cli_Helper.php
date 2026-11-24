@@ -282,7 +282,8 @@ class Cli_Helper {
 		if ( isset( $assoc['encoding'] ) ) {
 			$parser['encoding'] = (string) $assoc['encoding'];
 		}
-		if ( isset( $assoc['no-header'] ) ) {
+		// WP-CLI turns --no-header into header=false (the old [--no-header] synopsis rejected it).
+		if ( isset( $assoc['no-header'] ) || ( array_key_exists( 'header', $assoc ) && ! \WP_CLI\Utils\get_flag_value( $assoc, 'header', true ) ) ) {
 			$parser['has_header'] = false;
 		}
 		return $parser;
@@ -441,7 +442,7 @@ class Cli_Helper {
 	 * @param array  $extra  Extra fields (file path).
 	 */
 	public static function finish( array $result, $format, array $extra = [] ) {
-		$row = array_intersect_key( $result, array_flip( [ 'job_id', 'operation', 'content_type', 'job_name', 'status', 'total', 'processed', 'success', 'failed', 'skipped' ] ) ) + $extra;
+		$row = array_intersect_key( $result, array_flip( [ 'job_id', 'operation', 'content_type', 'job_name', 'status', 'total', 'processed', 'success', 'failed', 'skipped', 'remote_upload' ] ) ) + $extra;
 		if ( 'table' === $format ) {
 			foreach ( $row as $key => $value ) {
 				WP_CLI::log( str_pad( $key . ':', 14 ) . ( is_scalar( $value ) ? $value : wp_json_encode( $value ) ) );
@@ -469,7 +470,8 @@ class Cli_Helper {
 		if ( in_array( $status, [ 'failed', 'cancelled' ], true ) ) {
 			WP_CLI::halt( 1 );
 		}
-		if ( (int) ( $result['failed'] ?? 0 ) > 0 ) {
+		if ( (int) ( $result['failed'] ?? 0 ) > 0 || 'failed' === ( $result['remote_upload']['status'] ?? '' ) ) {
+			// An export whose FTP/SFTP upload failed is not a success either.
 			WP_CLI::halt( self::EXIT_ROWS_FAILED );
 		}
 		WP_CLI::halt( 0 );

@@ -92,6 +92,11 @@ class Media_Sync {
 			if ( isset( $generated_files[ wp_normalize_path( $file->getPathname() ) ] ) ) {
 				continue;
 			}
+			// Hidden files (.DS_Store, ._photo.jpg from macOS, .htaccess) are not media.
+			$relative = substr( wp_normalize_path( $file->getPathname() ), strlen( untrailingslashit( wp_normalize_path( $folder_path ) ) ) );
+			if ( 0 === strpos( $file->getFilename(), '.' ) || false !== strpos( $relative, '/.' ) ) {
+				continue;
+			}
 			if ( $file->isFile() && ! is_wp_error( self::validate_source_file( $file->getPathname(), $folder_path ) ) ) {
 				$ext = strtolower( pathinfo( $file->getFilename(), PATHINFO_EXTENSION ) );
 				if ( empty( $allowed ) || in_array( $ext, $allowed, true ) ) {
@@ -319,6 +324,14 @@ class Media_Sync {
 
 		if ( ! $filetype['type'] ) {
 			return new \WP_Error( 'invalid_file_type', __( 'Unsupported file type', 'import-export-by-rockstarlab' ) );
+		}
+		// The same content check as a Media Library upload: a text file named .png became an "image" whose sizes could never be made.
+		if ( ! function_exists( 'wp_check_filetype_and_ext' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+		$real = wp_check_filetype_and_ext( $file_path, wp_basename( $file_path ), $allowed_mimes );
+		if ( empty( $real['type'] ) ) {
+			return new \WP_Error( 'invalid_file_type', __( 'The file content does not match its extension', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Handle duplicate checking based on duplicate_handling option
@@ -613,6 +626,23 @@ class Media_Sync {
 	 * @return array Array of allowed extensions.
 	 */
 	public static function get_allowed_file_types( $type = 'all', $custom_types = [] ) {
+		$all = self::file_types_for( 'all', [] );
+		if ( 'all' === $type ) {
+			return $all;
+		}
+		// Only what WordPress accepts in the Media Library: "php" as a custom type or "svg" without
+		// an SVG plugin were listed by the scan and then failed one by one.
+		return array_values( array_intersect( self::file_types_for( $type, $custom_types ), $all ) );
+	}
+
+	/**
+	 * Extensions of one file-type option, before the site's MIME allowlist is applied.
+	 *
+	 * @param string $type Type: all|images|videos|audio|documents|custom.
+	 * @param array  $custom_types Custom file extensions.
+	 * @return array
+	 */
+	private static function file_types_for( $type, $custom_types ) {
 		if ( 'custom' === $type && ! empty( $custom_types ) ) {
 			return array_values(
 				array_filter(

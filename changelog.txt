@@ -1,5 +1,24 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.52 =
+* Security: CSV exports protect against formula injection: a text cell that starts with =, +, -, @ (for example =HYPERLINK(...)) gets a leading apostrophe, so spreadsheet apps show it as text. Numbers such as -5 are not changed, and importing the plugin's own CSV removes the apostrophe again.
+* New: media copied to another site keeps its year/month uploads folder (2019/05/photo.jpg stays in 2019/05) in Content Sync, Media Library push, media import and Content Migration.
+* New: pulling a child page with Content Sync also brings its missing parent pages; a parent that already exists on this site is linked, not overwritten.
+* New: Jobs Log can be filtered by Media Sync and AI URL Importer jobs.
+* Fix: an export whose upload to an FTP, FTPS or SFTP server failed showed as a plain success. The Jobs Log now shows "Completed, upload failed", the job lists the error, "on errors" notifications are sent and WP-CLI exits with code 2.
+* Fix: Content Migration import run by WP-Cron failed (wp_tempnam() was not loaded); the same applied to import from URL or FTP and to media downloads outside the admin screens.
+* Fix: Media Sync registered a text file named .png as an image, and one unreadable image stopped the whole folder import. Files are now checked like Media Library uploads, a broken image fails only its own row, and the scan no longer lists PHP files, hidden files or types the site does not accept.
+* Fix: import of a UTF-8 CSV file with a BOM lost the first column when its header was quoted ("title").
+* Fix: Auto Map on the Import screen now maps the Categories, Tags, Custom Fields, Ping Status and Author Roles columns of the plugin's own export.
+* Fix: "Detect automatically" date order decides once for the whole file, so 03/04/2025 in a day-first file is 3 April.
+* Fix: Content Migration keeps sticky posts; Content Sync sets the new attachment ID in [caption id="attachment_N"].
+* Fix: clear error messages instead of codes for schedules, jobs, connections (abilities and WP-CLI), AI URL Importer without an AI provider and ZIP archives with more than one file.
+* Fix: a submenu item hidden in Plugin Options still opens from links (notification e-mails, Jobs Log links); Functions is no longer listed without PRO.
+* Fix: export file names keep dots and Cyrillic letters and drop HTML and slashes.
+* Fix: WP-CLI `import --no-header` works; the help explains the `--if-exists` default.
+* Fix: PHP 8.1+ "strip_tags(): Passing null" notice on six hidden admin screens.
+* Fix: uninstalling the plugin also removes its file hashes and sync links stored on posts, media, terms, comments and users.
+
 = 2.2.51 =
 * New: WPML support in the PRO addon. Content Sync, import and export keep the language of every post, page, product, term, menu and media file and link it to its WPML translations; the free plugin's admin notice for WPML now explains what PRO adds.
 * New: the labels "Language (%s)" and "Send with translations (%s)" name the active multilingual plugin (Polylang or WPML).

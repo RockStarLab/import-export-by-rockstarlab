@@ -123,6 +123,7 @@ class Init {
 		// add settings pages
 		add_action( 'admin_menu', array( $this, 'add_settings_pages' ) );
 		add_filter( 'admin_title', array( $this, 'hidden_page_admin_title' ), 10, 2 );
+		add_action( 'current_screen', array( $this, 'hidden_page_title' ) );
 		add_filter( 'bulk_actions-upload', array( $this, 'media_export_bulk_action' ) );
 		add_filter( 'handle_bulk_actions-upload', array( $this, 'handle_media_export_bulk_action' ), 10, 3 );
 		add_action( 'admin_menu', array( '\RockStarLab\ImportExport\Helper\Admin_Menu_Settings', 'apply' ), PHP_INT_MAX );
@@ -2052,7 +2053,35 @@ class Init {
 			return $admin_title;
 		}
 		$page   = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only page title.
-		$titles = array(
+		$titles = $this->hidden_page_titles();
+		return isset( $titles[ $page ] ) ? $titles[ $page ] . ' ' . ltrim( (string) $admin_title ) : $admin_title;
+	}
+
+	/**
+	 * Give the hidden pages a title before admin-header.php reads it.
+	 *
+	 * Core finds no title for a page removed from the submenu and passes null to strip_tags()
+	 * (PHP 8.1+ Deprecated in admin-header.php).
+	 */
+	public function hidden_page_title() {
+		global $title;
+		if ( ! empty( $title ) ) {
+			return;
+		}
+		$page   = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only page title.
+		$titles = $this->hidden_page_titles();
+		if ( isset( $titles[ $page ] ) ) {
+			$title = $titles[ $page ]; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Core reads the page title from this global.
+		}
+	}
+
+	/**
+	 * Titles of the pages registered without a parent menu.
+	 *
+	 * @return array<string, string>
+	 */
+	private function hidden_page_titles() {
+		return array(
 			'rsl-ie-triggers'         => __( 'Triggers', 'import-export-by-rockstarlab' ),
 			'rsl-ie-notifications'    => __( 'Notifications', 'import-export-by-rockstarlab' ),
 			'rsl-ie-servers'          => __( 'FTP / SFTP Servers', 'import-export-by-rockstarlab' ),
@@ -2060,7 +2089,6 @@ class Init {
 			'rsl-ie-plugin-options'   => __( 'AI Integration', 'import-export-by-rockstarlab' ),
 			'rsl-ie-button-settings'  => __( 'Export / Sync Buttons', 'import-export-by-rockstarlab' ),
 		);
-		return isset( $titles[ $page ] ) ? $titles[ $page ] . ' ' . ltrim( (string) $admin_title ) : $admin_title;
 	}
 
 	/**

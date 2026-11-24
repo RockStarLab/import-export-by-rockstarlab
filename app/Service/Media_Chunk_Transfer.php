@@ -34,7 +34,15 @@ class Media_Chunk_Transfer {
 				}
 				$state = $next;
 				if ( 'begin' === $state['phase'] ) {
-					$state['metadata'] = array_replace( $state['metadata'], array_intersect_key( $metadata, array_flip( [ 'force_unique', 'source_origin_attachment_id' ] ) ) );
+					$extra = array_intersect_key( $metadata, array_flip( [ 'force_unique', 'source_origin_attachment_id' ] ) );
+					if ( 'pull' === $direction ) {
+						// This site receives: keep the folder of the file on the other site (…/uploads/2018/03/).
+						$subdir = \RockStarLab\ImportExport\Helper\Upload_Subdir::clean( $metadata['upload_subdir'] ?? \RockStarLab\ImportExport\Helper\Upload_Subdir::of_url( $metadata['url'] ?? '' ) );
+						if ( '' !== $subdir ) {
+							$extra['upload_subdir'] = $subdir;
+						}
+					}
+					$state['metadata'] = array_replace( $state['metadata'], $extra );
 				}
 				set_transient( $key, $state, DAY_IN_SECONDS );
 				if ( 'done' === $state['phase'] ) {

@@ -185,6 +185,10 @@ class Media_Transport_Service {
 			}
 			$metadata = array_intersect_key( $image, array_flip( [ 'title', 'alt_text', 'caption', 'description', 'acf', 'source_origin_attachment_id', 'force_unique' ] ) );
 			$metadata['source_attachment_id'] = (int) ( $image['attachment_id'] ?? 0 );
+			$subdir                           = \RockStarLab\ImportExport\Helper\Upload_Subdir::clean( $image['upload_subdir'] ?? \RockStarLab\ImportExport\Helper\Upload_Subdir::of_url( $image['url'] ?? '' ) );
+			if ( '' !== $subdir && ! empty( $capabilities['upload_subdir'] ) ) {
+				$metadata['upload_subdir'] = $subdir; // Older receivers refuse unknown keys.
+			}
 			$deadline = microtime( true ) + 180;
 			do {
 				$result = $call( [ 'action' => 'finalize', 'transfer_id' => $transfer['transfer_id'], 'metadata' => $metadata, 'defer_fields' => false, 'bounded_metadata' => ! empty( $capabilities['bounded_metadata'] ) ] );
@@ -269,6 +273,9 @@ class Media_Transport_Service {
 			}
 		);
 		$parts = wp_parse_url( $url );
+		if ( ! function_exists( 'wp_tempnam' ) ) { // Not loaded in WP-Cron, REST and front-end requests.
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
 		$temp = wp_tempnam( wp_basename( $parts['path'] ?? '' ) );
 		if ( ! $temp ) {
 			return $this->error( 'download_failed', 500 );
@@ -311,6 +318,10 @@ class Media_Transport_Service {
 			}
 			$payload = array_intersect_key( $image, array_flip( [ 'title', 'alt_text', 'caption', 'description', 'acf', 'source_origin_attachment_id', 'force_unique' ] ) );
 			$payload['source_attachment_id'] = $image['attachment_id'] ?? 0;
+			$subdir                          = \RockStarLab\ImportExport\Helper\Upload_Subdir::clean( $image['upload_subdir'] ?? \RockStarLab\ImportExport\Helper\Upload_Subdir::of_url( $image['url'] ?? '' ) );
+			if ( '' !== $subdir ) {
+				$payload['upload_subdir'] = $subdir;
+			}
 			$result = ( new Media_Library_Sync_Service() )->receive_staged_file( $transfer_id, $payload, 'local', true );
 			if ( is_wp_error( $result ) ) {
 				return $result;

@@ -338,6 +338,8 @@ class Media_Library_Sync_Controller {
 						'begin_reuse'               => true,
 						// Accepts the language of a file (multilingual integrations such as Polylang).
 						'media_language'            => true,
+						// Accepts upload_subdir: the file keeps the source year/month uploads folder.
+						'upload_subdir'             => true,
 					];
 				} elseif ( 'begin' === $action ) {
 					$result = $store::begin( $input['file_name'], $input['size'], $input['sha256'], $scope, $input['request_id'] ?? null );

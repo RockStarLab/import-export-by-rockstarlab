@@ -2555,6 +2555,16 @@ const ImportModule = {
 						labelEn: 'Author Email',
 						type: 'email',
 					},
+					{
+						// Roles given to an author the import creates (export column author_roles).
+						value: 'author_roles',
+						label: __(
+							'Author Roles',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Author Roles',
+						type: 'string',
+					},
 				],
 			},
 			{
@@ -2631,11 +2641,39 @@ const ImportModule = {
 						type: 'string',
 					},
 					{
+						value: 'ping_status',
+						label: __(
+							'Ping Status',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Ping Status',
+						type: 'string',
+					},
+					{
 						value: 'post_password',
 						label: __(
 							'Post Password',
 							'import-export-by-rockstarlab'
 						),
+						type: 'string',
+					},
+					{
+						// JSON columns written by this plugin's own export: all custom fields and all terms.
+						value: 'post_meta',
+						label: __(
+							'Custom Fields (JSON from an export)',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Custom Fields (JSON from an export)',
+						type: 'string',
+					},
+					{
+						value: 'taxonomies',
+						label: __(
+							'Categories, Tags and Terms (JSON from an export)',
+							'import-export-by-rockstarlab'
+						),
+						labelEn: 'Categories, Tags and Terms (JSON from an export)',
 						type: 'string',
 					},
 					{

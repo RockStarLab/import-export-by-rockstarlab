@@ -33,7 +33,7 @@ class Connection_Service {
 			return $access;
 		}
 		if ( ! in_array( $action, [ 'add_site', 'delete_site', 'get_my_site_key', 'get_sites', 'regenerate_key', 'regenerate_my_site_key', 'test_connection', 'update_site' ], true ) ) {
-			return $this->error( __( 'Unknown sync operation.', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Unknown sync operation.', 'import-export-by-rockstarlab' ) );
 		}
 		$site_id = absint( $input['site_id'] ?? 0 );
 		$lock    = $site_id ? Job_Lock::acquire_resource( 'connection', $site_id ) : null;
@@ -94,30 +94,30 @@ class Connection_Service {
 
 		// Validate input.
 		if ( empty( $name ) ) {
-			return $this->error( __( 'Site name is required', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Site name is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( empty( $remote_url ) ) {
-			return $this->error( __( 'Remote URL is required', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Remote URL is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( empty( $api_key ) ) {
-			return $this->error( __( 'API key is required', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'API key is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Validate URL.
 		$remote_url = self::site_address( esc_url_raw( $remote_url ) );
 		if ( ! filter_var( $remote_url, FILTER_VALIDATE_URL ) ) {
-			return $this->error( __( 'Invalid URL format', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Invalid URL format', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if URL already exists.
 		if ( Connected_Site::exists_by_url( $remote_url ) ) {
-			return $this->error( __( 'This site is already connected', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'This site is already connected', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( self::is_this_site( $remote_url ) ) {
-			return $this->error( __( 'This is the address of this site. Enter the address of the other WordPress site you want to sync with.', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'This is the address of this site. Enter the address of the other WordPress site you want to sync with.', 'import-export-by-rockstarlab' ) );
 		}
 
 		$validation_result = $this->validate_remote_site( $remote_url, $api_key );
@@ -141,7 +141,7 @@ class Connection_Service {
 		$site_id = Connected_Site::create( $data );
 
 		if ( ! $site_id ) {
-			return $this->error( __( 'Failed to add site connection', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Failed to add site connection', 'import-export-by-rockstarlab' ) );
 		}
 
 		$site = Connected_Site::get_by_id( $site_id );
@@ -169,13 +169,13 @@ class Connection_Service {
 		$status     = $this->param( $input, 'status', '' );
 
 		if ( ! $site_id ) {
-			return $this->error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if site exists.
 		$site = Connected_Site::get_by_id( $site_id );
 		if ( ! $site ) {
-			return $this->error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		$data = array();
@@ -190,16 +190,16 @@ class Connection_Service {
 		if ( ! empty( $remote_url ) ) {
 			$remote_url = self::site_address( esc_url_raw( $remote_url ) );
 			if ( ! filter_var( $remote_url, FILTER_VALIDATE_URL ) ) {
-				return $this->error( __( 'Invalid URL format', 'import-export-by-rockstarlab' ) );
+				return $this->plugin_error( __( 'Invalid URL format', 'import-export-by-rockstarlab' ) );
 			}
 
 			// Check if URL already exists (excluding current site).
 			if ( Connected_Site::exists_by_url( $remote_url, $site_id ) ) {
-				return $this->error( __( 'This site is already connected', 'import-export-by-rockstarlab' ) );
+				return $this->plugin_error( __( 'This site is already connected', 'import-export-by-rockstarlab' ) );
 			}
 
 			if ( self::is_this_site( $remote_url ) ) {
-				return $this->error( __( 'This is the address of this site. Enter the address of the other WordPress site you want to sync with.', 'import-export-by-rockstarlab' ) );
+				return $this->plugin_error( __( 'This is the address of this site. Enter the address of the other WordPress site you want to sync with.', 'import-export-by-rockstarlab' ) );
 			}
 
 			$data['remote_url'] = $remote_url;
@@ -245,7 +245,7 @@ class Connection_Service {
 		$result = Connected_Site::update( $site_id, $data );
 
 		if ( ! $result ) {
-			return $this->error( __( 'Failed to update site connection', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Failed to update site connection', 'import-export-by-rockstarlab' ) );
 		}
 
 		$updated_site = Connected_Site::get_by_id( $site_id );
@@ -291,19 +291,19 @@ class Connection_Service {
 		$site_id = $this->param( $input, 'site_id', 0 );
 
 		if ( ! $site_id ) {
-			return $this->error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if site exists.
 		$site = Connected_Site::get_by_id( $site_id );
 		if ( ! $site ) {
-			return $this->error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		$result = Connected_Site::delete( $site_id );
 
 		if ( ! $result ) {
-			return $this->error( __( 'Failed to delete site connection', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Failed to delete site connection', 'import-export-by-rockstarlab' ) );
 		}
 
 		return $this->success(
@@ -323,19 +323,19 @@ class Connection_Service {
 		$site_id = $this->param( $input, 'site_id', 0 );
 
 		if ( ! $site_id ) {
-			return $this->error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if site exists.
 		$site = Connected_Site::get_by_id( $site_id );
 		if ( ! $site ) {
-			return $this->error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		$new_key = Connected_Site::regenerate_api_key( $site_id );
 
 		if ( ! $new_key ) {
-			return $this->error( __( 'Failed to regenerate API key', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Failed to regenerate API key', 'import-export-by-rockstarlab' ) );
 		}
 
 		return $this->success(
@@ -375,6 +375,16 @@ class Connection_Service {
 	}
 
 	/**
+	 * A failure whose text this plugin wrote (never remote text), so abilities and WP-CLI may show it.
+	 *
+	 * @param string $message Explanation.
+	 * @return \WP_Error
+	 */
+	private function plugin_error( $message ) {
+		return new \WP_Error( 'rsl_ie_sync_error', $message, [ 'status' => 400, 'plugin_message' => true ] );
+	}
+
+	/**
 	 * Connection check failures are written by this plugin, so callers may show them.
 	 *
 	 * @param \WP_Error $error Check result.
@@ -398,13 +408,13 @@ class Connection_Service {
 		$site_id = $this->param( $input, 'site_id', 0 );
 
 		if ( ! $site_id ) {
-			return $this->error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if site exists.
 		$site = Connected_Site::get_by_id( $site_id );
 		if ( ! $site ) {
-			return $this->error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
+			return $this->plugin_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		$validation_result = $this->validate_remote_site( $site['remote_url'], $site['api_key'] );

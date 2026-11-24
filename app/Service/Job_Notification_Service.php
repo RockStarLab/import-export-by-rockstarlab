@@ -357,6 +357,17 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	}
 
 	/**
+	 * Whether an export's upload to a saved FTP/FTPS/SFTP server failed.
+	 *
+	 * @param object $job Job row.
+	 * @return bool
+	 */
+	public static function upload_failed( $job ) {
+		$result = json_decode( (string) ( $job->result ?? '' ), true );
+		return 'export' === ( $job->type ?? '' ) && 'failed' === ( $result['remote_upload']['status'] ?? '' );
+	}
+
+	/**
 	 * Error entries of a job, upgraded with hints for jobs saved before hints existed.
 	 *
 	 * @param object $job Job row.
@@ -634,6 +645,8 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 		$status   = $job ? (string) $job->status : 'completed';
 		if ( 'completed' === $status && $counts['failed'] > 0 ) {
 			$status_label = __( 'completed with errors', 'import-export-by-rockstarlab' );
+		} elseif ( 'completed' === $status && $job && self::upload_failed( $job ) ) {
+			$status_label = __( 'completed, but the upload to the server failed', 'import-export-by-rockstarlab' );
 		} else {
 			$status_label = $labels[ $status ] ?? $status;
 		}
@@ -696,7 +709,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 			return false;
 		}
 		if ( 'errors' === $s['when'] ) {
-			return 'failed' === $job->status || self::counts( $job )['failed'] > 0;
+			return 'failed' === $job->status || self::counts( $job )['failed'] > 0 || self::upload_failed( $job );
 		}
 		return true;
 	}

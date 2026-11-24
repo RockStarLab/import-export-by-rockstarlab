@@ -240,6 +240,7 @@ class File_Store {
 			'zip_integrity'       => __( 'The ZIP archive is damaged or incomplete. Download the package again and upload it without changing it.', 'import-export-by-rockstarlab' ),
 			'zip_unsafe_entry'    => __( 'The ZIP archive contains files with unsafe names and was refused.', 'import-export-by-rockstarlab' ),
 			'zip_content_limit'   => __( 'The ZIP archive is too large or contains too many files to be unpacked on this site.', 'import-export-by-rockstarlab' ),
+			'zip_entry_count'     => __( 'The ZIP archive must contain exactly one CSV, XLSX, ODS, JSON or XML file.', 'import-export-by-rockstarlab' ),
 			'zip_unavailable'     => __( 'ZIP archives cannot be opened on this site: the PHP Zip extension is missing. Ask your host to enable it.', 'import-export-by-rockstarlab' ),
 			'upload_incomplete'   => __( 'The upload did not finish. Upload the file again.', 'import-export-by-rockstarlab' ),
 			'file_not_found'      => __( 'The file is no longer on the server (old uploads are cleaned up). Upload it again.', 'import-export-by-rockstarlab' ),

@@ -861,6 +861,20 @@ class Job_Service {
 	 * @return \WP_Error
 	 */
 	private static function error( $code, $status ) {
+		$readable = [
+			'job_not_found'           => __( 'Job not found. It may have been deleted or cleaned up.', 'import-export-by-rockstarlab' ),
+			'job_busy'                => __( 'This job is being changed by another request. Try again in a moment.', 'import-export-by-rockstarlab' ),
+			'job_has_active_schedule' => __( 'This job is the source of an active schedule. Delete or pause the schedule first.', 'import-export-by-rockstarlab' ),
+			'job_action_unavailable'  => __( 'This action is not available for the job in its current state.', 'import-export-by-rockstarlab' ),
+			'job_state_conflict'      => __( 'This action is not possible for the job in its current state. Reload the job to see what you can do now.', 'import-export-by-rockstarlab' ),
+			'invalid_job_name'        => __( 'Enter a job name of up to 255 characters.', 'import-export-by-rockstarlab' ),
+			'request_conflict'        => __( 'This request_id was already used for a different request. Use a new request_id for a new job.', 'import-export-by-rockstarlab' ),
+			'request_busy'            => __( 'A request with this request_id is still being started. Try again in a moment.', 'import-export-by-rockstarlab' ),
+			'request_job_deleted'     => __( 'The job created for this request_id was deleted. Use a new request_id.', 'import-export-by-rockstarlab' ),
+		];
+		if ( isset( $readable[ $code ] ) ) {
+			return new \WP_Error( 'rsl_ie_' . $code, $readable[ $code ], [ 'status' => $status ] );
+		}
 		return new \WP_Error( 'rsl_ie_' . $code, sprintf( /* translators: %s: Job failure code. */ __( 'Job operation failed: %s.', 'import-export-by-rockstarlab' ), $code ), [ 'status' => $status ] );
 	}
 }

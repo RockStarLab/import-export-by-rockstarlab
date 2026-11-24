@@ -1188,10 +1188,19 @@ class Import_Service {
 				'errors'        => [],
 				'items'         => [],
 			];
+			// "Detect automatically" decides the day/month order once for the whole file: one
+			// 13/04/2025 row proves the file is day first, so 03/04/2025 in it is 3 April too.
+			if ( 'auto' === (string) ( $request['options']['date_order'] ?? 'auto' ) ) {
+				$parameters['date_order_detected'] = $this->detect_date_order( $job_id, $parameters );
+			}
 			$saved                           = $this->checkpoint( $job_id, $parameters );
 			if ( is_wp_error( $saved ) ) {
 				return $saved;
 			}
+		}
+		if ( ! empty( $parameters['date_order_detected'] ) && 'auto' === (string) ( $request['options']['date_order'] ?? 'auto' ) ) {
+			$request['options']['date_order'] = $parameters['date_order_detected'];
+			$importer->set_options( (array) $request['options'] + [ 'source_format' => (string) ( $request['format'] ?? '' ) ] );
 		}
 		$stored = isset( $parameters['prepared_rows_count'] );
 		$offset = (int) $parameters['offset'];
@@ -1588,6 +1597,49 @@ class Import_Service {
 		}
 		$digest = hash_file( 'xxh128', $path );
 		return is_string( $digest ) ? 'xxh128:' . $digest : null;
+	}
+
+	/**
+	 * Find the day/month order of NN/NN/YYYY dates in the prepared rows.
+	 *
+	 * @param int   $job_id     Job ID.
+	 * @param array $parameters Job parameters after preparation.
+	 * @return string 'dmy', 'mdy', or '' when the rows give no answer or contradict each other.
+	 */
+	private function detect_date_order( $job_id, array $parameters ) {
+		$fields = [ 'post_date', 'post_date_gmt', 'post_modified', 'post_modified_gmt', 'comment_date', 'comment_date_gmt' ];
+		$votes  = [
+			'dmy' => 0,
+			'mdy' => 0,
+		];
+		$count  = (int) ( $parameters['prepared_rows_count'] ?? 0 );
+		$stored = isset( $parameters['prepared_rows_count'] );
+		$limit  = min( $stored ? $count : count( (array) ( $parameters['prepared_data'] ?? [] ) ), 20000 );
+		for ( $offset = 0; $offset < $limit; $offset += 500 ) {
+			$rows = $stored ? Import_Row_Store::read_batch( $job_id, $count, $offset, 500 ) : array_slice( (array) $parameters['prepared_data'], $offset, 500 );
+			if ( is_wp_error( $rows ) || ! $rows ) {
+				break;
+			}
+			foreach ( $rows as $row ) {
+				foreach ( $fields as $field ) {
+					if ( ! is_array( $row ) || ! isset( $row[ $field ] ) || ! is_scalar( $row[ $field ] ) || ! preg_match( '#^(\d{1,2})([/.\-])(\d{1,2})\2\d{4}#', (string) $row[ $field ], $m ) ) {
+						continue;
+					}
+					if ( (int) $m[1] > 12 ) {
+						++$votes['dmy'];
+					} elseif ( (int) $m[3] > 12 ) {
+						++$votes['mdy'];
+					}
+				}
+			}
+		}
+		if ( $votes['dmy'] && ! $votes['mdy'] ) {
+			return 'dmy';
+		}
+		if ( $votes['mdy'] && ! $votes['dmy'] ) {
+			return 'mdy';
+		}
+		return '';
 	}
 
 	/**

@@ -149,10 +149,10 @@ class Job_Controller extends Base_Controller {
 		$job_model = rsl_ie()->Model->job;
 		$where     = [];
 
-		if ( 'content_update' === $type ) {
-			// Content Updater jobs are stored as type=import with data_type=content_update.
+		if ( in_array( $type, [ 'content_update', 'media_sync', 'ai_url' ], true ) ) {
+			// Content Updater, Media Sync (folders) and AI URL Importer jobs are stored as type=import with their own data_type.
 			$where['type']      = 'import';
-			$where['data_type'] = 'content_update';
+			$where['data_type'] = $type;
 		} elseif ( ! empty( $type ) ) {
 			$where['type'] = $type;
 		}
@@ -196,6 +196,7 @@ class Job_Controller extends Base_Controller {
 				$job->can_delete  = in_array( 'delete', $actions, true );
 			}
 			unset( $job->request_payload, $job->request_key, $job->request_hash );
+			$job->upload_failed = \RockStarLab\ImportExport\Service\Job_Notification_Service::upload_failed( $job );
 
 			$job->job_name = isset( $job->job_name ) ? (string) $job->job_name : '';
 

@@ -1612,6 +1612,7 @@ class Content_Sync_Media {
 			'source_urls'                 => self::get_attachment_source_urls( $attachment_id, $metadata ),
 			'file_path'                   => $file_path,
 			'file_name'                   => basename( $file_path ),
+			'upload_subdir'               => Upload_Subdir::of_attachment( $attachment_id ),
 			'file_hash'                   => $file_hash,
 			'source_origin_attachment_id' => $origin_id,
 			'file_size'                   => filesize( $file_path ),
