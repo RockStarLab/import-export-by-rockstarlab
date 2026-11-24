@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.53
+Stable tag: 2.2.54
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,10 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.54 =
+* New: Elementor Pro widgets keep their links to posts, categories and authors on the other site: Posts, Portfolio, Loop Grid, Loop Carousel, Search and Sitemap queries, and Internal URL / Post URL dynamic tags point to the same posts there (found by slug); popups opened by a button or a form travel with the page.
+* Fix: Content Sync of a page with an Elementor Pro Lottie animation failed because .json files were not allowed; Lottie files are now copied by Content Sync and file import.
+
 = 2.2.53 =
 * New: Elementor templates used by a page (Template widget, [elementor-template] shortcode, global widgets, templates inside templates) travel with it in Content Sync, export/import and Content Migration: their images are copied, links point to the new site, a template with the same slug is updated, and the page uses the new template IDs.
 * New: Yoast SEO and Rank Math settings of categories, tags and other terms travel with the posts in Content Sync, export/import and Content Migration, with their social images.
@@ -328,10 +332,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 * Fix: a restarted Content Sync job counts every synced post, translations included.
 * Fix: Media Library sync counts a new media translation of an existing file as created, not skipped.
 * Fix: WP-CLI `export --options` accepts filters for WooCommerce orders and other PRO types; `import --type=taxonomy` accepts `--taxonomy`.
-
-= 2.2.49 =
-* Fix (Polylang): Content Sync to a site without Polylang no longer lets one translation replace another that shares its slug; each arrives as its own post.
-* Fix: the WooCommerce order export and import offer the field "Language (Polylang)" when Polylang for WooCommerce is active (export, filter and import mapping).
-* Fix (Polylang): menu exports keep the options of the language switcher item.
 
 Older versions: see changelog.txt in the plugin folder.

@@ -28,7 +28,10 @@ class Elementor_Templates {
 	const MAX_TEMPLATES = 50;
 
 	/** Setting keys that hold a template ID. */
-	const ID_KEYS = [ 'template_id', 'saved_template', 'templateID' ];
+	const ID_KEYS = [ 'template_id', 'saved_template', 'templateID', 'popup_action_popup_id' ];
+
+	/** Dynamic tag settings that hold a template (popup) ID. */
+	const TAG_TEMPLATE_KEYS = [ 'popup' ];
 
 	/**
 	 * Template IDs referred to by Elementor data.
@@ -54,6 +57,15 @@ class Elementor_Templates {
 			} elseif ( is_string( $value ) && false !== strpos( $value, 'elementor-template' ) && preg_match_all( '/\[elementor-template\s+id=["\']?(\d+)/i', $value, $m ) ) {
 				foreach ( $m[1] as $id ) {
 					$ids[] = (int) $id;
+				}
+			}
+			if ( is_string( $value ) && false !== strpos( $value, '[elementor-tag' ) ) {
+				foreach ( self::tags_in( $value ) as $tag ) {
+					foreach ( self::TAG_TEMPLATE_KEYS as $tag_key ) {
+						if ( isset( $tag['settings'][ $tag_key ] ) && is_numeric( $tag['settings'][ $tag_key ] ) && (int) $tag['settings'][ $tag_key ] > 0 ) {
+							$ids[] = (int) $tag['settings'][ $tag_key ];
+						}
+					}
 				}
 			}
 		};
@@ -255,6 +267,19 @@ class Elementor_Templates {
 			}
 			return $data;
 		}
+		if ( is_string( $data ) && false !== strpos( $data, '[elementor-tag' ) ) {
+			$data = self::map_tags(
+				$data,
+				static function ( array $settings ) use ( $map ) {
+					foreach ( self::TAG_TEMPLATE_KEYS as $key ) {
+						if ( isset( $settings[ $key ] ) && is_numeric( $settings[ $key ] ) && isset( $map[ (int) $settings[ $key ] ] ) ) {
+							$settings[ $key ] = (string) $map[ (int) $settings[ $key ] ];
+						}
+					}
+					return $settings;
+				}
+			);
+		}
 		if ( is_string( $data ) && false !== strpos( $data, 'elementor-template' ) ) {
 			return preg_replace_callback(
 				'/(\[elementor-template\s+id=["\']?)(\d+)/i',
@@ -265,6 +290,48 @@ class Elementor_Templates {
 			);
 		}
 		return $data;
+	}
+
+	/**
+	 * Dynamic tags in a setting value: [elementor-tag id="" name="" settings="URL-encoded JSON"].
+	 *
+	 * @param string $value Setting value.
+	 * @return array<int,array{name:string,settings:array}>
+	 */
+	public static function tags_in( $value ) {
+		$tags = [];
+		if ( is_string( $value ) && preg_match_all( '/\[elementor-tag\s[^\]]*?name="([^"]*)"[^\]]*?settings="([^"]*)"[^\]]*\]/', $value, $m, PREG_SET_ORDER ) ) {
+			foreach ( $m as $match ) {
+				$settings = json_decode( rawurldecode( $match[2] ), true );
+				$tags[]   = [
+					'name'     => $match[1],
+					'settings' => is_array( $settings ) ? $settings : [],
+				];
+			}
+		}
+		return $tags;
+	}
+
+	/**
+	 * Rewrite the settings of the dynamic tags in a setting value.
+	 *
+	 * @param string   $value Setting value.
+	 * @param callable $map   fn( array $settings, string $name ): array.
+	 * @return string
+	 */
+	public static function map_tags( $value, callable $map ) {
+		return (string) preg_replace_callback(
+			'/(\[elementor-tag\s[^\]]*?name="([^"]*)"[^\]]*?settings=")([^"]*)("[^\]]*\])/',
+			static function ( $m ) use ( $map ) {
+				$settings = json_decode( rawurldecode( $m[3] ), true );
+				if ( ! is_array( $settings ) ) {
+					return $m[0];
+				}
+				$new = call_user_func( $map, $settings, $m[2] );
+				return $new === $settings ? $m[0] : $m[1] . rawurlencode( (string) wp_json_encode( $new ) ) . $m[4];
+			},
+			$value
+		);
 	}
 
 	/**

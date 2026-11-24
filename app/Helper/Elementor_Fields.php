@@ -192,6 +192,10 @@ class Elementor_Fields {
 		if ( $templates ) {
 			$packet['templates'] = $templates;
 		}
+		$refs = Elementor_Refs::describe_for_post( $post_id, $templates );
+		if ( $refs ) {
+			$packet['refs'] = $refs;
+		}
 		return (string) wp_json_encode( $packet );
 	}
 
@@ -225,6 +229,9 @@ class Elementor_Fields {
 		}
 
 		$template_map = ! empty( $packet['templates'] ) ? self::import_templates( $packet['templates'], $download_media ) : [];
+		if ( ! empty( $packet['refs'] ) ) {
+			Elementor_Refs::remember( $post_id, $packet['refs'], array_values( $template_map ) );
+		}
 		foreach ( $meta as $key => $meta_value ) {
 			$key = (string) $key;
 			if ( ! self::is_elementor_meta_key( $key ) || self::is_generated_cache_key( $key ) ) {
@@ -694,7 +701,8 @@ class Elementor_Fields {
 		$path = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
 		$ext  = strtolower( (string) pathinfo( $path, PATHINFO_EXTENSION ) );
 
-		return in_array( $ext, [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'pdf', 'mp4', 'webm' ], true );
+		// json: Lottie animations of Elementor Pro.
+		return in_array( $ext, [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'pdf', 'mp4', 'webm' ], true ) || ( 'json' === $ext && \RockStarLab\ImportExport\Service\Sync_SVG::json_available() );
 	}
 
 	private static function is_local_wp_asset_url( $url ) {
