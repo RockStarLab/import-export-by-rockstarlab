@@ -126,6 +126,8 @@ class Post_Exporter extends Abstract_Exporter {
 			'comment_status',
 			'ping_status',
 			'post_password',
+			// Default export column; Content Migration builds its package from this list and lost sticky posts.
+			'is_sticky',
 			'guid',
 			'post_meta',
 			'taxonomies',

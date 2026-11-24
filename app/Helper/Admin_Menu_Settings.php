@@ -35,7 +35,6 @@ class Admin_Menu_Settings {
 			'tools'          => __( 'Tools', 'import-export-by-rockstarlab' ),
 			'jobs_log'       => __( 'Jobs Log', 'import-export-by-rockstarlab' ),
 			'schedules'      => __( 'Schedules', 'import-export-by-rockstarlab' ),
-			'functions'      => __( 'Functions', 'import-export-by-rockstarlab' ),
 			'affiliation'    => __( 'Affiliation', 'import-export-by-rockstarlab' ),
 			'account'        => __( 'Account', 'import-export-by-rockstarlab' ),
 			'contact_us'     => __( 'Contact Us', 'import-export-by-rockstarlab' ),
@@ -48,6 +47,11 @@ class Admin_Menu_Settings {
 			$after = array_search( 'export', array_keys( $items ), true ) + 1;
 			$items = array_slice( $items, 0, $after, true )
 				+ [ 'content_updater' => __( 'Content Updater', 'import-export-by-rockstarlab' ) ]
+				+ array_slice( $items, $after, null, true );
+			// Functions is a PRO screen: without PRO it has no page (the options screen hid it, the settings ability listed it).
+			$after = array_search( 'schedules', array_keys( $items ), true ) + 1;
+			$items = array_slice( $items, 0, $after, true )
+				+ [ 'functions' => __( 'Functions', 'import-export-by-rockstarlab' ) ]
 				+ array_slice( $items, $after, null, true );
 		}
 
@@ -168,9 +172,15 @@ class Admin_Menu_Settings {
 			return;
 		}
 
+		// A hidden item must still open from links (notification e-mails, Jobs Log links in results,
+		// Triggers breadcrumb): without its submenu entry WordPress answered "Sorry, you are not allowed".
+		$current = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Menu display only.
 		foreach ( $submenu[ self::PARENT_SLUG ] as $index => $submenu_item ) {
 			$slug    = isset( $submenu_item[2] ) ? (string) $submenu_item[2] : '';
 			$item_id = self::identify_item( $slug );
+			if ( '' !== $current && $slug === $current && ! in_array( $item_id, [ 'media_sync', 'ai_url_importer' ], true ) ) {
+				continue;
+			}
 
 			if ( in_array( $item_id, [ 'media_sync', 'ai_url_importer' ], true ) || ( $item_id && empty( $settings['visible_items'][ $item_id ] ) ) ) {
 				unset( $submenu[ self::PARENT_SLUG ][ $index ] );

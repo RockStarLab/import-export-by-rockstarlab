@@ -66,7 +66,8 @@ class Main_Command {
 	 * : Import options as JSON, @file.json or -, for example {"if_exists":"update","unique_field":"post_title"}.
 	 *
 	 * [--if-exists=<mode>]
-	 * : What to do when the item already exists.
+	 * : What to do when the item already exists. Without this option (and without if_exists in --options)
+	 * existing items are skipped; the Import screen preselects "update" instead.
 	 * ---
 	 * options:
 	 *   - skip
@@ -86,8 +87,11 @@ class Main_Command {
 	 * [--encoding=<encoding>]
 	 * : File encoding, for example Windows-1252. Detected automatically when omitted.
 	 *
-	 * [--no-header]
-	 * : The first row is data, not column names.
+	 * [--[no-]header]
+	 * : The first row holds column names (default). Use --no-header when the first row is data.
+	 * ---
+	 * default: true
+	 * ---
 	 *
 	 * [--dry-run]
 	 * : Upload and check the file and the mapping, but import nothing.

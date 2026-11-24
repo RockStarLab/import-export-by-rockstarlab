@@ -45,6 +45,15 @@ class AI_URL_Service {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $status = 400 ) {
+		// Causes a person can fix get their own sentence; the generic text sent people to check URLs when no AI provider was set up.
+		$readable = [
+			'provider_unavailable' => __( 'No AI provider is set up. Set up a text-generation provider in Settings > Connectors (or Plugin Options > AI Integration on WordPress before 7.0), then try again.', 'import-export-by-rockstarlab' ),
+			'connection_failed'    => __( 'The AI provider did not answer. Check its settings and try again.', 'import-export-by-rockstarlab' ),
+			'busy'                 => __( 'This AI URL import is being changed by another request. Try again in a moment.', 'import-export-by-rockstarlab' ),
+		];
+		if ( isset( $readable[ $code ] ) ) {
+			return new \WP_Error( 'rsl_ie_ai_' . $code, $readable[ $code ], [ 'status' => $status ] );
+		}
 		return new \WP_Error( 'rsl_ie_ai_' . $code, __( 'AI URL import could not complete this operation. Check the selected URLs, destination, fields and current permissions.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] ); }
 	/**
 	 * Handle the authorized operation.

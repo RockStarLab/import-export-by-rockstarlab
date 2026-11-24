@@ -71,6 +71,15 @@ function rsl_ie_uninstall_site() {
 	$wpdb->query( $wpdb->prepare( "DELETE FROM `{$wpdb->options}` WHERE option_name LIKE %s", '_transient_timeout_rsl_ie_%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 	// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
+	// Plugin bookkeeping on content (file hashes of media, sync and import links such as
+	// _rsl_ie_original_attachment_id). Owner decision 24 Nov 2026: uninstall removes it too.
+	foreach ( [ $wpdb->postmeta, $wpdb->termmeta, $wpdb->commentmeta, $wpdb->usermeta ] as $rsl_ie_meta_table ) {
+		foreach ( [ 'rsl_ie_', '_rsl_ie_' ] as $rsl_ie_meta_prefix ) {
+			$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE meta_key LIKE %s', $rsl_ie_meta_table, $wpdb->esc_like( $rsl_ie_meta_prefix ) . '%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Bulk removal on uninstall.
+		}
+	}
+	wp_cache_flush();
+
 	// Remove file-service resources from this site's configured private storage.
 	require_once plugin_dir_path( __FILE__ ) . 'app/Service/File_Store.php';
 	$rsl_ie_file_keys = $wpdb->get_col( $wpdb->prepare( 'SELECT option_name FROM %i WHERE option_name LIKE %s', $wpdb->options, $wpdb->esc_like( 'rsl_ie_file_file_' ) . '%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Enumerate this site's private file records for uninstall.

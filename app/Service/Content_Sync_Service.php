@@ -20,6 +20,13 @@ defined( 'ABSPATH' ) || exit;
 
 /** Shared content sync business operations. */
 class Content_Sync_Service {
+
+	/**
+	 * Remote parent ID => existing local post, found while pulling missing ancestors.
+	 *
+	 * @var array<int, int>
+	 */
+	private $existing_parent_map = [];
 	/**
 	 * Source IDs of the posts received in the current batch (a post synced from one of them is not
 	 * matched by slug for another, as happens with translations sharing a slug on a site without Polylang).
@@ -1066,6 +1073,57 @@ class Content_Sync_Service {
 	 * @param int    $timeout Request timeout.
 	 * @return array|\WP_Error
 	 */
+	/**
+	 * Remote parents (and their parents) of hierarchical posts in a pull that this site does not have.
+	 *
+	 * A parent that already exists here (same slug or synced before) is not pulled again; the child
+	 * is attached to the local copy. Pulled parents come first, so children find them.
+	 *
+	 * @param array $site       Connection.
+	 * @param array $posts_data Received posts.
+	 * @return array|\WP_Error Parent posts to import before the selection.
+	 */
+	private function pull_missing_ancestors( $site, array $posts_data ) {
+		$known     = array_flip( array_map( 'intval', array_column( $posts_data, 'ID' ) ) );
+		$ancestors = [];
+		$queue     = $posts_data;
+		for ( $depth = 0; $depth < 20 && $queue; ++$depth ) {
+			$wanted = [];
+			foreach ( $queue as $post ) {
+				$parent = (int) ( $post['post_parent'] ?? 0 );
+				$type   = (string) ( $post['post_type'] ?? '' );
+				if ( $parent < 1 || isset( $known[ $parent ] ) || '' === $type || ! is_post_type_hierarchical( $type ) || $this->find_existing_post_by_original_id( $parent ) ) {
+					continue;
+				}
+				$wanted[ $parent ] = true;
+			}
+			if ( ! $wanted || count( $known ) + count( $wanted ) > 100 ) {
+				break;
+			}
+			$remote = $this->remote_post( $site, 'send-content', [ 'post_ids' => array_keys( $wanted ) ], 120 );
+			if ( is_wp_error( $remote ) ) {
+				return $remote;
+			}
+			$queue = [];
+			foreach ( (array) ( $remote['data']['posts'] ?? [] ) as $parent_post ) {
+				$id = (int) ( $parent_post['ID'] ?? 0 );
+				if ( $id < 1 || ! isset( $wanted[ $id ] ) || isset( $known[ $id ] ) ) {
+					continue;
+				}
+				$known[ $id ] = true;
+				$local        = $this->find_existing_post_by_slug( (array) $parent_post );
+				if ( $local ) {
+					// Same page already here: link the child to it, do not overwrite it.
+					$this->existing_parent_map[ $id ] = (int) $local;
+					continue;
+				}
+				array_unshift( $ancestors, $parent_post );
+				$queue[] = $parent_post;
+			}
+		}
+		return $ancestors;
+	}
+
 	private function remote_post( $site, $endpoint, $payload, $timeout = 30 ) {
 		$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
 			$site['remote_url'],
@@ -2327,7 +2385,19 @@ class Content_Sync_Service {
 			return $this->error( __( 'Remote site returned invalid data', 'import-export-by-rockstarlab' ) );
 		}
 
-		$posts_data   = $data['data']['posts'];
+		$posts_data = $data['data']['posts'];
+		// A page pulled without its parent lost the parent (post_parent 0): bring missing ancestors along.
+		if ( ! isset( $input['hierarchy'] ) && is_array( $posts_data ) ) {
+			$ancestors = $this->pull_missing_ancestors( $site, $posts_data );
+			if ( is_wp_error( $ancestors ) ) {
+				$this->fail_content_sync_job( $job_id, $ancestors->get_error_message() );
+				return $ancestors;
+			}
+			if ( $ancestors ) {
+				$post_ids   = array_values( array_unique( array_merge( $post_ids, array_map( 'intval', array_column( $ancestors, 'ID' ) ) ) ) );
+				$posts_data = array_merge( $ancestors, $posts_data );
+			}
+		}
 		$graph_access = Sync_ACF_Graph::received( $posts_data );
 		if ( is_wp_error( $graph_access ) ) {
 			return $graph_access;
@@ -2842,6 +2912,8 @@ class Content_Sync_Service {
 			if ( $remote_parent_id > 0 ) {
 				if ( isset( $imported_remote_to_local[ $remote_parent_id ] ) ) {
 					$local_parent_id = (int) $imported_remote_to_local[ $remote_parent_id ];
+				} elseif ( isset( $this->existing_parent_map[ $remote_parent_id ] ) ) {
+					$local_parent_id = (int) $this->existing_parent_map[ $remote_parent_id ];
 				} else {
 					$local_parent_id = (int) $this->find_existing_post_by_original_id( $remote_parent_id );
 				}

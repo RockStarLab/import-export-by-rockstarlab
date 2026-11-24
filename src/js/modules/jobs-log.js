@@ -217,7 +217,13 @@ const JobsLogModule = {
 		const statusClass = 'status-' + job.status;
 		const typeLabel = this.getTypeLabel( job.type, job.data_type );
 		const dataTypeLabel = this.getJobDataTypeLabel( job );
-		const statusLabel = this.getStatusLabel( job.status );
+		const statusLabel =
+			'completed' === job.status && job.upload_failed
+				? __(
+						'Completed, upload failed',
+						'import-export-by-rockstarlab'
+				  )
+				: this.getStatusLabel( job.status );
 		const progress = this.renderProgress( job );
 		const actions = this.renderActions( job );
 		const jobName = this.getJobDisplayName( job, typeLabel, dataTypeLabel );

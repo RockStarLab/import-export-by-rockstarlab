@@ -140,6 +140,9 @@ class File_Service {
 		if ( '' === $url || '' === $host || ( ! $is_dev && ! wp_http_validate_url( $url ) ) ) {
 			return new \WP_Error( 'rsl_ie_invalid_url', __( 'Enter a full http:// or https:// address of the file.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
 		}
+		if ( ! function_exists( 'wp_tempnam' ) ) { // Not loaded in WP-Cron, REST and front-end requests.
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
 		$tmp = wp_tempnam( 'rsl-ie-url' );
 		if ( ! $tmp ) {
 			return File_Store::error( 'file_write', 500 );
@@ -232,6 +235,9 @@ class File_Service {
 	 * @return array|\WP_Error
 	 */
 	private function from_remote( $address, array $options ) {
+		if ( ! function_exists( 'wp_tempnam' ) ) { // Not loaded in WP-Cron, REST and front-end requests.
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
 		$tmp = wp_tempnam( 'rsl-ie-remote' );
 		if ( ! $tmp ) {
 			return File_Store::error( 'file_write', 500 );
@@ -841,12 +847,16 @@ class File_Service {
 				$format = strtolower( pathinfo( $name, PATHINFO_EXTENSION ) );
 				if ( '/' !== substr( $name, -1 ) && false === strpos( $name, '__MACOSX/' ) && '.' !== substr( basename( $name ), 0, 1 ) && in_array( $format, [ 'csv', 'json', 'xml', 'xlsx', 'ods' ], true ) ) {
 					if ( $entries ) {
-						return File_Store::error( 'zip_content_limit' );
+						// Two data files: say so, instead of "too large" for a small archive.
+						return File_Store::error( 'zip_entry_count' );
 					}
 					$entries[] = $stat + [ 'format' => $format ];
 				}
 			}
-			if ( 1 !== count( $entries ) || $entries[0]['size'] > self::max_bytes() ) {
+			if ( 1 !== count( $entries ) ) {
+				return File_Store::error( 'zip_entry_count' );
+			}
+			if ( $entries[0]['size'] > self::max_bytes() ) {
 				return File_Store::error( 'zip_content_limit' );
 			}
 			$entry  = $entries[0];

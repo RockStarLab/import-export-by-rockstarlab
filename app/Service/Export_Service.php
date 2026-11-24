@@ -416,8 +416,13 @@ class Export_Service {
 		$format  = $request['format'];
 		$options = $request['format_options'];
 		$name    = $request['options']['custom_export_file_name'] ?? 'export-{job_id}';
-		$name    = sanitize_file_name( wp_basename( str_replace( '{job_id}', (string) $job_id, $name ) ) );
-		$name    = preg_replace( '/\.[^.]+$/', '', $name );
+		// Keep the words of the name: drop tags, turn path separators into dashes (a basename kept only
+		// the text after the last slash, so "../evil <b>name</b>" became "b").
+		$name    = wp_strip_all_tags( str_replace( '{job_id}', (string) $job_id, (string) $name ) );
+		$name    = sanitize_file_name( str_replace( [ '/', '\\' ], '-', $name ) );
+		$name    = trim( (string) $name, '.-_ ' );
+		// Remove only a data-file extension the user typed ("prices.csv"); "report.v2" stays as it is.
+		$name    = preg_replace( '/\.(csv|tsv|json|xml|xlsx|ods|zip|txt)$/i', '', $name );
 		$name    = $name ? $name : 'export-' . $job_id;
 		// Tab-separated files get .tsv, the extension Google Merchant Center and spreadsheet apps expect.
 		$extension = ( 'csv' === $format && "\t" === ( $options['csv_delimiter'] ?? ',' ) ) ? 'tsv' : $format;
@@ -524,6 +529,17 @@ class Export_Service {
 			'status' => is_wp_error( $sent ) ? 'failed' : 'uploaded',
 			'server' => is_wp_error( $server ) ? '' : $server[0]['label'],
 		] + ( is_wp_error( $sent ) ? [ 'error' => $sent->get_error_message() ] : $sent );
+		if ( is_wp_error( $sent ) ) {
+			// The file is ready to download, but the job did not do everything it was asked to:
+			// report it like a failed row (Jobs Log, notifications "on errors", CLI exit code 2).
+			/* translators: 1: server name, 2: error message. */
+			$message            = sprintf( __( 'The export file was created, but the upload to %1$s failed: %2$s', 'import-export-by-rockstarlab' ), $result['remote_upload']['server'], $sent->get_error_message() );
+			$result['errors']   = array_merge(
+				[ [ 'row' => 0, 'field' => 'remote_upload', 'code' => $sent->get_error_code(), 'message' => $message ] ],
+				is_array( $result['errors'] ?? null ) ? $result['errors'] : []
+			);
+			Job_Log::write( $job_id, 'error', $message );
+		}
 		rsl_ie()->Model->job->update( $job_id, [ 'result' => wp_json_encode( $result ) ] );
 	}
 

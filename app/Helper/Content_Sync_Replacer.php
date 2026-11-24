@@ -407,6 +407,29 @@ class Content_Sync_Replacer {
 			return $content;
 		}
 		$image_map = is_array( $image_map ) ? $image_map : array();
+		$content   = self::remap_img_tag_ids( $content, $image_map );
+		// [caption id="attachment_N"] names the same attachment as the image inside it; follow
+		// the image's (now local) wp-image-N so the shortcode does not keep the source ID.
+		if ( false === strpos( $content, '[caption' ) ) {
+			return $content;
+		}
+		return (string) preg_replace_callback(
+			'~(\[caption\b[^\]]*?\bid=(["\']?)attachment_)(\d+)(\2[^\]]*\])((?:(?!\[/caption\]).)*?\bwp-image-(\d+)\b)~is',
+			static function ( $m ) {
+				return $m[1] . $m[6] . $m[4] . $m[5];
+			},
+			$content
+		);
+	}
+
+	/**
+	 * The <img>/wp-image-N pass of remap_img_attachment_ids().
+	 *
+	 * @param string $content   HTML.
+	 * @param array  $image_map Source attachment ID => local attachment ID.
+	 * @return string
+	 */
+	private static function remap_img_tag_ids( $content, array $image_map ) {
 		return (string) preg_replace_callback(
 			// <img> tags, and other tags with a wp-image-N class (a parallax/fixed Cover block
 			// uses <div class="wp-block-cover__image-background wp-image-N">).

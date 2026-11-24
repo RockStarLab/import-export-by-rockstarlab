@@ -607,7 +607,7 @@ class Media_Library_Sync_Service {
 		$envelope_fields        = [ 'media_authors', 'acf_attachment_users', 'acf_attachment_terms', 'acf_media_fields_version', 'acf_graph_hashes', 'acf_attachment_media_version' ];
 		if ( array_diff( array_keys( $envelope ), $envelope_fields ) || ( $defer_fields && $envelope ) ) {
 			return $this->error( 'invalid_payload', 400 ); }
-		$allowed = [ 'source_attachment_id', 'source_origin_attachment_id', 'title', 'alt_text', 'caption', 'description', 'acf', 'force_unique', 'pll' ];
+		$allowed = [ 'source_attachment_id', 'source_origin_attachment_id', 'title', 'alt_text', 'caption', 'description', 'acf', 'force_unique', 'pll', 'upload_subdir' ];
 		if ( array_diff( array_keys( $input ), $allowed ) ) {
 			return $this->error( 'invalid_payload', 400 ); }
 		if ( ! File_Store::valid_id( $transfer_id ) ) {
@@ -1259,15 +1259,20 @@ class Media_Library_Sync_Service {
 		add_filter( 'intermediate_image_sizes_advanced', $size_filter, PHP_INT_MAX, 2 );
 		add_filter( 'wp_get_missing_image_subsizes', $size_filter, PHP_INT_MAX, 2 );
 		try {
-			$id = media_handle_sideload(
-				[
-					'name'     => $item['file_name'],
-					'tmp_name' => $tmp,
-					'type'     => $type['type'],
-				],
-				0,
-				sanitize_text_field( $item['title'] ?? '' ),
-				$post_data
+			$id = \RockStarLab\ImportExport\Helper\Upload_Subdir::with(
+				(string) ( $item['upload_subdir'] ?? '' ),
+				static function () use ( $item, $tmp, $type, $post_data ) {
+					return media_handle_sideload(
+						[
+							'name'     => $item['file_name'],
+							'tmp_name' => $tmp,
+							'type'     => $type['type'],
+						],
+						0,
+						sanitize_text_field( $item['title'] ?? '' ),
+						$post_data
+					);
+				}
 			);
 		} finally {
 			remove_filter( 'upload_mimes', $mime_filter );
@@ -1438,7 +1443,7 @@ class Media_Library_Sync_Service {
 			if ( ( $data[ $name ] ?? null ) !== $value ) {
 				return $this->error( 'peer_upgrade_required', 502 ); }
 		}
-		return $required + [ 'bounded_metadata' => true === ( $data['bounded_metadata'] ?? false ), 'begin_data' => true === ( $data['begin_data'] ?? false ), 'begin_reuse' => true === ( $data['begin_reuse'] ?? false ), 'media_language' => true === ( $data['media_language'] ?? false ) ];
+		return $required + [ 'bounded_metadata' => true === ( $data['bounded_metadata'] ?? false ), 'begin_data' => true === ( $data['begin_data'] ?? false ), 'begin_reuse' => true === ( $data['begin_reuse'] ?? false ), 'media_language' => true === ( $data['media_language'] ?? false ), 'upload_subdir' => true === ( $data['upload_subdir'] ?? false ) ];
 	}
 
 	/** One bounded peer step, rechecking the saved connection on every request. */

@@ -289,6 +289,19 @@ class Schedule_Service {
 		if ( 'changed_only_unsupported' === $code ) {
 			return new \WP_Error( 'rsl_ie_schedule_' . $code, __( '"Changes only" works with exports of posts, pages and WooCommerce orders. Turn it off for this source job.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
 		}
+		// Reasons a person can fix get a sentence; the screen and agents used to show "Schedule operation failed: timezone".
+		$readable = [
+			'future_time_required'   => __( 'Choose a start time in the future.', 'import-export-by-rockstarlab' ),
+			'timezone'               => __( 'Unknown time zone. Use a time zone name such as Europe/Berlin, or UTC.', 'import-export-by-rockstarlab' ),
+			'date'                   => __( 'The start time is not a valid date and time (YYYY-MM-DD HH:MM).', 'import-export-by-rockstarlab' ),
+			'ambiguous_time_use_utc' => __( 'This local time happens twice when the clocks change. Choose another time or use UTC.', 'import-export-by-rockstarlab' ),
+			'recurrence'             => __( 'Choose how often to repeat: once, hourly, twice daily, daily or weekly.', 'import-export-by-rockstarlab' ),
+			'not_found'              => __( 'Schedule not found. It may have been deleted.', 'import-export-by-rockstarlab' ),
+			'busy'                   => __( 'This schedule is running or being changed right now. Try again in a moment.', 'import-export-by-rockstarlab' ),
+		];
+		if ( isset( $readable[ $code ] ) ) {
+			return new \WP_Error( 'rsl_ie_schedule_' . $code, $readable[ $code ], [ 'status' => $status ] );
+		}
 		return new \WP_Error( 'rsl_ie_schedule_' . $code, sprintf( /* translators: %s: error code. */ __( 'Schedule operation failed: %s', 'import-export-by-rockstarlab' ), $code ), [ 'status' => $status ] );
 	}
 }

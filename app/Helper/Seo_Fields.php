@@ -827,6 +827,9 @@ class Seo_Fields {
 			return new \WP_Error( 'rsl_ie_media_download_failed', __( 'Could not download media URL.', 'import-export-by-rockstarlab' ) );
 		}
 
+		if ( ! function_exists( 'wp_tempnam' ) ) { // Not loaded in WP-Cron, REST and front-end requests.
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
 		$tmp = wp_tempnam( $url );
 		if ( ! $tmp ) {
 			return new \WP_Error( 'rsl_ie_media_temp_failed', __( 'Could not create temporary media file.', 'import-export-by-rockstarlab' ) );

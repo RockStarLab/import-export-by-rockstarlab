@@ -341,6 +341,26 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 ## Changelog
 
+### 2.2.52
+
+* Security: CSV exports protect against formula injection: a text cell that starts with =, +, -, @ (for example =HYPERLINK(...)) gets a leading apostrophe, so spreadsheet apps show it as text. Numbers such as -5 are not changed, and importing the plugin's own CSV removes the apostrophe again.
+* New: media copied to another site keeps its year/month uploads folder (2019/05/photo.jpg stays in 2019/05) in Content Sync, Media Library push, media import and Content Migration.
+* New: pulling a child page with Content Sync also brings its missing parent pages; a parent that already exists on this site is linked, not overwritten.
+* New: Jobs Log can be filtered by Media Sync and AI URL Importer jobs.
+* Fix: an export whose upload to an FTP, FTPS or SFTP server failed showed as a plain success. The Jobs Log now shows "Completed, upload failed", the job lists the error, "on errors" notifications are sent and WP-CLI exits with code 2.
+* Fix: Content Migration import run by WP-Cron failed (wp_tempnam() was not loaded); the same applied to import from URL or FTP and to media downloads outside the admin screens.
+* Fix: Media Sync registered a text file named .png as an image, and one unreadable image stopped the whole folder import. Files are now checked like Media Library uploads, a broken image fails only its own row, and the scan no longer lists PHP files, hidden files or types the site does not accept.
+* Fix: import of a UTF-8 CSV file with a BOM lost the first column when its header was quoted ("title").
+* Fix: Auto Map on the Import screen now maps the Categories, Tags, Custom Fields, Ping Status and Author Roles columns of the plugin's own export.
+* Fix: "Detect automatically" date order decides once for the whole file, so 03/04/2025 in a day-first file is 3 April.
+* Fix: Content Migration keeps sticky posts; Content Sync sets the new attachment ID in [caption id="attachment_N"].
+* Fix: clear error messages instead of codes for schedules, jobs, connections (abilities and WP-CLI), AI URL Importer without an AI provider and ZIP archives with more than one file.
+* Fix: a submenu item hidden in Plugin Options still opens from links (notification e-mails, Jobs Log links); Functions is no longer listed without PRO.
+* Fix: export file names keep dots and Cyrillic letters and drop HTML and slashes.
+* Fix: WP-CLI `import --no-header` works; the help explains the `--if-exists` default.
+* Fix: PHP 8.1+ "strip_tags(): Passing null" notice on six hidden admin screens.
+* Fix: uninstalling the plugin also removes its file hashes and sync links stored on posts, media, terms, comments and users.
+
 ### 2.2.51
 
 * New: WPML support in the PRO addon. Content Sync, import and export keep the language of every post, page, product, term, menu and media file and link it to its WPML translations; the free plugin's admin notice for WPML now explains what PRO adds.
@@ -374,14 +394,6 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 * Fix: confirming a sync while the list of remote posts was still loading could fail with "This connection is already in use".
 * Tweak: the message for a connection that works in one direction only says how to make it work in both.
 
-### 2.2.47
-
-* New: Polylang support (with PRO). Export files get Language and Translation group columns, and exports list every language even when the admin bar filters content by one language or an AI agent exports through the REST API.
-* New: Content Sync abilities sync-push and sync-pull accept with_translations: with Polylang and PRO, the translations of the selected posts travel with them (on by default).
-* Tweak: the multilingual warning no longer appears for Polylang when PRO is active. Without PRO it says that Polylang is supported by the PRO version.
-* New: Media Library sync and Content Migration carry the Polylang language of files, menus and content when PRO is active; a receiving site that does not know file languages still accepts the files.
-* Dev: hooks for integrations: rsl_ie_import_item, rsl_ie_import_existing_post, rsl_ie_import_item_saved, rsl_ie_export_terms_value, rsl_ie_export_default_fields, rsl_ie_export_taxonomies, rsl_ie_export_menu_locations, rsl_ie_migration_step_fields, rsl_ie_media_sync_item, rsl_ie_media_sync_received.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -390,7 +402,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.51 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.52 |
 
 ---
 
