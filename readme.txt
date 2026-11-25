@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.61
+Stable tag: 2.2.62
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,12 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.62 =
+* Fix: on a multisite network with the plugin network-activated, the texts of the admin pages stayed in English for users with another language; the PHP texts are now translated like the rest.
+* Fix: a WPML or Polylang import of several rows in another language that share a new category (for example posts of a German-only site merged into an English site) now assigns the category to every row, not only the first one.
+* Fix: an AI agent update by ID (import-start with ID as the key) no longer skips every row when the mapping from import-prepare leaves the ID column out; the ID column is used as the key, as with wp rsl-ie import --unique-field=ID.
+* Improvement: the export and import wizards for Taxonomy Terms now list WooCommerce product attributes (such as pa_size) and, on a WPML or Polylang site, have the Language and Translation group columns of terms, so attribute terms can be translated in a spreadsheet without WP-CLI.
+
 = 2.2.61 =
 * Fix: importing WooCommerce products (admin, WP-CLI and AI agents) did not map the language and translation group columns of a WPML or Polylang site, so rows in a second language matched the product of the first language by SKU and were not created; the Categories & Tags group now has Language and Translation group targets, and the columns map by name.
 
@@ -298,14 +304,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 * New: Jobs Log favorites. Click the star in front of a job to add it to your favorites and tick "Favorites only" to see just those. Favorites are personal for each user. AI agents and WP-CLI can use them too (ability job-favorite, job-list favorites_only, `wp rsl-ie job favorite 42`, `wp rsl-ie jobs --favorites`).
 * Fix: Content Sync to a site with Polylang could leave the post without its categories and tags (Polylang hid terms of another language from WordPress); they are now assigned.
 * Tweak: the Jobs Log shows job names in whole words; the date column may take two lines instead.
-
-= 2.2.57 =
-* Fix: media import skipped an image when an earlier import from another site had used the same source ID; an image now counts as already imported only when the file name matches too.
-* Fix: Content Sync created a parent category or term that the post itself does not have with a name made from its slug ("Qa" for non-Latin names); parents now get their real names, and a term created by sync keeps its description.
-* Fix: Elementor Pro Theme Builder templates (header, footer, single, archive) kept the other site's post, category and author IDs in their display conditions after sync or import; the conditions are now remapped and Elementor's conditions cache is rebuilt.
-* Fix: a form entries export that matched no entries wrote the header "*" instead of the form's columns.
-* Fix: read-only AI agent abilities whose parameters are all optional (connection, job and schedule lists, UpdraftPlus status and backups) refused a call without input; they now run with defaults.
-* Tweak: UpdraftPlus backup and restore errors say what went wrong and what to do (wrong or expired confirmation token, another backup running, not enough disk space and more), translated into Russian and Ukrainian.
-* Tweak: WP-CLI accepts a post type name directly, for example `wp rsl-ie export --type=portfolio`.
 
 Older versions: see changelog.txt in the plugin folder.

@@ -1,5 +1,11 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.62 =
+* Fix: on a multisite network with the plugin network-activated, the texts of the admin pages stayed in English for users with another language; the PHP texts are now translated like the rest.
+* Fix: a WPML or Polylang import of several rows in another language that share a new category (for example posts of a German-only site merged into an English site) now assigns the category to every row, not only the first one.
+* Fix: an AI agent update by ID (import-start with ID as the key) no longer skips every row when the mapping from import-prepare leaves the ID column out; the ID column is used as the key, as with wp rsl-ie import --unique-field=ID.
+* Improvement: the export and import wizards for Taxonomy Terms now list WooCommerce product attributes (such as pa_size) and, on a WPML or Polylang site, have the Language and Translation group columns of terms, so attribute terms can be translated in a spreadsheet without WP-CLI.
+
 = 2.2.61 =
 * Fix: importing WooCommerce products (admin, WP-CLI and AI agents) did not map the language and translation group columns of a WPML or Polylang site, so rows in a second language matched the product of the first language by SKU and were not created; the Categories & Tags group now has Language and Translation group targets, and the columns map by name.
 

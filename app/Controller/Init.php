@@ -243,7 +243,9 @@ class Init {
 	 * wp-content/languages/plugins/ still loads first for PHP strings when present.
 	 */
 	function load_translations() {
-		add_action( 'init', array( $this, 'load_textdomain' ) );
+		// Runs on init already: a callback added to init at the same priority from inside init is
+		// skipped by WP_Hook (on a multisite network the PHP texts stayed in English), so load now.
+		$this->load_textdomain();
 		add_action( 'admin_enqueue_scripts', array( $this, 'set_script_translations' ), PHP_INT_MAX );
 		add_action( 'enqueue_block_editor_assets', array( $this, 'set_script_translations' ), PHP_INT_MAX );
 	}

@@ -4031,9 +4031,16 @@ class Post_Importer extends Abstract_Importer {
 
 			$result = wp_insert_term( '' !== $name ? $name : $slug, $taxonomy, $args );
 			if ( is_wp_error( $result ) ) {
-				return 0;
+				// A term the lookup did not see (a multilingual plugin limits it to one language)
+				// already has this slug: use it.
+				$existing = (int) $result->get_error_data( 'term_exists' );
+				if ( ! $existing ) {
+					return 0;
+				}
+				$term_id = $existing;
+			} else {
+				$term_id = (int) $result['term_id'];
 			}
-			$term_id = (int) $result['term_id'];
 		}
 
 		if ( $term_id > 0 && ! empty( $term_data['acf'] ) && is_array( $term_data['acf'] ) ) {
@@ -4096,7 +4103,7 @@ class Post_Importer extends Abstract_Importer {
 					return (int) $term->term_id;
 				}
 				$result = wp_insert_term( $term_value, $taxonomy, [ 'slug' => $term_value ] );
-				return is_wp_error( $result ) ? 0 : (int) $result['term_id'];
+				return is_wp_error( $result ) ? (int) $result->get_error_data( 'term_exists' ) : (int) $result['term_id'];
 
 			default:
 				$term = get_term_by( 'name', $term_value, $taxonomy );
@@ -4104,7 +4111,7 @@ class Post_Importer extends Abstract_Importer {
 					return (int) $term->term_id;
 				}
 				$result = wp_insert_term( $term_value, $taxonomy );
-				return is_wp_error( $result ) ? 0 : (int) $result['term_id'];
+				return is_wp_error( $result ) ? (int) $result->get_error_data( 'term_exists' ) : (int) $result['term_id'];
 		}
 	}
 
