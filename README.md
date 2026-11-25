@@ -341,6 +341,10 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 ## Changelog
 
+### 2.2.63
+
+* Fix: without Import Export PRO, an import file with Polylang or WPML language and translation columns no longer creates an extra language (for example "de-2"). The columns are skipped and the Jobs Log says that languages and translations need PRO.
+
 ### 2.2.62
 
 * Fix: on a multisite network with the plugin network-activated, the texts of the admin pages stayed in English for users with another language; the PHP texts are now translated like the rest.
@@ -362,12 +366,6 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 * New: Content Sync brings the settings of a category, tag or product category with the post when the other site has to create that term (its term meta, including the WooCommerce category image, display type and order). Terms the other site already has are not changed. Developers can choose the keys with the `rsl_ie_sync_post_term_meta` filter.
 
-### 2.2.58
-
-* New: Jobs Log favorites. Click the star in front of a job to add it to your favorites and tick "Favorites only" to see just those. Favorites are personal for each user. AI agents and WP-CLI can use them too (ability job-favorite, job-list favorites_only, `wp rsl-ie job favorite 42`, `wp rsl-ie jobs --favorites`).
-* Fix: Content Sync to a site with Polylang could leave the post without its categories and tags (Polylang hid terms of another language from WordPress); they are now assigned.
-* Tweak: the Jobs Log shows job names in whole words; the date column may take two lines instead.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -376,7 +374,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.62 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.63 |
 
 ---
 

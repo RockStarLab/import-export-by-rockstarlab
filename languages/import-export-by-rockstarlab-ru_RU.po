@@ -398,7 +398,7 @@ msgstr "Не удалось загрузить записи с удалённо�
 
 #: app/Controller/Content_Sync_Controller.php:398
 #: app/Controller/Init.php:800
-#: app/Model/Import/Post_Importer.php:5012
+#: app/Model/Import/Post_Importer.php:5023
 #: assets/js/app.js:2
 #: assets/js/post-sync-standalone.js:2
 #: assets/js/app.js:733
@@ -5685,13 +5685,13 @@ msgid "Unknown action."
 msgstr "Неизвестное действие."
 
 #: app/Helper/ACF_Fields.php:1967
-#: app/Model/Import/Post_Importer.php:6178
+#: app/Model/Import/Post_Importer.php:6196
 msgid "Could not create a temporary file for download."
 msgstr "Не удалось создать временный файл для скачивания."
 
 #. translators: %d: code.
 #: app/Helper/ACF_Fields.php:1988
-#: app/Model/Import/Post_Importer.php:6199
+#: app/Model/Import/Post_Importer.php:6217
 #, php-format
 msgid "Download failed with HTTP %d"
 msgstr "Ошибка скачивания, HTTP %d"
@@ -7595,92 +7595,96 @@ msgstr "Не удаётся назначить роли импортирован
 msgid "Author not found for \"%1$s\" (%2$s); the post was assigned to the default author."
 msgstr "Автор для «%1$s» (%2$s) не найден; запись назначена автору по умолчанию."
 
+#: app/Model/Import/Post_Importer.php:3921
+msgid "The language and translation columns were skipped: importing Polylang and WPML languages and translations needs Import Export PRO."
+msgstr "Колонки языка и переводов пропущены: импорт языков и переводов Polylang и WPML доступен в Import Export PRO."
+
 #. translators: %s: image.
-#: app/Model/Import/Post_Importer.php:4243
+#: app/Model/Import/Post_Importer.php:4254
 #, php-format
 msgid "Featured image value is not a valid URL: %s"
 msgstr "Значение изображения записи — недопустимый URL: %s"
 
 #. translators: %s: image.
-#: app/Model/Import/Post_Importer.php:4244
+#: app/Model/Import/Post_Importer.php:4255
 msgid "The featured image value is not a valid URL."
 msgstr "Значение изображения записи — недопустимый URL."
 
-#: app/Model/Import/Post_Importer.php:4256
+#: app/Model/Import/Post_Importer.php:4267
 msgid "The featured image could not be downloaded."
 msgstr "Не удалось скачать изображение записи."
 
 #. translators: %1$s: url, %2$s: reason.
-#: app/Model/Import/Post_Importer.php:4257
+#: app/Model/Import/Post_Importer.php:4268
 #, php-format
 msgid "Failed to import featured image from URL: %1$s (%2$s)"
 msgstr "Не удалось импортировать изображение записи по URL: %1$s (%2$s)"
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4786
-#: app/Model/Import/Post_Importer.php:4979
+#: app/Model/Import/Post_Importer.php:4797
+#: app/Model/Import/Post_Importer.php:4990
 #, php-format
 msgid "Skipped duplicate media: %1$s (using existing ID: %2$d)"
 msgstr "Повторяющийся медиафайл пропущен: %1$s (используется существующий ID: %2$d)"
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4793
-#: app/Model/Import/Post_Importer.php:4984
+#: app/Model/Import/Post_Importer.php:4804
+#: app/Model/Import/Post_Importer.php:4995
 #, php-format
 msgid "Deleted existing media for replacement: %1$s (ID: %2$d)"
 msgstr "Существующий медиафайл удалён для замены: %1$s (ID: %2$d)"
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4795
+#: app/Model/Import/Post_Importer.php:4806
 #, php-format
 msgid "Using existing media: %1$s (ID: %2$d)"
 msgstr "Используется существующий медиафайл: %1$s (ID: %2$d)"
 
 #. translators: %1$s: filename, %2$d: attachment id.
-#: app/Model/Import/Post_Importer.php:4815
-#: app/Model/Import/Post_Importer.php:5009
+#: app/Model/Import/Post_Importer.php:4826
+#: app/Model/Import/Post_Importer.php:5020
 #, php-format
 msgid "Imported media: %1$s (new ID: %2$d)"
 msgstr "Медиафайл импортирован: %1$s (новый ID: %2$d)"
 
-#: app/Model/Import/Post_Importer.php:4930
+#: app/Model/Import/Post_Importer.php:4941
 msgid "The file does not exist in the Media Library of this site."
 msgstr "Этого файла нет в библиотеке медиафайлов сайта."
 
 #. translators: %s: url.
-#: app/Model/Import/Post_Importer.php:4931
+#: app/Model/Import/Post_Importer.php:4942
 #, php-format
 msgid "Media file not found on this site: %s"
 msgstr "Медиафайл не найден на этом сайте: %s"
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4992
+#: app/Model/Import/Post_Importer.php:5003
 #, php-format
 msgid "Updated duplicate media: %1$s (using existing ID: %2$d)"
 msgstr "Повторяющийся медиафайл обновлён: %1$s (используется существующий ID: %2$d)"
 
 #. translators: %1$s: filename, %2$s: error message.
-#: app/Model/Import/Post_Importer.php:5014
+#: app/Model/Import/Post_Importer.php:5025
 #, php-format
 msgid "Failed to import media: %1$s - %2$s"
 msgstr "Не удалось импортировать медиафайл: %1$s — %2$s"
 
 #. translators: %1$d: post id, %2$d: imported count, %3$d: skipped count, %4$d: error count.
-#: app/Model/Import/Post_Importer.php:5039
+#: app/Model/Import/Post_Importer.php:5050
 #, php-format
 msgid "Media import summary for post %1$d: %2$d imported, %3$d skipped, %4$d errors"
 msgstr "Итог импорта медиафайлов для записи %1$d: импортировано %2$d, пропущено %3$d, ошибок %4$d"
 
-#: app/Model/Import/Post_Importer.php:6061
+#: app/Model/Import/Post_Importer.php:6079
 msgid "The media URL is not importable."
 msgstr "Этот медиа-URL нельзя импортировать."
 
-#: app/Model/Import/Post_Importer.php:6106
+#: app/Model/Import/Post_Importer.php:6124
 msgid "The address did not return an image file."
 msgstr "По адресу нет файла изображения."
 
 #. translators: %d: cleaned.
-#: app/Model/Import/Post_Importer.php:6232
+#: app/Model/Import/Post_Importer.php:6250
 #, php-format
 msgid "Cleaned up %d temporary media files"
 msgstr "Удалено временных медиафайлов: %d"

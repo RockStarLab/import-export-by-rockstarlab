@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.63 =
+* Fix: without Import Export PRO, an import file with Polylang or WPML language and translation columns no longer creates an extra language (for example "de-2"). The columns are skipped and the Jobs Log says that languages and translations need PRO.
+
 = 2.2.62 =
 * Fix: on a multisite network with the plugin network-activated, the texts of the admin pages stayed in English for users with another language; the PHP texts are now translated like the rest.
 * Fix: a WPML or Polylang import of several rows in another language that share a new category (for example posts of a German-only site merged into an English site) now assigns the category to every row, not only the first one.
