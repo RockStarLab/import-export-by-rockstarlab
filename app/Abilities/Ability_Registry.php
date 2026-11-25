@@ -42,13 +42,19 @@ class Ability_Registry {
 		if ( ! self::is_enabled() || ! self::is_available() ) {
 			return null;
 		}
+		$input = $definition['input'];
+		// An ability whose parameters are all optional must also run with no input at all
+		// (a plain GET of /run, or an agent that omits "input"); core only allows that with a default.
+		if ( is_array( $input ) && 'object' === ( $input['type'] ?? '' ) && empty( $input['required'] ) && ! array_key_exists( 'default', $input ) ) {
+			$input['default'] = new \stdClass();
+		}
 		return wp_register_ability(
 			$name,
 			[
 				'label'               => $definition['label'],
 				'description'         => $definition['description'],
 				'category'            => 'rsl-ie',
-				'input_schema'        => $definition['input'],
+				'input_schema'        => $input,
 				'output_schema'       => $definition['output'],
 				'execute_callback'    => static function ( $input = [] ) use ( $execute ) {
 					// Core validates objects but preserves stdClass defaults used by MCP.

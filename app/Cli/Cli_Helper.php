@@ -544,6 +544,22 @@ class Cli_Helper {
 	}
 
 	/**
+	 * --type=<post type name> (portfolio, event...) means --type=custom_post_types --post-type=<name>.
+	 *
+	 * @param array $assoc Flags.
+	 * @return array
+	 */
+	public static function post_type_shortcut( array $assoc ) {
+		$type = strtolower( trim( (string) ( $assoc['type'] ?? '' ) ) );
+		$own  = [ 'post', 'page', 'attachment', 'product', 'product_variation', 'shop_order', 'shop_order_refund', 'shop_coupon', 'nav_menu_item', 'revision' ];
+		if ( '' !== $type && ! isset( $assoc['post-type'] ) && ! in_array( $type, $own, true ) && post_type_exists( $type ) && get_post_type_object( $type )->show_ui ) {
+			$assoc['type']      = 'custom_post_types';
+			$assoc['post-type'] = $type;
+		}
+		return $assoc;
+	}
+
+	/**
 	 * Add --post-type, --taxonomy and --table to the options.
 	 *
 	 * @param array $options Options.

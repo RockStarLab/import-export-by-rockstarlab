@@ -932,17 +932,54 @@ class Media_Importer extends Abstract_Importer {
 
 		global $wpdb;
 
-		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->prepare(
-				"SELECT post_id FROM {$wpdb->postmeta}
+				"SELECT DISTINCT post_id FROM {$wpdb->postmeta}
 				 WHERE meta_key IN ('_rsl_ie_source_id', '_rsl_ie_source_attachment_id')
 				   AND meta_value = %s
-				 LIMIT 1",
+				 LIMIT 20",
 				(string) $source_id
 			)
 		);
+		// The same ID can come from different sites or exports: it is the same image
+		// only when the file name matches too (WordPress may have added "-1").
+		$name = $this->source_file_stem( $item );
+		foreach ( array_map( 'intval', (array) $ids ) as $attachment_id ) {
+			if ( 'attachment' !== get_post_type( $attachment_id ) ) {
+				continue;
+			}
+			if ( '' === $name ) {
+				return $attachment_id;
+			}
+			$local = strtolower( pathinfo( (string) get_post_meta( $attachment_id, '_wp_attached_file', true ), PATHINFO_FILENAME ) );
+			$local = preg_replace( '/-scaled$/', '', $local );
+			if ( $local === $name || preg_match( '/^' . preg_quote( $name, '/' ) . '-\d+$/', $local ) ) {
+				return $attachment_id;
+			}
+		}
+		return null;
+	}
 
-		return $attachment_id && 'attachment' === get_post_type( (int) $attachment_id ) ? (int) $attachment_id : null;
+	/**
+	 * File name of the imported item without extension, as WordPress would save it.
+	 *
+	 * @param array $item Media row.
+	 * @return string Empty when the row has no file name or URL.
+	 */
+	private function source_file_stem( array $item ) {
+		foreach ( [ 'filename', 'file_name', 'file_url', 'url', 'file', 'guid' ] as $key ) {
+			$value = isset( $item[ $key ] ) && is_scalar( $item[ $key ] ) ? trim( (string) $item[ $key ] ) : '';
+			if ( '' === $value ) {
+				continue;
+			}
+			$path = (string) wp_parse_url( $value, PHP_URL_PATH );
+			$base = sanitize_file_name( rawurldecode( wp_basename( '' !== $path ? $path : $value ) ) );
+			$stem = strtolower( pathinfo( $base, PATHINFO_FILENAME ) );
+			if ( '' !== $stem ) {
+				return preg_replace( '/-scaled$/', '', $stem );
+			}
+		}
+		return '';
 	}
 
 	/**

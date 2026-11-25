@@ -48,7 +48,7 @@ class Main_Command {
 	 * ---
 	 *
 	 * [--post-type=<post_type>]
-	 * : PRO, with --type=custom_post_types: the post type, for example event.
+	 * : PRO, with --type=custom_post_types: the post type, for example event (--type=event alone also works).
 	 *
 	 * [--taxonomy=<taxonomy>]
 	 * : PRO, with --type=taxonomy: the taxonomy of rows without a taxonomy column, for example category.
@@ -128,6 +128,7 @@ class Main_Command {
 	 */
 	public function import( $args, $assoc ) {
 		Cli_Helper::require_admin();
+		$assoc             = Cli_Helper::post_type_shortcut( $assoc );
 		list( $ns, $type ) = Cli_Helper::resolve_type( $assoc['type'] ?? 'post', false );
 		$file              = Cli_Helper::upload( $args[0], Cli_Helper::parser_options( $assoc ) );
 		$options           = [];
@@ -236,7 +237,7 @@ class Main_Command {
 	 * ---
 	 *
 	 * [--post-type=<post_type>]
-	 * : PRO, with --type=custom_post_types: the post type, for example event.
+	 * : PRO, with --type=custom_post_types: the post type, for example event (--type=event alone also works).
 	 *
 	 * [--taxonomy=<taxonomy>]
 	 * : PRO, with --type=taxonomy: the taxonomy, for example category.
@@ -306,6 +307,7 @@ class Main_Command {
 	 */
 	public function export( $args, $assoc ) {
 		Cli_Helper::require_admin();
+		$assoc             = Cli_Helper::post_type_shortcut( $assoc );
 		list( $ns, $type ) = Cli_Helper::resolve_type( $assoc['type'] ?? 'post', true );
 		self::check_output( $assoc['output'] ?? getcwd() );
 		$options = Cli_Helper::target_options( isset( $assoc['options'] ) ? Cli_Helper::json_arg( $assoc['options'], 'options' ) : [], $assoc );

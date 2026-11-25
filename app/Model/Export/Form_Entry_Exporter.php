@@ -61,6 +61,35 @@ class Form_Entry_Exporter extends Abstract_Exporter {
 		return is_wp_error( $fields ) ? array_merge( Form_Entries_Service::BASE_START, Form_Entries_Service::BASE_END ) : array_keys( $fields );
 	}
 
+	/**
+	 * Use the export request's options (form source and ID) before asking for columns.
+	 *
+	 * @param array $options Export options.
+	 * @return void
+	 */
+	public function set_options( array $options ) {
+		$this->options = $options + (array) $this->options;
+	}
+
+	/**
+	 * Column titles of a file with rows ("Entry ID", field labels) for the given fields.
+	 *
+	 * @param array $fields Field names.
+	 * @return array
+	 */
+	public function header_labels( array $fields ) {
+		$labels = $this->form_fields();
+		if ( is_wp_error( $labels ) ) {
+			return $fields;
+		}
+		return array_map(
+			static function ( $field ) use ( $labels ) {
+				return is_string( $field ) && isset( $labels[ $field ] ) ? (string) $labels[ $field ] : $field;
+			},
+			$fields
+		);
+	}
+
 	/** @return array */
 	public function get_default_fields() {
 		if ( empty( $this->options['form_source'] ) ) {

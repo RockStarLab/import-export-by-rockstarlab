@@ -132,6 +132,10 @@ class Elementor_Refs {
 				$ids[ $kind ] = array_merge( $ids[ $kind ], $list );
 			}
 		}
+		// Display conditions of an Elementor Pro Theme Builder template (page, category, author IDs).
+		foreach ( self::condition_ids( get_post_meta( (int) $post_id, '_elementor_conditions', true ) ) as $kind => $list ) {
+			$ids[ $kind ] = array_merge( $ids[ $kind ], $list );
+		}
 		$out = [];
 		foreach ( array_unique( $ids['post'] ) as $id ) {
 			$post = get_post( $id );
@@ -349,5 +353,98 @@ class Elementor_Refs {
 				update_post_meta( (int) $post_id, '_elementor_page_settings', $new );
 			}
 		}
+		$conditions = get_post_meta( (int) $post_id, '_elementor_conditions', true );
+		if ( is_array( $conditions ) && $conditions ) {
+			$new = [];
+			foreach ( $conditions as $condition ) {
+				$kind = self::condition_kind( (string) $condition );
+				$id   = $kind ? (int) substr( (string) $condition, strrpos( (string) $condition, '/' ) + 1 ) : 0;
+				if ( $kind && isset( $maps[ $kind ][ $id ] ) ) {
+					if ( $maps[ $kind ][ $id ] <= 0 ) {
+						continue; // The page, term or author is not on this site: drop the condition.
+					}
+					$condition = substr( (string) $condition, 0, strrpos( (string) $condition, '/' ) + 1 ) . (int) $maps[ $kind ][ $id ];
+				}
+				$new[] = $condition;
+			}
+			if ( $new !== $conditions ) {
+				update_post_meta( (int) $post_id, '_elementor_conditions', $new );
+			}
+		}
+	}
+
+	/**
+	 * What a Theme Builder display condition points at ("include/singular/page/12" → post,
+	 * "include/singular/in_category/5" → term, "include/archive/author/3" → user).
+	 *
+	 * @param string $condition Condition path.
+	 * @return string post|term|user, or '' when it has no object ID.
+	 */
+	public static function condition_kind( $condition ) {
+		$parts = explode( '/', (string) $condition );
+		if ( count( $parts ) < 3 || ! ctype_digit( (string) end( $parts ) ) ) {
+			return '';
+		}
+		$sub = (string) $parts[ count( $parts ) - 2 ];
+		if ( 'author' === $sub || 'by_author' === $sub || '_by_author' === substr( $sub, -10 ) ) {
+			return 'user';
+		}
+		if ( 0 === strpos( $sub, 'in_' ) || 0 === strpos( $sub, 'child_of_' ) || 0 === strpos( $sub, 'any_child_of_' ) || taxonomy_exists( $sub ) ) {
+			return 'term';
+		}
+		if ( 'child_of' === $sub || 'any_child_of' === $sub || post_type_exists( $sub ) ) {
+			return 'post';
+		}
+		return '';
+	}
+
+	/**
+	 * Object IDs in Theme Builder display conditions.
+	 *
+	 * @param mixed $conditions Stored conditions.
+	 * @return array{post:int[],term:int[],user:int[]}
+	 */
+	public static function condition_ids( $conditions ) {
+		$out = [
+			'post' => [],
+			'term' => [],
+			'user' => [],
+		];
+		foreach ( is_array( $conditions ) ? $conditions : [] as $condition ) {
+			$kind = self::condition_kind( (string) $condition );
+			if ( $kind ) {
+				$out[ $kind ][] = (int) substr( (string) $condition, strrpos( (string) $condition, '/' ) + 1 );
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Rebuild Elementor Pro's display-conditions cache once at the end of a request that wrote
+	 * template conditions (sync, import, migration write the meta directly, and the cache
+	 * decides which header, footer or single template a page shows).
+	 *
+	 * @return void
+	 */
+	public static function watch_conditions() {
+		$schedule = static function ( $meta_id, $object_id, $meta_key ) {
+			static $queued = false;
+			if ( '_elementor_conditions' !== $meta_key || $queued ) {
+				return;
+			}
+			$queued = true;
+			add_action(
+				'shutdown',
+				static function () {
+					if ( class_exists( '\\ElementorPro\\Modules\\ThemeBuilder\\Classes\\Conditions_Cache' ) ) {
+						( new \ElementorPro\Modules\ThemeBuilder\Classes\Conditions_Cache() )->regenerate();
+					}
+				},
+				0
+			);
+		};
+		add_action( 'added_post_meta', $schedule, 10, 3 );
+		add_action( 'updated_post_meta', $schedule, 10, 3 );
+		add_action( 'deleted_post_meta', $schedule, 10, 3 );
 	}
 }

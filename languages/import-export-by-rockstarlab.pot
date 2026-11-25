@@ -2,21 +2,21 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Content Sync, Media Sync, Import, Export with AI Agents Support 2.2.55\n"
+"Project-Id-Version: Content Sync, Media Sync, Import, Export with AI Agents Support 2.2.57\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/import-export-by-rockstarlab\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-24T15:15:46+00:00\n"
+"POT-Creation-Date: 2026-11-25T03:25:59+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: import-export-by-rockstarlab\n"
 
 #. Plugin Name of the plugin
 #: import-export-by-rockstarlab.php
-#: app/Controller/Abilities_Controller.php:106
+#: app/Controller/Abilities_Controller.php:108
 #: app/Controller/Init.php:1910
 #: app/View/settings/welcome.php:18
 msgid "Content Sync, Media Sync, Import, Export with AI Agents Support"
@@ -80,19 +80,19 @@ msgstr ""
 msgid "The job site is unavailable."
 msgstr ""
 
-#: app/Abilities/Migration_Plan.php:125
+#: app/Abilities/Migration_Plan.php:135
 msgid "Custom database tables are not supported by Content Migration."
 msgstr ""
 
-#: app/Abilities/Migration_Plan.php:129
+#: app/Abilities/Migration_Plan.php:139
 msgid "Unexpected migration table target."
 msgstr ""
 
-#: app/Abilities/Migration_Plan.php:132
+#: app/Abilities/Migration_Plan.php:142
 msgid "Invalid migration content scope."
 msgstr ""
 
-#: app/Abilities/Migration_Plan.php:146
+#: app/Abilities/Migration_Plan.php:156
 msgid "The migration content provider is unavailable."
 msgstr ""
 
@@ -134,39 +134,39 @@ msgstr ""
 msgid "The sync selection or destination is outside the allowed content scope."
 msgstr ""
 
-#: app/Controller/Abilities_Controller.php:107
+#: app/Controller/Abilities_Controller.php:109
 msgid "Discover and run the available import and export workflows."
 msgstr ""
 
-#: app/Controller/Abilities_Controller.php:137
+#: app/Controller/Abilities_Controller.php:139
 msgid "Get plugin abilities"
 msgstr ""
 
-#: app/Controller/Abilities_Controller.php:138
+#: app/Controller/Abilities_Controller.php:140
 msgid "List the implemented RockStarLab abilities and plugin version. Only listed abilities are available; this does not promise future workflow endpoints."
 msgstr ""
 
-#: app/Controller/Abilities_Controller.php:150
+#: app/Controller/Abilities_Controller.php:152
 msgid "List free content types"
 msgstr ""
 
-#: app/Controller/Abilities_Controller.php:151
+#: app/Controller/Abilities_Controller.php:153
 msgid "Read the free plugin content catalogue. URL lists support export only. Consult get-capabilities for implemented workflow abilities."
 msgstr ""
 
-#: app/Controller/Abilities_Controller.php:164
+#: app/Controller/Abilities_Controller.php:166
 msgid "List file formats"
 msgstr ""
 
-#: app/Controller/Abilities_Controller.php:165
+#: app/Controller/Abilities_Controller.php:167
 msgid "Read the file formats supported by the plugin. This operation does not read or create files."
 msgstr ""
 
-#: app/Controller/Abilities_Controller.php:170
+#: app/Controller/Abilities_Controller.php:172
 msgid "Get integration availability"
 msgstr ""
 
-#: app/Controller/Abilities_Controller.php:171
+#: app/Controller/Abilities_Controller.php:173
 msgid "Check whether supported field and commerce integrations are present. Does not reveal credentials, test AI or grant access to Pro operations."
 msgstr ""
 
@@ -307,7 +307,7 @@ msgstr ""
 msgid "Comments synced. Created: %1$d, Updated: %2$d, Failed: %3$d"
 msgstr ""
 
-#: app/Controller/Content_Sync_API_Controller.php:3348
+#: app/Controller/Content_Sync_API_Controller.php:3352
 msgid "Parent ID is required."
 msgstr ""
 
@@ -8330,12 +8330,12 @@ msgid "Private export storage is unavailable."
 msgstr ""
 
 #. translators: 1: server name, 2: error message.
-#: app/Service/Export_Service.php:536
+#: app/Service/Export_Service.php:545
 #, php-format
 msgid "The export file was created, but the upload to %1$s failed: %2$s"
 msgstr ""
 
-#: app/Service/Export_Service.php:635
+#: app/Service/Export_Service.php:644
 msgid "Could not read or save export data. The job was stopped."
 msgstr ""
 
@@ -9478,6 +9478,140 @@ msgstr ""
 
 #: app/Service/Trigger_Service.php:1117
 msgid "Trigger not found."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:267
+msgid "Backup and restore through AI agents were turned off while the job was running."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:268
+msgid "A backup file changed after the restore plan was made. Make a new restore plan."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:269
+msgid "A backup file does not match its checksum, so it may be damaged. Use another backup."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:270
+msgid "A backup file has a different size than UpdraftPlus recorded, so it may be incomplete. Use another backup."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:271
+msgid "No backup with this ID. List the backups to get a valid ID."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:272
+msgid "This backup was not made on this site, so it cannot be restored here through AI agents. Use the UpdraftPlus dashboard."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:273
+msgid "UpdraftPlus did not start the backup. See the UpdraftPlus dashboard and its log."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:274
+msgid "The backup does not contain one of the chosen parts. Choose only parts listed for this backup."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:275
+msgid "WordPress cannot write to the folder of one of the chosen parts. Fix the folder permissions and try again."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:276
+msgid "The background task could not be scheduled. Check that WP-Cron or a system cron works."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:277
+msgid "This database backup has a format that cannot be restored through AI agents. Use the UpdraftPlus dashboard."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:278
+msgid "The database backup did not pass the check before restoring. Use another backup or the UpdraftPlus dashboard."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:279
+msgid "Restoring needs direct file access, but WordPress asks for FTP details here. Use the UpdraftPlus dashboard."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:280
+msgid "An encrypted database backup cannot be restored through AI agents. Use the UpdraftPlus dashboard."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:281
+msgid "This request ID was already used for a different request. Send a new request ID."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:282
+msgid "Not enough free disk space. Free up space and try again."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:283
+msgid "A backup file cannot be read. Use another backup."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:284
+msgid "The restore plan ID or confirmation token is wrong or expired. Make a new restore plan and use the token it returns."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:285
+msgid "The database backup file cannot be read or is not a database backup. Use another backup."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:286
+msgid "No job with this ID. Use the job ID returned when the job was started."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:287
+msgid "The backup files are only in remote storage. Download them in the UpdraftPlus dashboard first."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:288
+msgid "The restore cannot be resumed safely from where it stopped. Use the UpdraftPlus dashboard."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:289
+msgid "Another backup or restore is running. Wait for it to finish and try again."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:290
+msgid "Folders left by an earlier restore are still on the site. Remove them in the UpdraftPlus dashboard first."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:291
+msgid "Remote storage is not set up in UpdraftPlus. Set it up, or start the backup without sending it to remote storage."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:292
+msgid "The site changed after the restore plan was made (UpdraftPlus, WordPress or PHP version). Make a new restore plan."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:293
+msgid "This backup has a format that cannot be restored through AI agents. Use the UpdraftPlus dashboard."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:294
+msgid "The restore did not finish. Check the site and the UpdraftPlus dashboard before trying again."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:295
+msgid "This UpdraftPlus version is not supported for restoring through AI agents. Update UpdraftPlus or use its dashboard."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:296
+msgid "A backup file contains unsafe paths and was not restored. Use another backup."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:297
+msgid "The PHP Zip extension is required. Ask your host to enable it."
+msgstr ""
+
+#: app/Service/UpdraftPlus_Service.php:299
+msgid "The operation did not complete."
+msgstr ""
+
+#. translators: %s: error code
+#: app/Service/UpdraftPlus_Service.php:301
+#, php-format
+msgid "Nothing is confirmed as done; check the UpdraftPlus dashboard. Code: %s."
 msgstr ""
 
 #: app/Service/Workflow_Service.php:404
