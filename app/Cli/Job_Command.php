@@ -207,4 +207,29 @@ class Job_Command {
 		Cli_Helper::call( 'rsl-ie/job-cancel', [ 'job_id' => (int) $args[0] ] );
 		WP_CLI::success( sprintf( 'Job %d cancelled.', (int) $args[0] ) );
 	}
+
+	/**
+	 * Star a job (or unstar it with --remove), for the Jobs Log "Favorites only" filter.
+	 *
+	 * ## OPTIONS
+	 *
+	 * <id>
+	 * : Job ID.
+	 *
+	 * [--remove]
+	 * : Remove the job from favorites.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     $ wp rsl-ie job favorite 42 --user=admin
+	 *     $ wp rsl-ie job favorite 42 --remove --user=admin
+	 *
+	 * @param array $args  Positional arguments.
+	 * @param array $assoc Flags.
+	 */
+	public function favorite( $args, $assoc ) {
+		Cli_Helper::require_admin();
+		$result = Cli_Helper::call( 'rsl-ie/job-favorite', [ 'job_id' => (int) $args[0], 'favorite' => empty( $assoc['remove'] ) ] );
+		WP_CLI::success( sprintf( ! empty( $result['is_favorite'] ) ? 'Job %d added to favorites.' : 'Job %d removed from favorites.', (int) $args[0] ) );
+	}
 }

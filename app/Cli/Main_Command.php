@@ -410,6 +410,9 @@ class Main_Command {
 	 * [--type=<type>]
 	 * : Only jobs of this kind, for example import or export.
 	 *
+	 * [--favorites]
+	 * : Only the jobs you starred (wp rsl-ie job favorite <id>).
+	 *
 	 * [--limit=<number>]
 	 * : How many jobs, newest first.
 	 * ---
@@ -437,6 +440,7 @@ class Main_Command {
 	 * ## EXAMPLES
 	 *
 	 *     $ wp rsl-ie jobs --status=failed --user=admin
+	 *     $ wp rsl-ie jobs --favorites --user=admin
 	 *
 	 * @param array $args  Positional arguments.
 	 * @param array $assoc Flags.
@@ -448,6 +452,9 @@ class Main_Command {
 			if ( isset( $assoc[ $key ] ) ) {
 				$input[ $key ] = (string) $assoc[ $key ];
 			}
+		}
+		if ( ! empty( $assoc['favorites'] ) ) {
+			$input['favorites_only'] = true;
 		}
 		$jobs   = (array) ( Cli_Helper::call( 'rsl-ie/job-list', $input )['jobs'] ?? [] );
 		$format = $assoc['format'] ?? 'table';

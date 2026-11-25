@@ -1,5 +1,10 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.58 =
+* New: Jobs Log favorites. Click the star in front of a job to add it to your favorites and tick "Favorites only" to see just those. Favorites are personal for each user. AI agents and WP-CLI can use them too (ability job-favorite, job-list favorites_only, `wp rsl-ie job favorite 42`, `wp rsl-ie jobs --favorites`).
+* Fix: Content Sync to a site with Polylang could leave the post without its categories and tags (Polylang hid terms of another language from WordPress); they are now assigned.
+* Tweak: the Jobs Log shows job names in whole words; the date column may take two lines instead.
+
 = 2.2.57 =
 * Fix: media import skipped an image when an earlier import from another site had used the same source ID; an image now counts as already imported only when the file name matches too.
 * Fix: Content Sync created a parent category or term that the post itself does not have with a name made from its slug ("Qa" for non-Latin names); parents now get their real names, and a term created by sync keeps its description.

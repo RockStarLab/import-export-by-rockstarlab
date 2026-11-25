@@ -604,7 +604,7 @@ class Content_Sync_API_Controller {
 					}
 
 					// Assign terms to post
-					wp_set_object_terms( $post_id, $term_ids, $taxonomy );
+					\RockStarLab\ImportExport\Helper\Term_Payload::set_object_terms( (int) $post_id, (array) $term_ids, $taxonomy );
 				}
 
 				// Re-save ACF taxonomy fields with correct local term IDs.

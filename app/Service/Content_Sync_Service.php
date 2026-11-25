@@ -2801,7 +2801,7 @@ class Content_Sync_Service {
 
 					// Assign terms to post only if we have valid term IDs.
 					if ( ! empty( $term_ids ) ) {
-						wp_set_object_terms( $post_id, $term_ids, $taxonomy );
+						\RockStarLab\ImportExport\Helper\Term_Payload::set_object_terms( (int) $post_id, (array) $term_ids, $taxonomy );
 					}
 				}
 

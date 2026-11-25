@@ -129,6 +129,7 @@ class Job_Controller extends Base_Controller {
 			'job_retry'        => [ 'callback' => 'retry_job' ],
 			'job_rename'       => [ 'callback' => 'rename_job' ],
 			'job_download_url' => [ 'callback' => 'get_download_url' ],
+			'job_favorite'     => [ 'callback' => 'favorite_job' ],
 		];
 	}
 
@@ -159,6 +160,12 @@ class Job_Controller extends Base_Controller {
 
 		if ( ! empty( $status ) ) {
 			$where['status'] = $status;
+		}
+
+		// "Favorites only": the current user's starred jobs.
+		$favorite_ids = \RockStarLab\ImportExport\Service\Job_Favorites::ids();
+		if ( ! empty( $this->get_request_param( 'favorites', '' ) ) ) {
+			$where['ids'] = $favorite_ids;
 		}
 
 		// Get jobs using get_all method
@@ -198,7 +205,8 @@ class Job_Controller extends Base_Controller {
 			unset( $job->request_payload, $job->request_key, $job->request_hash );
 			$job->upload_failed = \RockStarLab\ImportExport\Service\Job_Notification_Service::upload_failed( $job );
 
-			$job->job_name = isset( $job->job_name ) ? (string) $job->job_name : '';
+			$job->job_name    = isset( $job->job_name ) ? (string) $job->job_name : '';
+			$job->is_favorite = in_array( (int) $job->id, $favorite_ids, true );
 
 			// Aliases for JS layer; prefer the canonical counters when present.
 			$job->success_items = (int) ( $job->success_items ?? $job->imported_items ?? 0 );
@@ -240,6 +248,35 @@ class Job_Controller extends Base_Controller {
 				'total'  => $total,
 				'limit'  => $limit,
 				'offset' => $offset,
+			]
+		);
+	}
+
+	/**
+	 * Star or unstar a job for the current user (Jobs Log "Favorites only" filter).
+	 */
+	public function favorite_job() {
+		$verification = $this->verify_request();
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+			return;
+		}
+		$validation = $this->validate_required_params( [ 'job_id' ] );
+		if ( is_wp_error( $validation ) ) {
+			$this->send_error( $validation, null, 400 );
+			return;
+		}
+		$job_id   = (int) $this->get_request_param( 'job_id' );
+		$favorite = ! in_array( (string) $this->get_request_param( 'favorite', '1' ), [ '0', 'false', '' ], true );
+		$result   = \RockStarLab\ImportExport\Service\Job_Favorites::set( $job_id, $favorite );
+		if ( is_wp_error( $result ) ) {
+			$this->send_error( $result, null, $result->get_error_data()['status'] ?? 400 );
+			return;
+		}
+		$this->send_success(
+			[
+				'job_id'      => $job_id,
+				'is_favorite' => $result,
 			]
 		);
 	}
