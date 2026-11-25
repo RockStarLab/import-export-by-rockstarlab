@@ -344,6 +344,31 @@ class Import_Service {
 					$options[ $key ] = $value;
 				}
 			}
+			// Update by ID with an "ID" column that the mapping leaves out (import-prepare does not
+			// map ID): the column is the key, as with wp rsl-ie import --unique-field=ID.
+			$unique = (string) ( $options['unique_field'] ?? $options['duplicate_check'] ?? '' );
+			$id_col = false;
+			if ( 'ID' === $unique && ! in_array( 'ID', array_column( $mapping, 'target_field' ), true ) ) {
+				$headers = (array) ( $file['headers'] ?? [] );
+				if ( ! $headers && 'csv' === ( $file['format'] ?? '' ) && is_readable( (string) $file['path'] ) ) {
+					$handle = fopen( (string) $file['path'], 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+					if ( $handle ) {
+						$delimiter = (string) ( $input['delimiter'] ?? $file['parser_options']['delimiter'] ?? ',' );
+						$headers   = (array) fgetcsv( $handle, 0, '' !== $delimiter ? $delimiter : ',', '"', '\\' );
+						fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+						if ( isset( $headers[0] ) ) {
+							$headers[0] = preg_replace( '/^\xEF\xBB\xBF/', '', (string) $headers[0] );
+						}
+					}
+				}
+				$id_col = array_search( 'ID', array_map( 'strval', $headers ), true );
+			}
+			if ( false !== $id_col ) {
+				$mapping[] = [
+					'source_index' => (int) $id_col,
+					'target_field' => 'ID',
+				];
+			}
 			$format                = $file['format'];
 			$file_path             = $file['path'];
 			$source_url            = (string) ( $file['source_url'] ?? '' );

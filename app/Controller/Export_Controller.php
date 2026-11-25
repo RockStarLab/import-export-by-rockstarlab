@@ -691,13 +691,22 @@ class Export_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		// Get all registered taxonomies
+		// Public taxonomies, plus WooCommerce product attributes (pa_*), which are not public unless
+		// their archives are enabled but are exported like any other term list.
 		$taxonomies = get_taxonomies(
 			[
 				'public' => true,
 			],
 			'objects'
 		);
+		if ( function_exists( 'wc_get_attribute_taxonomy_names' ) ) {
+			foreach ( (array) wc_get_attribute_taxonomy_names() as $attribute ) {
+				$object = get_taxonomy( $attribute );
+				if ( $object && ! isset( $taxonomies[ $attribute ] ) ) {
+					$taxonomies[ $attribute ] = $object;
+				}
+			}
+		}
 
 		$taxonomy_list = [];
 		foreach ( $taxonomies as $taxonomy ) {

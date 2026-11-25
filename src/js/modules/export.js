@@ -15,6 +15,50 @@ import { __, sprintf } from '@wordpress/i18n';
  *
  * @return {Array} Zero or one filter option.
  */
+/**
+ * WPML / Polylang: the language and translation group columns of a term export (PRO).
+ *
+ * @return {Array} Zero or one field group.
+ */
+function termLanguageGroup() {
+	return Object.keys( window.rslIeData?.languages || {} ).length
+		? [
+				{
+					label: termLanguageGroupLabel(),
+					options: [
+						{
+							value: 'language',
+							label: sprintf(
+								/* translators: %s: multilingual plugin (Polylang, WPML). */
+								__( 'Language (%s)', 'import-export-by-rockstarlab' ),
+								window.rslIeData?.multilingualName || 'Polylang'
+							),
+							type: 'string',
+						},
+						{
+							value: 'translations',
+							label: sprintf(
+								/* translators: %s: multilingual plugin (Polylang, WPML). */
+								__( 'Translation group (%s)', 'import-export-by-rockstarlab' ),
+								window.rslIeData?.multilingualName || 'Polylang'
+							),
+							type: 'string',
+						},
+					],
+				},
+		  ]
+		: [];
+}
+
+/**
+ * Label of the term language group.
+ *
+ * @return {string} Label.
+ */
+function termLanguageGroupLabel() {
+	return __( 'Languages', 'import-export-by-rockstarlab' );
+}
+
 function languageFilterOptions() {
 	const languages = window.rslIeData?.languages || {};
 	return Object.keys( languages ).length
@@ -4782,6 +4826,7 @@ const ExportModule = {
 						},
 					],
 				},
+				...termLanguageGroup(),
 				{
 					label: __(
 						'Custom Fields (Term Meta)',
@@ -6596,6 +6641,10 @@ const ExportModule = {
 			window.rslIeData.i18n.fieldGroupFeaturedImage ||
 				__( 'Featured Image', 'import-export-by-rockstarlab' ),
 		];
+		// The term language columns are export columns, not filters.
+		if ( contentType === 'taxonomy' ) {
+			excludedLabels.push( termLanguageGroupLabel() );
+		}
 
 		// For woo_coupon, product restrictions (lists of product references) and custom
 		// filters stay out of the filters. Discount, usage restrictions, allowed emails and

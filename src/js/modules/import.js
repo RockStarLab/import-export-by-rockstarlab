@@ -4470,12 +4470,12 @@ const ImportModule = {
 												'Language (%s)',
 												'import-export-by-rockstarlab'
 											),
-											window.rslIeData?.multilingualName ||
-												'Polylang'
+											window.rslIeData
+												?.multilingualName || 'Polylang'
 										),
 										labelEn: `Language (${
-											window.rslIeData?.multilingualName ||
-											'Polylang'
+											window.rslIeData
+												?.multilingualName || 'Polylang'
 										})`,
 										type: 'string',
 									},
@@ -4487,12 +4487,12 @@ const ImportModule = {
 												'Translation group (%s)',
 												'import-export-by-rockstarlab'
 											),
-											window.rslIeData?.multilingualName ||
-												'Polylang'
+											window.rslIeData
+												?.multilingualName || 'Polylang'
 										),
 										labelEn: `Translation group (${
-											window.rslIeData?.multilingualName ||
-											'Polylang'
+											window.rslIeData
+												?.multilingualName || 'Polylang'
 										})`,
 										type: 'string',
 									},
@@ -5224,6 +5224,46 @@ const ImportModule = {
 							labelEn: 'Term Taxonomy ID',
 							type: 'number',
 						},
+						// WPML / Polylang (PRO): the language and translation group of a term file.
+						...( Object.keys( window.rslIeData?.languages || {} )
+							.length
+							? [
+									{
+										value: 'language',
+										label: sprintf(
+											/* translators: %s: multilingual plugin (Polylang, WPML). */
+											__(
+												'Language (%s)',
+												'import-export-by-rockstarlab'
+											),
+											window.rslIeData
+												?.multilingualName || 'Polylang'
+										),
+										labelEn: `Language (${
+											window.rslIeData
+												?.multilingualName || 'Polylang'
+										})`,
+										type: 'string',
+									},
+									{
+										value: 'translations',
+										label: sprintf(
+											/* translators: %s: multilingual plugin (Polylang, WPML). */
+											__(
+												'Translation group (%s)',
+												'import-export-by-rockstarlab'
+											),
+											window.rslIeData
+												?.multilingualName || 'Polylang'
+										),
+										labelEn: `Translation group (${
+											window.rslIeData
+												?.multilingualName || 'Polylang'
+										})`,
+										type: 'string',
+									},
+							  ]
+							: [] ),
 					],
 				},
 				{
