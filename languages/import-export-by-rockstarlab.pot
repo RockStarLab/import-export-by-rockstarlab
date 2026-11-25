@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Content Sync, Media Sync, Import, Export with AI Agents Support 2.2.62\n"
+"Project-Id-Version: Content Sync, Media Sync, Import, Export with AI Agents Support 2.2.63\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/import-export-by-rockstarlab\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-25T17:26:41+00:00\n"
+"POT-Creation-Date: 2026-11-25T18:19:44+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: import-export-by-rockstarlab\n"
@@ -401,7 +401,7 @@ msgstr ""
 
 #: app/Controller/Content_Sync_Controller.php:398
 #: app/Controller/Init.php:800
-#: app/Model/Import/Post_Importer.php:5012
+#: app/Model/Import/Post_Importer.php:5023
 #: assets/js/app.js:2
 #: assets/js/post-sync-standalone.js:2
 #: assets/js/app.js:733
@@ -5684,13 +5684,13 @@ msgid "Unknown action."
 msgstr ""
 
 #: app/Helper/ACF_Fields.php:1967
-#: app/Model/Import/Post_Importer.php:6178
+#: app/Model/Import/Post_Importer.php:6196
 msgid "Could not create a temporary file for download."
 msgstr ""
 
 #. translators: %d: code.
 #: app/Helper/ACF_Fields.php:1988
-#: app/Model/Import/Post_Importer.php:6199
+#: app/Model/Import/Post_Importer.php:6217
 #, php-format
 msgid "Download failed with HTTP %d"
 msgstr ""
@@ -7594,92 +7594,96 @@ msgstr ""
 msgid "Author not found for \"%1$s\" (%2$s); the post was assigned to the default author."
 msgstr ""
 
+#: app/Model/Import/Post_Importer.php:3921
+msgid "The language and translation columns were skipped: importing Polylang and WPML languages and translations needs Import Export PRO."
+msgstr ""
+
 #. translators: %s: image.
-#: app/Model/Import/Post_Importer.php:4243
+#: app/Model/Import/Post_Importer.php:4254
 #, php-format
 msgid "Featured image value is not a valid URL: %s"
 msgstr ""
 
 #. translators: %s: image.
-#: app/Model/Import/Post_Importer.php:4244
+#: app/Model/Import/Post_Importer.php:4255
 msgid "The featured image value is not a valid URL."
 msgstr ""
 
-#: app/Model/Import/Post_Importer.php:4256
+#: app/Model/Import/Post_Importer.php:4267
 msgid "The featured image could not be downloaded."
 msgstr ""
 
 #. translators: %1$s: url, %2$s: reason.
-#: app/Model/Import/Post_Importer.php:4257
+#: app/Model/Import/Post_Importer.php:4268
 #, php-format
 msgid "Failed to import featured image from URL: %1$s (%2$s)"
 msgstr ""
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4786
-#: app/Model/Import/Post_Importer.php:4979
+#: app/Model/Import/Post_Importer.php:4797
+#: app/Model/Import/Post_Importer.php:4990
 #, php-format
 msgid "Skipped duplicate media: %1$s (using existing ID: %2$d)"
 msgstr ""
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4793
-#: app/Model/Import/Post_Importer.php:4984
+#: app/Model/Import/Post_Importer.php:4804
+#: app/Model/Import/Post_Importer.php:4995
 #, php-format
 msgid "Deleted existing media for replacement: %1$s (ID: %2$d)"
 msgstr ""
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4795
+#: app/Model/Import/Post_Importer.php:4806
 #, php-format
 msgid "Using existing media: %1$s (ID: %2$d)"
 msgstr ""
 
 #. translators: %1$s: filename, %2$d: attachment id.
-#: app/Model/Import/Post_Importer.php:4815
-#: app/Model/Import/Post_Importer.php:5009
+#: app/Model/Import/Post_Importer.php:4826
+#: app/Model/Import/Post_Importer.php:5020
 #, php-format
 msgid "Imported media: %1$s (new ID: %2$d)"
 msgstr ""
 
-#: app/Model/Import/Post_Importer.php:4930
+#: app/Model/Import/Post_Importer.php:4941
 msgid "The file does not exist in the Media Library of this site."
 msgstr ""
 
 #. translators: %s: url.
-#: app/Model/Import/Post_Importer.php:4931
+#: app/Model/Import/Post_Importer.php:4942
 #, php-format
 msgid "Media file not found on this site: %s"
 msgstr ""
 
 #. translators: %1$s: filename, %2$d: existing attachment.
-#: app/Model/Import/Post_Importer.php:4992
+#: app/Model/Import/Post_Importer.php:5003
 #, php-format
 msgid "Updated duplicate media: %1$s (using existing ID: %2$d)"
 msgstr ""
 
 #. translators: %1$s: filename, %2$s: error message.
-#: app/Model/Import/Post_Importer.php:5014
+#: app/Model/Import/Post_Importer.php:5025
 #, php-format
 msgid "Failed to import media: %1$s - %2$s"
 msgstr ""
 
 #. translators: %1$d: post id, %2$d: imported count, %3$d: skipped count, %4$d: error count.
-#: app/Model/Import/Post_Importer.php:5039
+#: app/Model/Import/Post_Importer.php:5050
 #, php-format
 msgid "Media import summary for post %1$d: %2$d imported, %3$d skipped, %4$d errors"
 msgstr ""
 
-#: app/Model/Import/Post_Importer.php:6061
+#: app/Model/Import/Post_Importer.php:6079
 msgid "The media URL is not importable."
 msgstr ""
 
-#: app/Model/Import/Post_Importer.php:6106
+#: app/Model/Import/Post_Importer.php:6124
 msgid "The address did not return an image file."
 msgstr ""
 
 #. translators: %d: cleaned.
-#: app/Model/Import/Post_Importer.php:6232
+#: app/Model/Import/Post_Importer.php:6250
 #, php-format
 msgid "Cleaned up %d temporary media files"
 msgstr ""

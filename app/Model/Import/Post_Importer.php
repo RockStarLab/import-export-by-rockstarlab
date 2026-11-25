@@ -3912,6 +3912,17 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		foreach ( $taxonomies as $taxonomy => $terms_data ) {
+			// Languages and translation groups of Polylang and WPML are imported by the PRO add-on.
+			// Without it the free importer would treat them as ordinary terms and create a new
+			// "language" (for example "de-2"), so the columns are skipped with one warning per job.
+			if ( in_array( $taxonomy, [ 'language', 'post_translations', 'term_language', 'term_translations' ], true ) && ! \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) {
+				if ( empty( $this->ml_columns_warned ) ) {
+					$this->ml_columns_warned = true;
+					$this->log_warning( __( 'The language and translation columns were skipped: importing Polylang and WPML languages and translations needs Import Export PRO.', 'import-export-by-rockstarlab' ) );
+				}
+				continue;
+			}
+
 			if ( ! taxonomy_exists( $taxonomy ) ) {
 				continue;
 			}
@@ -5123,6 +5134,13 @@ class Post_Importer extends Abstract_Importer {
 	 * @var array<int, array{url: string, message: string}>
 	 */
 	private $media_issues = [];
+
+	/**
+	 * Whether the "language columns need PRO" warning was written for this job.
+	 *
+	 * @var bool
+	 */
+	private $ml_columns_warned = false;
 
 	/**
 	 * Set when a post reference (slug, title, URL) could not be resolved to a local post.
