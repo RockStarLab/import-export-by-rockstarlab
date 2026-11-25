@@ -1,5 +1,10 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.60 =
+* Fix: WP-CLI and AI agent imports did not map the Rank Math and Yoast SEO columns of the plugin's own export by name ("No column matches a field by name" for a file with ID and rank_math_title); the SEO fields of the active SEO plugin are now matched automatically.
+* Fix: `wp rsl-ie import --unique-field=ID` with an "ID" column skipped every row; the ID column is now used as the key.
+* Fix: `wp rsl-ie job get` and the ability job-get-result failed with "job runner unavailable" for Content Sync jobs started in the admin; their stored result is now shown.
+
 = 2.2.59 =
 * New: Content Sync brings the settings of a category, tag or product category with the post when the other site has to create that term (its term meta, including the WooCommerce category image, display type and order). Terms the other site already has are not changed. Developers can choose the keys with the `rsl_ie_sync_post_term_meta` filter.
 

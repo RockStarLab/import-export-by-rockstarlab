@@ -341,6 +341,12 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 ## Changelog
 
+### 2.2.60
+
+* Fix: WP-CLI and AI agent imports did not map the Rank Math and Yoast SEO columns of the plugin's own export by name ("No column matches a field by name" for a file with ID and rank_math_title); the SEO fields of the active SEO plugin are now matched automatically.
+* Fix: `wp rsl-ie import --unique-field=ID` with an "ID" column skipped every row; the ID column is now used as the key.
+* Fix: `wp rsl-ie job get` and the ability job-get-result failed with "job runner unavailable" for Content Sync jobs started in the admin; their stored result is now shown.
+
 ### 2.2.59
 
 * New: Content Sync brings the settings of a category, tag or product category with the post when the other site has to create that term (its term meta, including the WooCommerce category image, display type and order). Terms the other site already has are not changed. Developers can choose the keys with the `rsl_ie_sync_post_term_meta` filter.
@@ -365,14 +371,6 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 * Fix: content migration of WooCommerce products kept the sale dates, purchase note, downloadable files, download limit and download expiry out of the package; they now travel like in a normal product export (PRO).
 
-### 2.2.55
-
-* New: hidden custom fields (names starting with "_", such as a plugin's "_price_note") are listed among the export's Custom Fields; add them one by one ("Add all" leaves them out). WordPress, WooCommerce, page builder, SEO and ACF internal keys stay out of the list.
-* New: WP-CLI and AI agent imports map the "meta_" custom field columns of this plugin's own export automatically, hidden fields included.
-* New: WooCommerce product export has the columns upsell_skus, crosssell_skus and default_attributes (the PRO import restores them).
-* Fix: WooCommerce product export stopped with a strpos() error on products whose default attributes were stored next to a custom field of the same name.
-* Fix: Content Sync pull kept the other site's product IDs in up-sells and cross-sells; they now point to the local copies (push already did).
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -381,7 +379,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.59 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.60 |
 
 ---
 

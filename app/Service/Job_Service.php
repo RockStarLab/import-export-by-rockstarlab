@@ -794,10 +794,13 @@ class Job_Service {
 			}
 			$data = $view['result'];
 		} else {
-			$job = $this->record( $id, true );
-			if ( is_wp_error( $job ) ) {
-				return $job;
+			$checked = $this->record( $id, true );
+			// Reading a result needs no runner: Jobs Log entries without one (Content Sync push and pull
+			// started in the admin) still have a stored result.
+			if ( is_wp_error( $checked ) && ! in_array( $checked->get_error_code(), [ 'job_runner_unavailable', 'rsl_ie_job_runner_unavailable' ], true ) ) {
+				return $checked;
 			}
+			$job  = is_wp_error( $checked ) ? $job : $checked;
 			$data = json_decode( (string) $job->result, true );
 		}
 		$data   = is_array( $data ) ? $data : [];
