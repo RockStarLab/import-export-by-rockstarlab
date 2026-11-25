@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.58
+Stable tag: 2.2.59
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,9 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.59 =
+* New: Content Sync brings the settings of a category, tag or product category with the post when the other site has to create that term (its term meta, including the WooCommerce category image, display type and order). Terms the other site already has are not changed. Developers can choose the keys with the `rsl_ie_sync_post_term_meta` filter.
+
 = 2.2.58 =
 * New: Jobs Log favorites. Click the star in front of a job to add it to your favorites and tick "Favorites only" to see just those. Favorites are personal for each user. AI agents and WP-CLI can use them too (ability job-favorite, job-list favorites_only, `wp rsl-ie job favorite 42`, `wp rsl-ie jobs --favorites`).
 * Fix: Content Sync to a site with Polylang could leave the post without its categories and tags (Polylang hid terms of another language from WordPress); they are now assigned.
@@ -306,9 +309,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 * New: WooCommerce product export has the columns upsell_skus, crosssell_skus and default_attributes (the PRO import restores them).
 * Fix: WooCommerce product export stopped with a strpos() error on products whose default attributes were stored next to a custom field of the same name.
 * Fix: Content Sync pull kept the other site's product IDs in up-sells and cross-sells; they now point to the local copies (push already did).
-
-= 2.2.54 =
-* New: Elementor Pro widgets keep their links to posts, categories and authors on the other site: Posts, Portfolio, Loop Grid, Loop Carousel, Search and Sitemap queries, and Internal URL / Post URL dynamic tags point to the same posts there (found by slug); popups opened by a button or a form travel with the page.
-* Fix: Content Sync of a page with an Elementor Pro Lottie animation failed because .json files were not allowed; Lottie files are now copied by Content Sync and file import.
 
 Older versions: see changelog.txt in the plugin folder.
