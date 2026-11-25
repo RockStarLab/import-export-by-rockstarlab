@@ -111,6 +111,8 @@ class Workflow_Service {
 				return $jobs->listing( $input );
 			case 'job-get':
 				return $jobs->get( $input['job_id'] );
+			case 'job-favorite':
+				return $jobs->favorite( $input['job_id'], ! empty( $input['favorite'] ) );
 			case 'job-get-logs':
 				return $jobs->logs( $input['job_id'], $input['level'] ?? 'all', $input['limit'] ?? 100, $input['offset'] ?? 0 );
 			case 'job-get-result':

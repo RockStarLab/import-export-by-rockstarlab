@@ -21,6 +21,13 @@
 		border: 1px solid #e5e5e5;
 		border-radius: 4px;
 
+		.rsl-ie-filter-favorites label {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			cursor: pointer;
+		}
+
 		.rsl-ie-filter-group {
 			display: grid;
 			grid-template-columns: auto 1fr;
@@ -144,6 +151,46 @@
 				}
 			}
 
+			.column-favorite {
+				width: 36px;
+				text-align: center;
+				padding-left: 4px;
+				padding-right: 4px;
+
+				.dashicons {
+					color: #8c8f94;
+				}
+			}
+
+			.rsl-ie-job-favorite {
+				background: none;
+				border: 0;
+				padding: 2px;
+				cursor: pointer;
+				line-height: 1;
+				border-radius: 3px;
+
+				.dashicons {
+					color: #8c8f94;
+				}
+
+				&.is-favorite .dashicons,
+				&:hover .dashicons,
+				&:focus .dashicons {
+					color: #dba617;
+				}
+
+				&:focus {
+					outline: 2px solid var(--rsl-brand-accent, #2271b1);
+					outline-offset: 1px;
+				}
+
+				&:disabled {
+					opacity: 0.6;
+					cursor: wait;
+				}
+			}
+
 			.column-id {
 				width: 60px;
 				font-weight: 600;
@@ -205,9 +252,15 @@
 
 			// Long names and type badges kept the table wider than a 1440 px screen, so
 			// Restart, Download and Delete were hidden behind a horizontal scroll.
+			// Whole words: "anywhere" split names like "Comme|nts" in a narrow column.
 			.rsl-ie-job-name-text {
-				overflow-wrap: anywhere;
+				overflow-wrap: break-word;
 				white-space: normal;
+			}
+
+			th.column-job-name,
+			td.column-job-name {
+				min-width: 150px;
 			}
 
 			td.column-job-name,
@@ -234,9 +287,11 @@
 				width: 70px;
 			}
 
+			// Date and time may wrap onto two lines, leaving room for the job name.
 			th.column-created,
 			td.column-created {
-				width: 140px;
+				width: 96px;
+				white-space: normal;
 			}
 
 			.rsl-ie-job-name-form {

@@ -257,11 +257,12 @@ class Workflow_Catalog {
 		$add( 'export-start', 'Queue a Free content or URL export. options.custom_export_file_name is required. Keep request_id for network retries; poll job-get, then call file-get with job_id and download via its authenticated URL. Transformations require Pro.', Workflow_Schemas::export_input( true ), Workflow_Schemas::started(), false, true );
 		$add(
 			'job-list',
-			'List job summaries in descending ID order. Reads never execute batches. Domain-specific mutations are available only after their runner is implemented.',
+			'List job summaries in descending ID order. Reads never execute batches. favorites_only lists only the jobs the current user starred (see job-favorite); each job has is_favorite. Domain-specific mutations are available only after their runner is implemented.',
 			Workflow_Schemas::object(
 				$page + [
-					'status' => $job['properties']['status'],
-					'type'   => $s,
+					'status'         => $job['properties']['status'],
+					'type'           => $s,
+					'favorites_only' => $b,
 				]
 			),
 			Workflow_Schemas::object(
@@ -273,6 +274,21 @@ class Workflow_Catalog {
 				],
 				[ 'jobs', 'total', 'limit', 'offset' ]
 			),
+			true
+		);
+		$add(
+			'job-favorite',
+			'Star or unstar a job for the current user (Jobs Log "Favorites only" filter, job-list favorites_only). Favorites are per user and per site; this changes nothing in the job.',
+			Workflow_Schemas::object( $id + [ 'favorite' => $b ], [ 'job_id', 'favorite' ] ),
+			Workflow_Schemas::object(
+				[
+					'job_id'      => $n,
+					'is_favorite' => $b,
+				],
+				[ 'job_id', 'is_favorite' ]
+			),
+			false,
+			false,
 			true
 		);
 		$add( 'job-get', 'Read safe job status, counters and currently valid lifecycle actions without running work or exposing configuration and credentials. Import preparation optionally reports format, phase (indexing/preparing/ready), prepared_rows and indexed_rows. These are preparation counters, not imported records or an overall percentage; status remains authoritative for pause, failure and cancellation.', $job_input, $job, true );

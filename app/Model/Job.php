@@ -440,7 +440,7 @@ class Job extends Model {
 					AND ( %s = \'\' OR type = %s )
 					AND ( %s = \'\' OR data_type = %s )
 					AND ( %s = \'\' OR file_format = %s )
-					AND ( %s = \'\' OR status = %s )
+					AND ( %s = \'\' OR status = %s )' . self::ids_clause( $where ) . '
 					ORDER BY %i DESC
 					LIMIT %d OFFSET %d',
 					$table,
@@ -467,7 +467,7 @@ class Job extends Model {
 					AND ( %s = \'\' OR type = %s )
 					AND ( %s = \'\' OR data_type = %s )
 					AND ( %s = \'\' OR file_format = %s )
-					AND ( %s = \'\' OR status = %s )
+					AND ( %s = \'\' OR status = %s )' . self::ids_clause( $where ) . '
 					ORDER BY %i ASC
 					LIMIT %d OFFSET %d',
 					$table,
@@ -490,6 +490,21 @@ class Job extends Model {
 		wp_cache_set( $cache_key, $results, 'rsl_ie', MINUTE_IN_SECONDS );
 
 		return $results;
+	}
+
+	/**
+	 * SQL for the "ids" filter: only these job IDs (an empty list matches nothing). The IDs are
+	 * cast to integers, so the clause can be added to a prepared query as is.
+	 *
+	 * @param array $where WHERE conditions.
+	 * @return string
+	 */
+	private static function ids_clause( $where ) {
+		if ( ! is_array( $where ) || ! array_key_exists( 'ids', $where ) ) {
+			return '';
+		}
+		$ids = array_values( array_unique( array_filter( array_map( 'absint', (array) $where['ids'] ) ) ) );
+		return $ids ? ' AND id IN (' . implode( ',', $ids ) . ')' : ' AND 1=0';
 	}
 
 	/**
@@ -532,7 +547,7 @@ class Job extends Model {
 					AND ( %s = \'\' OR type = %s )
 					AND ( %s = \'\' OR data_type = %s )
 					AND ( %s = \'\' OR file_format = %s )
-					AND ( %s = \'\' OR status = %s )',
+					AND ( %s = \'\' OR status = %s )' . self::ids_clause( $where ),
 				$table,
 				1,
 				$user_id_filter,

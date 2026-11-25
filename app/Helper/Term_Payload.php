@@ -68,6 +68,31 @@ class Term_Payload {
 	}
 
 	/**
+	 * Assign the resolved local terms to a synced object. Polylang filters get_terms() (and so
+	 * term_exists(), which wp_set_object_terms() uses) by the request's language: a term of another
+	 * language looked missing and was silently left out. A "lang" that names no language turns that filter
+	 * off (0, not "": Polylang resolves "" to a language in some requests); other plugins ignore the argument.
+	 *
+	 * @param int    $object_id Object ID.
+	 * @param array  $term_ids  Local term IDs.
+	 * @param string $taxonomy  Taxonomy.
+	 * @return array|\WP_Error
+	 */
+	public static function set_object_terms( $object_id, array $term_ids, $taxonomy ) {
+		$all_languages = static function ( $args ) {
+			$args         = (array) $args;
+			$args['lang'] = 0;
+			return $args;
+		};
+		add_filter( 'get_terms_args', $all_languages, 99 );
+		try {
+			return wp_set_object_terms( (int) $object_id, array_map( 'intval', $term_ids ), (string) $taxonomy );
+		} finally {
+			remove_filter( 'get_terms_args', $all_languages, 99 );
+		}
+	}
+
+	/**
 	 * Description for a term the receiver creates.
 	 *
 	 * @param array $info Term payload.

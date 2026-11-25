@@ -78,6 +78,8 @@ function rsl_ie_uninstall_site() {
 			$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE meta_key LIKE %s', $rsl_ie_meta_table, $wpdb->esc_like( $rsl_ie_meta_prefix ) . '%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Bulk removal on uninstall.
 		}
 	}
+	// Favorite jobs of the Jobs Log: a user option of this site (site prefix + rsl_ie_favorite_jobs).
+	$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE meta_key = %s', $wpdb->usermeta, $wpdb->get_blog_prefix() . 'rsl_ie_favorite_jobs' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Bulk removal on uninstall.
 	wp_cache_flush();
 
 	// Remove file-service resources from this site's configured private storage.

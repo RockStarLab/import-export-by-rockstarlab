@@ -320,12 +320,34 @@ class Job_Service {
 	}
 
 	/**
-	 * Read a bounded page of job summaries with accurate authorization filtering.
+	 * Star or unstar a job for the current user (job-favorite).
 	 *
-	 * @param array $input Filters and pagination.
+	 * @param int  $job_id   Job ID.
+	 * @param bool $favorite True to star.
 	 * @return array|\WP_Error
 	 */
-	public function listing( array $input = [] ) {
+	public function favorite( $job_id, $favorite ) {
+		$permission = Access_Policy::check_management();
+		if ( is_wp_error( $permission ) ) {
+			return $permission;
+		}
+		$state = Job_Favorites::set( (int) $job_id, (bool) $favorite );
+		if ( is_wp_error( $state ) ) {
+			return $state;
+		}
+		return [
+			'job_id'      => (int) $job_id,
+			'is_favorite' => $state,
+		];
+	}
+
+	/**
+	 * Read a bounded page of job summaries with accurate authorization filtering.
+	 *
+	 * @param array $input Filters and pagination (favorites_only: the current user's starred jobs).
+	 * @return array|\WP_Error
+	 */
+		public function listing( array $input = [] ) {
 		$permission = Access_Policy::check_management();
 		if ( is_wp_error( $permission ) ) {
 			return $permission;
@@ -338,12 +360,17 @@ class Job_Service {
 				$where[ $key ] = $input[ $key ];
 			}
 		}
+		$favorites = Job_Favorites::ids();
+		if ( ! empty( $input['favorites_only'] ) ) {
+			$where['ids'] = $favorites;
+		}
 		$jobs  = rsl_ie()->Model->job->get_all( $where, $limit, $offset, 'id DESC' );
 		$items = [];
 		foreach ( $jobs as $job ) {
 			$item = $this->get( $job->id );
 			if ( ! is_wp_error( $item ) ) {
-				$items[] = $item;
+				$item['is_favorite'] = in_array( (int) $job->id, $favorites, true );
+				$items[]             = $item;
 			}
 		}
 		return [

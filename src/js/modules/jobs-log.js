@@ -15,6 +15,7 @@ const JobsLogModule = {
 	filters: {
 		type: '',
 		status: '',
+		favorites: false,
 	},
 
 	/**
@@ -86,6 +87,10 @@ const JobsLogModule = {
 			}
 		);
 		$page.on( 'click', '.job-action-delete', ( e ) => this.deleteJob( e ) );
+		$page.on( 'click', '.rsl-ie-job-favorite', ( e ) =>
+			this.toggleFavorite( e )
+		);
+		$page.on( 'change', '#filter-favorites', () => this.applyFilters() );
 		$page.on( 'click', '.job-action-download', ( e ) =>
 			this.downloadFile( e )
 		);
@@ -134,6 +139,7 @@ const JobsLogModule = {
 	applyFilters() {
 		this.filters.type = jQuery( '#filter-type' ).val();
 		this.filters.status = jQuery( '#filter-status' ).val();
+		this.filters.favorites = jQuery( '#filter-favorites' ).is( ':checked' );
 		this.currentPage = 1;
 		this.loadJobs();
 	},
@@ -144,7 +150,8 @@ const JobsLogModule = {
 	resetFilters() {
 		jQuery( '#filter-type' ).val( '' );
 		jQuery( '#filter-status' ).val( '' );
-		this.filters = { type: '', status: '' };
+		jQuery( '#filter-favorites' ).prop( 'checked', false );
+		this.filters = { type: '', status: '', favorites: false };
 		this.currentPage = 1;
 		this.loadJobs();
 	},
@@ -165,6 +172,7 @@ const JobsLogModule = {
 			const response = await Utils.ajax( 'rsl_ie_job_list', {
 				type: this.filters.type,
 				status: this.filters.status,
+				favorites: this.filters.favorites ? 1 : '',
 				limit: this.perPage,
 				offset: offset,
 			} );
@@ -197,7 +205,14 @@ const JobsLogModule = {
 
 		if ( ! jobs || jobs.length === 0 ) {
 			$tbody.html(
-				`<tr class="no-items"><td colspan="9">${ window.rslIeData.i18n.noJobsFound }</td></tr>`
+				`<tr class="no-items"><td colspan="10">${
+					this.filters.favorites
+						? __(
+								'No favorite jobs yet. Click the star next to a job to add it.',
+								'import-export-by-rockstarlab'
+						  )
+						: window.rslIeData.i18n.noJobsFound
+				}</td></tr>`
 			);
 			return;
 		}
@@ -208,6 +223,52 @@ const JobsLogModule = {
 		} );
 
 		$tbody.html( html );
+	},
+
+	/**
+	 * Star button of a job row.
+	 */
+	renderFavorite( job ) {
+		const on = !! job.is_favorite;
+		const label = on
+			? __( 'Remove from favorites', 'import-export-by-rockstarlab' )
+			: __( 'Add to favorites', 'import-export-by-rockstarlab' );
+		return `<button type="button" class="rsl-ie-job-favorite${
+			on ? ' is-favorite' : ''
+		}" aria-pressed="${ on ? 'true' : 'false' }" title="${ this.escapeAttr(
+			label
+		) }" aria-label="${ this.escapeAttr(
+			label
+		) }"><span class="dashicons dashicons-star-${
+			on ? 'filled' : 'empty'
+		}" aria-hidden="true"></span></button>`;
+	},
+
+	/**
+	 * Star or unstar a job; in "Favorites only" an unstarred job leaves the list.
+	 */
+	async toggleFavorite( e ) {
+		const $button = jQuery( e.currentTarget );
+		const jobId = $button.closest( 'tr' ).data( 'job-id' );
+		const favorite = ! $button.hasClass( 'is-favorite' );
+		$button.prop( 'disabled', true );
+		try {
+			const response = await Utils.ajax( 'rsl_ie_job_favorite', {
+				job_id: jobId,
+				favorite: favorite ? 1 : 0,
+			} );
+			const on = !! ( response && response.is_favorite );
+			if ( this.filters.favorites && ! on ) {
+				this.loadJobs();
+				return;
+			}
+			$button.replaceWith(
+				this.renderFavorite( { is_favorite: on } )
+			);
+		} catch ( error ) {
+			Utils.showNotice( String( error ), 'error' );
+			$button.prop( 'disabled', false );
+		}
 	},
 
 	/**
@@ -231,6 +292,7 @@ const JobsLogModule = {
 
 		return `
 			<tr class="job-row ${ statusClass }" data-job-id="${ job.id }">
+				<td class="column-favorite">${ this.renderFavorite( job ) }</td>
 				<td class="column-id">${ job.id }</td>
 				<td class="column-job-name">
 					<button
