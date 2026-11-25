@@ -179,6 +179,15 @@ class Main_Command {
 		}
 		if ( isset( $assoc['unique-field'] ) ) {
 			$options['unique_field'] = (string) $assoc['unique-field'];
+			// --unique-field=ID with an "ID" column: the column is the key (auto mapping leaves it out,
+			// and every row was skipped as "no match").
+			$id_col = array_search( 'ID', array_map( 'strval', (array) ( $file['headers'] ?? [] ) ), true );
+			if ( 'ID' === $options['unique_field'] && false !== $id_col && ! in_array( 'ID', array_column( $mapping, 'target_field' ), true ) ) {
+				$mapping[] = [
+					'source_index' => (int) $id_col,
+					'target_field' => 'ID',
+				];
+			}
 		}
 		if ( isset( $assoc['status'] ) ) {
 			$options['post_status'] = (string) $assoc['status'];

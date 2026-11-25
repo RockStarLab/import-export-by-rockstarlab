@@ -266,6 +266,19 @@ class Workflow_Service {
 			return $file; }
 		$fields  = array_merge( $schema['import']['required_fields'], $schema['import']['optional_fields'] );
 		$fields  = array_merge( $fields, self::acf_columns( $schema ) );
+		// Yoast SEO and Rank Math columns of this plugin's own export (yoast_wpseo_title,
+		// rank_math_title...) map by name too, as Auto Map does in the admin.
+		$seo_type = in_array( $input['import_type'], [ 'post', 'page' ], true ) ? $input['import_type'] : ( post_type_exists( (string) $input['import_type'] ) ? (string) $input['import_type'] : '' );
+		if ( '' !== $seo_type ) {
+			$seo = [];
+			if ( defined( 'WPSEO_VERSION' ) ) {
+				$seo = array_merge( $seo, \RockStarLab\ImportExport\Helper\Seo_Fields::get_yoast_fields( $seo_type ) );
+			}
+			if ( \RockStarLab\ImportExport\Helper\Seo_Fields::is_rank_math_active() ) {
+				$seo = array_merge( $seo, \RockStarLab\ImportExport\Helper\Seo_Fields::get_rank_math_fields( $seo_type ) );
+			}
+			$fields = array_merge( $fields, array_values( array_filter( array_map( static fn( $f ) => is_array( $f ) ? (string) ( $f['name'] ?? '' ) : '', $seo ) ) ) );
+		}
 		$mapping = [];
 		$headers = array_map( 'strval', (array) $file['headers'] );
 		// Column names of WordPress exports (WXR) and the WordPress REST API, as Auto Map in the

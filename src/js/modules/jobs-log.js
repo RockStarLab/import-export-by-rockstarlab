@@ -262,9 +262,7 @@ const JobsLogModule = {
 				this.loadJobs();
 				return;
 			}
-			$button.replaceWith(
-				this.renderFavorite( { is_favorite: on } )
-			);
+			$button.replaceWith( this.renderFavorite( { is_favorite: on } ) );
 		} catch ( error ) {
 			Utils.showNotice( String( error ), 'error' );
 			$button.prop( 'disabled', false );
