@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.61 =
+* Fix: importing WooCommerce products (admin, WP-CLI and AI agents) did not map the language and translation group columns of a WPML or Polylang site, so rows in a second language matched the product of the first language by SKU and were not created; the Categories & Tags group now has Language and Translation group targets, and the columns map by name.
+
 = 2.2.60 =
 * Fix: WP-CLI and AI agent imports did not map the Rank Math and Yoast SEO columns of the plugin's own export by name ("No column matches a field by name" for a file with ID and rank_math_title); the SEO fields of the active SEO plugin are now matched automatically.
 * Fix: `wp rsl-ie import --unique-field=ID` with an "ID" column skipped every row; the ID column is now used as the key.

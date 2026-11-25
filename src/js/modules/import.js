@@ -4456,6 +4456,48 @@ const ImportModule = {
 							labelEn: 'Brands (JSON or comma-separated)',
 							type: 'json',
 						},
+						// WPML / Polylang: the language and translation group columns of a product
+						// file. Without these targets Auto Map left them out and every language row
+						// updated the same product.
+						...( Object.keys( window.rslIeData?.languages || {} )
+							.length
+							? [
+									{
+										value: 'taxonomy_language',
+										label: sprintf(
+											/* translators: %s: multilingual plugin (Polylang, WPML). */
+											__(
+												'Language (%s)',
+												'import-export-by-rockstarlab'
+											),
+											window.rslIeData?.multilingualName ||
+												'Polylang'
+										),
+										labelEn: `Language (${
+											window.rslIeData?.multilingualName ||
+											'Polylang'
+										})`,
+										type: 'string',
+									},
+									{
+										value: 'taxonomy_post_translations',
+										label: sprintf(
+											/* translators: %s: multilingual plugin (Polylang, WPML). */
+											__(
+												'Translation group (%s)',
+												'import-export-by-rockstarlab'
+											),
+											window.rslIeData?.multilingualName ||
+												'Polylang'
+										),
+										labelEn: `Translation group (${
+											window.rslIeData?.multilingualName ||
+											'Polylang'
+										})`,
+										type: 'string',
+									},
+							  ]
+							: [] ),
 					],
 				},
 				{
