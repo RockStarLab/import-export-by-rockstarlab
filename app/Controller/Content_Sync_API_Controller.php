@@ -561,7 +561,14 @@ class Content_Sync_API_Controller {
 							continue;
 						}
 
-						$term_id = $this->resolve_synced_term( $taxonomy, $term_info );
+						$term_id = \RockStarLab\ImportExport\Helper\Term_Payload::resolve_with_meta(
+							$taxonomy,
+							(array) $term_info,
+							function () use ( $taxonomy, $term_info ) {
+								return $this->resolve_synced_term( $taxonomy, $term_info );
+							},
+							(array) $image_map
+						);
 						if ( $term_id <= 0 ) {
 							continue;
 						}
@@ -3511,7 +3518,7 @@ class Content_Sync_API_Controller {
 						$term_info                  = (array) apply_filters( 'rsl_ie_sync_term_payload', $term_info, $term, $taxonomy );
 						$terms_data[ $taxonomy ][] = $term_info;
 
-						foreach ( \RockStarLab\ImportExport\Helper\Seo_Fields::term_seo_image_ids( $term_info ) as $image_id ) {
+						foreach ( array_merge( \RockStarLab\ImportExport\Helper\Seo_Fields::term_seo_image_ids( $term_info ), \RockStarLab\ImportExport\Helper\Term_Payload::meta_image_ids( $term_info ) ) as $image_id ) {
 							if ( ! isset( $all_images[ $image_id ] ) ) {
 								$image_data = \RockStarLab\ImportExport\Helper\Content_Sync_Media::prepare_image_data( $image_id, 'term_seo' );
 								if ( $image_data ) {

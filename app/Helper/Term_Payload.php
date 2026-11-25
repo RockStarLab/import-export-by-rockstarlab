@@ -43,7 +43,133 @@ class Term_Payload {
 			}
 			$info['parent_names'] = $names;
 		}
+		// Plain term meta for a receiver that has to create the term (a term sync payload carries
+		// its own full "meta" and is left alone).
+		if ( ! isset( $info['term_meta'] ) && ! isset( $info['meta'] ) ) {
+			$meta = self::portable_meta( $term, $taxonomy, array_keys( (array) ( $info['acf'] ?? [] ) ) );
+			if ( $meta ) {
+				$info['term_meta'] = $meta;
+			}
+		}
 		return $info;
+	}
+
+	/** Largest serialized size of one meta value sent with a post (bytes). */
+	const MAX_META_BYTES = 65536;
+
+	/** Terms created while a resolve runs (term_id => true), per nesting level. */
+	private static $watch = [];
+
+	/**
+	 * Term meta worth sending with a post: no private "_" keys, no SEO keys (sent as SEO settings),
+	 * no ACF fields (sent as ACF values), no counters.
+	 *
+	 * @param \WP_Term $term       Term.
+	 * @param string   $taxonomy   Taxonomy.
+	 * @param array    $acf_fields ACF field names already in the payload.
+	 * @return array key => list of values
+	 */
+	public static function portable_meta( $term, $taxonomy, array $acf_fields = [] ) {
+		$out = [];
+		foreach ( (array) get_term_meta( (int) $term->term_id ) as $key => $values ) {
+			$key = (string) $key;
+			if ( '' === $key || '_' === $key[0] || in_array( $key, $acf_fields, true ) || preg_match( '/^(rank_math_|wpseo|pll_|icl_|product_count_)/', $key ) ) {
+				continue;
+			}
+			$list = [];
+			foreach ( (array) $values as $value ) {
+				if ( strlen( (string) $value ) > self::MAX_META_BYTES ) {
+					continue;
+				}
+				$list[] = maybe_unserialize( $value );
+			}
+			if ( $list ) {
+				$out[ $key ] = $list;
+			}
+		}
+		/**
+		 * Filter the term meta sent with a synced post (key => list of values).
+		 *
+		 * @param array    $out      Meta.
+		 * @param \WP_Term $term     Term.
+		 * @param string   $taxonomy Taxonomy.
+		 */
+		return (array) apply_filters( 'rsl_ie_sync_post_term_meta', $out, $term, (string) $taxonomy );
+	}
+
+	/**
+	 * Attachment IDs in the sent term meta that the receiver needs as files (the term image).
+	 *
+	 * @param array $info Term payload.
+	 * @return int[]
+	 */
+	public static function meta_image_ids( array $info ) {
+		$ids = [];
+		foreach ( (array) ( $info['term_meta']['thumbnail_id'] ?? [] ) as $id ) {
+			if ( is_scalar( $id ) && absint( $id ) && wp_attachment_is_image( absint( $id ) ) ) {
+				$ids[] = absint( $id );
+			}
+		}
+		return $ids;
+	}
+
+	/**
+	 * Run a term resolve and give the term the sent meta when the resolve created it.
+	 *
+	 * @param string   $taxonomy  Taxonomy.
+	 * @param array    $term_info Received term.
+	 * @param callable $resolve   Returns the local term ID.
+	 * @param array    $image_map Source attachment ID => local attachment ID.
+	 * @return int
+	 */
+	public static function resolve_with_meta( $taxonomy, array $term_info, callable $resolve, array $image_map = [] ) {
+		self::$watch[] = [];
+		$level         = count( self::$watch ) - 1;
+		$listener      = static function ( $term_id, $tt_id, $created_taxonomy ) use ( $level, $taxonomy ) {
+			if ( (string) $created_taxonomy === (string) $taxonomy && isset( self::$watch[ $level ] ) ) {
+				self::$watch[ $level ][ (int) $term_id ] = true;
+			}
+		};
+		add_action( 'created_term', $listener, 10, 3 );
+		try {
+			$term_id = (int) $resolve();
+		} finally {
+			remove_action( 'created_term', $listener, 10 );
+			$created = (array) array_pop( self::$watch );
+		}
+		if ( $term_id > 0 && isset( $created[ $term_id ] ) && ! empty( $term_info['term_meta'] ) && is_array( $term_info['term_meta'] ) ) {
+			self::apply_new_term_meta( $term_id, $term_info['term_meta'], $image_map );
+		}
+		return $term_id;
+	}
+
+	/**
+	 * Save sent meta on a term this site has just created. Keys the term already has (a plugin set
+	 * them on creation) are left alone; the term image points at this site's copy of the file or is
+	 * left out when the file did not come.
+	 *
+	 * @param int   $term_id   Local term ID.
+	 * @param array $meta      key => list of values.
+	 * @param array $image_map Source attachment ID => local attachment ID.
+	 * @return void
+	 */
+	public static function apply_new_term_meta( $term_id, array $meta, array $image_map = [] ) {
+		foreach ( $meta as $key => $values ) {
+			$key = preg_match( '/^[A-Za-z0-9][A-Za-z0-9_\-:.]{0,190}$/', (string) $key ) ? (string) $key : '';
+			if ( '' === $key || '_' === $key[0] || metadata_exists( 'term', (int) $term_id, $key ) ) {
+				continue;
+			}
+			foreach ( (array) $values as $value ) {
+				if ( 'thumbnail_id' === $key ) {
+					$source = is_scalar( $value ) ? absint( $value ) : 0;
+					$value  = $source && isset( $image_map[ $source ] ) ? (int) $image_map[ $source ] : 0;
+					if ( ! $value ) {
+						continue;
+					}
+				}
+				add_term_meta( (int) $term_id, $key, wp_slash( $value ) );
+			}
+		}
 	}
 
 	/**
