@@ -310,6 +310,10 @@ class Workflow_Service {
 			} elseif ( '' === $target && preg_match( '/^\x{FEFF}?(meta_[A-Za-z0-9_\-]+)$/u', $header, $meta_match ) && ! isset( $mapped_targets[ $meta_match[1] ] ) ) {
 				// Custom field columns of this plugin's own export ("meta_<key>", hidden keys included).
 				$target = $meta_match[1];
+			} elseif ( '' === $target && preg_match( '/^taxonomy_([a-z0-9_-]+)$/', $header, $tax_col ) && ( taxonomy_exists( $tax_col[1] ) || in_array( $tax_col[1], [ 'language', 'post_translations' ], true ) ) ) {
+				// Term columns of this plugin's own export ("taxonomy_<taxonomy>"), including the language
+				// and translation group columns that WPML and Polylang sites add to every content type.
+				$target = $header;
 			} elseif ( in_array( $input['import_type'], [ 'post', 'page' ], true ) && 'category' === $header && taxonomy_exists( 'category' ) && in_array( 'taxonomies', $fields, true ) ) {
 				$dynamic = 'taxonomy_category';
 			} elseif ( in_array( $input['import_type'], [ 'post', 'page' ], true ) && 'tag' === $header && taxonomy_exists( 'post_tag' ) && in_array( 'taxonomies', $fields, true ) ) {

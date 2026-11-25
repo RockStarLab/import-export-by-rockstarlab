@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.60
+Stable tag: 2.2.61
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,9 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.61 =
+* Fix: importing WooCommerce products (admin, WP-CLI and AI agents) did not map the language and translation group columns of a WPML or Polylang site, so rows in a second language matched the product of the first language by SKU and were not created; the Categories & Tags group now has Language and Translation group targets, and the columns map by name.
+
 = 2.2.60 =
 * Fix: WP-CLI and AI agent imports did not map the Rank Math and Yoast SEO columns of the plugin's own export by name ("No column matches a field by name" for a file with ID and rank_math_title); the SEO fields of the active SEO plugin are now matched automatically.
 * Fix: `wp rsl-ie import --unique-field=ID` with an "ID" column skipped every row; the ID column is now used as the key.
@@ -304,8 +307,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 * Fix: read-only AI agent abilities whose parameters are all optional (connection, job and schedule lists, UpdraftPlus status and backups) refused a call without input; they now run with defaults.
 * Tweak: UpdraftPlus backup and restore errors say what went wrong and what to do (wrong or expired confirmation token, another backup running, not enough disk space and more), translated into Russian and Ukrainian.
 * Tweak: WP-CLI accepts a post type name directly, for example `wp rsl-ie export --type=portfolio`.
-
-= 2.2.56 =
-* Fix: content migration of WooCommerce products kept the sale dates, purchase note, downloadable files, download limit and download expiry out of the package; they now travel like in a normal product export (PRO).
 
 Older versions: see changelog.txt in the plugin folder.
