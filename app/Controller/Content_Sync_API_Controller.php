@@ -3176,9 +3176,9 @@ class Content_Sync_API_Controller {
 		$parent_id = 0;
 		if ( is_taxonomy_hierarchical( $taxonomy ) ) {
 			if ( ! empty( $term_info['parent_path'] ) ) {
-				$parent_id = $this->resolve_synced_term_parent_path( $taxonomy, (string) $term_info['parent_path'] );
+				$parent_id = $this->resolve_synced_term_parent_path( $taxonomy, (string) $term_info['parent_path'], (array) ( $term_info['parent_names'] ?? array() ) );
 			} elseif ( ! empty( $term_info['parent_slug'] ) ) {
-				$parent_id = $this->resolve_synced_term_parent_path( $taxonomy, (string) $term_info['parent_slug'] );
+				$parent_id = $this->resolve_synced_term_parent_path( $taxonomy, (string) $term_info['parent_slug'], (array) ( $term_info['parent_names'] ?? array() ) );
 			}
 		}
 
@@ -3196,6 +3196,10 @@ class Content_Sync_API_Controller {
 		}
 
 		$args['slug'] = sanitize_title( (string) $term_info['slug'] );
+		$description  = \RockStarLab\ImportExport\Helper\Term_Payload::description( (array) $term_info );
+		if ( '' !== $description ) {
+			$args['description'] = $description;
+		}
 		$new_term     = wp_insert_term( wp_slash( sanitize_text_field( (string) $term_info['name'] ) ), $taxonomy, wp_slash( $args ) );
 		if ( is_wp_error( $new_term ) || empty( $new_term['term_id'] ) ) {
 			return 0;
@@ -3213,7 +3217,7 @@ class Content_Sync_API_Controller {
 	 * @param string $path     Parent slug path.
 	 * @return int Final parent term ID.
 	 */
-	private function resolve_synced_term_parent_path( $taxonomy, $path ) {
+	private function resolve_synced_term_parent_path( $taxonomy, $path, array $names = array() ) {
 		$slugs     = array_filter( array_map( 'sanitize_title', explode( '/', (string) $path ) ) );
 		$parent_id = 0;
 
@@ -3228,7 +3232,7 @@ class Content_Sync_API_Controller {
 			}
 
 			$new_term = wp_insert_term(
-				ucwords( str_replace( array( '-', '_' ), ' ', $slug ) ),
+				\RockStarLab\ImportExport\Helper\Term_Payload::parent_name( $slug, $names ),
 				$taxonomy,
 				array(
 					'slug'   => $slug,

@@ -248,12 +248,57 @@ class UpdraftPlus_Service {
 			return self::output( $job );
 		} catch ( \RuntimeException $e ) {
 			$code = preg_match( '/^updraft_[a-z_]+$/D', $e->getMessage() ) ? $e->getMessage() : 'updraft_operation_failed';
-			return new \WP_Error( $code, str_replace( '_', ' ', $code ) . '. Check the UpdraftPlus dashboard; no success is implied.', [ 'status' => 409 ] );
+			return new \WP_Error( $code, self::error_message( $code ), [ 'status' => 409 ] );
 		} finally {
 			if ( $lock ) {
 				UpdraftPlus_Store::unlock( $lock );
 			}
 		}
+	}
+
+	/**
+	 * What went wrong and what to do, for a person or an AI agent.
+	 *
+	 * @param string $code Error code (updraft_*).
+	 * @return string
+	 */
+	public static function error_message( $code ) {
+		$messages = [
+			'updraft_access_revoked'                => __( 'Backup and restore through AI agents were turned off while the job was running.', 'import-export-by-rockstarlab' ),
+			'updraft_archive_changed'               => __( 'A backup file changed after the restore plan was made. Make a new restore plan.', 'import-export-by-rockstarlab' ),
+			'updraft_archive_checksum_mismatch'     => __( 'A backup file does not match its checksum, so it may be damaged. Use another backup.', 'import-export-by-rockstarlab' ),
+			'updraft_archive_size_mismatch'         => __( 'A backup file has a different size than UpdraftPlus recorded, so it may be incomplete. Use another backup.', 'import-export-by-rockstarlab' ),
+			'updraft_backup_not_found'              => __( 'No backup with this ID. List the backups to get a valid ID.', 'import-export-by-rockstarlab' ),
+			'updraft_backup_origin_unverified'      => __( 'This backup was not made on this site, so it cannot be restored here through AI agents. Use the UpdraftPlus dashboard.', 'import-export-by-rockstarlab' ),
+			'updraft_backup_start_failed'           => __( 'UpdraftPlus did not start the backup. See the UpdraftPlus dashboard and its log.', 'import-export-by-rockstarlab' ),
+			'updraft_component_missing'             => __( 'The backup does not contain one of the chosen parts. Choose only parts listed for this backup.', 'import-export-by-rockstarlab' ),
+			'updraft_component_not_writable'        => __( 'WordPress cannot write to the folder of one of the chosen parts. Fix the folder permissions and try again.', 'import-export-by-rockstarlab' ),
+			'updraft_cron_schedule_failed'          => __( 'The background task could not be scheduled. Check that WP-Cron or a system cron works.', 'import-export-by-rockstarlab' ),
+			'updraft_database_format_unsupported'   => __( 'This database backup has a format that cannot be restored through AI agents. Use the UpdraftPlus dashboard.', 'import-export-by-rockstarlab' ),
+			'updraft_database_preflight_failed'     => __( 'The database backup did not pass the check before restoring. Use another backup or the UpdraftPlus dashboard.', 'import-export-by-rockstarlab' ),
+			'updraft_direct_filesystem_required'    => __( 'Restoring needs direct file access, but WordPress asks for FTP details here. Use the UpdraftPlus dashboard.', 'import-export-by-rockstarlab' ),
+			'updraft_encrypted_restore_unsupported' => __( 'An encrypted database backup cannot be restored through AI agents. Use the UpdraftPlus dashboard.', 'import-export-by-rockstarlab' ),
+			'updraft_idempotency_conflict'          => __( 'This request ID was already used for a different request. Send a new request ID.', 'import-export-by-rockstarlab' ),
+			'updraft_insufficient_disk_space'       => __( 'Not enough free disk space. Free up space and try again.', 'import-export-by-rockstarlab' ),
+			'updraft_invalid_archive'               => __( 'A backup file cannot be read. Use another backup.', 'import-export-by-rockstarlab' ),
+			'updraft_invalid_confirmation'          => __( 'The restore plan ID or confirmation token is wrong or expired. Make a new restore plan and use the token it returns.', 'import-export-by-rockstarlab' ),
+			'updraft_invalid_database_archive'      => __( 'The database backup file cannot be read or is not a database backup. Use another backup.', 'import-export-by-rockstarlab' ),
+			'updraft_job_not_found'                 => __( 'No job with this ID. Use the job ID returned when the job was started.', 'import-export-by-rockstarlab' ),
+			'updraft_local_archive_required'        => __( 'The backup files are only in remote storage. Download them in the UpdraftPlus dashboard first.', 'import-export-by-rockstarlab' ),
+			'updraft_no_safe_checkpoint'            => __( 'The restore cannot be resumed safely from where it stopped. Use the UpdraftPlus dashboard.', 'import-export-by-rockstarlab' ),
+			'updraft_operation_busy'                => __( 'Another backup or restore is running. Wait for it to finish and try again.', 'import-export-by-rockstarlab' ),
+			'updraft_previous_restore_folders'      => __( 'Folders left by an earlier restore are still on the site. Remove them in the UpdraftPlus dashboard first.', 'import-export-by-rockstarlab' ),
+			'updraft_remote_storage_not_configured' => __( 'Remote storage is not set up in UpdraftPlus. Set it up, or start the backup without sending it to remote storage.', 'import-export-by-rockstarlab' ),
+			'updraft_restore_environment_changed'   => __( 'The site changed after the restore plan was made (UpdraftPlus, WordPress or PHP version). Make a new restore plan.', 'import-export-by-rockstarlab' ),
+			'updraft_restore_format_unsupported'    => __( 'This backup has a format that cannot be restored through AI agents. Use the UpdraftPlus dashboard.', 'import-export-by-rockstarlab' ),
+			'updraft_restore_incomplete'            => __( 'The restore did not finish. Check the site and the UpdraftPlus dashboard before trying again.', 'import-export-by-rockstarlab' ),
+			'updraft_restore_version_unsupported'   => __( 'This UpdraftPlus version is not supported for restoring through AI agents. Update UpdraftPlus or use its dashboard.', 'import-export-by-rockstarlab' ),
+			'updraft_unsafe_archive'                => __( 'A backup file contains unsafe paths and was not restored. Use another backup.', 'import-export-by-rockstarlab' ),
+			'updraft_zip_extension_required'        => __( 'The PHP Zip extension is required. Ask your host to enable it.', 'import-export-by-rockstarlab' ),
+		];
+		$message = $messages[ $code ] ?? __( 'The operation did not complete.', 'import-export-by-rockstarlab' );
+		/* translators: %s: error code */
+		return $message . ' ' . sprintf( __( 'Nothing is confirmed as done; check the UpdraftPlus dashboard. Code: %s.', 'import-export-by-rockstarlab' ), $code );
 	}
 
 	/**
@@ -795,7 +840,7 @@ class UpdraftPlus_Service {
 					$job['status'] = 'paused';
 				}
 				$job['error_code'] = preg_match( '/^updraft_[a-z_]+$/D', $e->getMessage() ) ? $e->getMessage() : 'updraft_worker_failed';
-				$job['message']    = 'Operation did not complete. Inspect the native UpdraftPlus log and dashboard.';
+				$job['message']    = self::error_message( $job['error_code'] );
 				self::save( $job );
 			}
 		} finally {

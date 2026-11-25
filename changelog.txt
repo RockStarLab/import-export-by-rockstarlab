@@ -1,5 +1,14 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.57 =
+* Fix: media import skipped an image when an earlier import from another site had used the same source ID; an image now counts as already imported only when the file name matches too.
+* Fix: Content Sync created a parent category or term that the post itself does not have with a name made from its slug ("Qa" for non-Latin names); parents now get their real names, and a term created by sync keeps its description.
+* Fix: Elementor Pro Theme Builder templates (header, footer, single, archive) kept the other site's post, category and author IDs in their display conditions after sync or import; the conditions are now remapped and Elementor's conditions cache is rebuilt.
+* Fix: a form entries export that matched no entries wrote the header "*" instead of the form's columns.
+* Fix: read-only AI agent abilities whose parameters are all optional (connection, job and schedule lists, UpdraftPlus status and backups) refused a call without input; they now run with defaults.
+* Tweak: UpdraftPlus backup and restore errors say what went wrong and what to do (wrong or expired confirmation token, another backup running, not enough disk space and more), translated into Russian and Ukrainian.
+* Tweak: WP-CLI accepts a post type name directly, for example `wp rsl-ie export --type=portfolio`.
+
 = 2.2.56 =
 * Fix: content migration of WooCommerce products kept the sale dates, purchase note, downloadable files, download limit and download expiry out of the package; they now travel like in a normal product export (PRO).
 

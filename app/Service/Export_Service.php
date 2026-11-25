@@ -447,11 +447,20 @@ class Export_Service {
 				$formatter_options['headers'] = $include ? null : false;
 				if ( $include && is_array( $data ) && ! $data ) {
 					$fields = $request['options']['fields'] ?? [];
+					$exporter = null;
 					if ( ! $fields || in_array( '*', $fields, true ) ) {
 						$exporter = Exporter_Factory::get_exporter( $request['export_type'] );
-						$fields   = is_wp_error( $exporter ) ? [] : $exporter->get_default_fields();
+						// The exporter needs the request (a form export's columns depend on the form).
+						if ( ! is_wp_error( $exporter ) && is_callable( [ $exporter, 'set_options' ] ) ) {
+							$exporter->set_options( (array) ( $request['options'] ?? [] ) );
+						}
+						$fields = is_wp_error( $exporter ) ? [] : $exporter->get_default_fields();
 					}
-					$formatter_options['headers'] = $fields;
+					// Same column titles as a file with rows (a form export titles its columns by label).
+					if ( $exporter && ! is_wp_error( $exporter ) && is_callable( [ $exporter, 'header_labels' ] ) ) {
+						$fields = $exporter->header_labels( $fields );
+					}
+					$formatter_options['headers'] = array_values( array_diff( (array) $fields, [ '*' ] ) );
 				}
 				if ( 'csv' === $format ) {
 					$formatter_options['delimiter'] = $options['csv_delimiter'] ?? ',';

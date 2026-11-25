@@ -35,6 +35,8 @@ class Abilities_Controller {
 		}
 		self::$initialized = true;
 		\RockStarLab\ImportExport\Service\UpdraftPlus_Service::hooks();
+		\RockStarLab\ImportExport\Helper\Elementor_Refs::watch_conditions();
+		\RockStarLab\ImportExport\Helper\Term_Payload::hooks();
 		\RockStarLab\ImportExport\Service\Mcp_Client_Compat::hooks();
 		add_filter( 'rsl_ie_sync_post_definitions', [ \RockStarLab\ImportExport\Service\Sync_ACF_Posts::class, 'definitions' ] );
 		add_filter( 'rsl_ie_sync_post_definitions', [ \RockStarLab\ImportExport\Service\Sync_ACF_Media::class, 'definitions' ] );

@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.56
+Stable tag: 2.2.57
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,15 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.57 =
+* Fix: media import skipped an image when an earlier import from another site had used the same source ID; an image now counts as already imported only when the file name matches too.
+* Fix: Content Sync created a parent category or term that the post itself does not have with a name made from its slug ("Qa" for non-Latin names); parents now get their real names, and a term created by sync keeps its description.
+* Fix: Elementor Pro Theme Builder templates (header, footer, single, archive) kept the other site's post, category and author IDs in their display conditions after sync or import; the conditions are now remapped and Elementor's conditions cache is rebuilt.
+* Fix: a form entries export that matched no entries wrote the header "*" instead of the form's columns.
+* Fix: read-only AI agent abilities whose parameters are all optional (connection, job and schedule lists, UpdraftPlus status and backups) refused a call without input; they now run with defaults.
+* Tweak: UpdraftPlus backup and restore errors say what went wrong and what to do (wrong or expired confirmation token, another backup running, not enough disk space and more), translated into Russian and Ukrainian.
+* Tweak: WP-CLI accepts a post type name directly, for example `wp rsl-ie export --type=portfolio`.
+
 = 2.2.56 =
 * Fix: content migration of WooCommerce products kept the sale dates, purchase note, downloadable files, download limit and download expiry out of the package; they now travel like in a normal product export (PRO).
 
@@ -307,24 +316,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 * Fix: Gravity Forms export: a form field labelled Date, Status, Entry ID or Page URL replaced the entry column with the same name.
 * Fix: WP-CLI shows why a job failed before its first row (for example a wrong filter).
 * Fix: the strict ACF reference mode (acf_post_mapping) explains what it needs, and accepts Page Link fields that hold an archive URL.
-
-= 2.2.52 =
-* Security: CSV exports protect against formula injection: a text cell that starts with =, +, -, @ (for example =HYPERLINK(...)) gets a leading apostrophe, so spreadsheet apps show it as text. Numbers such as -5 are not changed, and importing the plugin's own CSV removes the apostrophe again.
-* New: media copied to another site keeps its year/month uploads folder (2019/05/photo.jpg stays in 2019/05) in Content Sync, Media Library push, media import and Content Migration.
-* New: pulling a child page with Content Sync also brings its missing parent pages; a parent that already exists on this site is linked, not overwritten.
-* New: Jobs Log can be filtered by Media Sync and AI URL Importer jobs.
-* Fix: an export whose upload to an FTP, FTPS or SFTP server failed showed as a plain success. The Jobs Log now shows "Completed, upload failed", the job lists the error, "on errors" notifications are sent and WP-CLI exits with code 2.
-* Fix: Content Migration import run by WP-Cron failed (wp_tempnam() was not loaded); the same applied to import from URL or FTP and to media downloads outside the admin screens.
-* Fix: Media Sync registered a text file named .png as an image, and one unreadable image stopped the whole folder import. Files are now checked like Media Library uploads, a broken image fails only its own row, and the scan no longer lists PHP files, hidden files or types the site does not accept.
-* Fix: import of a UTF-8 CSV file with a BOM lost the first column when its header was quoted ("title").
-* Fix: Auto Map on the Import screen now maps the Categories, Tags, Custom Fields, Ping Status and Author Roles columns of the plugin's own export.
-* Fix: "Detect automatically" date order decides once for the whole file, so 03/04/2025 in a day-first file is 3 April.
-* Fix: Content Migration keeps sticky posts; Content Sync sets the new attachment ID in [caption id="attachment_N"].
-* Fix: clear error messages instead of codes for schedules, jobs, connections (abilities and WP-CLI), AI URL Importer without an AI provider and ZIP archives with more than one file.
-* Fix: a submenu item hidden in Plugin Options still opens from links (notification e-mails, Jobs Log links); Functions is no longer listed without PRO.
-* Fix: export file names keep dots and Cyrillic letters and drop HTML and slashes.
-* Fix: WP-CLI `import --no-header` works; the help explains the `--if-exists` default.
-* Fix: PHP 8.1+ "strip_tags(): Passing null" notice on six hidden admin screens.
-* Fix: uninstalling the plugin also removes its file hashes and sync links stored on posts, media, terms, comments and users.
 
 Older versions: see changelog.txt in the plugin folder.
