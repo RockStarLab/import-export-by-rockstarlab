@@ -45,7 +45,7 @@ class Cli_Helper {
 	/** Stop unless the current user may manage the plugin. */
 	public static function require_admin() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			WP_CLI::error( 'Run this command as an administrator, for example: wp rsl-ie ... --user=admin' );
+			WP_CLI::error( __( 'Run this command as an administrator, for example: wp rsl-ie ... --user=admin', 'import-export-by-rockstarlab' ) );
 		}
 	}
 
@@ -57,7 +57,7 @@ class Cli_Helper {
 	 */
 	public static function find_ability( $name ) {
 		if ( ! function_exists( 'wp_get_ability' ) ) {
-			WP_CLI::error( 'The WordPress Abilities API is not available on this site.' );
+			WP_CLI::error( __( 'The WordPress Abilities API is not available on this site.', 'import-export-by-rockstarlab' ) );
 		}
 		$name = trim( (string) $name );
 		if ( false !== strpos( $name, '/' ) ) {
@@ -163,7 +163,8 @@ class Cli_Helper {
 			if ( $unknown ) {
 				WP_CLI::error(
 					sprintf(
-						'These options are not supported for "%1$s": %2$s. Supported options: %3$s.',
+						/* translators: 1: content type, 2: unsupported options, 3: supported options. */
+						__( 'These options are not supported for "%1$s": %2$s. Supported options: %3$s.', 'import-export-by-rockstarlab' ),
 						$type,
 						implode( ', ', $unknown ),
 						implode( ', ', $known )
@@ -202,13 +203,13 @@ class Cli_Helper {
 		} elseif ( 0 === strpos( $value, '@' ) ) {
 			$path = substr( $value, 1 );
 			if ( ! is_file( $path ) || ! is_readable( $path ) ) {
-				WP_CLI::error( sprintf( 'Cannot read the %s file: %s', $what, $path ) );
+				WP_CLI::error( sprintf( /* translators: 1: kind of file, 2: file path. */ __( 'Cannot read the %1$s file: %2$s', 'import-export-by-rockstarlab' ), $what, $path ) );
 			}
 			$value = (string) file_get_contents( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Local file named by the operator.
 		}
 		$decoded = json_decode( $value, true );
 		if ( ! is_array( $decoded ) ) {
-			WP_CLI::error( sprintf( 'The %s is not valid JSON (an object or a list).', $what ) );
+			WP_CLI::error( sprintf( /* translators: %s: kind of input. */ __( 'The %s is not valid JSON (an object or a list).', 'import-export-by-rockstarlab' ), $what ) );
 		}
 		return $decoded;
 	}
@@ -222,11 +223,11 @@ class Cli_Helper {
 	 */
 	public static function upload( $path, array $parser = [] ) {
 		if ( ! is_file( $path ) || ! is_readable( $path ) ) {
-			WP_CLI::error( 'Cannot read the file: ' . $path );
+			WP_CLI::error( sprintf( /* translators: %s: file path. */ __( 'Cannot read the file: %s', 'import-export-by-rockstarlab' ), $path ) );
 		}
 		$size = (int) filesize( $path );
 		if ( $size < 1 ) {
-			WP_CLI::error( 'The file is empty: ' . $path );
+			WP_CLI::error( sprintf( /* translators: %s: file path. */ __( 'The file is empty: %s', 'import-export-by-rockstarlab' ), $path ) );
 		}
 		$chunk = 1024 * 1024;
 		$total = (int) ceil( $size / $chunk );
@@ -240,7 +241,7 @@ class Cli_Helper {
 		);
 		$handle = fopen( $path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Local file named by the operator.
 		if ( ! $handle ) {
-			WP_CLI::error( 'Cannot open the file: ' . $path );
+			WP_CLI::error( sprintf( /* translators: %s: file path. */ __( 'Cannot open the file: %s', 'import-export-by-rockstarlab' ), $path ) );
 		}
 		try {
 			for ( $index = 0; $index < $total; $index++ ) {
@@ -306,7 +307,7 @@ class Cli_Helper {
 		while ( true ) {
 			$job = rsl_ie()->Model->job->find( $job_id );
 			if ( ! $job ) {
-				WP_CLI::error( sprintf( 'Job %d not found.', $job_id ) );
+				WP_CLI::error( sprintf( /* translators: %d: job ID. */ __( 'Job %d not found.', 'import-export-by-rockstarlab' ), $job_id ) );
 			}
 			if ( ! in_array( $job->status, self::ACTIVE, true ) ) {
 				wp_clear_scheduled_hook( 'rsl_ie_run_job', [ $job_id ] );
@@ -331,7 +332,7 @@ class Cli_Helper {
 			} else {
 				$idle = 0;
 				if ( ! $quiet && $now && in_array( $now->status, self::ACTIVE, true ) ) {
-					WP_CLI::log( sprintf( 'Job %d: %s, %d of %d', $job_id, $now->status, (int) $now->processed_items, (int) $now->total_items ) );
+					WP_CLI::log( sprintf( /* translators: 1: job ID, 2: job status, 3: processed items, 4: total items. */ __( 'Job %1$d: %2$s, %3$d of %4$d', 'import-export-by-rockstarlab' ), $job_id, $now->status, (int) $now->processed_items, (int) $now->total_items ) );
 				}
 			}
 			$last = $state;
@@ -353,7 +354,7 @@ class Cli_Helper {
 		}
 		if ( isset( $assoc['wait'] ) && ! $assoc['wait'] ) {
 			if ( 'table' === $format ) {
-				WP_CLI::success( sprintf( 'Job %d queued. WP-Cron will run it; check it with: wp rsl-ie job get %d', $job_id, $job_id ) );
+				WP_CLI::success( sprintf( /* translators: 1: job ID, 2: job ID. */ __( 'Job %1$d queued. WP-Cron will run it; check it with: wp rsl-ie job get %2$d', 'import-export-by-rockstarlab' ), $job_id, $job_id ) );
 				WP_CLI::halt( 0 );
 			}
 			WP_CLI::print_value( self::result( $job_id ), [ 'format' => $format ] );
@@ -361,7 +362,7 @@ class Cli_Helper {
 		}
 		$job = self::wait( $job_id, (int) ( $assoc['timeout'] ?? 0 ), 'table' !== $format || ! empty( $assoc['porcelain'] ) );
 		if ( ! $job ) {
-			WP_CLI::warning( sprintf( 'Job %d is still running after %d seconds. It continues with WP-Cron; check it with: wp rsl-ie job get %d', $job_id, (int) $assoc['timeout'], $job_id ) );
+			WP_CLI::warning( sprintf( /* translators: 1: job ID, 2: seconds waited, 3: job ID. */ __( 'Job %1$d is still running after %2$d seconds. It continues with WP-Cron; check it with: wp rsl-ie job get %3$d', 'import-export-by-rockstarlab' ), $job_id, (int) $assoc['timeout'], $job_id ) );
 			WP_CLI::halt( 3 );
 		}
 		$result = self::result( $job_id );
@@ -453,10 +454,10 @@ class Cli_Helper {
 				WP_CLI::log( str_pad( $key . ':', 14 ) . ( is_scalar( $value ) ? $value : wp_json_encode( $value ) ) );
 			}
 			foreach ( array_slice( (array) ( $result['errors'] ?? [] ), 0, 10 ) as $error ) {
-				WP_CLI::warning( sprintf( 'Row %s%s: %s', $error['row'] ?? '?', ! empty( $error['field'] ) ? ' (' . $error['field'] . ')' : '', $error['message'] ?? '' ) );
+				WP_CLI::warning( sprintf( /* translators: 1: row number, 2: field name in parentheses or empty, 3: error message. */ __( 'Row %1$s%2$s: %3$s', 'import-export-by-rockstarlab' ), $error['row'] ?? '?', ! empty( $error['field'] ) ? ' (' . $error['field'] . ')' : '', $error['message'] ?? '' ) );
 			}
 			if ( (int) ( $result['errors_total'] ?? 0 ) > 10 ) {
-				WP_CLI::log( sprintf( '%d failed rows in total. See: wp rsl-ie job errors %d', (int) $result['errors_total'], (int) $result['job_id'] ) );
+				WP_CLI::log( sprintf( /* translators: 1: number of failed rows, 2: job ID. */ __( '%1$d failed rows in total. See: wp rsl-ie job errors %2$d', 'import-export-by-rockstarlab' ), (int) $result['errors_total'], (int) $result['job_id'] ) );
 			}
 		} else {
 			$row['errors'] = $result['errors'] ?? [];
@@ -538,7 +539,7 @@ class Cli_Helper {
 		}
 		$type = $alias[ $type ] ?? $type;
 		if ( ! self::find_ability( 'rsl-ie-pro/' . ( $export ? 'export-start' : 'import-start' ) ) ) {
-			WP_CLI::error( sprintf( '"%s" needs the PRO plugin. The free plugin handles: %s.', $type, implode( ', ', $free ) ) );
+			WP_CLI::error( sprintf( /* translators: 1: content type, 2: list of content types. */ __( '"%1$s" needs the PRO plugin. The free plugin handles: %2$s.', 'import-export-by-rockstarlab' ), $type, implode( ', ', $free ) ) );
 		}
 		return [ 'rsl-ie-pro/', $type ];
 	}

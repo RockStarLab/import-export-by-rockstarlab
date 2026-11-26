@@ -3770,7 +3770,7 @@ const ExportModule = {
 						label:
 							window.rslIeData.i18n.fieldFeaturedImageCaption ||
 							__(
-								'Featured Image Caption',
+								__( 'Featured Image Caption', 'import-export-by-rockstarlab' ),
 								'import-export-by-rockstarlab'
 							),
 						type: 'string',
@@ -4703,7 +4703,7 @@ const ExportModule = {
 							label:
 								window.rslIeData.i18n
 									.fieldFeaturedImageCaption ||
-								'Featured Image Caption',
+								__( 'Featured Image Caption', 'import-export-by-rockstarlab' ),
 							type: 'string',
 						},
 						{
@@ -5125,7 +5125,7 @@ const ExportModule = {
 							label:
 								window.rslIeData.i18n
 									.fieldFeaturedImageCaption ||
-								'Featured Image Caption',
+								__( 'Featured Image Caption', 'import-export-by-rockstarlab' ),
 							type: 'string',
 						},
 						{

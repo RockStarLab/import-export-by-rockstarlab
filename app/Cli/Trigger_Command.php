@@ -103,10 +103,10 @@ class Trigger_Command {
 		$started = Cli_Helper::call( 'rsl-ie/trigger-run', [ 'trigger_id' => (string) $args[0] ] );
 		$job_id  = (int) ( $started['job_id'] ?? 0 );
 		if ( ! $job_id ) {
-			WP_CLI::error( 'The trigger did not start a job.' );
+			WP_CLI::error( __( 'The trigger did not start a job.', 'import-export-by-rockstarlab' ) );
 		}
 		if ( 'table' === ( $assoc['format'] ?? 'table' ) && empty( $assoc['porcelain'] ) ) {
-			WP_CLI::log( sprintf( 'Job %d started by trigger %s.', $job_id, $args[0] ) );
+			WP_CLI::log( sprintf( /* translators: 1: job ID, 2: trigger ID. */ __( 'Job %1$d started by trigger %2$s.', 'import-export-by-rockstarlab' ), $job_id, $args[0] ) );
 		}
 		Cli_Helper::wait_and_finish( $job_id, $assoc );
 	}

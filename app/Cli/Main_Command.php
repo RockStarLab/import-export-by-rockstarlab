@@ -143,7 +143,7 @@ class Main_Command {
 			$mapping = $applied['mapping'];
 			$options = (array) ( $applied['options'] ?? [] );
 			if ( ! empty( $applied['missing'] ) ) {
-				WP_CLI::warning( 'Template columns missing from the file (their fields stay empty): ' . implode( ', ', array_map( [ __CLASS__, 'label' ], (array) $applied['missing'] ) ) );
+				WP_CLI::warning( sprintf( /* translators: %s: comma-separated list of field names. */ __( 'Template columns missing from the file (their fields stay empty): %s', 'import-export-by-rockstarlab' ), implode( ', ', array_map( [ __CLASS__, 'label' ], (array) $applied['missing'] ) ) ) );
 			}
 		} elseif ( isset( $assoc['mapping'] ) ) {
 			$mapping = Cli_Helper::json_arg( $assoc['mapping'], 'mapping' );
@@ -163,7 +163,7 @@ class Main_Command {
 			$mapping  = (array) ( $prepared['mapping'] ?? [] );
 		}
 		if ( ! $mapping ) {
-			WP_CLI::error( 'No column matches a field by name. Give a mapping with --mapping or --template. File columns: ' . implode( ', ', array_map( 'strval', (array) ( $file['headers'] ?? [] ) ) ) );
+			WP_CLI::error( sprintf( /* translators: %s: comma-separated list of column names. */ __( 'No column matches a field by name. Give a mapping with --mapping or --template. File columns: %s', 'import-export-by-rockstarlab' ), implode( ', ', array_map( 'strval', (array) ( $file['headers'] ?? [] ) ) ) ) );
 		}
 		if ( isset( $assoc['options'] ) ) {
 			$options = array_merge( $options, Cli_Helper::json_arg( $assoc['options'], 'options' ) );
@@ -205,13 +205,13 @@ class Main_Command {
 		if ( ! empty( $assoc['dry-run'] ) ) {
 			$checked = Cli_Helper::call( $ns . 'import-validate', $input );
 			if ( 'table' === $format ) {
-				WP_CLI::log( sprintf( 'File: %s, %d rows', $file['file_name'] ?? basename( $args[0] ), (int) ( $file['total_rows'] ?? 0 ) ) );
+				WP_CLI::log( sprintf( /* translators: 1: file name, 2: number of rows. */ __( 'File: %1$s, %2$d rows', 'import-export-by-rockstarlab' ), $file['file_name'] ?? basename( $args[0] ), (int) ( $file['total_rows'] ?? 0 ) ) );
 				$headers = array_values( (array) ( $file['headers'] ?? [] ) );
 				foreach ( $mapping as $map ) {
 					$column = $map['source_field'] ?? ( $headers[ (int) ( $map['source_index'] ?? -1 ) ] ?? ( '#' . ( $map['source_index'] ?? '?' ) ) );
 					WP_CLI::log( '  ' . $column . ' -> ' . $map['target_field'] );
 				}
-				WP_CLI::success( 'The file and the mapping are valid. Nothing was imported.' );
+				WP_CLI::success( __( 'The file and the mapping are valid. Nothing was imported.', 'import-export-by-rockstarlab' ) );
 			} else {
 				WP_CLI::print_value(
 					[
@@ -229,7 +229,7 @@ class Main_Command {
 		$input['request_id'] = Cli_Helper::request_id( 'import' );
 		$started             = Cli_Helper::call( $ns . 'import-start', $input );
 		if ( 'table' === $format && empty( $assoc['porcelain'] ) ) {
-			WP_CLI::log( sprintf( 'Job %d started: %s, %d rows.', (int) $started['job_id'], $type, (int) ( $file['total_rows'] ?? 0 ) ) );
+			WP_CLI::log( sprintf( /* translators: 1: job ID, 2: content type, 3: number of rows. */ __( 'Job %1$d started: %2$s, %3$d rows.', 'import-export-by-rockstarlab' ), (int) $started['job_id'], $type, (int) ( $file['total_rows'] ?? 0 ) ) );
 		}
 		Cli_Helper::wait_and_finish( (int) $started['job_id'], $assoc );
 	}
@@ -347,7 +347,7 @@ class Main_Command {
 		$started = Cli_Helper::call( $ns . 'export-start', $input );
 		$summary = $assoc['format-output'] ?? 'table';
 		if ( 'table' === $summary && empty( $assoc['porcelain'] ) ) {
-			WP_CLI::log( sprintf( 'Job %d started: %s export to %s.', (int) $started['job_id'], $type, $input['format'] ) );
+			WP_CLI::log( sprintf( /* translators: 1: job ID, 2: content type, 3: file format. */ __( 'Job %1$d started: %2$s export to %3$s.', 'import-export-by-rockstarlab' ), (int) $started['job_id'], $type, $input['format'] ) );
 		}
 		$flags           = $assoc;
 		$flags['format'] = $summary;
@@ -369,10 +369,10 @@ class Main_Command {
 	public static function check_output( $output ) {
 		$folder = is_dir( $output ) ? $output : dirname( $output );
 		if ( ! is_dir( $folder ) ) {
-			WP_CLI::error( 'The folder does not exist: ' . $folder );
+			WP_CLI::error( sprintf( /* translators: %s: folder path. */ __( 'The folder does not exist: %s', 'import-export-by-rockstarlab' ), $folder ) );
 		}
 		if ( ! wp_is_writable( $folder ) ) {
-			WP_CLI::error( 'The folder is not writable: ' . $folder );
+			WP_CLI::error( sprintf( /* translators: %s: folder path. */ __( 'The folder is not writable: %s', 'import-export-by-rockstarlab' ), $folder ) );
 		}
 	}
 
@@ -387,14 +387,14 @@ class Main_Command {
 		$file = Cli_Helper::call( 'rsl-ie/file-get', [ 'job_id' => (int) $job_id ] );
 		$rec  = \RockStarLab\ImportExport\Service\File_Store::get( (string) $file['file_id'] );
 		if ( is_wp_error( $rec ) || empty( $rec['path'] ) || ! is_file( $rec['path'] ) ) {
-			WP_CLI::error( sprintf( 'The file of job %d is no longer available.', $job_id ) );
+			WP_CLI::error( sprintf( /* translators: %d: job ID. */ __( 'The file of job %d is no longer available.', 'import-export-by-rockstarlab' ), $job_id ) );
 		}
 		$target = is_dir( $output ) ? rtrim( $output, '/\\' ) . DIRECTORY_SEPARATOR . basename( (string) $rec['file_name'] ) : $output;
 		if ( ! is_dir( dirname( $target ) ) ) {
-			WP_CLI::error( 'The folder does not exist: ' . dirname( $target ) );
+			WP_CLI::error( sprintf( /* translators: %s: folder path. */ __( 'The folder does not exist: %s', 'import-export-by-rockstarlab' ), dirname( $target ) ) );
 		}
 		if ( ! copy( $rec['path'], $target ) ) {
-			WP_CLI::error( 'Cannot write the file: ' . $target );
+			WP_CLI::error( sprintf( /* translators: %s: file path. */ __( 'Cannot write the file: %s', 'import-export-by-rockstarlab' ), $target ) );
 		}
 		return $target;
 	}
@@ -504,7 +504,7 @@ class Main_Command {
 	public function abilities( $args, $assoc ) {
 		Cli_Helper::require_admin();
 		if ( ! function_exists( 'wp_get_abilities' ) ) {
-			WP_CLI::error( 'The WordPress Abilities API is not available on this site.' );
+			WP_CLI::error( __( 'The WordPress Abilities API is not available on this site.', 'import-export-by-rockstarlab' ) );
 		}
 		$search = strtolower( (string) ( $assoc['search'] ?? '' ) );
 		$rows   = [];
@@ -569,7 +569,7 @@ class Main_Command {
 		Cli_Helper::require_admin();
 		$ability = Cli_Helper::find_ability( $args[0] );
 		if ( ! $ability ) {
-			WP_CLI::error( sprintf( 'Unknown ability "%s". See: wp rsl-ie abilities', $args[0] ) );
+			WP_CLI::error( sprintf( /* translators: %s: ability name. */ __( 'Unknown ability "%s". See: wp rsl-ie abilities', 'import-export-by-rockstarlab' ), $args[0] ) );
 		}
 		$format = $assoc['format'] ?? 'json';
 		if ( ! empty( $assoc['help-schema'] ) ) {

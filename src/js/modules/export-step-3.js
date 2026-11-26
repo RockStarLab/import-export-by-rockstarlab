@@ -1343,20 +1343,20 @@ export default class ExportStep3 {
 						value: 'original_file_size',
 						label:
 							i18nMedia.fieldOriginalFileSize ||
-							'Original File Size (bytes)',
+							__( 'Original File Size (bytes)', 'import-export-by-rockstarlab' ),
 						type: 'number',
 					},
 					{
 						value: 'disk_usage',
 						label:
 							i18nMedia.fieldDiskUsage ||
-							'Size on Disk, All Sizes (bytes)',
+							__( 'Size on Disk, All Sizes (bytes)', 'import-export-by-rockstarlab' ),
 						type: 'number',
 					},
 					// Identical files have the same hash, whatever their names (Tools > Media Hash Index).
 					{
 						value: 'file_hash',
-						label: i18nMedia.fieldFileHash || 'File Hash (MD5)',
+						label: i18nMedia.fieldFileHash || __( 'File Hash (MD5)', 'import-export-by-rockstarlab' ),
 						type: 'string',
 					},
 				],
@@ -1375,7 +1375,7 @@ export default class ExportStep3 {
 						value: 'user_meta',
 						label:
 							( window.rslIeData.i18n || {} ).fieldUserMetaJson ||
-							'User Meta (JSON)',
+							__( 'User Meta (JSON)', 'import-export-by-rockstarlab' ),
 						type: 'object',
 					},
 				],
