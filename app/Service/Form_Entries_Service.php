@@ -603,7 +603,7 @@ class Form_Entries_Service {
 			'post_type'        => self::FLAMINGO_TYPE,
 			'post_status'      => self::FLAMINGO_STATE[ $q['status'] ?? 'active' ],
 			'tax_query'        => [ $this->channel_query( $term_id ) ], // phpcs:ignore WordPress.DB.SlowDBQuery -- One channel.
-			'suppress_filters' => true,
+			'suppress_filters' => true, // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters -- Raw query: other plugins' query filters must not alter export/sync lookups.
 		];
 		if ( '' !== $q['from'] || '' !== $q['to'] ) {
 			$date = [ 'inclusive' => true ];

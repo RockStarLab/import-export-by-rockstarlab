@@ -432,6 +432,7 @@ class Job extends Model {
 			return $cached;
 		}
 
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- ids_clause() returns only absint()-cast IDs.
 		if ( 'DESC' === $direction ) {
 			$results = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Querying the plugin's custom jobs table.
 				$wpdb->prepare(
@@ -487,6 +488,7 @@ class Job extends Model {
 				)
 			);
 		}
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter
 		wp_cache_set( $cache_key, $results, 'rsl_ie', MINUTE_IN_SECONDS );
 
 		return $results;
@@ -540,6 +542,7 @@ class Job extends Model {
 			return (int) $cached;
 		}
 
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- ids_clause() returns only absint()-cast IDs.
 		$count = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Counting rows in the plugin's custom jobs table.
 			$wpdb->prepare(
 				'SELECT COUNT(*) FROM %i WHERE 1=%d
@@ -563,6 +566,7 @@ class Job extends Model {
 			)
 		);
 
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter
 		wp_cache_set( $cache_key, $count, 'rsl_ie', MINUTE_IN_SECONDS );
 
 		return $count;

@@ -2284,7 +2284,7 @@ class Content_Sync_API_Controller {
 		if ( '' !== $language && 'all' !== $language ) {
 			$args['lang'] = $language;
 		} elseif ( 'all' === $language ) {
-			$args['suppress_filters'] = true;
+			$args['suppress_filters'] = true; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters -- Raw query: other plugins' query filters must not alter export/sync lookups.
 		}
 
 		return array_values( array_map( 'absint', get_posts( $args ) ) );
@@ -2634,7 +2634,7 @@ class Content_Sync_API_Controller {
 					$args['post__in'] = array( 0 );
 				}
 			} elseif ( ! empty( $product_ids ) ) {
-				$args['post__not_in'] = $product_ids;
+				$args['post__not_in'] = $product_ids; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- Bounded exclusion list.
 			}
 		}
 

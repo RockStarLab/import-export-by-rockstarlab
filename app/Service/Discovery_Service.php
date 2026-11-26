@@ -29,7 +29,8 @@ class Discovery_Service {
 	public function get_capabilities() {
 		$names = [];
 		if ( Ability_Registry::is_available() ) {
-			foreach ( wp_get_abilities() as $ability ) {
+			// wp_get_abilities() needs WP 6.9+; Ability_Registry::is_available() confirmed it exists.
+			foreach ( call_user_func( 'wp_get_abilities' ) as $ability ) {
 				$name = $ability->get_name();
 				if ( 0 === strpos( $name, 'rsl-ie/' ) || 0 === strpos( $name, 'rsl-ie-pro/' ) ) {
 					$names[] = $name;

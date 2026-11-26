@@ -1602,7 +1602,7 @@ class Content_Sync_Replacer {
 						'orderby'          => 'ID',
 						'order'            => 'DESC',
 						'lang'             => '',
-						'suppress_filters' => true,
+						'suppress_filters' => true, // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters -- Raw query: other plugins' query filters must not alter export/sync lookups.
 						'meta_key'         => $meta_key, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source identity.
 						'meta_value'       => $source, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source identity.
 					)

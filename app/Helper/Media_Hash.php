@@ -194,7 +194,7 @@ class Media_Hash {
 		}
 		$args = [
 			'post_type'      => 'attachment',
-			'post__not_in'   => $exclude_id ? array_map( 'intval', (array) $exclude_id ) : [],
+			'post__not_in'   => $exclude_id ? array_map( 'intval', (array) $exclude_id ) : [], // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- Bounded exclusion list.
 			'no_found_rows'  => true,
 			'post_status'    => 'inherit',
 			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.

@@ -102,7 +102,9 @@ class Abilities_Controller {
 		if ( ! Ability_Registry::is_enabled() || ! Ability_Registry::is_available() ) {
 			return;
 		}
-		wp_register_ability_category(
+		// wp_register_ability_category() needs WP 6.9+; Ability_Registry::is_available() confirmed it exists.
+		call_user_func(
+			'wp_register_ability_category',
 			'rsl-ie',
 			[
 				'label'       => __( 'Content Sync, Media Sync, Import, Export with AI Agents Support', 'import-export-by-rockstarlab' ),
