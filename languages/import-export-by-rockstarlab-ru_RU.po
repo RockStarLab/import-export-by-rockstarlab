@@ -8277,28 +8277,28 @@ msgid "Credential operation failed: %s"
 msgstr "Ошибка операции с учётными данными: %s"
 
 #. translators: 1: rejected filter condition, 2: comma-separated list of supported conditions.
-#: app/Service/Export_Request.php:221
+#: app/Service/Export_Request.php:228
 #, php-format
 msgid "Unsupported filter condition \"%1$s\". Use one of: %2$s."
 msgstr "Неподдерживаемое условие фильтра «%1$s». Используйте одно из: %2$s."
 
-#: app/Service/Export_Request.php:246
+#: app/Service/Export_Request.php:253
 msgid "This comment type requires its own content provider."
 msgstr "Для этого типа комментариев нужен свой провайдер контента."
 
-#: app/Service/Export_Request.php:375
+#: app/Service/Export_Request.php:382
 msgid "This URL source requires an available content provider."
 msgstr "Для этого источника URL нужен доступный провайдер контента."
 
-#: app/Service/Export_Request.php:390
+#: app/Service/Export_Request.php:397
 msgid "Invalid export parameters, filters or selected IDs."
 msgstr "Недопустимые параметры экспорта, фильтры или выбранные ID."
 
-#: app/Service/Export_Request.php:413
+#: app/Service/Export_Request.php:420
 msgid "A taxonomy filter needs \"taxonomy\" (for example category or product_cat) and \"value\" with one or more term slugs, names or IDs."
 msgstr "Фильтру по таксономии нужны «taxonomy» (например, category или product_cat) и «value» с одним или несколькими ярлыками, названиями или ID терминов."
 
-#: app/Service/Export_Request.php:430
+#: app/Service/Export_Request.php:437
 msgid "A taxonomy filter supports the conditions in, not_in and and."
 msgstr "Фильтр по таксономии поддерживает условия in, not_in и and."
 

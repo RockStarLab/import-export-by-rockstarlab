@@ -30,7 +30,10 @@ function termLanguageGroup() {
 							value: 'language',
 							label: sprintf(
 								/* translators: %s: multilingual plugin (Polylang, WPML). */
-								__( 'Language (%s)', 'import-export-by-rockstarlab' ),
+								__(
+									'Language (%s)',
+									'import-export-by-rockstarlab'
+								),
 								window.rslIeData?.multilingualName || 'Polylang'
 							),
 							type: 'string',
@@ -39,7 +42,10 @@ function termLanguageGroup() {
 							value: 'translations',
 							label: sprintf(
 								/* translators: %s: multilingual plugin (Polylang, WPML). */
-								__( 'Translation group (%s)', 'import-export-by-rockstarlab' ),
+								__(
+									'Translation group (%s)',
+									'import-export-by-rockstarlab'
+								),
 								window.rslIeData?.multilingualName || 'Polylang'
 							),
 							type: 'string',

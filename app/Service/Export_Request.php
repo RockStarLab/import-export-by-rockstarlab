@@ -42,10 +42,16 @@ class Export_Request {
 		'greater_or_equal'   => 'equals_or_greater',
 		'greater_or_equals'  => 'equals_or_greater',
 		'greater_than_equal' => 'equals_or_greater',
+		'greater_than_or_equal' => 'equals_or_greater',
+		'greater_than_or_equals' => 'equals_or_greater',
+		'ge'                 => 'equals_or_greater',
 		'lte'                => 'equals_or_less',
 		'less_or_equal'      => 'equals_or_less',
 		'less_or_equals'     => 'equals_or_less',
 		'less_than_equal'    => 'equals_or_less',
+		'less_than_or_equal' => 'equals_or_less',
+		'less_than_or_equals' => 'equals_or_less',
+		'le'                 => 'equals_or_less',
 		'empty'              => 'is_empty',
 		'not_empty'          => 'is_not_empty',
 	];
@@ -211,7 +217,8 @@ class Export_Request {
 			return self::error();
 		}
 		// An unknown condition is ignored by the query builders, which would silently export everything.
-		if ( null !== $free ) {
+		// This holds for the PRO types too (customers, orders, products...), so every type is checked.
+		if ( ! empty( $options['filters'] ) ) {
 			foreach ( $options['filters'] as $filter ) {
 				if ( ! in_array( $filter['condition'], self::CONDITIONS, true ) ) {
 					return new \WP_Error(

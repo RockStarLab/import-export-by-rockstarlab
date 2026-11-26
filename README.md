@@ -341,6 +341,10 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 ## Changelog
 
+### 2.2.64
+
+* Fix: an export filter with an unknown condition is now refused for every content type, not only posts and pages; before, a PRO export such as customers ignored it and exported every record. Conditions written as greater_than_or_equal or less_than_or_equal are understood.
+
 ### 2.2.63
 
 * Fix: without Import Export PRO, an import file with Polylang or WPML language and translation columns no longer creates an extra language (for example "de-2"). The columns are skipped and the Jobs Log says that languages and translations need PRO.
@@ -362,10 +366,6 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 * Fix: `wp rsl-ie import --unique-field=ID` with an "ID" column skipped every row; the ID column is now used as the key.
 * Fix: `wp rsl-ie job get` and the ability job-get-result failed with "job runner unavailable" for Content Sync jobs started in the admin; their stored result is now shown.
 
-### 2.2.59
-
-* New: Content Sync brings the settings of a category, tag or product category with the post when the other site has to create that term (its term meta, including the WooCommerce category image, display type and order). Terms the other site already has are not changed. Developers can choose the keys with the `rsl_ie_sync_post_term_meta` filter.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -374,7 +374,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.63 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.64 |
 
 ---
 
