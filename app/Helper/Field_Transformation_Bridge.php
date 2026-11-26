@@ -45,12 +45,12 @@ class Field_Transformation_Bridge {
 	 * @param array $context            Context such as field name, item, and operation.
 	 * @return mixed
 	 */
-	public static function apply( $value, $transformation_ids, $context = [] ) {
+	public static function apply( $value, $transformation_ids, $context = array() ) {
 		if ( empty( $transformation_ids ) || ! is_array( $transformation_ids ) ) {
 			return $value;
 		}
 
-		$context = is_array( $context ) ? $context : [];
+		$context = is_array( $context ) ? $context : array();
 
 		return apply_filters( 'rsl_ie_apply_field_transformations', $value, $transformation_ids, $context );
 	}

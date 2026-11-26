@@ -20,14 +20,14 @@ class Mapping_Template_Controller extends Base_Controller {
 	 * @return array
 	 */
 	protected function get_ajax_actions() {
-		return [
-			'mapping_template_list'     => [ 'callback' => 'list_templates' ],
-			'mapping_template_get'      => [ 'callback' => 'get_template' ],
-			'mapping_template_save'     => [ 'callback' => 'save_template' ],
-			'mapping_template_rename'   => [ 'callback' => 'rename_template' ],
-			'mapping_template_delete'   => [ 'callback' => 'delete_template' ],
-			'mapping_template_from_job' => [ 'callback' => 'from_job' ],
-		];
+		return array(
+			'mapping_template_list'     => array( 'callback' => 'list_templates' ),
+			'mapping_template_get'      => array( 'callback' => 'get_template' ),
+			'mapping_template_save'     => array( 'callback' => 'save_template' ),
+			'mapping_template_rename'   => array( 'callback' => 'rename_template' ),
+			'mapping_template_delete'   => array( 'callback' => 'delete_template' ),
+			'mapping_template_from_job' => array( 'callback' => 'from_job' ),
+		);
 	}
 
 	/** List templates, optionally for one import type. */
@@ -35,7 +35,7 @@ class Mapping_Template_Controller extends Base_Controller {
 		if ( ! $this->allowed() ) {
 			return;
 		}
-		$this->send_success( [ 'templates' => ( new Mapping_Template_Service() )->listing( (string) $this->get_request_param( 'import_type', '' ) ) ] );
+		$this->send_success( array( 'templates' => ( new Mapping_Template_Service() )->listing( (string) $this->get_request_param( 'import_type', '' ) ) ) );
 	}
 
 	/** Read one template. */
@@ -51,14 +51,14 @@ class Mapping_Template_Controller extends Base_Controller {
 		if ( ! $this->allowed() ) {
 			return;
 		}
-		$input = [
+		$input = array(
 			'name'        => (string) $this->get_request_param( 'name', '' ),
 			'import_type' => (string) $this->get_request_param( 'import_type', '' ),
 			'mapping'     => $this->get_request_array( 'mapping' ),
 			'options'     => $this->get_request_array( 'options' ),
 			'parser'      => $this->get_request_array( 'parser' ),
 			'overwrite'   => '1' === (string) $this->get_request_param( 'overwrite', '0' ),
-		];
+		);
 		$id    = (string) $this->get_request_param( 'template_id', '' );
 		if ( '' !== $id ) {
 			$input['template_id'] = $id;

@@ -56,7 +56,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 	 * @param array  $input Normalized input.
 	 * @return void
 	 */
-	private function dispatch( $name, array $input = [] ) {
+	private function dispatch( $name, array $input = array() ) {
 		$access = $this->verify_request();
 		if ( is_wp_error( $access ) ) {
 			$this->send_error( $access, null, 403 ); }
@@ -74,23 +74,23 @@ class AI_URL_Importer_Controller extends Base_Controller {
 	public function preview_url() {
 		$this->dispatch(
 			'ai-url-preview',
-			[
+			array(
 				'url'             => $this->get_request_param( 'url', '', 'post' ),
 				'extraction_mode' => $this->get_request_param( 'extraction_mode', 'auto', 'post' ),
-			]
+			)
 		); }
 	/** Read compatible ACF destinations. */
 	public function get_acf_fields() {
-		$this->dispatch( 'ai-url-fields', [ 'post_type' => $this->get_request_param( 'post_type', 'post', 'post' ) ] ); }
+		$this->dispatch( 'ai-url-fields', array( 'post_type' => $this->get_request_param( 'post_type', 'post', 'post' ) ) ); }
 	/** Read authorized destination types. */
 	public function get_post_types() {
 		$this->dispatch( 'ai-url-settings' ); }
 	/** Queue immutable import options for background execution. */
 	public function start_import() {
-		$input = [
+		$input = array(
 			'urls'       => $this->get_request_array( 'urls' ),
 			'request_id' => $this->get_request_param( 'request_id', wp_generate_uuid4(), 'post' ),
-		];
+		);
 		foreach ( \RockStarLab\ImportExport\Abilities\AI_URL_Catalog::options()['properties'] as $name => $schema ) {
 			if ( 'urls' === $name ) {
 				continue; }
@@ -106,11 +106,11 @@ class AI_URL_Importer_Controller extends Base_Controller {
 			$this->send_error( $access, null, 403 ); }
 		$id      = absint( $this->get_request_param( 'job_id', 0, 'post' ) );
 		$service = new \RockStarLab\ImportExport\Service\AI_URL_Service();
-		$result  = $service->execute( 'ai-url-import-status', [ 'job_id' => $id ] );
+		$result  = $service->execute( 'ai-url-import-status', array( 'job_id' => $id ) );
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result ); }
 		$service->process_background_batch( $id );
-		$result = $service->execute( 'ai-url-import-status', [ 'job_id' => $id ] );
+		$result = $service->execute( 'ai-url-import-status', array( 'job_id' => $id ) );
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result ); }
 		$result['completed'] = 'completed' === $result['status'];
@@ -118,8 +118,8 @@ class AI_URL_Importer_Controller extends Base_Controller {
 	}
 	/** Read progress. */
 	public function get_progress() {
-		$this->dispatch( 'ai-url-import-status', [ 'job_id' => absint( $this->get_request_param( 'job_id', 0, 'post' ) ) ] ); }
+		$this->dispatch( 'ai-url-import-status', array( 'job_id' => absint( $this->get_request_param( 'job_id', 0, 'post' ) ) ) ); }
 	/** Cancel without deleting completed items. */
 	public function cancel_import() {
-		$this->dispatch( 'ai-url-import-cancel', [ 'job_id' => absint( $this->get_request_param( 'job_id', 0, 'post' ) ) ] ); }
+		$this->dispatch( 'ai-url-import-cancel', array( 'job_id' => absint( $this->get_request_param( 'job_id', 0, 'post' ) ) ) ); }
 }

@@ -18,12 +18,12 @@ class Seo_Fields {
 	 * @return array<string,string> URL meta key => attachment ID meta key.
 	 */
 	public static function social_image_pairs() {
-		return [
+		return array(
 			'rank_math_facebook_image'     => 'rank_math_facebook_image_id',
 			'rank_math_twitter_image'      => 'rank_math_twitter_image_id',
 			'_yoast_wpseo_opengraph-image' => '_yoast_wpseo_opengraph-image-id',
 			'_yoast_wpseo_twitter-image'   => '_yoast_wpseo_twitter-image-id',
-		];
+		);
 	}
 
 	/**
@@ -80,7 +80,7 @@ class Seo_Fields {
 				$term_info['yoast_seo'] = $yoast;
 			}
 		}
-		$rank_math = [];
+		$rank_math = array();
 		foreach ( (array) get_term_meta( (int) $term->term_id ) as $key => $values ) {
 			if ( is_string( $key ) && 0 === strpos( $key, 'rank_math_' ) && isset( $values[0] ) ) {
 				$rank_math[ $key ] = maybe_unserialize( $values[0] );
@@ -108,12 +108,12 @@ class Seo_Fields {
 	 * @return array<int,array{0:string,1:string,2:string}>
 	 */
 	private static function term_social_pairs() {
-		return [
-			[ 'yoast_seo', 'wpseo_opengraph-image', 'wpseo_opengraph-image-id' ],
-			[ 'yoast_seo', 'wpseo_twitter-image', 'wpseo_twitter-image-id' ],
-			[ 'seo_meta', 'rank_math_facebook_image', 'rank_math_facebook_image_id' ],
-			[ 'seo_meta', 'rank_math_twitter_image', 'rank_math_twitter_image_id' ],
-		];
+		return array(
+			array( 'yoast_seo', 'wpseo_opengraph-image', 'wpseo_opengraph-image-id' ),
+			array( 'yoast_seo', 'wpseo_twitter-image', 'wpseo_twitter-image-id' ),
+			array( 'seo_meta', 'rank_math_facebook_image', 'rank_math_facebook_image_id' ),
+			array( 'seo_meta', 'rank_math_twitter_image', 'rank_math_twitter_image_id' ),
+		);
 	}
 
 	/**
@@ -123,13 +123,13 @@ class Seo_Fields {
 	 * @return int[]
 	 */
 	public static function term_seo_image_ids( array $term_info ) {
-		$ids = [];
-		foreach ( (array) ( $term_info['yoast_seo'] ?? [] ) as $key => $value ) {
+		$ids = array();
+		foreach ( (array) ( $term_info['yoast_seo'] ?? array() ) as $key => $value ) {
 			if ( is_string( $key ) && preg_match( '/-image-id$/', $key ) && is_numeric( $value ) && (int) $value > 0 ) {
 				$ids[] = (int) $value;
 			}
 		}
-		foreach ( [ 'rank_math_facebook_image_id', 'rank_math_twitter_image_id' ] as $key ) {
+		foreach ( array( 'rank_math_facebook_image_id', 'rank_math_twitter_image_id' ) as $key ) {
 			if ( isset( $term_info['seo_meta'][ $key ] ) && is_numeric( $term_info['seo_meta'][ $key ] ) && (int) $term_info['seo_meta'][ $key ] > 0 ) {
 				$ids[] = (int) $term_info['seo_meta'][ $key ];
 			}
@@ -145,12 +145,12 @@ class Seo_Fields {
 	 * @return array
 	 */
 	public static function map_term_seo_urls( array $term_info, callable $url ) {
-		foreach ( (array) ( $term_info['yoast_seo'] ?? [] ) as $key => $value ) {
+		foreach ( (array) ( $term_info['yoast_seo'] ?? array() ) as $key => $value ) {
 			if ( is_string( $key ) && is_string( $value ) && '' !== $value && ( preg_match( '/-image$/', $key ) || 'wpseo_canonical' === $key ) ) {
 				$term_info['yoast_seo'][ $key ] = (string) $url( $value );
 			}
 		}
-		foreach ( [ 'rank_math_facebook_image', 'rank_math_twitter_image', 'rank_math_canonical_url' ] as $key ) {
+		foreach ( array( 'rank_math_facebook_image', 'rank_math_twitter_image', 'rank_math_canonical_url' ) as $key ) {
 			if ( isset( $term_info['seo_meta'][ $key ] ) && is_string( $term_info['seo_meta'][ $key ] ) && '' !== $term_info['seo_meta'][ $key ] ) {
 				$term_info['seo_meta'][ $key ] = (string) $url( $term_info['seo_meta'][ $key ] );
 			}
@@ -167,7 +167,7 @@ class Seo_Fields {
 	 * @param callable $url       Maps a URL of the other site to this site (images to the local copies).
 	 * @return void
 	 */
-	public static function apply_synced_term_seo( $term_id, $taxonomy, array $term_info, callable $url, array $image_map = [] ) {
+	public static function apply_synced_term_seo( $term_id, $taxonomy, array $term_info, callable $url, array $image_map = array() ) {
 		if ( (int) $term_id <= 0 ) {
 			return;
 		}
@@ -185,7 +185,7 @@ class Seo_Fields {
 		if ( empty( $term_info['seo_meta'] ) || ! is_array( $term_info['seo_meta'] ) ) {
 			return;
 		}
-		$meta = self::map_term_seo_urls( [ 'seo_meta' => $term_info['seo_meta'] ], $url )['seo_meta'];
+		$meta = self::map_term_seo_urls( array( 'seo_meta' => $term_info['seo_meta'] ), $url )['seo_meta'];
 		foreach ( self::social_image_pairs() as $url_key => $id_key ) {
 			if ( 0 !== strpos( $url_key, 'rank_math_' ) ) {
 				continue;
@@ -213,9 +213,9 @@ class Seo_Fields {
 	 * @return array<string,string>
 	 */
 	public static function export_yoast_term( $term_id, $taxonomy ) {
-		$all  = get_option( 'wpseo_taxonomy_meta', [] );
-		$data = is_array( $all ) && isset( $all[ $taxonomy ][ (int) $term_id ] ) && is_array( $all[ $taxonomy ][ (int) $term_id ] ) ? $all[ $taxonomy ][ (int) $term_id ] : [];
-		$out  = [];
+		$all  = get_option( 'wpseo_taxonomy_meta', array() );
+		$data = is_array( $all ) && isset( $all[ $taxonomy ][ (int) $term_id ] ) && is_array( $all[ $taxonomy ][ (int) $term_id ] ) ? $all[ $taxonomy ][ (int) $term_id ] : array();
+		$out  = array();
 		foreach ( $data as $key => $value ) {
 			if ( is_string( $key ) && 0 === strpos( $key, 'wpseo_' ) && is_scalar( $value ) ) {
 				$out[ $key ] = (string) $value;
@@ -240,7 +240,7 @@ class Seo_Fields {
 		if ( ! is_array( $data ) || ! $data || (int) $term_id <= 0 ) {
 			return;
 		}
-		$clean = [];
+		$clean = array();
 		foreach ( $data as $key => $value ) {
 			if ( ! is_string( $key ) || 0 !== strpos( $key, 'wpseo_' ) || ! is_scalar( $value ) || preg_match( '/-image-id$/', $key ) ) {
 				continue;
@@ -260,8 +260,8 @@ class Seo_Fields {
 			}
 			$clean[ $key ] = $value;
 		}
-		$all = get_option( 'wpseo_taxonomy_meta', [] );
-		$all = is_array( $all ) ? $all : [];
+		$all                                = get_option( 'wpseo_taxonomy_meta', array() );
+		$all                                = is_array( $all ) ? $all : array();
 		$all[ $taxonomy ][ (int) $term_id ] = $clean;
 		update_option( 'wpseo_taxonomy_meta', $all );
 		self::refresh_yoast_term_indexable( (int) $term_id );
@@ -299,68 +299,68 @@ class Seo_Fields {
 	 * @return array<int,array{name:string,label:string,type:string}>
 	 */
 	public static function get_yoast_fields( $post_type = '' ) {
-		$fields = [
-			[
+		$fields = array(
+			array(
 				'name'  => '_yoast_wpseo_title',
 				'label' => __( 'SEO Title', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => '_yoast_wpseo_metadesc',
 				'label' => __( 'Meta Description', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => '_yoast_wpseo_focuskw',
 				'label' => __( 'Focus Keyword', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => '_yoast_wpseo_canonical',
 				'label' => __( 'Canonical URL', 'import-export-by-rockstarlab' ),
 				'type'  => 'url',
-			],
-			[
+			),
+			array(
 				'name'  => '_yoast_wpseo_meta-robots-noindex',
 				'label' => __( 'Meta Robots (Index)', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => '_yoast_wpseo_meta-robots-nofollow',
 				'label' => __( 'Meta Robots (Follow)', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => '_yoast_wpseo_opengraph-title',
 				'label' => __( 'Social Title', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => '_yoast_wpseo_opengraph-description',
 				'label' => __( 'Social Description', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => '_yoast_wpseo_opengraph-image',
 				'label' => __( 'Social Image', 'import-export-by-rockstarlab' ),
 				'type'  => 'url',
-			],
-			[
+			),
+			array(
 				'name'  => '_yoast_wpseo_twitter-title',
 				'label' => __( 'X (Twitter) Title', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => '_yoast_wpseo_twitter-description',
 				'label' => __( 'X (Twitter) Description', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => '_yoast_wpseo_twitter-image',
 				'label' => __( 'X (Twitter) Image', 'import-export-by-rockstarlab' ),
 				'type'  => 'url',
-			],
-		];
+			),
+		);
 
 		return array_merge( $fields, self::get_yoast_primary_taxonomy_fields( $post_type ) );
 	}
@@ -376,21 +376,21 @@ class Seo_Fields {
 	protected static function get_yoast_primary_taxonomy_fields( $post_type ) {
 		$post_type = sanitize_key( $post_type );
 		if ( '' === $post_type || ! post_type_exists( $post_type ) ) {
-			return [];
+			return array();
 		}
 
 		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
 		if ( empty( $taxonomies ) || ! is_array( $taxonomies ) ) {
-			return [];
+			return array();
 		}
 
-		$fields = [];
+		$fields = array();
 		foreach ( $taxonomies as $taxonomy ) {
 			if ( empty( $taxonomy->name ) || empty( $taxonomy->hierarchical ) ) {
 				continue;
 			}
 
-			$fields[] = [
+			$fields[] = array(
 				'name'  => '_yoast_wpseo_primary_' . sanitize_key( $taxonomy->name ),
 				'label' => sprintf(
 					/* translators: %s: taxonomy label. */
@@ -398,7 +398,7 @@ class Seo_Fields {
 					$taxonomy->labels->singular_name ?? $taxonomy->label
 				),
 				'type'  => 'number',
-			];
+			);
 		}
 
 		return $fields;
@@ -420,123 +420,123 @@ class Seo_Fields {
 	 * @return array<int,array{name:string,label:string,type:string}>
 	 */
 	public static function get_rank_math_fields( $post_type = '' ) {
-		$fields = [
-			[
+		$fields = array(
+			array(
 				'name'  => 'rank_math_title',
 				'label' => __( 'SEO Title', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_description',
 				'label' => __( 'Meta Description', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_focus_keyword',
 				'label' => __( 'Focus Keyword', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_canonical_url',
 				'label' => __( 'Canonical URL', 'import-export-by-rockstarlab' ),
 				'type'  => 'url',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_robots',
 				'label' => __( 'Robots Meta', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_advanced_robots',
 				'label' => __( 'Advanced Robots Meta', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_breadcrumb_title',
 				'label' => __( 'Breadcrumb Title', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_pillar_content',
 				'label' => __( 'Pillar Content', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_schemas',
 				'label' => __( 'Schema Markup', 'import-export-by-rockstarlab' ),
 				'type'  => 'json',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_facebook_title',
 				'label' => __( 'Facebook Title', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_facebook_description',
 				'label' => __( 'Facebook Description', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_facebook_image',
 				'label' => __( 'Facebook Image', 'import-export-by-rockstarlab' ),
 				'type'  => 'url',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_facebook_image_id',
 				'label' => __( 'Facebook Image ID', 'import-export-by-rockstarlab' ),
 				'type'  => 'number',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_facebook_enable_image_overlay',
 				'label' => __( 'Enable Facebook Image Overlay', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_facebook_image_overlay',
 				'label' => __( 'Facebook Image Overlay', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_twitter_card_type',
 				'label' => __( 'X (Twitter) Card Type', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_twitter_title',
 				'label' => __( 'X (Twitter) Title', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_twitter_description',
 				'label' => __( 'X (Twitter) Description', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_twitter_image',
 				'label' => __( 'X (Twitter) Image', 'import-export-by-rockstarlab' ),
 				'type'  => 'url',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_twitter_image_id',
 				'label' => __( 'X (Twitter) Image ID', 'import-export-by-rockstarlab' ),
 				'type'  => 'number',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_twitter_use_facebook',
 				'label' => __( 'Use Facebook Data for X (Twitter)', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_twitter_enable_image_overlay',
 				'label' => __( 'Enable X (Twitter) Image Overlay', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => 'rank_math_twitter_image_overlay',
 				'label' => __( 'X (Twitter) Image Overlay', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-		];
+			),
+		);
 
 		return array_merge( $fields, self::get_rank_math_primary_taxonomy_fields( $post_type ) );
 	}
@@ -552,21 +552,21 @@ class Seo_Fields {
 	protected static function get_rank_math_primary_taxonomy_fields( $post_type ) {
 		$post_type = sanitize_key( $post_type );
 		if ( '' === $post_type || ! post_type_exists( $post_type ) ) {
-			return [];
+			return array();
 		}
 
 		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
 		if ( empty( $taxonomies ) || ! is_array( $taxonomies ) ) {
-			return [];
+			return array();
 		}
 
-		$fields = [];
+		$fields = array();
 		foreach ( $taxonomies as $taxonomy ) {
 			if ( empty( $taxonomy->name ) || empty( $taxonomy->hierarchical ) ) {
 				continue;
 			}
 
-			$fields[] = [
+			$fields[] = array(
 				'name'  => 'rank_math_primary_' . sanitize_key( $taxonomy->name ),
 				'label' => sprintf(
 					/* translators: %s: taxonomy label. */
@@ -574,7 +574,7 @@ class Seo_Fields {
 					$taxonomy->labels->singular_name ?? $taxonomy->label
 				),
 				'type'  => 'number',
-			];
+			);
 		}
 
 		return $fields;
@@ -611,7 +611,7 @@ class Seo_Fields {
 			return '';
 		}
 
-		$schemas = [];
+		$schemas = array();
 		foreach ( $rows as $row ) {
 			$meta_key = isset( $row['meta_key'] ) ? (string) $row['meta_key'] : '';
 			if ( '' === $meta_key || 0 !== strpos( $meta_key, 'rank_math_schema_' ) ) {
@@ -628,11 +628,11 @@ class Seo_Fields {
 				continue;
 			}
 
-			$schemas[] = [
+			$schemas[] = array(
 				'meta_key' => $meta_key, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Export payload key mirrors WordPress meta column naming.
 				'type'     => $type,
 				'data'     => $schema,
-			];
+			);
 		}
 
 		return empty( $schemas ) ? '' : (string) wp_json_encode( $schemas, JSON_UNESCAPED_UNICODE );
@@ -707,7 +707,7 @@ class Seo_Fields {
 		if ( is_string( $value ) ) {
 			$value = trim( $value );
 			if ( '' === $value ) {
-				return [];
+				return array();
 			}
 
 			if ( is_serialized( $value ) ) {
@@ -721,11 +721,11 @@ class Seo_Fields {
 		}
 
 		if ( ! is_array( $value ) ) {
-			return [];
+			return array();
 		}
 
 		if ( isset( $value['data'] ) || isset( $value['@type'] ) ) {
-			return [ $value ];
+			return array( $value );
 		}
 
 		return array_values( array_filter( $value, 'is_array' ) );
@@ -920,10 +920,10 @@ class Seo_Fields {
 			}
 		}
 
-		$file_array = [
+		$file_array = array(
 			'name'     => '' !== $filename ? $filename : wp_basename( $tmp ),
 			'tmp_name' => $tmp,
-		];
+		);
 
 		$attachment_id = media_handle_sideload( $file_array, $post_id );
 		if ( is_wp_error( $attachment_id ) ) {
@@ -955,11 +955,11 @@ class Seo_Fields {
 
 		$response = wp_remote_get(
 			$url,
-			[
+			array(
 				'timeout'            => 30,
 				'redirection'        => 5,
 				'reject_unsafe_urls' => false,
-			]
+			)
 		);
 		if ( is_wp_error( $response ) ) {
 			return $response;
@@ -1070,6 +1070,6 @@ class Seo_Fields {
 		$path = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
 		$ext  = strtolower( (string) pathinfo( $path, PATHINFO_EXTENSION ) );
 
-		return in_array( $ext, [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'pdf', 'mp4', 'webm' ], true );
+		return in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'pdf', 'mp4', 'webm' ), true );
 	}
 }

@@ -19,10 +19,10 @@ class Files_Controller {
 
 	/** Register independently of the optional WordPress Abilities API. */
 	public function __construct() {
-		add_action( 'rest_api_init', [ $this, 'register_routes' ] );
-		add_filter( 'rest_pre_serve_request', [ $this, 'serve_download' ], 10, 3 );
-		add_action( 'admin_post_rsl_ie_file_download', [ $this, 'browser_download' ] );
-		add_action( 'admin_post_nopriv_rsl_ie_file_download', [ $this, 'browser_download' ] );
+		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
+		add_filter( 'rest_pre_serve_request', array( $this, 'serve_download' ), 10, 3 );
+		add_action( 'admin_post_rsl_ie_file_download', array( $this, 'browser_download' ) );
+		add_action( 'admin_post_nopriv_rsl_ie_file_download', array( $this, 'browser_download' ) );
 	}
 
 	/**
@@ -33,9 +33,9 @@ class Files_Controller {
 	 */
 	public function browser_download() {
 		$method = $_SERVER['REQUEST_METHOD'] ?? '';
-		if ( ! in_array( $method, [ 'GET', 'HEAD' ], true ) ) {
+		if ( ! in_array( $method, array( 'GET', 'HEAD' ), true ) ) {
 			header( 'Allow: GET, HEAD' );
-			wp_die( esc_html__( 'Use GET to download an export.', 'import-export-by-rockstarlab' ), '', [ 'response' => 405 ] );
+			wp_die( esc_html__( 'Use GET to download an export.', 'import-export-by-rockstarlab' ), '', array( 'response' => 405 ) );
 		}
 		auth_redirect();
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only download; authentication and service authorization are required.
@@ -44,7 +44,7 @@ class Files_Controller {
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 		$result = ( new File_Service() )->download( $id, $zip );
 		if ( is_wp_error( $result ) ) {
-			wp_die( esc_html( $result->get_error_message() ), '', [ 'response' => (int) ( $result->get_error_data()['status'] ?? 400 ) ] );
+			wp_die( esc_html( $result->get_error_message() ), '', array( 'response' => (int) ( $result->get_error_data()['status'] ?? 400 ) ) );
 		}
 		$response = new File_Download_Response( $result );
 		nocache_headers();
@@ -58,27 +58,27 @@ class Files_Controller {
 	/** Register JSON lifecycle and multipart binary endpoints. */
 	public function register_routes() {
 		$id     = '/files/(?P<file_id>file_[a-f0-9]{32})';
-		$routes = [
-			[ '/files', 'POST', 'upload' ],
-			[ '/files/uploads', 'POST', 'begin' ],
-			[ '/files/from-job', 'POST', 'from_job' ],
-			[ $id, 'GET', 'get' ],
-			[ $id . '/chunks/(?P<index>[0-9]+)', 'POST', 'chunk' ],
-			[ $id . '/finalize', 'POST', 'finalize' ],
-			[ $id . '/preview', 'POST', 'preview' ],
-			[ $id . '/abort', 'POST', 'abort' ],
-			[ $id . '/download', 'GET', 'download' ],
-		];
+		$routes = array(
+			array( '/files', 'POST', 'upload' ),
+			array( '/files/uploads', 'POST', 'begin' ),
+			array( '/files/from-job', 'POST', 'from_job' ),
+			array( $id, 'GET', 'get' ),
+			array( $id . '/chunks/(?P<index>[0-9]+)', 'POST', 'chunk' ),
+			array( $id . '/finalize', 'POST', 'finalize' ),
+			array( $id . '/preview', 'POST', 'preview' ),
+			array( $id . '/abort', 'POST', 'abort' ),
+			array( $id . '/download', 'GET', 'download' ),
+		);
 		foreach ( $routes as $route ) {
 			register_rest_route(
 				'rsl-ie/v1',
 				$route[0],
-				[
+				array(
 					'methods'             => $route[1],
-					'permission_callback' => [ $this, 'permission' ],
+					'permission_callback' => array( $this, 'permission' ),
 					'callback'            => function ( $request ) use ( $route ) {
 						return $this->dispatch( $route[2], $request ); },
-				]
+				)
 			);
 		}
 	}
@@ -102,38 +102,38 @@ class Files_Controller {
 	private function dispatch( $operation, \WP_REST_Request $request ) {
 		$service = new File_Service();
 		$id      = $request->get_url_params()['file_id'] ?? '';
-		$options = [];
-		foreach ( [ 'delimiter', 'has_header', 'encoding' ] as $key ) {
+		$options = array();
+		foreach ( array( 'delimiter', 'has_header', 'encoding' ) as $key ) {
 			if ( $request->has_param( $key ) ) {
 				$options[ $key ] = $request[ $key ];
 			}
 		}
 		if ( isset( $options['has_header'] ) && ! is_bool( $options['has_header'] ) ) {
-			if ( ! in_array( $options['has_header'], [ 'true', 'false', '1', '0' ], true ) ) {
-				return new \WP_Error( 'rsl_ie_invalid_boolean', __( 'A boolean parser option is required.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+			if ( ! in_array( $options['has_header'], array( 'true', 'false', '1', '0' ), true ) ) {
+				return new \WP_Error( 'rsl_ie_invalid_boolean', __( 'A boolean parser option is required.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 			}
 			$options['has_header'] = rest_sanitize_boolean( $options['has_header'] );
 		}
 		switch ( $operation ) {
 			case 'begin':
 				return $service->begin(
-					[
+					array(
 						'file_name'    => $request['file_name'],
 						'file_size'    => $request['file_size'],
 						'total_chunks' => $request['total_chunks'] ?? 1,
-					]
+					)
 				);
 			case 'upload':
 			case 'chunk':
 				$files = $request->get_file_params();
-				$file  = $files[ 'upload' === $operation ? 'file' : 'chunk' ] ?? [];
+				$file  = $files[ 'upload' === $operation ? 'file' : 'chunk' ] ?? array();
 				if ( ! is_array( $file ) ) {
-					$file = [];
+					$file = array();
 				}
 				return 'upload' === $operation ? $service->upload( $file, $options ) : $service->upload_chunk( $id, $request->get_url_params()['index'], $file );
 			case 'finalize':
-				if ( $request->has_param( 'resumable' ) && ! in_array( $request['resumable'], [ true, false, 'true', 'false', '1', '0', 1, 0 ], true ) ) {
-					return new \WP_Error( 'rsl_ie_invalid_boolean', __( 'A boolean resumable option is required.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+				if ( $request->has_param( 'resumable' ) && ! in_array( $request['resumable'], array( true, false, 'true', 'false', '1', '0', 1, 0 ), true ) ) {
+					return new \WP_Error( 'rsl_ie_invalid_boolean', __( 'A boolean resumable option is required.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 				}
 				return $service->finalize( $id, $options, rest_sanitize_boolean( $request['resumable'] ?? false ) );
 			case 'preview':

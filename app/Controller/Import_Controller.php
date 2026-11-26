@@ -22,20 +22,20 @@ class Import_Controller extends Base_Controller {
 	 * @return array
 	 */
 	protected function get_ajax_actions() {
-		return [
-			'import_upload_file'   => [ 'callback' => 'upload_file' ],
-			'import_validate_data' => [ 'callback' => 'validate_data' ],
-			'import_start'         => [ 'callback' => 'start_import' ],
-			'import_process_batch' => [ 'callback' => 'process_batch' ],
-			'import_get_progress'  => [ 'callback' => 'get_progress' ],
-			'import_cancel'        => [ 'callback' => 'cancel_import' ],
-			'get_acf_fields'       => [ 'callback' => 'get_acf_fields' ],
-			'get_yoast_fields'     => [ 'callback' => 'get_yoast_fields' ],
-			'get_rank_math_fields' => [ 'callback' => 'get_rank_math_fields' ],
-			'get_elementor_fields' => [ 'callback' => 'get_elementor_fields' ],
-			'get_database_tables'  => [ 'callback' => 'get_database_tables' ],
-			'get_table_columns'    => [ 'callback' => 'get_table_columns' ],
-		];
+		return array(
+			'import_upload_file'   => array( 'callback' => 'upload_file' ),
+			'import_validate_data' => array( 'callback' => 'validate_data' ),
+			'import_start'         => array( 'callback' => 'start_import' ),
+			'import_process_batch' => array( 'callback' => 'process_batch' ),
+			'import_get_progress'  => array( 'callback' => 'get_progress' ),
+			'import_cancel'        => array( 'callback' => 'cancel_import' ),
+			'get_acf_fields'       => array( 'callback' => 'get_acf_fields' ),
+			'get_yoast_fields'     => array( 'callback' => 'get_yoast_fields' ),
+			'get_rank_math_fields' => array( 'callback' => 'get_rank_math_fields' ),
+			'get_elementor_fields' => array( 'callback' => 'get_elementor_fields' ),
+			'get_database_tables'  => array( 'callback' => 'get_database_tables' ),
+			'get_table_columns'    => array( 'callback' => 'get_table_columns' ),
+		);
 	}
 
 	/**
@@ -48,7 +48,7 @@ class Import_Controller extends Base_Controller {
 			$this->send_error( $permission, null, 403 );
 			return; }
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- File_Service verifies PHP upload origin and the complete manifest.
-		$file   = isset( $_FILES['file'] ) && is_array( $_FILES['file'] ) ? $_FILES['file'] : [];
+		$file   = isset( $_FILES['file'] ) && is_array( $_FILES['file'] ) ? $_FILES['file'] : array();
 		$result = ( new \RockStarLab\ImportExport\Service\File_Service() )->upload( $file );
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result, null, $result->get_error_data()['status'] ?? 400 );
@@ -67,7 +67,7 @@ class Import_Controller extends Base_Controller {
 			return;
 		}
 		$result = ( new Import_Service() )->validate(
-			[
+			array(
 				'file_path'   => $this->get_request_param( 'file_path' ),
 				'file_id'     => $this->get_request_param( 'file_id', '' ),
 				'request_id'  => $this->get_request_param( 'request_id', '' ),
@@ -77,7 +77,7 @@ class Import_Controller extends Base_Controller {
 				'format'      => $this->get_request_param( 'format', 'csv' ),
 				'delimiter'   => $this->get_import_delimiter(),
 				'encoding'    => (string) $this->get_request_param( 'encoding', 'auto' ),
-			]
+			)
 		);
 		if ( is_wp_error( $result ) ) {
 			$data = $result->get_error_data();
@@ -98,7 +98,7 @@ class Import_Controller extends Base_Controller {
 			return;
 		}
 		$result = ( new Import_Service() )->start(
-			[
+			array(
 				'file_path'   => $this->get_request_param( 'file_path' ),
 				'file_id'     => $this->get_request_param( 'file_id', '' ),
 				'request_id'  => $this->get_request_param( 'request_id', '' ),
@@ -108,7 +108,7 @@ class Import_Controller extends Base_Controller {
 				'format'      => $this->get_request_param( 'format', 'csv' ),
 				'delimiter'   => $this->get_import_delimiter(),
 				'encoding'    => (string) $this->get_request_param( 'encoding', 'auto' ),
-			]
+			)
 		);
 		if ( is_wp_error( $result ) ) {
 			$data = $result->get_error_data();
@@ -201,7 +201,7 @@ class Import_Controller extends Base_Controller {
 
 		// Check if ACF is active
 		if ( ! function_exists( 'acf_get_field_groups' ) ) {
-			$this->send_success( [ 'fields' => [] ] );
+			$this->send_success( array( 'fields' => array() ) );
 			return;
 		}
 
@@ -212,7 +212,7 @@ class Import_Controller extends Base_Controller {
 		}
 		$fields = ACF_Fields::get_fields_for_content_type( $post_type, $taxonomy );
 
-		$this->send_success( [ 'fields' => $fields ] );
+		$this->send_success( array( 'fields' => $fields ) );
 	}
 
 	/**
@@ -226,14 +226,14 @@ class Import_Controller extends Base_Controller {
 
 		// Check if Yoast SEO is active
 		if ( ! defined( 'WPSEO_VERSION' ) ) {
-			$this->send_success( [ 'fields' => [] ] );
+			$this->send_success( array( 'fields' => array() ) );
 			return;
 		}
 
 		$post_type = sanitize_key( (string) $this->get_request_param( 'post_type', '', 'post' ) );
 		$fields    = \RockStarLab\ImportExport\Helper\Seo_Fields::get_yoast_fields( $post_type );
 
-		$this->send_success( [ 'fields' => $fields ] );
+		$this->send_success( array( 'fields' => $fields ) );
 	}
 
 	/**
@@ -246,16 +246,16 @@ class Import_Controller extends Base_Controller {
 		}
 
 		if ( ! \RockStarLab\ImportExport\Helper\Seo_Fields::is_rank_math_active() ) {
-			$this->send_success( [ 'fields' => [] ] );
+			$this->send_success( array( 'fields' => array() ) );
 			return;
 		}
 
 		$post_type = sanitize_key( (string) $this->get_request_param( 'post_type', '', 'post' ) );
 
 		$this->send_success(
-			[
+			array(
 				'fields' => \RockStarLab\ImportExport\Helper\Seo_Fields::get_rank_math_fields( $post_type ),
-			]
+			)
 		);
 	}
 
@@ -269,14 +269,14 @@ class Import_Controller extends Base_Controller {
 		}
 
 		if ( ! \RockStarLab\ImportExport\Helper\Elementor_Fields::is_active() ) {
-			$this->send_success( [ 'fields' => [] ] );
+			$this->send_success( array( 'fields' => array() ) );
 			return;
 		}
 
 		$this->send_success(
-			[
+			array(
 				'fields' => \RockStarLab\ImportExport\Helper\Elementor_Fields::get_fields(),
-			]
+			)
 		);
 	}
 
@@ -293,7 +293,7 @@ class Import_Controller extends Base_Controller {
 		$exporter = new \RockStarLab\ImportExport\Model\Export\Database_Table_Exporter();
 		$tables   = $exporter->get_available_tables();
 
-		$this->send_success( [ 'tables' => $tables ] );
+		$this->send_success( array( 'tables' => $tables ) );
 	}
 
 	/**
@@ -305,7 +305,7 @@ class Import_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		$validation = $this->validate_required_params( [ 'table_name' ] );
+		$validation = $this->validate_required_params( array( 'table_name' ) );
 		if ( is_wp_error( $validation ) ) {
 			$this->send_error( $validation, null, 400 );
 		}
@@ -328,10 +328,10 @@ class Import_Controller extends Base_Controller {
 		}
 
 		$this->send_success(
-			[
+			array(
 				'columns'   => $columns,
 				'row_count' => (int) $row_count,
-			]
+			)
 		);
 	}
 }

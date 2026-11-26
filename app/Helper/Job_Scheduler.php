@@ -18,7 +18,7 @@ class Job_Scheduler {
 	const CRON_HOOK = 'rsl_ie_run_job_schedule';
 
 	/** Source errors a recurring schedule retries at its next run instead of stopping. */
-	const RETRY_NEXT_RUN = [ 'rsl_ie_url_download_failed', 'rsl_ie_url_not_a_file', 'rsl_ie_file_columns_missing' ];
+	const RETRY_NEXT_RUN = array( 'rsl_ie_url_download_failed', 'rsl_ie_url_not_a_file', 'rsl_ie_file_columns_missing' );
 
 	/**
 	 * Register the scheduler callback.
@@ -26,8 +26,8 @@ class Job_Scheduler {
 	 * @return void
 	 */
 	public static function init() {
-		add_action( self::CRON_HOOK, [ __CLASS__, 'run' ] );
-		add_action( 'rsl_ie_recover_jobs', [ __CLASS__, 'recover' ] );
+		add_action( self::CRON_HOOK, array( __CLASS__, 'run' ) );
+		add_action( 'rsl_ie_recover_jobs', array( __CLASS__, 'recover' ) );
 	}
 
 	/**
@@ -40,7 +40,7 @@ class Job_Scheduler {
 		$schedule_id = absint( $schedule_id );
 		$schedule    = rsl_ie()->Model->job_schedule->find( $schedule_id );
 
-		$cleared = wp_clear_scheduled_hook( self::CRON_HOOK, [ $schedule_id ], true );
+		$cleared = wp_clear_scheduled_hook( self::CRON_HOOK, array( $schedule_id ), true );
 		if ( is_wp_error( $cleared ) ) {
 			return $cleared; }
 
@@ -57,9 +57,9 @@ class Job_Scheduler {
 		$timestamp     = max( $timestamp, time() + 1 );
 
 		if ( 'recurring' === $schedule->schedule_type ) {
-			$scheduled = wp_schedule_event( $timestamp, $schedule->recurrence, self::CRON_HOOK, [ $schedule_id ], true );
+			$scheduled = wp_schedule_event( $timestamp, $schedule->recurrence, self::CRON_HOOK, array( $schedule_id ), true );
 		} else {
-			$scheduled = wp_schedule_single_event( $timestamp, self::CRON_HOOK, [ $schedule_id ], true );
+			$scheduled = wp_schedule_single_event( $timestamp, self::CRON_HOOK, array( $schedule_id ), true );
 		}
 
 		if ( is_wp_error( $scheduled ) ) {
@@ -68,10 +68,10 @@ class Job_Scheduler {
 
 		rsl_ie()->Model->job_schedule->update(
 			$schedule_id,
-			[
+			array(
 				'next_run_gmt' => gmdate( 'Y-m-d H:i:s', $due_timestamp ),
 				'updated_at'   => current_time( 'mysql', true ),
-			]
+			)
 		);
 
 		return true;
@@ -84,7 +84,7 @@ class Job_Scheduler {
 	 * @return void
 	 */
 	public static function unschedule( $schedule_id ) {
-		wp_clear_scheduled_hook( self::CRON_HOOK, [ absint( $schedule_id ) ] );
+		wp_clear_scheduled_hook( self::CRON_HOOK, array( absint( $schedule_id ) ) );
 	}
 
 	/**
@@ -107,12 +107,12 @@ class Job_Scheduler {
 			if ( ! $due || $due > time() ) {
 				return; }
 			$context = \RockStarLab\ImportExport\Abilities\Execution_Context::from_storage( (int) $schedule->created_by, get_current_blog_id() );
-			$options = get_option( 'rsl_ie_schedule_meta_' . $schedule_id, [] );
+			$options = get_option( 'rsl_ie_schedule_meta_' . $schedule_id, array() );
 			$result  = is_wp_error( $context ) ? $context : $context->run(
 				static function () use ( $schedule, $due, $options ) {
 					$last = $schedule->last_job_id ? rsl_ie()->Model->job->find( (int) $schedule->last_job_id ) : null;
-					if ( $last && in_array( $last->status, [ 'pending', 'processing', 'paused' ], true ) ) {
-						return new \WP_Error( 'rsl_ie_schedule_overlap', __( 'Previous occurrence is still active.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+					if ( $last && in_array( $last->status, array( 'pending', 'processing', 'paused' ), true ) ) {
+						return new \WP_Error( 'rsl_ie_schedule_overlap', __( 'Previous occurrence is still active.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 					}
 					// "Changes only": everything modified since the previous completed run started.
 					// Without a completed previous run, export everything so nothing is missed.
@@ -120,16 +120,16 @@ class Job_Scheduler {
 					return ( new \RockStarLab\ImportExport\Service\Schedule_Source_Service() )->execute( (int) $schedule->source_job_id, 'schedule:' . $schedule->id . ':' . $due, $since );
 				}
 			);
-			$meta    = get_option( 'rsl_ie_schedule_meta_' . $schedule_id, [] );
+			$meta    = get_option( 'rsl_ie_schedule_meta_' . $schedule_id, array() );
 			if ( is_wp_error( $result ) && 'rsl_ie_schedule_overlap' === $result->get_error_code() ) {
 				$interval = 'recurring' === $schedule->schedule_type ? ( wp_get_schedules()[ $schedule->recurrence ]['interval'] ?? 60 ) : 60;
 				$next     = $due + ( max( 0, (int) floor( ( time() - $due ) / $interval ) ) + 1 ) * $interval;
 				$model->update(
 					$schedule_id,
-					[
+					array(
 						'next_run_gmt' => gmdate( 'Y-m-d H:i:s', $next ),
 						'last_run_gmt' => current_time( 'mysql', true ),
-					]
+					)
 				);
 				self::sync_event( $schedule_id );
 				return;
@@ -142,17 +142,17 @@ class Job_Scheduler {
 				$meta['error_code']    = $result->get_error_code();
 				$meta['error_message'] = wp_strip_all_tags( $result->get_error_message() );
 				// Runs happen in WP-Cron, in the site language: keep the parts so Schedules can show the reason in the reader's language.
-				$meta['error_reason']  = (string) ( ( (array) $result->get_error_data() )['reason'] ?? '' );
-				$meta['error_gmt']     = current_time( 'mysql', true );
+				$meta['error_reason'] = (string) ( ( (array) $result->get_error_data() )['reason'] ?? '' );
+				$meta['error_gmt']    = current_time( 'mysql', true );
 				update_option( 'rsl_ie_schedule_meta_' . $schedule_id, $meta, false );
 				if ( $interval ) {
 					$next = $due + ( max( 0, (int) floor( ( time() - $due ) / $interval ) ) + 1 ) * $interval;
 					$model->update(
 						$schedule_id,
-						[
+						array(
 							'next_run_gmt' => gmdate( 'Y-m-d H:i:s', $next ),
 							'last_run_gmt' => current_time( 'mysql', true ),
-						]
+						)
 					);
 					self::sync_event( $schedule_id );
 					return;
@@ -162,16 +162,16 @@ class Job_Scheduler {
 				$meta['error_code']    = $result->get_error_code();
 				$meta['error_message'] = wp_strip_all_tags( $result->get_error_message() );
 				// Runs happen in WP-Cron, in the site language: keep the parts so Schedules can show the reason in the reader's language.
-				$meta['error_reason']  = (string) ( ( (array) $result->get_error_data() )['reason'] ?? '' );
-				$meta['error_gmt']     = current_time( 'mysql', true );
+				$meta['error_reason'] = (string) ( ( (array) $result->get_error_data() )['reason'] ?? '' );
+				$meta['error_gmt']    = current_time( 'mysql', true );
 				update_option( 'rsl_ie_schedule_meta_' . $schedule_id, $meta, false );
 				$model->update(
 					$schedule_id,
-					[
+					array(
 						'status'       => 'failed',
 						'next_run_gmt' => null,
 						'last_run_gmt' => current_time( 'mysql', true ),
-					]
+					)
 				);
 				self::unschedule( $schedule_id );
 				return;
@@ -182,11 +182,11 @@ class Job_Scheduler {
 				unset( $meta['error_code'], $meta['error_message'], $meta['error_gmt'] );
 				update_option( 'rsl_ie_schedule_meta_' . $schedule_id, $meta, false );
 			}
-			$data = [
+			$data = array(
 				'last_job_id'  => (int) $result['job_id'],
 				'last_run_gmt' => current_time( 'mysql', true ),
 				'updated_at'   => current_time( 'mysql', true ),
-			];
+			);
 			if ( 'once' === $schedule->schedule_type ) {
 				$data['status']       = 'completed';
 				$data['next_run_gmt'] = null;
@@ -214,7 +214,7 @@ class Job_Scheduler {
 		global $wpdb;
 		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT id FROM %i WHERE status = 'active' AND next_run_gmt <= %s ORDER BY next_run_gmt ASC LIMIT 100", $wpdb->prefix . 'rsl_ie_job_schedules', current_time( 'mysql', true ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Durable schedule recovery.
 		foreach ( $rows as $row ) {
-			$next = wp_next_scheduled( self::CRON_HOOK, [ (int) $row->id ] );
+			$next = wp_next_scheduled( self::CRON_HOOK, array( (int) $row->id ) );
 			if ( ! $next || $next > time() + 60 ) {
 				$lock = \RockStarLab\ImportExport\Service\Job_Lock::acquire_resource( 'schedule', $row->id );
 				if ( $lock && ! is_wp_error( $lock ) ) {

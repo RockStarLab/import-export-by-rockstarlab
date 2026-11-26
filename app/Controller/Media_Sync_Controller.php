@@ -17,16 +17,16 @@ class Media_Sync_Controller extends Base_Controller {
 	 * @return array
 	 */
 	protected function get_ajax_actions() {
-		return [
-			'scan_folder'              => [ 'callback' => 'scan_folder' ],
-			'start_media_sync'         => [ 'callback' => 'start_media_sync' ],
-			'get_sync_progress'        => [ 'callback' => 'get_sync_progress' ],
-			'pause_media_sync'         => [ 'callback' => 'pause_media_sync' ],
-			'resume_media_sync'        => [ 'callback' => 'resume_media_sync' ],
-			'cancel_media_sync'        => [ 'callback' => 'cancel_media_sync' ],
-			'browse_folders'           => [ 'callback' => 'browse_folders' ],
-			'process_media_sync_batch' => [ 'callback' => 'process_media_sync_batch' ],
-		];
+		return array(
+			'scan_folder'              => array( 'callback' => 'scan_folder' ),
+			'start_media_sync'         => array( 'callback' => 'start_media_sync' ),
+			'get_sync_progress'        => array( 'callback' => 'get_sync_progress' ),
+			'pause_media_sync'         => array( 'callback' => 'pause_media_sync' ),
+			'resume_media_sync'        => array( 'callback' => 'resume_media_sync' ),
+			'cancel_media_sync'        => array( 'callback' => 'cancel_media_sync' ),
+			'browse_folders'           => array( 'callback' => 'browse_folders' ),
+			'process_media_sync_batch' => array( 'callback' => 'process_media_sync_batch' ),
+		);
 	}
 
 	/** Execute the authorized scan folder operation. */
@@ -34,10 +34,10 @@ class Media_Sync_Controller extends Base_Controller {
 		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification ); }
-		$input   = [
+		$input   = array(
 			'folder_path' => $this->get_request_param( 'folder_path', '' ),
 			'options'     => $this->get_request_array( 'options' ),
-		];
+		);
 		$service = new Media_Folder_Service();
 		$result  = $service->scan( $input, false );
 		if ( is_wp_error( $result ) ) {
@@ -50,7 +50,7 @@ class Media_Sync_Controller extends Base_Controller {
 		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification ); }
-		$input   = [ 'path' => $this->get_request_param( 'path', '' ) ];
+		$input   = array( 'path' => $this->get_request_param( 'path', '' ) );
 		$service = new Media_Folder_Service();
 		$result  = $service->browse( $input, false );
 		if ( is_wp_error( $result ) ) {
@@ -63,13 +63,13 @@ class Media_Sync_Controller extends Base_Controller {
 		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification ); }
-		$input   = [
+		$input   = array(
 			'folder_path'    => $this->get_request_param( 'folder_path', '' ),
 			'selected_files' => $this->get_request_array( 'selected_files' ),
 			'scan_options'   => $this->get_request_array( 'scan_options' ),
 			'sync_options'   => $this->get_request_array( 'sync_options' ),
 			'request_id'     => $this->get_request_param( 'request_id', '' ),
-		];
+		);
 		$service = new Media_Folder_Service();
 		$result  = $service->start( $input );
 		if ( is_wp_error( $result ) ) {

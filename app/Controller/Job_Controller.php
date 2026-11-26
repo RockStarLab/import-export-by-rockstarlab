@@ -117,20 +117,20 @@ class Job_Controller extends Base_Controller {
 	 * @return array
 	 */
 	protected function get_ajax_actions() {
-		return [
-			'job_list'         => [ 'callback' => 'list_jobs' ],
-			'job_get'          => [ 'callback' => 'get_job' ],
-			'job_delete'       => [ 'callback' => 'delete_job' ],
-			'job_get_logs'     => [ 'callback' => 'get_logs' ],
-			'job_cleanup'      => [ 'callback' => 'cleanup_old_jobs' ],
-			'job_pause'        => [ 'callback' => 'pause_job' ],
-			'job_resume'       => [ 'callback' => 'resume_job' ],
-			'job_restart'      => [ 'callback' => 'restart_job' ],
-			'job_retry'        => [ 'callback' => 'retry_job' ],
-			'job_rename'       => [ 'callback' => 'rename_job' ],
-			'job_download_url' => [ 'callback' => 'get_download_url' ],
-			'job_favorite'     => [ 'callback' => 'favorite_job' ],
-		];
+		return array(
+			'job_list'         => array( 'callback' => 'list_jobs' ),
+			'job_get'          => array( 'callback' => 'get_job' ),
+			'job_delete'       => array( 'callback' => 'delete_job' ),
+			'job_get_logs'     => array( 'callback' => 'get_logs' ),
+			'job_cleanup'      => array( 'callback' => 'cleanup_old_jobs' ),
+			'job_pause'        => array( 'callback' => 'pause_job' ),
+			'job_resume'       => array( 'callback' => 'resume_job' ),
+			'job_restart'      => array( 'callback' => 'restart_job' ),
+			'job_retry'        => array( 'callback' => 'retry_job' ),
+			'job_rename'       => array( 'callback' => 'rename_job' ),
+			'job_download_url' => array( 'callback' => 'get_download_url' ),
+			'job_favorite'     => array( 'callback' => 'favorite_job' ),
+		);
 	}
 
 	/**
@@ -148,9 +148,9 @@ class Job_Controller extends Base_Controller {
 		$offset = (int) $this->get_request_param( 'offset', 0 );
 
 		$job_model = rsl_ie()->Model->job;
-		$where     = [];
+		$where     = array();
 
-		if ( in_array( $type, [ 'content_update', 'media_sync', 'ai_url' ], true ) ) {
+		if ( in_array( $type, array( 'content_update', 'media_sync', 'ai_url' ), true ) ) {
 			// Content Updater, Media Sync (folders) and AI URL Importer jobs are stored as type=import with their own data_type.
 			$where['type']      = 'import';
 			$where['data_type'] = $type;
@@ -174,7 +174,7 @@ class Job_Controller extends Base_Controller {
 		// Add action flags to each job
 		foreach ( $jobs as &$job ) {
 			// Can resume: paused or failed jobs
-			$job->can_resume = in_array( $job->status, [ 'paused', 'failed' ], true );
+			$job->can_resume = in_array( $job->status, array( 'paused', 'failed' ), true );
 
 			// Can delete: any job
 			$job->can_delete = true;
@@ -182,9 +182,9 @@ class Job_Controller extends Base_Controller {
 			// Can retry: any job
 			$job->can_retry   = true;
 			$job->can_restart = true;
-			if ( in_array( $job->type, [ 'content_sync_push', 'content_sync_pull' ], true ) ) {
+			if ( in_array( $job->type, array( 'content_sync_push', 'content_sync_pull' ), true ) ) {
 				// History rows of immediate syncs: only Restart runs them again (see restart_job).
-				$job->can_restart = in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true );
+				$job->can_restart = in_array( $job->status, array( 'completed', 'failed', 'cancelled' ), true );
 				$job->can_retry   = false;
 				$job->can_resume  = false;
 			}
@@ -196,7 +196,7 @@ class Job_Controller extends Base_Controller {
 			}
 			if ( self::is_special_managed_job( $job ) || Job_Service::supports( $job ) || \RockStarLab\ImportExport\Service\Media_Folder_Service::supports( $job ) || \RockStarLab\ImportExport\Service\Sync_Job_Service::supports( $job ) || \RockStarLab\ImportExport\Service\Migration_Service::supports( $job ) || ( $job && ! empty( json_decode( $job->parameters, true )['migration_parent_id'] ) ) ) {
 				$snapshot         = ( new Job_Service() )->get( $job->id );
-				$actions          = is_wp_error( $snapshot ) ? [] : $snapshot['allowed_actions'];
+				$actions          = is_wp_error( $snapshot ) ? array() : $snapshot['allowed_actions'];
 				$job->can_retry   = in_array( 'retry', $actions, true );
 				$job->can_restart = in_array( 'restart', $actions, true );
 				$job->can_resume  = in_array( 'resume', $actions, true );
@@ -220,13 +220,13 @@ class Job_Controller extends Base_Controller {
 			$start_ts = 0;
 			if ( ! empty( $job->started_at ) ) {
 				$start_ts = (int) strtotime( $job->started_at );
-			} elseif ( ! empty( $job->created_at ) && ! in_array( $job->status, [ 'pending' ], true ) ) {
+			} elseif ( ! empty( $job->created_at ) && ! in_array( $job->status, array( 'pending' ), true ) ) {
 				$start_ts = (int) strtotime( $job->created_at );
 			}
 
 			if ( $start_ts > 0 ) {
 				$end_ts = 0;
-				if ( ! empty( $job->completed_at ) && in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true ) ) {
+				if ( ! empty( $job->completed_at ) && in_array( $job->status, array( 'completed', 'failed', 'cancelled' ), true ) ) {
 					$end_ts = (int) strtotime( $job->completed_at );
 				} else {
 					$end_ts = (int) current_time( 'timestamp' );
@@ -243,12 +243,12 @@ class Job_Controller extends Base_Controller {
 		$total = $job_model->count( $where );
 
 		$this->send_success(
-			[
+			array(
 				'jobs'   => $jobs,
 				'total'  => $total,
 				'limit'  => $limit,
 				'offset' => $offset,
-			]
+			)
 		);
 	}
 
@@ -261,23 +261,23 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 			return;
 		}
-		$validation = $this->validate_required_params( [ 'job_id' ] );
+		$validation = $this->validate_required_params( array( 'job_id' ) );
 		if ( is_wp_error( $validation ) ) {
 			$this->send_error( $validation, null, 400 );
 			return;
 		}
 		$job_id   = (int) $this->get_request_param( 'job_id' );
-		$favorite = ! in_array( (string) $this->get_request_param( 'favorite', '1' ), [ '0', 'false', '' ], true );
+		$favorite = ! in_array( (string) $this->get_request_param( 'favorite', '1' ), array( '0', 'false', '' ), true );
 		$result   = \RockStarLab\ImportExport\Service\Job_Favorites::set( $job_id, $favorite );
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result, null, $result->get_error_data()['status'] ?? 400 );
 			return;
 		}
 		$this->send_success(
-			[
+			array(
 				'job_id'      => $job_id,
 				'is_favorite' => $result,
-			]
+			)
 		);
 	}
 
@@ -290,7 +290,7 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		$validation = $this->validate_required_params( [ 'job_id' ] );
+		$validation = $this->validate_required_params( array( 'job_id' ) );
 		if ( is_wp_error( $validation ) ) {
 			$this->send_error( $validation, null, 400 );
 		}
@@ -314,9 +314,9 @@ class Job_Controller extends Base_Controller {
 		$job_data->result     = json_decode( $job_data->result, true );
 
 		// Aliases for JS layer; prefer the canonical counters when present.
-		$job_data->success_items = (int) ( $job_data->success_items ?? $job_data->imported_items ?? 0 );
-		$job_data->failed_items  = (int) ( $job_data->failed_items ?? $job_data->error_items ?? 0 );
-		$job_data->job_name      = isset( $job_data->job_name ) ? (string) $job_data->job_name : '';
+		$job_data->success_items   = (int) ( $job_data->success_items ?? $job_data->imported_items ?? 0 );
+		$job_data->failed_items    = (int) ( $job_data->failed_items ?? $job_data->error_items ?? 0 );
+		$job_data->job_name        = isset( $job_data->job_name ) ? (string) $job_data->job_name : '';
 		$job_data->file_size_human = isset( $job_data->file_size ) ? size_format( (int) $job_data->file_size, 2 ) : '';
 
 		$this->send_success( $job_data );
@@ -350,7 +350,7 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		$validation = $this->validate_required_params( [ 'job_id' ] );
+		$validation = $this->validate_required_params( array( 'job_id' ) );
 		if ( is_wp_error( $validation ) ) {
 			$this->send_error( $validation, null, 400 );
 		}
@@ -369,10 +369,10 @@ class Job_Controller extends Base_Controller {
 
 		$result = $job_model->update(
 			$job_id,
-			[
+			array(
 				'job_name'   => '' === $job_name ? null : $job_name,
 				'updated_at' => current_time( 'mysql' ),
-			]
+			)
 		);
 
 		if ( is_wp_error( $result ) ) {
@@ -380,10 +380,10 @@ class Job_Controller extends Base_Controller {
 		}
 
 		$this->send_success(
-			[
+			array(
 				'job_id'   => $job_id,
 				'job_name' => $job_name,
-			],
+			),
 			__( 'Job name updated successfully', 'import-export-by-rockstarlab' )
 		);
 	}
@@ -416,7 +416,7 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		$validation = $this->validate_required_params( [ 'job_id' ] );
+		$validation = $this->validate_required_params( array( 'job_id' ) );
 		if ( is_wp_error( $validation ) ) {
 			$this->send_error( $validation, null, 400 );
 		}
@@ -491,7 +491,7 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		$validation = $this->validate_required_params( [ 'job_id' ] );
+		$validation = $this->validate_required_params( array( 'job_id' ) );
 		if ( is_wp_error( $validation ) ) {
 			$this->send_error( $validation, null, 400 );
 		}
@@ -506,7 +506,7 @@ class Job_Controller extends Base_Controller {
 		}
 
 		// Check if job can be resumed
-		if ( ! in_array( $job_data->status, [ 'paused', 'failed', 'processing' ], true ) ) {
+		if ( ! in_array( $job_data->status, array( 'paused', 'failed', 'processing' ), true ) ) {
 			$this->send_error(
 				sprintf(
 					/* translators: %s: current job status */
@@ -521,10 +521,10 @@ class Job_Controller extends Base_Controller {
 		// Update job status
 		$updated = $job_model->update(
 			$job_id,
-			[
+			array(
 				'status'     => 'processing',
 				'updated_at' => current_time( 'mysql' ),
-			]
+			)
 		);
 
 		if ( is_wp_error( $updated ) ) {
@@ -535,12 +535,12 @@ class Job_Controller extends Base_Controller {
 		$parameters = maybe_unserialize( $job_data->parameters );
 
 		$this->send_success(
-			[
+			array(
 				'job_id'     => $job_id,
 				'type'       => $job_data->type,
 				'data_type'  => $job_data->data_type,
 				'parameters' => $parameters,
-			],
+			),
 			__( 'Job resumed successfully', 'import-export-by-rockstarlab' )
 		);
 	}
@@ -550,7 +550,7 @@ class Job_Controller extends Base_Controller {
 	 */
 	public function restart_job() {
 		$source = rsl_ie()->Model->job->find( (int) $this->get_request_param( 'job_id' ) );
-		if ( $source && in_array( $source->type, [ 'content_sync_push', 'content_sync_pull' ], true ) ) {
+		if ( $source && in_array( $source->type, array( 'content_sync_push', 'content_sync_pull' ), true ) ) {
 			// Immediate syncs keep only a history row; run them again through the queued sync
 			// workflow that schedules use. A plain copy of the row would stay pending forever.
 			$permission = $this->verify_request();
@@ -592,7 +592,7 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		$validation = $this->validate_required_params( [ 'job_id' ] );
+		$validation = $this->validate_required_params( array( 'job_id' ) );
 		if ( is_wp_error( $validation ) ) {
 			$this->send_error( $validation, null, 400 );
 		}
@@ -635,7 +635,7 @@ class Job_Controller extends Base_Controller {
 		}
 
 		// Create new job with same settings
-		$new_job_payload = [
+		$new_job_payload = array(
 			'user_id'     => $job_data->user_id,
 			'type'        => $job_data->type,
 			'data_type'   => $job_data->data_type,
@@ -643,7 +643,7 @@ class Job_Controller extends Base_Controller {
 			'job_name'    => isset( $job_data->job_name ) ? $job_data->job_name : null,
 			'parameters'  => $this->normalize_rerun_parameters( $job_data->type, $job_data->parameters ),
 			'settings'    => $settings_to_use,
-		];
+		);
 
 		// Import/update jobs depend on the source file path for processing. When
 		// restarting from Jobs Log, keep the same file reference when available.
@@ -665,12 +665,12 @@ class Job_Controller extends Base_Controller {
 		}
 
 		$this->send_success(
-			[
+			array(
 				'job_id'     => $new_job_id,
 				'type'       => $job_data->type,
 				'data_type'  => $job_data->data_type,
 				'parameters' => $parameters,
-			],
+			),
 			__( 'Job restarted successfully', 'import-export-by-rockstarlab' )
 		);
 	}
@@ -703,7 +703,7 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		$validation = $this->validate_required_params( [ 'job_id' ] );
+		$validation = $this->validate_required_params( array( 'job_id' ) );
 		if ( is_wp_error( $validation ) ) {
 			$this->send_error( $validation, null, 400 );
 		}
@@ -746,7 +746,7 @@ class Job_Controller extends Base_Controller {
 		}
 
 		// Create new job with same settings but set status to processing
-		$new_job_payload = [
+		$new_job_payload = array(
 			'user_id'     => $job_data->user_id,
 			'type'        => $job_data->type,
 			'data_type'   => $job_data->data_type,
@@ -755,7 +755,7 @@ class Job_Controller extends Base_Controller {
 			'parameters'  => $this->normalize_rerun_parameters( $job_data->type, $job_data->parameters ),
 			'settings'    => $settings_to_use,
 			'status'      => 'processing', // Set to processing immediately
-		];
+		);
 
 		// Import/update jobs depend on the source file path for processing. When
 		// retrying from Jobs Log, keep the same file reference when available.
@@ -777,12 +777,12 @@ class Job_Controller extends Base_Controller {
 		}
 
 		$this->send_success(
-			[
+			array(
 				'job_id'     => $new_job_id,
 				'type'       => $job_data->type,
 				'data_type'  => $job_data->data_type,
 				'parameters' => $parameters,
-			],
+			),
 			__( 'Job created and ready to process', 'import-export-by-rockstarlab' )
 		);
 	}
@@ -827,21 +827,21 @@ class Job_Controller extends Base_Controller {
 		// Generate nonce for this specific job.
 		$nonce = wp_create_nonce( 'rsl_ie_download_' . $job_id );
 		$url   = add_query_arg(
-			[
+			array(
 				'action'   => 'rsl_ie_secure_download',
 				'job_id'   => $job_id,
 				'_wpnonce' => $nonce,
 				'nonce'    => Ajax_Security::create_nonce( 'rsl_ie_secure_download' ),
-			],
+			),
 			admin_url( 'admin-ajax.php' )
 		);
 
 		$this->send_success(
-			[
+			array(
 				'file_id' => $file['file_id'],
 				'url'     => $url,
 				'nonce'   => $nonce,
-			],
+			),
 			__( 'Download URL generated', 'import-export-by-rockstarlab' )
 		);
 	}

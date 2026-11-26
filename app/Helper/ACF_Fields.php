@@ -23,25 +23,25 @@ class ACF_Fields {
 	 */
 	public static function get_fields_for_content_type( $content_type, $taxonomy = '' ) {
 		if ( ! function_exists( 'acf_get_field_groups' ) || ! function_exists( 'acf_get_fields' ) ) {
-			return [];
+			return array();
 		}
 
 		$content_type = sanitize_key( (string) $content_type );
 		$taxonomy     = sanitize_key( (string) $taxonomy );
 		$location     = self::get_location_args( $content_type, $taxonomy );
 		if ( empty( $location ) ) {
-			return [];
+			return array();
 		}
 
 		$field_groups = self::get_field_groups_for_location( $location );
-		if ( in_array( $content_type, [ 'menu', 'menus', 'nav_menu', 'nav_menu_item' ], true ) ) {
+		if ( in_array( $content_type, array( 'menu', 'menus', 'nav_menu', 'nav_menu_item' ), true ) ) {
 			$field_groups = array_merge(
 				$field_groups,
-				self::get_field_groups_for_location( [ 'nav_menu_item' => 'all' ] )
+				self::get_field_groups_for_location( array( 'nav_menu_item' => 'all' ) )
 			);
 		}
-		$fields = [];
-		$seen   = [];
+		$fields = array();
+		$seen   = array();
 
 		foreach ( $field_groups as $group ) {
 			$group_fields = acf_get_fields( $group['key'] ?? $group );
@@ -52,7 +52,7 @@ class ACF_Fields {
 			// A clone shown as a group keeps its cloned fields under sub_fields, already named
 			// as they are stored (with the clone's prefix when "Prefix field names" is on):
 			// list those fields. Seamless clones arrive expanded.
-			$expanded = [];
+			$expanded = array();
 			foreach ( $group_fields as $field ) {
 				if ( 'clone' === ( $field['type'] ?? '' ) && ! empty( $field['sub_fields'] ) && is_array( $field['sub_fields'] ) ) {
 					foreach ( $field['sub_fields'] as $sub_field ) {
@@ -64,7 +64,7 @@ class ACF_Fields {
 			}
 
 			foreach ( $expanded as $field ) {
-				if ( empty( $field['name'] ) || empty( $field['type'] ) || in_array( $field['type'], [ 'accordion', 'tab', 'message', 'clone' ], true ) ) {
+				if ( empty( $field['name'] ) || empty( $field['type'] ) || in_array( $field['type'], array( 'accordion', 'tab', 'message', 'clone' ), true ) ) {
 					continue;
 				}
 
@@ -74,11 +74,11 @@ class ACF_Fields {
 				}
 				$seen[ $name ] = true;
 
-				$fields[] = [
+				$fields[] = array(
 					'name'  => $name,
 					'label' => (string) ( $field['label'] ?? $name ),
 					'type'  => (string) $field['type'],
-				];
+				);
 			}
 		}
 
@@ -117,7 +117,7 @@ class ACF_Fields {
 
 		$value = false;
 		if ( self::should_export_raw_nested_acf_value( $object_type, $field_type ) ) {
-			$value = self::get_raw_nested_acf_value( $object_type, $object_id, is_array( $field_object ) ? $field_object : [] );
+			$value = self::get_raw_nested_acf_value( $object_type, $object_id, is_array( $field_object ) ? $field_object : array() );
 		}
 
 		if ( false === $value && function_exists( 'get_field' ) ) {
@@ -131,7 +131,7 @@ class ACF_Fields {
 			}
 		}
 
-		$portable = self::to_portable_value( $value, is_array( $field_object ) ? $field_object : [] );
+		$portable = self::to_portable_value( $value, is_array( $field_object ) ? $field_object : array() );
 
 		return is_array( $portable ) || is_object( $portable ) ? wp_json_encode( $portable, JSON_UNESCAPED_UNICODE ) : $portable;
 	}
@@ -157,7 +157,7 @@ class ACF_Fields {
 		$field_object                = self::get_field_object( $field_name, $acf_id, $object_type, $taxonomy );
 		$media_parent                = self::get_media_parent_id( $object_type, $object_id );
 		$raw_value                   = self::maybe_decode( $value );
-		$prepared                    = self::from_portable_value( $value, is_array( $field_object ) ? $field_object : [], $media_parent );
+		$prepared                    = self::from_portable_value( $value, is_array( $field_object ) ? $field_object : array(), $media_parent );
 		$selector                    = is_array( $field_object ) && ! empty( $field_object['key'] ) ? (string) $field_object['key'] : $field_name;
 		$field_type                  = is_array( $field_object ) ? (string) ( $field_object['type'] ?? '' ) : '';
 		$is_raw_flexible_layout_list = 'flexible_content' === $field_type && self::is_raw_flexible_layout_list( $raw_value );
@@ -166,7 +166,7 @@ class ACF_Fields {
 			update_field( $selector, $prepared, $acf_id );
 		}
 
-		$is_complex_acf = in_array( $field_type, [ 'repeater', 'group', 'flexible_content' ], true );
+		$is_complex_acf = in_array( $field_type, array( 'repeater', 'group', 'flexible_content' ), true );
 		if ( $is_raw_flexible_layout_list ) {
 			self::update_raw_meta_value( $object_type, $object_id, $field_name, array_values( $raw_value ) );
 		} elseif ( ! $is_complex_acf ) {
@@ -215,7 +215,7 @@ class ACF_Fields {
 			return 'comment_' . $object_id;
 		}
 
-		if ( in_array( $object_type, [ 'term', 'taxonomy', 'menu' ], true ) ) {
+		if ( in_array( $object_type, array( 'term', 'taxonomy', 'menu' ), true ) ) {
 			return 'term_' . $object_id;
 		}
 
@@ -230,7 +230,7 @@ class ACF_Fields {
 	 * @return array<string,string>
 	 */
 	private static function get_location_args( $content_type, $taxonomy = '' ) {
-		$type_map = [
+		$type_map = array(
 			'woo_product'   => 'product',
 			'woo_order'     => 'shop_order',
 			'woo_coupon'    => 'shop_coupon',
@@ -242,35 +242,35 @@ class ACF_Fields {
 			'nav_menu_item' => 'nav_menu_item',
 			'term'          => 'taxonomy',
 			'taxonomy'      => 'taxonomy',
-		];
+		);
 
 		$content_type = $type_map[ $content_type ] ?? $content_type;
 
 		if ( 'user' === $content_type ) {
-			return [ 'user_form' => 'all' ];
+			return array( 'user_form' => 'all' );
 		}
 
 		if ( 'attachment' === $content_type ) {
-			return [ 'attachment' => 'all' ];
+			return array( 'attachment' => 'all' );
 		}
 
 		if ( 'comment' === $content_type ) {
-			return [ 'comment' => 'all' ];
+			return array( 'comment' => 'all' );
 		}
 
 		if ( 'nav_menu' === $content_type ) {
-			return [ 'nav_menu' => 'all' ];
+			return array( 'nav_menu' => 'all' );
 		}
 
 		if ( 'nav_menu_item' === $content_type ) {
-			return [ 'nav_menu_item' => 'all' ];
+			return array( 'nav_menu_item' => 'all' );
 		}
 
 		if ( 'taxonomy' === $content_type ) {
-			return [ 'taxonomy' => '' !== $taxonomy ? $taxonomy : 'all' ];
+			return array( 'taxonomy' => '' !== $taxonomy ? $taxonomy : 'all' );
 		}
 
-		return '' !== $content_type ? [ 'post_type' => $content_type ] : [];
+		return '' !== $content_type ? array( 'post_type' => $content_type ) : array();
 	}
 
 	/**
@@ -285,9 +285,9 @@ class ACF_Fields {
 	 */
 	private static function get_field_groups_for_location( array $location ) {
 		$field_groups = acf_get_field_groups( $location );
-		$indexed      = [];
+		$indexed      = array();
 
-		foreach ( is_array( $field_groups ) ? $field_groups : [] as $group ) {
+		foreach ( is_array( $field_groups ) ? $field_groups : array() as $group ) {
 			if ( isset( $group['key'] ) ) {
 				$indexed[ $group['key'] ] = $group;
 			}
@@ -415,7 +415,7 @@ class ACF_Fields {
 		}
 
 		$fields = acf_get_fields( $group['key'] ?? $group );
-		return self::find_field_object_in_fields( $field_name, is_array( $fields ) ? $fields : [] );
+		return self::find_field_object_in_fields( $field_name, is_array( $fields ) ? $fields : array() );
 	}
 
 	/**
@@ -437,7 +437,7 @@ class ACF_Fields {
 				return $field;
 			}
 
-			foreach ( [ 'sub_fields', 'layouts' ] as $children_key ) {
+			foreach ( array( 'sub_fields', 'layouts' ) as $children_key ) {
 				if ( empty( $field[ $children_key ] ) || ! is_array( $field[ $children_key ] ) ) {
 					continue;
 				}
@@ -479,7 +479,7 @@ class ACF_Fields {
 		$object_type = sanitize_key( (string) $object_type );
 		$object_id   = absint( $object_id );
 
-		if ( in_array( $object_type, [ 'post', 'media', 'attachment' ], true ) ) {
+		if ( in_array( $object_type, array( 'post', 'media', 'attachment' ), true ) ) {
 			return $object_id;
 		}
 
@@ -496,72 +496,72 @@ class ACF_Fields {
 	private static function to_portable_value( $value, array $field_object ) {
 		$type = (string) ( $field_object['type'] ?? '' );
 
-		if ( in_array( $type, [ 'image', 'file' ], true ) ) {
+		if ( in_array( $type, array( 'image', 'file' ), true ) ) {
 			return self::media_url_from_value( $value );
 		}
 
 		if ( 'gallery' === $type ) {
-			$urls = [];
-			foreach ( is_array( $value ) ? $value : [] as $item ) {
+			$urls = array();
+			foreach ( is_array( $value ) ? $value : array() as $item ) {
 				$url = self::media_url_from_value( $item );
 				if ( '' !== $url ) {
 					$urls[] = $url;
 				}
 			}
-			return [
+			return array(
 				'acf_type' => 'gallery',
 				'values'   => $urls,
-			];
+			);
 		}
 
 		if ( 'repeater' === $type ) {
-			$rows = [];
-			foreach ( is_array( $value ) ? $value : [] as $row ) {
-				$rows[] = self::portable_row_value( is_array( $row ) ? $row : [], (array) ( $field_object['sub_fields'] ?? [] ) );
+			$rows = array();
+			foreach ( is_array( $value ) ? $value : array() as $row ) {
+				$rows[] = self::portable_row_value( is_array( $row ) ? $row : array(), (array) ( $field_object['sub_fields'] ?? array() ) );
 			}
 
-			return [
+			return array(
 				'acf_type' => 'repeater',
 				'rows'     => $rows,
-			];
+			);
 		}
 
 		if ( 'group' === $type ) {
-			return [
+			return array(
 				'acf_type' => 'group',
-				'value'    => self::portable_row_value( is_array( $value ) ? $value : [], (array) ( $field_object['sub_fields'] ?? [] ) ),
-			];
+				'value'    => self::portable_row_value( is_array( $value ) ? $value : array(), (array) ( $field_object['sub_fields'] ?? array() ) ),
+			);
 		}
 
 		if ( 'flexible_content' === $type ) {
-			$layout_map = [];
-			foreach ( (array) ( $field_object['layouts'] ?? [] ) as $layout ) {
+			$layout_map = array();
+			foreach ( (array) ( $field_object['layouts'] ?? array() ) as $layout ) {
 				if ( is_array( $layout ) && ! empty( $layout['name'] ) ) {
-					$layout_map[ (string) $layout['name'] ] = (array) ( $layout['sub_fields'] ?? [] );
+					$layout_map[ (string) $layout['name'] ] = (array) ( $layout['sub_fields'] ?? array() );
 				}
 			}
 
-			$rows = [];
-			foreach ( is_array( $value ) ? $value : [] as $row ) {
-				$row         = is_array( $row ) ? $row : [];
+			$rows = array();
+			foreach ( is_array( $value ) ? $value : array() as $row ) {
+				$row         = is_array( $row ) ? $row : array();
 				$layout_name = (string) ( $row['acf_fc_layout'] ?? '' );
-				$rows[]      = [
+				$rows[]      = array(
 					'layout' => $layout_name,
-					'value'  => self::portable_row_value( $row, $layout_map[ $layout_name ] ?? [] ),
-				];
+					'value'  => self::portable_row_value( $row, $layout_map[ $layout_name ] ?? array() ),
+				);
 			}
 
-			return [
+			return array(
 				'acf_type' => 'flexible_content',
 				'rows'     => $rows,
-			];
+			);
 		}
 
-		if ( in_array( $type, [ 'relationship', 'post_object', 'page_link' ], true ) ) {
+		if ( in_array( $type, array( 'relationship', 'post_object', 'page_link' ), true ) ) {
 			$single = ! is_array( $value );
-			$items  = $single ? [ $value ] : $value;
-			$out    = [];
-			foreach ( is_array( $items ) ? $items : [] as $item ) {
+			$items  = $single ? array( $value ) : $value;
+			$out    = array();
+			foreach ( is_array( $items ) ? $items : array() as $item ) {
 				$post_id = self::post_id_from_value( $item );
 				if ( $post_id <= 0 ) {
 					continue;
@@ -578,49 +578,49 @@ class ACF_Fields {
 					}
 				}
 			}
-			return [
+			return array(
 				'acf_type' => 'relation',
 				'values'   => $out,
 				'single'   => $single,
-			];
+			);
 		}
 
 		if ( 'taxonomy' === $type ) {
 			$single   = ! is_array( $value );
-			$items    = $single ? [ $value ] : $value;
+			$items    = $single ? array( $value ) : $value;
 			$taxonomy = (string) ( $field_object['taxonomy'] ?? '' );
-			$names    = [];
-			foreach ( is_array( $items ) ? $items : [] as $item ) {
+			$names    = array();
+			foreach ( is_array( $items ) ? $items : array() as $item ) {
 				$term_id = is_object( $item ) && isset( $item->term_id ) ? (int) $item->term_id : (int) $item;
 				$term    = $term_id > 0 ? get_term( $term_id, $taxonomy ?: '' ) : null;
 				if ( $term && ! is_wp_error( $term ) ) {
 					$names[] = $term->name;
 				}
 			}
-			return [
+			return array(
 				'acf_type' => 'taxonomy',
 				'taxonomy' => $taxonomy,
 				'values'   => $names,
 				'single'   => $single,
-			];
+			);
 		}
 
 		if ( 'user' === $type ) {
 			$single = ! is_array( $value );
-			$items  = $single ? [ $value ] : $value;
-			$logins = [];
-			foreach ( is_array( $items ) ? $items : [] as $item ) {
+			$items  = $single ? array( $value ) : $value;
+			$logins = array();
+			foreach ( is_array( $items ) ? $items : array() as $item ) {
 				$user_id = is_object( $item ) && isset( $item->ID ) ? (int) $item->ID : (int) $item;
 				$user    = $user_id > 0 ? get_userdata( $user_id ) : false;
 				if ( $user ) {
 					$logins[] = $user->user_login;
 				}
 			}
-			return [
+			return array(
 				'acf_type' => 'user',
 				'values'   => $logins,
 				'single'   => $single,
-			];
+			);
 		}
 
 		if ( 'wysiwyg' === $type && is_string( $value ) ) {
@@ -638,7 +638,7 @@ class ACF_Fields {
 	 * @return array
 	 */
 	private static function portable_row_value( array $row, array $sub_fields ) {
-		$out = [];
+		$out = array();
 
 		foreach ( $row as $key => $value ) {
 			$field       = self::find_field_object_in_fields( (string) $key, $sub_fields );
@@ -660,7 +660,7 @@ class ACF_Fields {
 	 */
 	private static function should_export_raw_nested_acf_value( $object_type, $field_type ) {
 		return self::uses_raw_acf_export( $object_type )
-			&& in_array( (string) $field_type, [ 'repeater', 'group', 'flexible_content' ], true );
+			&& in_array( (string) $field_type, array( 'repeater', 'group', 'flexible_content' ), true );
 	}
 
 	/**
@@ -670,7 +670,7 @@ class ACF_Fields {
 	 * @return bool
 	 */
 	private static function uses_raw_acf_export( $object_type ) {
-		return in_array( sanitize_key( (string) $object_type ), [ 'comment', 'term', 'taxonomy', 'menu', 'nav_menu_item', 'user' ], true );
+		return in_array( sanitize_key( (string) $object_type ), array( 'comment', 'term', 'taxonomy', 'menu', 'nav_menu_item', 'user' ), true );
 	}
 
 	/**
@@ -689,7 +689,7 @@ class ACF_Fields {
 		}
 
 		if ( 'group' === $field_type ) {
-			return self::get_raw_acf_group_value( $object_type, $object_id, $field_name, (array) ( $field_object['sub_fields'] ?? [] ) );
+			return self::get_raw_acf_group_value( $object_type, $object_id, $field_name, (array) ( $field_object['sub_fields'] ?? array() ) );
 		}
 
 		if ( 'repeater' === $field_type ) {
@@ -698,9 +698,9 @@ class ACF_Fields {
 				return false;
 			}
 
-			$rows = [];
+			$rows = array();
 			for ( $index = 0; $index < $count; $index++ ) {
-				$rows[] = self::get_raw_acf_group_value( $object_type, $object_id, $field_name . '_' . $index, (array) ( $field_object['sub_fields'] ?? [] ) );
+				$rows[] = self::get_raw_acf_group_value( $object_type, $object_id, $field_name . '_' . $index, (array) ( $field_object['sub_fields'] ?? array() ) );
 			}
 			return $rows;
 		}
@@ -712,17 +712,17 @@ class ACF_Fields {
 				return false;
 			}
 
-			$layout_map = [];
-			foreach ( (array) ( $field_object['layouts'] ?? [] ) as $layout ) {
+			$layout_map = array();
+			foreach ( (array) ( $field_object['layouts'] ?? array() ) as $layout ) {
 				if ( is_array( $layout ) && ! empty( $layout['name'] ) ) {
-					$layout_map[ (string) $layout['name'] ] = (array) ( $layout['sub_fields'] ?? [] );
+					$layout_map[ (string) $layout['name'] ] = (array) ( $layout['sub_fields'] ?? array() );
 				}
 			}
 
-			$rows = [];
+			$rows = array();
 			foreach ( array_values( $layouts ) as $index => $layout_name ) {
 				$layout_name          = (string) $layout_name;
-				$row                  = self::get_raw_acf_group_value( $object_type, $object_id, $field_name . '_' . $index, $layout_map[ $layout_name ] ?? [] );
+				$row                  = self::get_raw_acf_group_value( $object_type, $object_id, $field_name . '_' . $index, $layout_map[ $layout_name ] ?? array() );
 				$row['acf_fc_layout'] = $layout_name;
 				$rows[]               = $row;
 			}
@@ -742,7 +742,7 @@ class ACF_Fields {
 	 * @return array
 	 */
 	private static function get_raw_acf_group_value( $object_type, $object_id, $meta_prefix, array $sub_fields ) {
-		$row = [];
+		$row = array();
 
 		foreach ( $sub_fields as $field ) {
 			if ( ! is_array( $field ) ) {
@@ -751,8 +751,8 @@ class ACF_Fields {
 
 			$name = (string) ( $field['name'] ?? '' );
 			$type = (string) ( $field['type'] ?? '' );
-			if ( in_array( $type, [ 'accordion', 'tab', 'message' ], true ) ) {
-				foreach ( self::get_raw_acf_group_value( $object_type, $object_id, $meta_prefix, (array) ( $field['sub_fields'] ?? [] ) ) as $child_name => $child_value ) {
+			if ( in_array( $type, array( 'accordion', 'tab', 'message' ), true ) ) {
+				foreach ( self::get_raw_acf_group_value( $object_type, $object_id, $meta_prefix, (array) ( $field['sub_fields'] ?? array() ) ) as $child_name => $child_value ) {
 					$row[ $child_name ] = $child_value;
 				}
 				continue;
@@ -764,15 +764,15 @@ class ACF_Fields {
 
 			$key = $meta_prefix . '_' . $name;
 			if ( 'group' === $type ) {
-				$row[ $name ] = self::get_raw_acf_group_value( $object_type, $object_id, $key, (array) ( $field['sub_fields'] ?? [] ) );
+				$row[ $name ] = self::get_raw_acf_group_value( $object_type, $object_id, $key, (array) ( $field['sub_fields'] ?? array() ) );
 				continue;
 			}
 
 			if ( 'repeater' === $type ) {
 				$count = absint( self::get_raw_meta_value( $object_type, $object_id, $key ) );
-				$rows  = [];
+				$rows  = array();
 				for ( $index = 0; $index < $count; $index++ ) {
-					$rows[] = self::get_raw_acf_group_value( $object_type, $object_id, $key . '_' . $index, (array) ( $field['sub_fields'] ?? [] ) );
+					$rows[] = self::get_raw_acf_group_value( $object_type, $object_id, $key . '_' . $index, (array) ( $field['sub_fields'] ?? array() ) );
 				}
 				$row[ $name ] = $rows;
 				continue;
@@ -782,7 +782,7 @@ class ACF_Fields {
 				$row[ $name ] = self::get_raw_nested_acf_value(
 					$object_type,
 					$object_id,
-					array_merge( $field, [ 'name' => $key ] )
+					array_merge( $field, array( 'name' => $key ) )
 				);
 				continue;
 			}
@@ -811,7 +811,7 @@ class ACF_Fields {
 		}
 
 		if ( is_array( $value ) ) {
-			$out = [];
+			$out = array();
 			foreach ( $value as $key => $child ) {
 				$out[ $key ] = self::portable_unknown_nested_value( $child );
 			}
@@ -835,16 +835,16 @@ class ACF_Fields {
 
 		if ( 'icon_picker' === $type ) {
 			if ( is_array( $value ) ) {
-				return [
+				return array(
 					'type'  => (string) ( $value['type'] ?? '' ),
 					'value' => (string) ( $value['value'] ?? '' ),
-				];
+				);
 			}
 
-			return [
+			return array(
 				'type'  => '' === (string) $value ? '' : 'dashicons',
 				'value' => (string) $value,
-			];
+			);
 		}
 
 		if ( is_array( $value ) && isset( $value['acf_type'] ) ) {
@@ -853,8 +853,8 @@ class ACF_Fields {
 				case 'gallery_shortcode':
 					return self::resolve_media_shortcode_token_value( $value, $parent_id );
 				case 'gallery':
-					$ids = [];
-					foreach ( (array) ( $value['values'] ?? [] ) as $url ) {
+					$ids = array();
+					foreach ( (array) ( $value['values'] ?? array() ) as $url ) {
 						$id = self::attachment_id_from_value( $url, $parent_id );
 						if ( $id > 0 ) {
 							$ids[] = $id;
@@ -862,18 +862,18 @@ class ACF_Fields {
 					}
 					return $ids;
 				case 'relation':
-					$ids = [];
-					foreach ( (array) ( $value['values'] ?? [] ) as $ref ) {
-						$id = self::post_id_from_portable_ref( $ref, $parent_id, (array) ( $field_object['post_type'] ?? [] ) );
+					$ids = array();
+					foreach ( (array) ( $value['values'] ?? array() ) as $ref ) {
+						$id = self::post_id_from_portable_ref( $ref, $parent_id, (array) ( $field_object['post_type'] ?? array() ) );
 						if ( $id > 0 ) {
 							$ids[] = $id;
 						}
 					}
 					return ! empty( $value['single'] ) ? ( $ids[0] ?? 0 ) : $ids;
 				case 'taxonomy':
-					$ids      = [];
+					$ids      = array();
 					$taxonomy = (string) ( $value['taxonomy'] ?? ( $field_object['taxonomy'] ?? '' ) );
-					foreach ( (array) ( $value['values'] ?? [] ) as $term_name ) {
+					foreach ( (array) ( $value['values'] ?? array() ) as $term_name ) {
 						// Post exports describe each term as {name, slug, taxonomy}; other exports use the name.
 						if ( is_array( $term_name ) ) {
 							$term_taxonomy = (string) ( $term_name['taxonomy'] ?? $taxonomy );
@@ -888,8 +888,8 @@ class ACF_Fields {
 					}
 					return ! empty( $value['single'] ) ? ( $ids[0] ?? 0 ) : $ids;
 				case 'user':
-					$ids = [];
-					foreach ( (array) ( $value['values'] ?? [] ) as $login ) {
+					$ids = array();
+					foreach ( (array) ( $value['values'] ?? array() ) as $login ) {
 						$user = get_user_by( 'login', (string) $login );
 						if ( ! $user ) {
 							$user = get_user_by( 'email', (string) $login );
@@ -900,25 +900,25 @@ class ACF_Fields {
 					}
 					return ! empty( $value['single'] ) ? ( $ids[0] ?? 0 ) : $ids;
 				case 'repeater':
-					$rows = [];
-					foreach ( (array) ( $value['rows'] ?? [] ) as $row ) {
-						$rows[] = self::native_row_value( is_array( $row ) ? $row : [], (array) ( $field_object['sub_fields'] ?? [] ), $parent_id );
+					$rows = array();
+					foreach ( (array) ( $value['rows'] ?? array() ) as $row ) {
+						$rows[] = self::native_row_value( is_array( $row ) ? $row : array(), (array) ( $field_object['sub_fields'] ?? array() ), $parent_id );
 					}
 					return $rows;
 				case 'group':
-					return self::native_row_value( is_array( $value['value'] ?? null ) ? $value['value'] : [], (array) ( $field_object['sub_fields'] ?? [] ), $parent_id );
+					return self::native_row_value( is_array( $value['value'] ?? null ) ? $value['value'] : array(), (array) ( $field_object['sub_fields'] ?? array() ), $parent_id );
 				case 'flexible_content':
-					$layout_map = [];
-					foreach ( (array) ( $field_object['layouts'] ?? [] ) as $layout ) {
+					$layout_map = array();
+					foreach ( (array) ( $field_object['layouts'] ?? array() ) as $layout ) {
 						if ( is_array( $layout ) && ! empty( $layout['name'] ) ) {
-							$layout_map[ (string) $layout['name'] ] = (array) ( $layout['sub_fields'] ?? [] );
+							$layout_map[ (string) $layout['name'] ] = (array) ( $layout['sub_fields'] ?? array() );
 						}
 					}
 
-					$rows = [];
-					foreach ( (array) ( $value['rows'] ?? [] ) as $row ) {
+					$rows = array();
+					foreach ( (array) ( $value['rows'] ?? array() ) as $row ) {
 						$layout_name                 = is_array( $row ) ? (string) ( $row['layout'] ?? '' ) : '';
-						$native_row                  = self::native_row_value( is_array( $row['value'] ?? null ) ? $row['value'] : [], $layout_map[ $layout_name ] ?? [], $parent_id );
+						$native_row                  = self::native_row_value( is_array( $row['value'] ?? null ) ? $row['value'] : array(), $layout_map[ $layout_name ] ?? array(), $parent_id );
 						$native_row['acf_fc_layout'] = $layout_name;
 						$rows[]                      = $native_row;
 					}
@@ -926,14 +926,14 @@ class ACF_Fields {
 			}
 		}
 
-		if ( in_array( $type, [ 'image', 'file' ], true ) ) {
+		if ( in_array( $type, array( 'image', 'file' ), true ) ) {
 			$id = self::attachment_id_from_value( $value, $parent_id );
 			return $id > 0 ? $id : $value;
 		}
 
 		if ( 'gallery' === $type ) {
 			$values = is_array( $value ) ? $value : array_filter( array_map( 'trim', explode( ',', (string) $value ) ) );
-			$ids    = [];
+			$ids    = array();
 			foreach ( $values as $item ) {
 				$id = self::attachment_id_from_value( $item, $parent_id );
 				if ( $id > 0 ) {
@@ -951,12 +951,12 @@ class ACF_Fields {
 		// relationship given as slug/path, title, ID or URL (comma separated for several), a
 		// taxonomy field as term names or slugs, a user field as login, email or ID. Before,
 		// the text itself was saved (a user's "page" field held "news" instead of the page ID).
-		if ( is_string( $value ) && '' !== trim( $value ) && ! is_numeric( trim( $value ) ) && in_array( $type, [ 'post_object', 'relationship', 'page_link', 'taxonomy', 'user' ], true ) ) {
+		if ( is_string( $value ) && '' !== trim( $value ) && ! is_numeric( trim( $value ) ) && in_array( $type, array( 'post_object', 'relationship', 'page_link', 'taxonomy', 'user' ), true ) ) {
 			$trimmed = trim( $value );
 			if ( '[' !== $trimmed[0] && '{' !== $trimmed[0] ) {
-				$multiple = 'relationship' === $type || ! empty( $field_object['multiple'] ) || ( 'taxonomy' === $type && in_array( (string) ( $field_object['field_type'] ?? '' ), [ 'checkbox', 'multi_select' ], true ) );
-				$parts    = $multiple ? array_values( array_filter( array_map( 'trim', explode( ',', $trimmed ) ), 'strlen' ) ) : [ $trimmed ];
-				$ids      = [];
+				$multiple = 'relationship' === $type || ! empty( $field_object['multiple'] ) || ( 'taxonomy' === $type && in_array( (string) ( $field_object['field_type'] ?? '' ), array( 'checkbox', 'multi_select' ), true ) );
+				$parts    = $multiple ? array_values( array_filter( array_map( 'trim', explode( ',', $trimmed ) ), 'strlen' ) ) : array( $trimmed );
+				$ids      = array();
 				foreach ( $parts as $part ) {
 					if ( 'taxonomy' === $type ) {
 						$tax  = (string) ( $field_object['taxonomy'] ?? '' );
@@ -969,7 +969,7 @@ class ACF_Fields {
 						}
 						$id = $user ? (int) $user->ID : 0;
 					} else {
-						$id = self::post_id_from_cell( $part, (array) ( $field_object['post_type'] ?? [] ) );
+						$id = self::post_id_from_cell( $part, (array) ( $field_object['post_type'] ?? array() ) );
 					}
 					if ( $id > 0 ) {
 						$ids[] = $id;
@@ -986,32 +986,32 @@ class ACF_Fields {
 		// (no acf_type wrapper). Convert them with the sub-field definitions so nested relations,
 		// users and terms become IDs again (without them a post object inside a row became 0).
 		if ( is_array( $value ) && 'repeater' === $type && ( array() === $value || array_keys( $value ) === range( 0, count( $value ) - 1 ) ) ) {
-			$rows = [];
+			$rows = array();
 			foreach ( $value as $row ) {
-				$rows[] = is_array( $row ) ? self::native_row_value( $row, (array) ( $field_object['sub_fields'] ?? [] ), $parent_id ) : $row;
+				$rows[] = is_array( $row ) ? self::native_row_value( $row, (array) ( $field_object['sub_fields'] ?? array() ), $parent_id ) : $row;
 			}
 			return $rows;
 		}
 		if ( is_array( $value ) && 'group' === $type ) {
-			return self::native_row_value( $value, (array) ( $field_object['sub_fields'] ?? [] ), $parent_id );
+			return self::native_row_value( $value, (array) ( $field_object['sub_fields'] ?? array() ), $parent_id );
 		}
 		if ( is_array( $value ) && 'flexible_content' === $type && array_keys( $value ) === range( 0, count( $value ) - 1 ) ) {
-			$layout_map = [];
-			foreach ( (array) ( $field_object['layouts'] ?? [] ) as $layout ) {
+			$layout_map = array();
+			foreach ( (array) ( $field_object['layouts'] ?? array() ) as $layout ) {
 				if ( is_array( $layout ) && ! empty( $layout['name'] ) ) {
-					$layout_map[ (string) $layout['name'] ] = (array) ( $layout['sub_fields'] ?? [] );
+					$layout_map[ (string) $layout['name'] ] = (array) ( $layout['sub_fields'] ?? array() );
 				}
 			}
-			$rows = [];
+			$rows = array();
 			foreach ( $value as $row ) {
 				if ( ! is_array( $row ) || ! isset( $row['acf_fc_layout'] ) ) {
 					$rows[] = $row;
 					continue;
 				}
-				$layout_name                 = (string) $row['acf_fc_layout'];
-				$fields_only                 = $row;
+				$layout_name = (string) $row['acf_fc_layout'];
+				$fields_only = $row;
 				unset( $fields_only['acf_fc_layout'] );
-				$native_row                  = self::native_row_value( $fields_only, $layout_map[ $layout_name ] ?? [], $parent_id );
+				$native_row                  = self::native_row_value( $fields_only, $layout_map[ $layout_name ] ?? array(), $parent_id );
 				$native_row['acf_fc_layout'] = $layout_name;
 				$rows[]                      = $native_row;
 			}
@@ -1034,7 +1034,7 @@ class ACF_Fields {
 	 * @return array
 	 */
 	private static function native_row_value( array $row, array $sub_fields, $parent_id = 0 ) {
-		$out = [];
+		$out = array();
 
 		foreach ( $row as $key => $value ) {
 			$field       = self::find_field_object_in_fields( (string) $key, $sub_fields );
@@ -1067,7 +1067,7 @@ class ACF_Fields {
 				return $id > 0 ? $id : $value;
 			}
 
-			$out = [];
+			$out = array();
 			foreach ( $value as $key => $child ) {
 				$out[ $key ] = self::native_unknown_nested_value( $child, $parent_id );
 			}
@@ -1097,7 +1097,7 @@ class ACF_Fields {
 			return \RockStarLab\ImportExport\Helper\Serialized::maybe( $trimmed );
 		}
 
-		if ( in_array( $trimmed[0], [ '{', '[' ], true ) ) {
+		if ( in_array( $trimmed[0], array( '{', '[' ), true ) ) {
 			$decoded = json_decode( $trimmed, true );
 			if ( JSON_ERROR_NONE === json_last_error() ) {
 				return $decoded;
@@ -1116,7 +1116,7 @@ class ACF_Fields {
 			if ( isset( $value['url'] ) && is_string( $value['url'] ) ) {
 				return $value['url'];
 			}
-			foreach ( [ 'ID', 'id' ] as $key ) {
+			foreach ( array( 'ID', 'id' ) as $key ) {
 				if ( isset( $value[ $key ] ) && is_numeric( $value[ $key ] ) ) {
 					$url = wp_get_attachment_url( (int) $value[ $key ] );
 					return $url ? $url : '';
@@ -1150,11 +1150,11 @@ class ACF_Fields {
 	 * @param array  $post_types Field's post types (empty: all public types).
 	 * @return int
 	 */
-	private static function post_id_from_cell( $cell, array $post_types = [] ) {
+	private static function post_id_from_cell( $cell, array $post_types = array() ) {
 		$cell       = trim( (string) $cell );
 		$post_types = array_values( array_filter( array_map( 'strval', $post_types ), 'post_type_exists' ) );
 		if ( ! $post_types ) {
-			$post_types = array_values( get_post_types( [ 'public' => true ] ) );
+			$post_types = array_values( get_post_types( array( 'public' => true ) ) );
 		}
 		if ( ctype_digit( $cell ) ) {
 			$id = (int) $cell;
@@ -1172,7 +1172,7 @@ class ACF_Fields {
 			return (int) $post->ID;
 		}
 		$ids = get_posts(
-			[
+			array(
 				'post_type'              => $post_types,
 				'post_status'            => 'any',
 				'title'                  => $cell,
@@ -1181,12 +1181,12 @@ class ACF_Fields {
 				'no_found_rows'          => true,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
-			]
+			)
 		);
 		return 1 === count( $ids ) ? (int) $ids[0] : 0;
 	}
 
-	private static function post_id_from_portable_ref( $ref, $parent_id = 0, array $post_types = [] ) {
+	private static function post_id_from_portable_ref( $ref, $parent_id = 0, array $post_types = array() ) {
 		if ( is_numeric( $ref ) ) {
 			return absint( $ref );
 		}
@@ -1198,7 +1198,7 @@ class ACF_Fields {
 			// "any" matched nothing, so every relationship/post object value was dropped.
 			$post_types = array_values( array_filter( array_map( 'strval', $post_types ), 'post_type_exists' ) );
 			if ( ! $post_types ) {
-				$post_types = array_values( array_diff( get_post_types(), [ 'revision', 'nav_menu_item', 'customize_changeset', 'oembed_cache', 'user_request', 'wp_global_styles', 'attachment' ] ) );
+				$post_types = array_values( array_diff( get_post_types(), array( 'revision', 'nav_menu_item', 'customize_changeset', 'oembed_cache', 'user_request', 'wp_global_styles', 'attachment' ) ) );
 			}
 			$post = get_page_by_path( $ref, OBJECT, $post_types );
 			return $post ? (int) $post->ID : 0;
@@ -1207,7 +1207,7 @@ class ACF_Fields {
 	}
 
 	private static function attachment_id_from_value( $value, $parent_id = 0, $source_attachment_id = 0 ) {
-		static $url_to_attachment_cache = [];
+		static $url_to_attachment_cache = array();
 
 		$value = self::maybe_decode( $value );
 		if ( is_numeric( $value ) ) {
@@ -1220,7 +1220,7 @@ class ACF_Fields {
 			return $mapped_id > 0 ? $mapped_id : 0;
 		}
 		if ( is_array( $value ) ) {
-			foreach ( [ 'ID', 'id' ] as $key ) {
+			foreach ( array( 'ID', 'id' ) as $key ) {
 				if ( isset( $value[ $key ] ) && is_numeric( $value[ $key ] ) ) {
 					return self::attachment_id_from_value( $value[ $key ], $parent_id, $source_attachment_id );
 				}
@@ -1327,10 +1327,10 @@ class ACF_Fields {
 			}
 		}
 
-		$file = [
+		$file = array(
 			'name'     => rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $source_url ) ) ),
 			'tmp_name' => $tmp,
-		];
+		);
 
 		$extension           = strtolower( pathinfo( (string) $file['name'], PATHINFO_EXTENSION ) );
 		$upload_mimes_filter = self::get_sideload_mimes_filter( $extension );
@@ -1563,8 +1563,8 @@ class ACF_Fields {
 			$height = preg_match( '/\sheight=["\']?(\d+)/i', $tag, $h ) ? (int) $h[1] : 0;
 			$meta   = $attachment_id ? wp_get_attachment_metadata( $attachment_id ) : false;
 			if ( is_array( $meta ) && $width > 0 && $height > 0 ) {
-				$srcset = (string) wp_calculate_image_srcset( [ $width, $height ], $url, $meta, $attachment_id );
-				$sizes  = '' !== $srcset ? (string) wp_calculate_image_sizes( [ $width, $height ], $url, $meta, $attachment_id ) : '';
+				$srcset = (string) wp_calculate_image_srcset( array( $width, $height ), $url, $meta, $attachment_id );
+				$sizes  = '' !== $srcset ? (string) wp_calculate_image_sizes( array( $width, $height ), $url, $meta, $attachment_id ) : '';
 			}
 		}
 		if ( '' === $srcset ) {
@@ -1573,9 +1573,23 @@ class ACF_Fields {
 		$set = static function ( $t, $name, $value, $after ) {
 			$attr = $name . '="' . esc_attr( $value ) . '"';
 			if ( preg_match( '/\s' . $name . '=(["\'])(?:(?!\1).)*\1/i', $t ) ) {
-				return (string) preg_replace_callback( '/(\s)' . $name . '=(["\'])(?:(?!\2).)*\2/i', static function ( $m ) use ( $attr ) { return $m[1] . $attr; }, $t, 1 );
+				return (string) preg_replace_callback(
+					'/(\s)' . $name . '=(["\'])(?:(?!\2).)*\2/i',
+					static function ( $m ) use ( $attr ) {
+						return $m[1] . $attr;
+					},
+					$t,
+					1
+				);
 			}
-			return (string) preg_replace_callback( '/\s' . $after . '=(["\'])(?:(?!\1).)*\1/i', static function ( $m ) use ( $attr ) { return $m[0] . ' ' . $attr; }, $t, 1 );
+			return (string) preg_replace_callback(
+				'/\s' . $after . '=(["\'])(?:(?!\1).)*\1/i',
+				static function ( $m ) use ( $attr ) {
+					return $m[0] . ' ' . $attr;
+				},
+				$t,
+				1
+			);
 		};
 		$tag = $set( $tag, 'srcset', $srcset, 'src' );
 		if ( '' !== $sizes ) {
@@ -1600,27 +1614,27 @@ class ACF_Fields {
 		$field_key = get_comment_meta( $comment_id, '_' . $key, true );
 		$field     = is_string( $field_key ) && 0 === strpos( $field_key, 'field_' ) ? acf_get_field( $field_key ) : false;
 		$type      = is_array( $field ) ? (string) ( $field['type'] ?? '' ) : '';
-		if ( ! in_array( $type, [ 'image', 'file', 'gallery' ], true ) ) {
+		if ( ! in_array( $type, array( 'image', 'file', 'gallery' ), true ) ) {
 			return $value;
 		}
-		$items = [];
-		foreach ( 'gallery' === $type ? (array) $value : [ $value ] as $id ) {
+		$items = array();
+		foreach ( 'gallery' === $type ? (array) $value : array( $value ) as $id ) {
 			$url = self::media_url_from_value( $id );
 			if ( '' !== $url && is_numeric( $id ) ) {
-				$items[] = [
+				$items[] = array(
 					'source_id' => (int) $id,
 					'url'       => $url,
-				];
+				);
 			}
 		}
 		if ( empty( $items ) ) {
 			return $value;
 		}
-		return [
+		return array(
 			'acf_type' => 'media_meta',
 			'type'     => $type,
 			'items'    => $items,
-		];
+		);
 	}
 
 	/**
@@ -1634,8 +1648,8 @@ class ACF_Fields {
 		if ( ! is_array( $value ) || 'media_meta' !== ( $value['acf_type'] ?? '' ) ) {
 			return null;
 		}
-		$ids = [];
-		foreach ( (array) ( $value['items'] ?? [] ) as $item ) {
+		$ids = array();
+		foreach ( (array) ( $value['items'] ?? array() ) as $item ) {
 			$id = is_array( $item ) ? self::attachment_id_from_value( $item, $parent_id ) : 0;
 			if ( $id > 0 ) {
 				$ids[] = $id;
@@ -1664,19 +1678,19 @@ class ACF_Fields {
 					return $shortcode;
 				}
 
-				$ids = array_filter( array_map( 'absint', preg_split( '/\\s*,\\s*/', (string) ( $ids_match[2] ?? '' ) ) ?: [] ) );
+				$ids = array_filter( array_map( 'absint', preg_split( '/\\s*,\\s*/', (string) ( $ids_match[2] ?? '' ) ) ?: array() ) );
 				if ( empty( $ids ) ) {
 					return $shortcode;
 				}
 
-				$items = [];
+				$items = array();
 				foreach ( $ids as $attachment_id ) {
 					$url = wp_get_attachment_url( (int) $attachment_id );
 					if ( ! $url ) {
 						continue;
 					}
 
-					$items[] = [
+					$items[] = array(
 						'source_id'   => (int) $attachment_id,
 						'url'         => $url,
 						'title'       => get_the_title( (int) $attachment_id ),
@@ -1684,19 +1698,19 @@ class ACF_Fields {
 						'description' => (string) get_post_field( 'post_content', (int) $attachment_id ),
 						'alt'         => (string) get_post_meta( (int) $attachment_id, '_wp_attachment_image_alt', true ),
 						'menu_order'  => (int) get_post_field( 'menu_order', (int) $attachment_id ),
-					];
+					);
 				}
 
 				if ( empty( $items ) ) {
 					return $shortcode;
 				}
 
-				$payload = [
+				$payload = array(
 					'acf_type'  => 'media_shortcode',
 					'shortcode' => $shortcode,
 					'tag'       => $tag,
 					'items'     => array_values( $items ),
-				];
+				);
 				$json    = wp_json_encode( $payload );
 				$token   = base64_encode( $json ? $json : '' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 
@@ -1713,7 +1727,7 @@ class ACF_Fields {
 	 * @return array
 	 */
 	public static function extract_media_shortcode_token_source_ids( string $value ): array {
-		$ids = [];
+		$ids = array();
 
 		if ( false === strpos( $value, '[[RSL_IE:' ) ) {
 			return $ids;
@@ -1731,11 +1745,11 @@ class ACF_Fields {
 
 			$payload  = json_decode( $json, true );
 			$acf_type = is_array( $payload ) ? (string) ( $payload['acf_type'] ?? '' ) : '';
-			if ( ! is_array( $payload ) || ! in_array( $acf_type, [ 'gallery_shortcode', 'media_shortcode' ], true ) ) {
+			if ( ! is_array( $payload ) || ! in_array( $acf_type, array( 'gallery_shortcode', 'media_shortcode' ), true ) ) {
 				continue;
 			}
 
-			foreach ( (array) ( $payload['items'] ?? [] ) as $item ) {
+			foreach ( (array) ( $payload['items'] ?? array() ) as $item ) {
 				if ( is_array( $item ) && ! empty( $item['source_id'] ) ) {
 					$ids[] = absint( $item['source_id'] );
 				}
@@ -1754,12 +1768,12 @@ class ACF_Fields {
 	 */
 	private static function resolve_media_shortcode_token_value( array $payload, $parent_id = 0 ): string {
 		$shortcode = (string) ( $payload['shortcode'] ?? '' );
-		$items     = $payload['items'] ?? [];
-		$urls      = $payload['urls'] ?? [];
+		$items     = $payload['items'] ?? array();
+		$urls      = $payload['urls'] ?? array();
 		if ( empty( $items ) && is_array( $urls ) ) {
 			$items = array_map(
 				static function ( $url ) {
-					return [ 'url' => $url ];
+					return array( 'url' => $url );
 				},
 				$urls
 			);
@@ -1769,7 +1783,7 @@ class ACF_Fields {
 			return $shortcode;
 		}
 
-		$new_ids = [];
+		$new_ids = array();
 		foreach ( $items as $item ) {
 			$url = is_array( $item ) ? (string) ( $item['url'] ?? '' ) : (string) $item;
 			$id  = self::attachment_id_from_value( $url, $parent_id, is_array( $item ) ? absint( $item['source_id'] ?? 0 ) : 0 );
@@ -1807,7 +1821,7 @@ class ACF_Fields {
 
 				$payload  = json_decode( $json, true );
 				$acf_type = is_array( $payload ) ? (string) ( $payload['acf_type'] ?? '' ) : '';
-				if ( ! is_array( $payload ) || ! in_array( $acf_type, [ 'gallery_shortcode', 'media_shortcode' ], true ) ) {
+				if ( ! is_array( $payload ) || ! in_array( $acf_type, array( 'gallery_shortcode', 'media_shortcode' ), true ) ) {
 					return $matches[0] ?? '';
 				}
 
@@ -1837,12 +1851,12 @@ class ACF_Fields {
 					return $shortcode;
 				}
 
-				$source_ids = array_filter( array_map( 'absint', preg_split( '/\\s*,\\s*/', (string) ( $ids_match[2] ?? '' ) ) ?: [] ) );
+				$source_ids = array_filter( array_map( 'absint', preg_split( '/\\s*,\\s*/', (string) ( $ids_match[2] ?? '' ) ) ?: array() ) );
 				if ( empty( $source_ids ) ) {
 					return $shortcode;
 				}
 
-				$mapped_ids = [];
+				$mapped_ids = array();
 				$has_mapped = false;
 				foreach ( $source_ids as $source_id ) {
 					$local_id = self::find_attachment_by_source_attachment_id( $source_id );
@@ -1895,7 +1909,7 @@ class ACF_Fields {
 		}
 
 		$attachments = get_posts(
-			[
+			array(
 				'post_type'              => 'attachment',
 				'post_status'            => 'inherit',
 				'posts_per_page'         => 1,
@@ -1905,7 +1919,7 @@ class ACF_Fields {
 				'no_found_rows'          => true,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
-			]
+			)
 		);
 
 		return ! empty( $attachments[0] ) ? absint( $attachments[0] ) : 0;
@@ -1969,12 +1983,12 @@ class ACF_Fields {
 
 		$response = wp_remote_get(
 			$url,
-			[
+			array(
 				'timeout'            => absint( $timeout ),
 				'stream'             => true,
 				'filename'           => $tmp,
 				'reject_unsafe_urls' => false,
-			]
+			)
 		);
 
 		if ( is_wp_error( $response ) ) {

@@ -18,12 +18,12 @@ class Remote_Server_Controller extends Base_Controller {
 	/** Register AJAX actions, the hidden page and form handlers. */
 	public function init() {
 		parent::init();
-		add_action( 'admin_menu', [ $this, 'register_page' ], 20 );
-		add_filter( 'parent_file', [ $this, 'parent_file' ] );
-		add_filter( 'submenu_file', [ $this, 'submenu_file' ] );
-		add_action( 'admin_post_rsl_ie_save_remote_server', [ $this, 'save' ] );
-		add_action( 'admin_post_rsl_ie_delete_remote_server', [ $this, 'delete' ] );
-		add_action( 'admin_post_rsl_ie_test_remote_server', [ $this, 'test' ] );
+		add_action( 'admin_menu', array( $this, 'register_page' ), 20 );
+		add_filter( 'parent_file', array( $this, 'parent_file' ) );
+		add_filter( 'submenu_file', array( $this, 'submenu_file' ) );
+		add_action( 'admin_post_rsl_ie_save_remote_server', array( $this, 'save' ) );
+		add_action( 'admin_post_rsl_ie_delete_remote_server', array( $this, 'delete' ) );
+		add_action( 'admin_post_rsl_ie_test_remote_server', array( $this, 'test' ) );
 	}
 
 	/**
@@ -32,9 +32,9 @@ class Remote_Server_Controller extends Base_Controller {
 	 * @return array
 	 */
 	protected function get_ajax_actions() {
-		return [
-			'remote_browse' => [ 'callback' => 'browse' ],
-		];
+		return array(
+			'remote_browse' => array( 'callback' => 'browse' ),
+		);
 	}
 
 	/** List one folder of a saved server. */
@@ -60,7 +60,7 @@ class Remote_Server_Controller extends Base_Controller {
 
 	/** Hidden page reached from the Jobs Log tabs. */
 	public function register_page() {
-		add_submenu_page( null, __( 'FTP / SFTP Servers', 'import-export-by-rockstarlab' ), __( 'FTP / SFTP Servers', 'import-export-by-rockstarlab' ), 'manage_options', self::PAGE, [ $this, 'display' ] );
+		add_submenu_page( null, __( 'FTP / SFTP Servers', 'import-export-by-rockstarlab' ), __( 'FTP / SFTP Servers', 'import-export-by-rockstarlab' ), 'manage_options', self::PAGE, array( $this, 'display' ) );
 		remove_submenu_page( '', self::PAGE );
 	}
 
@@ -89,16 +89,16 @@ class Remote_Server_Controller extends Base_Controller {
 	/** Render the screen. */
 	public function display() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You cannot change servers on this site.', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] );
+			wp_die( esc_html__( 'You cannot change servers on this site.', 'import-export-by-rockstarlab' ), '', array( 'response' => 403 ) );
 		}
 		$edit = isset( $_GET['edit'] ) ? sanitize_key( wp_unslash( $_GET['edit'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen state.
 		rsl_ie()->View->load(
 			'settings/servers',
-			[
+			array(
 				'rsl_ie_servers'   => Remote_File_Service::servers(),
 				'rsl_ie_edit'      => $edit,
 				'rsl_ie_available' => Remote_File_Service::available(),
-			]
+			)
 		);
 	}
 
@@ -110,7 +110,7 @@ class Remote_Server_Controller extends Base_Controller {
 		$text  = static function ( $key ) use ( $post ) {
 			return isset( $post[ $key ] ) && is_scalar( $post[ $key ] ) ? (string) $post[ $key ] : '';
 		};
-		$input = [
+		$input = array(
 			'id'       => $text( 'id' ),
 			'label'    => $text( 'label' ),
 			'protocol' => $text( 'protocol' ),
@@ -119,12 +119,12 @@ class Remote_Server_Controller extends Base_Controller {
 			'username' => $text( 'username' ),
 			'password' => $text( 'password' ), // Not sanitized: passwords may contain any character.
 			'passive'  => '1' === $text( 'passive' ),
-		];
+		);
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		$result = Remote_File_Service::save( $input );
 		if ( is_wp_error( $result ) ) {
 			$this->notice( 'error', $result->get_error_message() );
-			$this->back( '' !== $input['id'] ? [ 'edit' => sanitize_key( $input['id'] ) ] : [ 'add' => 1 ] );
+			$this->back( '' !== $input['id'] ? array( 'edit' => sanitize_key( $input['id'] ) ) : array( 'add' => 1 ) );
 		}
 		// Check the connection right away, so a typo shows up now and not at the first scheduled run.
 		$check = ( new Remote_File_Service() )->browse( $result['id'], '/' );
@@ -168,7 +168,7 @@ class Remote_Server_Controller extends Base_Controller {
 	 * @param string $text Message.
 	 */
 	private function notice( $type, $text ) {
-		set_transient( 'rsl_ie_servers_notice_' . get_current_user_id(), [ $type, $text ], 120 );
+		set_transient( 'rsl_ie_servers_notice_' . get_current_user_id(), array( $type, $text ), 120 );
 	}
 
 	/**
@@ -176,8 +176,8 @@ class Remote_Server_Controller extends Base_Controller {
 	 *
 	 * @param array $args Extra query arguments.
 	 */
-	private function back( array $args = [] ) {
-		wp_safe_redirect( add_query_arg( [ 'page' => self::PAGE ] + $args, admin_url( 'admin.php' ) ) );
+	private function back( array $args = array() ) {
+		wp_safe_redirect( add_query_arg( array( 'page' => self::PAGE ) + $args, admin_url( 'admin.php' ) ) );
 		exit;
 	}
 
@@ -188,7 +188,7 @@ class Remote_Server_Controller extends Base_Controller {
 	 */
 	private function guard( $action ) {
 		if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) || ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You cannot change servers on this site.', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] );
+			wp_die( esc_html__( 'You cannot change servers on this site.', 'import-export-by-rockstarlab' ), '', array( 'response' => 403 ) );
 		}
 		check_admin_referer( $action );
 	}

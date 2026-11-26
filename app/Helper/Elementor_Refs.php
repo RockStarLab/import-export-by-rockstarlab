@@ -24,10 +24,10 @@ class Elementor_Refs {
 	const PENDING_KEY = '_rsl_ie_elementor_pending_refs';
 
 	/** Posts remembered in this request. @var int[] */
-	public static $touched = [];
+	public static $touched = array();
 
 	/** Dynamic tag settings that hold a post ID. */
-	const TAG_POST_KEYS = [ 'post_id' ];
+	const TAG_POST_KEYS = array( 'post_id' );
 
 	/**
 	 * Kind of the IDs stored under a setting key: post, term, user or ''.
@@ -82,11 +82,11 @@ class Elementor_Refs {
 			$decoded = json_decode( $data, true );
 			$data    = is_array( $decoded ) ? $decoded : $data;
 		}
-		$out = [
-			'post' => [],
-			'term' => [],
-			'user' => [],
-		];
+		$out = array(
+			'post' => array(),
+			'term' => array(),
+			'user' => array(),
+		);
 		self::walk(
 			$data,
 			static function ( $kind, $value ) use ( &$out ) {
@@ -116,17 +116,17 @@ class Elementor_Refs {
 	 * @param array $templates Template records sent with it.
 	 * @return array
 	 */
-	public static function describe_for_post( $post_id, array $templates = [] ) {
-		$sources = [ (string) get_post_meta( (int) $post_id, '_elementor_data', true ), get_post_meta( (int) $post_id, '_elementor_page_settings', true ) ];
+	public static function describe_for_post( $post_id, array $templates = array() ) {
+		$sources = array( (string) get_post_meta( (int) $post_id, '_elementor_data', true ), get_post_meta( (int) $post_id, '_elementor_page_settings', true ) );
 		foreach ( $templates as $record ) {
 			$sources[] = (string) ( $record['data'] ?? '' );
-			$sources[] = (array) ( $record['page_settings'] ?? [] );
+			$sources[] = (array) ( $record['page_settings'] ?? array() );
 		}
-		$ids = [
-			'post' => [],
-			'term' => [],
-			'user' => [],
-		];
+		$ids = array(
+			'post' => array(),
+			'term' => array(),
+			'user' => array(),
+		);
 		foreach ( $sources as $source ) {
 			foreach ( self::collect( $source ) as $kind => $list ) {
 				$ids[ $kind ] = array_merge( $ids[ $kind ], $list );
@@ -136,32 +136,32 @@ class Elementor_Refs {
 		foreach ( self::condition_ids( get_post_meta( (int) $post_id, '_elementor_conditions', true ) ) as $kind => $list ) {
 			$ids[ $kind ] = array_merge( $ids[ $kind ], $list );
 		}
-		$out = [];
+		$out = array();
 		foreach ( array_unique( $ids['post'] ) as $id ) {
 			$post = get_post( $id );
 			if ( $post ) {
-				$out['post'][ $id ] = [
+				$out['post'][ $id ] = array(
 					'type' => $post->post_type,
 					'slug' => $post->post_name,
-				];
+				);
 			}
 		}
 		foreach ( array_unique( $ids['term'] ) as $id ) {
 			$term = get_term( $id );
 			if ( $term && ! is_wp_error( $term ) ) {
-				$out['term'][ $id ] = [
+				$out['term'][ $id ] = array(
 					'taxonomy' => $term->taxonomy,
 					'slug'     => $term->slug,
-				];
+				);
 			}
 		}
 		foreach ( array_unique( $ids['user'] ) as $id ) {
 			$user = get_userdata( $id );
 			if ( $user ) {
-				$out['user'][ $id ] = [
+				$out['user'][ $id ] = array(
 					'login' => $user->user_login,
 					'email' => $user->user_email,
-				];
+				);
 			}
 		}
 		return $out;
@@ -175,24 +175,24 @@ class Elementor_Refs {
 	 * @param int[] $template_ids Local templates that came with the post.
 	 * @return void
 	 */
-	public static function remember( $post_id, $refs, array $template_ids = [] ) {
+	public static function remember( $post_id, $refs, array $template_ids = array() ) {
 		if ( is_string( $refs ) ) {
 			$refs = json_decode( $refs, true );
 		}
 		if ( (int) $post_id <= 0 || ! is_array( $refs ) || ! $refs ) {
 			return;
 		}
-		foreach ( array_merge( [ (int) $post_id ], array_map( 'intval', $template_ids ) ) as $id ) {
+		foreach ( array_merge( array( (int) $post_id ), array_map( 'intval', $template_ids ) ) as $id ) {
 			if ( $id > 0 ) {
 				self::$touched[] = $id;
 				update_post_meta(
 					$id,
 					self::PENDING_KEY,
 					wp_slash(
-						[
+						array(
 							'refs'  => $refs,
 							'tries' => 0,
-						]
+						)
 					)
 				);
 			}
@@ -219,13 +219,13 @@ class Elementor_Refs {
 				return 0;
 			}
 			$found = get_posts(
-				[
+				array(
 					'post_type'      => $type,
 					'name'           => $slug,
 					'post_status'    => 'any',
 					'posts_per_page' => 1,
 					'fields'         => 'ids',
-				]
+				)
 			);
 			return $found ? (int) $found[0] : 0;
 		}
@@ -249,7 +249,7 @@ class Elementor_Refs {
 	 * @param int[] $only     Only these posts (empty: every waiting post).
 	 * @return int Posts updated.
 	 */
-	public static function resolve_pending( array $post_map = [], $final = false, array $only = [] ) {
+	public static function resolve_pending( array $post_map = array(), $final = false, array $only = array() ) {
 		global $wpdb;
 		$ids  = $only ? array_map( 'intval', $only ) : $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s", self::PENDING_KEY ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Small marker set written here.
 		$done = 0;
@@ -261,10 +261,10 @@ class Elementor_Refs {
 			}
 			$tries = (int) ( $pending['tries'] ?? 0 ) + 1;
 			$last  = $final || $tries >= 3;
-			$maps  = [];
-			$left  = [];
-			foreach ( [ 'post', 'term', 'user' ] as $kind ) {
-				foreach ( (array) ( $pending['refs'][ $kind ] ?? [] ) as $source => $info ) {
+			$maps  = array();
+			$left  = array();
+			foreach ( array( 'post', 'term', 'user' ) as $kind ) {
+				foreach ( (array) ( $pending['refs'][ $kind ] ?? array() ) as $source => $info ) {
 					$local = self::find( $kind, (int) $source, (array) $info, $post_map );
 					if ( $local > 0 ) {
 						$maps[ $kind ][ (int) $source ] = $local;
@@ -281,10 +281,10 @@ class Elementor_Refs {
 					$post_id,
 					self::PENDING_KEY,
 					wp_slash(
-						[
+						array(
 							'refs'  => $left,
 							'tries' => $tries,
-						]
+						)
 					)
 				);
 			} else {
@@ -324,7 +324,7 @@ class Elementor_Refs {
 							}
 						);
 					}
-					$out = [];
+					$out = array();
 					foreach ( $value as $id ) {
 						if ( ! isset( $maps[ $kind ][ (int) $id ] ) ) {
 							$out[] = $id; // Already a local ID (renumbered earlier) or unknown here.
@@ -336,8 +336,8 @@ class Elementor_Refs {
 				}
 			);
 		};
-		$json = (string) get_post_meta( (int) $post_id, '_elementor_data', true );
-		$data = json_decode( $json, true );
+		$json    = (string) get_post_meta( (int) $post_id, '_elementor_data', true );
+		$data    = json_decode( $json, true );
 		if ( is_array( $data ) ) {
 			$new = wp_json_encode( $rewrite( $data ) );
 			if ( $new && $new !== $json ) {
@@ -355,7 +355,7 @@ class Elementor_Refs {
 		}
 		$conditions = get_post_meta( (int) $post_id, '_elementor_conditions', true );
 		if ( is_array( $conditions ) && $conditions ) {
-			$new = [];
+			$new = array();
 			foreach ( $conditions as $condition ) {
 				$kind = self::condition_kind( (string) $condition );
 				$id   = $kind ? (int) substr( (string) $condition, strrpos( (string) $condition, '/' ) + 1 ) : 0;
@@ -405,12 +405,12 @@ class Elementor_Refs {
 	 * @return array{post:int[],term:int[],user:int[]}
 	 */
 	public static function condition_ids( $conditions ) {
-		$out = [
-			'post' => [],
-			'term' => [],
-			'user' => [],
-		];
-		foreach ( is_array( $conditions ) ? $conditions : [] as $condition ) {
+		$out = array(
+			'post' => array(),
+			'term' => array(),
+			'user' => array(),
+		);
+		foreach ( is_array( $conditions ) ? $conditions : array() as $condition ) {
 			$kind = self::condition_kind( (string) $condition );
 			if ( $kind ) {
 				$out[ $kind ][] = (int) substr( (string) $condition, strrpos( (string) $condition, '/' ) + 1 );

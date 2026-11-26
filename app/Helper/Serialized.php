@@ -40,7 +40,7 @@ class Serialized {
 		if ( ! is_string( $value ) ) {
 			return false;
 		}
-		$result = @unserialize( trim( $value ), [ 'allowed_classes' => false ] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize -- Objects are disabled.
+		$result = @unserialize( trim( $value ), array( 'allowed_classes' => false ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize -- Objects are disabled.
 		return self::has_object( $result ) ? false : $result;
 	}
 

@@ -28,10 +28,10 @@ class Elementor_Templates {
 	const MAX_TEMPLATES = 50;
 
 	/** Setting keys that hold a template ID. */
-	const ID_KEYS = [ 'template_id', 'saved_template', 'templateID', 'popup_action_popup_id' ];
+	const ID_KEYS = array( 'template_id', 'saved_template', 'templateID', 'popup_action_popup_id' );
 
 	/** Dynamic tag settings that hold a template (popup) ID. */
-	const TAG_TEMPLATE_KEYS = [ 'popup' ];
+	const TAG_TEMPLATE_KEYS = array( 'popup' );
 
 	/**
 	 * Template IDs referred to by Elementor data.
@@ -44,7 +44,7 @@ class Elementor_Templates {
 			$decoded = json_decode( $data, true );
 			$data    = is_array( $decoded ) ? $decoded : $data;
 		}
-		$ids  = [];
+		$ids  = array();
 		$walk = static function ( $value, $key = '' ) use ( &$walk, &$ids ) {
 			if ( is_array( $value ) ) {
 				foreach ( $value as $k => $v ) {
@@ -81,16 +81,16 @@ class Elementor_Templates {
 	 */
 	public static function records_for_post( $post_id ) {
 		if ( ! post_type_exists( self::POST_TYPE ) ) {
-			return [];
+			return array();
 		}
-		$queue = array_merge(
+		$queue   = array_merge(
 			self::ids_in( (string) get_post_meta( (int) $post_id, '_elementor_data', true ) ),
 			self::ids_in( get_post_meta( (int) $post_id, '_elementor_page_settings', true ) )
 		);
-		$seen    = [ (int) $post_id => true ];
-		$records = [];
+		$seen    = array( (int) $post_id => true );
+		$records = array();
 		for ( $depth = 0; $queue && $depth < self::MAX_DEPTH; $depth++ ) {
-			$next = [];
+			$next = array();
 			foreach ( $queue as $id ) {
 				if ( isset( $seen[ $id ] ) || count( $records ) >= self::MAX_TEMPLATES ) {
 					continue;
@@ -119,25 +119,25 @@ class Elementor_Templates {
 		if ( ! $post || self::POST_TYPE !== $post->post_type || 'trash' === $post->post_status ) {
 			return null;
 		}
-		$types = wp_get_object_terms( $post->ID, 'elementor_library_type', [ 'fields' => 'slugs' ] );
-		$meta  = [];
-		foreach ( [ '_elementor_edit_mode', '_elementor_template_type', '_elementor_version', '_elementor_conditions', '_wp_page_template' ] as $key ) {
+		$types = wp_get_object_terms( $post->ID, 'elementor_library_type', array( 'fields' => 'slugs' ) );
+		$meta  = array();
+		foreach ( array( '_elementor_edit_mode', '_elementor_template_type', '_elementor_version', '_elementor_conditions', '_wp_page_template' ) as $key ) {
 			$value = get_post_meta( $post->ID, $key, true );
 			if ( '' !== $value && null !== $value && false !== $value ) {
 				$meta[ $key ] = $value;
 			}
 		}
 		$settings = get_post_meta( $post->ID, '_elementor_page_settings', true );
-		return [
+		return array(
 			'source_id'     => (int) $post->ID,
 			'post_title'    => $post->post_title,
 			'post_name'     => $post->post_name,
 			'post_status'   => $post->post_status,
-			'lib_types'     => is_wp_error( $types ) ? [] : array_values( $types ),
+			'lib_types'     => is_wp_error( $types ) ? array() : array_values( $types ),
 			'meta'          => $meta,
 			'data'          => (string) get_post_meta( $post->ID, '_elementor_data', true ),
-			'page_settings' => is_array( $settings ) ? $settings : [],
-		];
+			'page_settings' => is_array( $settings ) ? $settings : array(),
+		);
 	}
 
 	/**
@@ -147,14 +147,14 @@ class Elementor_Templates {
 	 * @return array<string,mixed> Elementor-style elements to scan.
 	 */
 	public static function media_elements( array $records ) {
-		$elements = [];
+		$elements = array();
 		foreach ( $records as $record ) {
 			$data = json_decode( (string) ( $record['data'] ?? '' ), true );
 			if ( is_array( $data ) ) {
 				$elements = array_merge( $elements, $data );
 			}
 			if ( ! empty( $record['page_settings'] ) && is_array( $record['page_settings'] ) ) {
-				$elements[] = [ 'settings' => $record['page_settings'] ];
+				$elements[] = array( 'settings' => $record['page_settings'] );
 			}
 		}
 		return $elements;
@@ -173,36 +173,36 @@ class Elementor_Templates {
 			$records = json_decode( $records, true );
 		}
 		if ( ! is_array( $records ) || ! $records || ! post_type_exists( self::POST_TYPE ) ) {
-			return [];
+			return array();
 		}
 		$type = get_post_type_object( self::POST_TYPE );
 		if ( ! $type || ! current_user_can( $type->cap->edit_posts ) ) {
-			return [];
+			return array();
 		}
-		$map  = [];
-		$done = [];
+		$map  = array();
+		$done = array();
 		foreach ( array_slice( $records, 0, self::MAX_TEMPLATES ) as $record ) {
 			$source = (int) ( $record['source_id'] ?? 0 );
 			$slug   = sanitize_title( (string) ( $record['post_name'] ?? '' ) );
 			if ( $source <= 0 || '' === $slug || isset( $map[ $source ] ) ) {
 				continue;
 			}
-			$status   = in_array( $record['post_status'] ?? '', [ 'publish', 'draft', 'private' ], true ) ? $record['post_status'] : 'publish';
+			$status   = in_array( $record['post_status'] ?? '', array( 'publish', 'draft', 'private' ), true ) ? $record['post_status'] : 'publish';
 			$existing = get_posts(
-				[
+				array(
 					'post_type'      => self::POST_TYPE,
 					'name'           => $slug,
-					'post_status'    => [ 'publish', 'draft', 'private', 'pending', 'future' ],
+					'post_status'    => array( 'publish', 'draft', 'private', 'pending', 'future' ),
 					'posts_per_page' => 1,
 					'fields'         => 'ids',
-				]
+				)
 			);
-			$args = [
+			$args     = array(
 				'post_type'   => self::POST_TYPE,
 				'post_title'  => sanitize_text_field( (string) ( $record['post_title'] ?? $slug ) ),
 				'post_name'   => $slug,
 				'post_status' => $status,
-			];
+			);
 			if ( $existing ) {
 				$args['ID'] = (int) $existing[0];
 				$local      = wp_update_post( wp_slash( $args ), true );
@@ -215,12 +215,12 @@ class Elementor_Templates {
 			$local          = (int) $local;
 			$map[ $source ] = $local;
 			$done[ $local ] = $record;
-			foreach ( (array) ( $record['meta'] ?? [] ) as $key => $value ) {
-				if ( in_array( $key, [ '_elementor_edit_mode', '_elementor_template_type', '_elementor_version', '_elementor_conditions', '_wp_page_template' ], true ) ) {
+			foreach ( (array) ( $record['meta'] ?? array() ) as $key => $value ) {
+				if ( in_array( $key, array( '_elementor_edit_mode', '_elementor_template_type', '_elementor_version', '_elementor_conditions', '_wp_page_template' ), true ) ) {
 					update_post_meta( $local, $key, $value );
 				}
 			}
-			$lib_types = array_filter( array_map( 'sanitize_key', (array) ( $record['lib_types'] ?? [] ) ) );
+			$lib_types = array_filter( array_map( 'sanitize_key', (array) ( $record['lib_types'] ?? array() ) ) );
 			if ( $lib_types && taxonomy_exists( 'elementor_library_type' ) ) {
 				wp_set_object_terms( $local, $lib_types, 'elementor_library_type' );
 			}
@@ -230,10 +230,10 @@ class Elementor_Templates {
 			$meta = call_user_func(
 				$prepare,
 				(int) $local,
-				[
+				array(
 					'_elementor_data'          => self::remap_json( (string) ( $record['data'] ?? '' ), $map ),
-					'_elementor_page_settings' => self::remap( (array) ( $record['page_settings'] ?? [] ), $map ),
-				]
+					'_elementor_page_settings' => self::remap( (array) ( $record['page_settings'] ?? array() ), $map ),
+				)
 			);
 			if ( isset( $meta['_elementor_data'] ) && is_string( $meta['_elementor_data'] ) && '' !== $meta['_elementor_data'] ) {
 				update_post_meta( (int) $local, '_elementor_data', wp_slash( $meta['_elementor_data'] ) );
@@ -299,14 +299,14 @@ class Elementor_Templates {
 	 * @return array<int,array{name:string,settings:array}>
 	 */
 	public static function tags_in( $value ) {
-		$tags = [];
+		$tags = array();
 		if ( is_string( $value ) && preg_match_all( '/\[elementor-tag\s[^\]]*?name="([^"]*)"[^\]]*?settings="([^"]*)"[^\]]*\]/', $value, $m, PREG_SET_ORDER ) ) {
 			foreach ( $m as $match ) {
 				$settings = json_decode( rawurldecode( $match[2] ), true );
-				$tags[]   = [
+				$tags[]   = array(
 					'name'     => $match[1],
-					'settings' => is_array( $settings ) ? $settings : [],
-				];
+					'settings' => is_array( $settings ) ? $settings : array(),
+				);
 			}
 		}
 		return $tags;

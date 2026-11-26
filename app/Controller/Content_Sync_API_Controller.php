@@ -54,7 +54,7 @@ class Content_Sync_API_Controller {
 	 * @return mixed
 	 */
 	public function allow_sync_bearer( $result ) {
-		if ( ! is_wp_error( $result ) || ! in_array( $result->get_error_code(), [ 'rest_login_required', 'rest_not_logged_in', 'rest_cannot_access', 'rest_forbidden' ], true ) ) {
+		if ( ! is_wp_error( $result ) || ! in_array( $result->get_error_code(), array( 'rest_login_required', 'rest_not_logged_in', 'rest_cannot_access', 'rest_forbidden' ), true ) ) {
 			return $result;
 		}
 		$auth  = isset( $_SERVER['HTTP_AUTHORIZATION'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_AUTHORIZATION'] ) ) : ( isset( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ) ) : '' );
@@ -165,7 +165,7 @@ class Content_Sync_API_Controller {
 					'site_url'       => Site_URL::current_request_site_url(),
 					'wp_version'     => get_bloginfo( 'version' ),
 					'plugin_version' => defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0.0',
-					'extensions'     => apply_filters( 'rsl_ie_sync_peer_extensions', [] ),
+					'extensions'     => apply_filters( 'rsl_ie_sync_peer_extensions', array() ),
 				),
 			),
 			200
@@ -226,14 +226,23 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-		$this->batch_source_ids = array_values( array_filter( array_map( static function ( $p ) { return is_array( $p ) ? (int) ( $p['ID'] ?? 0 ) : 0; }, $posts_data ) ) );
-		$deferred = \RockStarLab\ImportExport\Service\Sync_Product_Links::validate_deferred( $posts_data );
+		$this->batch_source_ids = array_values(
+			array_filter(
+				array_map(
+					static function ( $p ) {
+						return is_array( $p ) ? (int) ( $p['ID'] ?? 0 ) : 0;
+					},
+					$posts_data
+				)
+			)
+		);
+		$deferred               = \RockStarLab\ImportExport\Service\Sync_Product_Links::validate_deferred( $posts_data );
 		if ( is_wp_error( $deferred ) ) {
 			return $deferred; }
-		$deferred_receipt = apply_filters( 'rsl_ie_sync_deferred_receipt', [], $posts_data );
+		$deferred_receipt = apply_filters( 'rsl_ie_sync_deferred_receipt', array(), $posts_data );
 		if ( is_wp_error( $deferred_receipt ) ) {
 			return $deferred_receipt; }
-		$authors = [];
+		$authors = array();
 		if ( null !== $request->get_param( 'author_mapping' ) ) {
 			$authors = apply_filters( 'rsl_ie_sync_post_authors', \RockStarLab\ImportExport\Service\Migration_Sync_Maps::error(), $posts_data, $request->get_param( 'author_mapping' ), true );
 			if ( is_wp_error( $authors ) ) {
@@ -246,9 +255,9 @@ class Content_Sync_API_Controller {
 			return $comment_users;
 		}
 
-		$woo_variation_map = [];
+		$woo_variation_map = array();
 		if ( $request->has_param( 'woo_product_mapping' ) ) {
-			$woo_links = \RockStarLab\ImportExport\Service\Sync_Product_Links::run( 'prepare', $posts_data, [ 'mapping' => $request->get_param( 'woo_product_mapping' ) ] );
+			$woo_links = \RockStarLab\ImportExport\Service\Sync_Product_Links::run( 'prepare', $posts_data, array( 'mapping' => $request->get_param( 'woo_product_mapping' ) ) );
 			if ( is_wp_error( $woo_links ) ) {
 				return $woo_links;
 			}
@@ -258,23 +267,23 @@ class Content_Sync_API_Controller {
 			}
 		}
 
-		$acf_users = [];
-		$acf_posts = [];
+		$acf_users = array();
+		$acf_posts = array();
 		if ( null !== $request->get_param( 'acf_user_mapping' ) ) {
-			$acf_users = \RockStarLab\ImportExport\Service\Sync_ACF_Users::run( 'prepare', $posts_data, [ 'mapping' => $request->get_param( 'acf_user_mapping' ) ] );
+			$acf_users = \RockStarLab\ImportExport\Service\Sync_ACF_Users::run( 'prepare', $posts_data, array( 'mapping' => $request->get_param( 'acf_user_mapping' ) ) );
 			if ( is_wp_error( $acf_users ) ) {
 				return $acf_users;
 			}
 		}
 		if ( null !== $request->get_param( 'acf_term_mapping' ) ) {
-			$acf_terms = \RockStarLab\ImportExport\Service\Sync_ACF_Terms::run( 'prepare', $posts_data, [ 'mapping' => $request->get_param( 'acf_term_mapping' ) ] );
+			$acf_terms = \RockStarLab\ImportExport\Service\Sync_ACF_Terms::run( 'prepare', $posts_data, array( 'mapping' => $request->get_param( 'acf_term_mapping' ) ) );
 			if ( is_wp_error( $acf_terms ) ) {
 				return $acf_terms;
 			}
 		}
 
 		if ( null !== $request->get_param( 'acf_post_mapping' ) ) {
-			$acf_posts = \RockStarLab\ImportExport\Service\Sync_ACF_Posts::run( 'prepare', $posts_data, [ 'mapping' => $request->get_param( 'acf_post_mapping' ) ] );
+			$acf_posts = \RockStarLab\ImportExport\Service\Sync_ACF_Posts::run( 'prepare', $posts_data, array( 'mapping' => $request->get_param( 'acf_post_mapping' ) ) );
 			if ( is_wp_error( $acf_posts ) ) {
 				return $acf_posts;
 			}
@@ -292,7 +301,7 @@ class Content_Sync_API_Controller {
 		}
 
 		if ( null !== $request->get_param( 'acf_term_mapping' ) ) {
-			$posts_data = \RockStarLab\ImportExport\Service\Sync_ACF_Terms::run( 'strip', $posts_data, [ 'assignments' => $acf_terms ] );
+			$posts_data = \RockStarLab\ImportExport\Service\Sync_ACF_Terms::run( 'strip', $posts_data, array( 'assignments' => $acf_terms ) );
 			if ( is_wp_error( $posts_data ) ) {
 				return $posts_data;
 			}
@@ -802,20 +811,20 @@ class Content_Sync_API_Controller {
 		}
 
 		if ( null !== $request->get_param( 'acf_user_mapping' ) ) {
-			$confirmed = \RockStarLab\ImportExport\Service\Sync_ACF_Users::run( 'finalize', $acf_users, [ 'posts' => $source_to_local_map ] );
+			$confirmed = \RockStarLab\ImportExport\Service\Sync_ACF_Users::run( 'finalize', $acf_users, array( 'posts' => $source_to_local_map ) );
 			if ( is_wp_error( $confirmed ) ) {
 				return $confirmed;
 			}
 		}
 		if ( null !== $request->get_param( 'acf_term_mapping' ) ) {
-			$confirmed = \RockStarLab\ImportExport\Service\Sync_ACF_Terms::run( 'finalize', $acf_terms, [ 'posts' => $source_to_local_map ] );
+			$confirmed = \RockStarLab\ImportExport\Service\Sync_ACF_Terms::run( 'finalize', $acf_terms, array( 'posts' => $source_to_local_map ) );
 			if ( is_wp_error( $confirmed ) ) {
 				return $confirmed;
 			}
 		}
 
 		if ( null !== $request->get_param( 'acf_post_mapping' ) ) {
-			$confirmed = \RockStarLab\ImportExport\Service\Sync_ACF_Posts::run( 'finalize', $acf_posts, [ 'posts' => $source_to_local_map ] );
+			$confirmed = \RockStarLab\ImportExport\Service\Sync_ACF_Posts::run( 'finalize', $acf_posts, array( 'posts' => $source_to_local_map ) );
 			if ( is_wp_error( $confirmed ) ) {
 				return $confirmed;
 			}
@@ -825,11 +834,11 @@ class Content_Sync_API_Controller {
 			$confirmed = \RockStarLab\ImportExport\Service\Sync_Product_Links::run(
 				'finalize',
 				$woo_links,
-				[
+				array(
 					'posts'      => $source_to_local_map,
 					'variations' => $woo_variation_map,
 					'records'    => $posts_data,
-				]
+				)
 			);
 			if ( is_wp_error( $confirmed ) ) {
 				return $confirmed;
@@ -871,10 +880,10 @@ class Content_Sync_API_Controller {
 				'acf_terms_version'               => null !== $request->get_param( 'acf_term_mapping' ) ? 1 : 0,
 				'acf_users_version'               => null !== $request->get_param( 'acf_user_mapping' ) ? 1 : 0,
 				'woo_variations_version'          => isset( $woo_links ) ? 1 : 0,
-				'woo_variation_fields_version'    => isset( $woo_links ) ? \RockStarLab\ImportExport\Service\Sync_Product_Links::run( 'variation_fields_version', [] ) : 0,
+				'woo_variation_fields_version'    => isset( $woo_links ) ? \RockStarLab\ImportExport\Service\Sync_Product_Links::run( 'variation_fields_version', array() ) : 0,
 				'woo_grouped_version'             => isset( $woo_links ) ? 1 : 0,
-				'acf_product_graph_receipt'       => isset( $woo_links ) ? (object) \RockStarLab\ImportExport\Service\Sync_Product_Links::run( 'acf_graph_receipt', $posts_data ) : (object) [],
-				'woo_graph_receipt'               => isset( $woo_links ) ? (object) \RockStarLab\ImportExport\Service\Sync_Product_Links::run( 'receipt', $woo_links ) : (object) [],
+				'acf_product_graph_receipt'       => isset( $woo_links ) ? (object) \RockStarLab\ImportExport\Service\Sync_Product_Links::run( 'acf_graph_receipt', $posts_data ) : (object) array(),
+				'woo_graph_receipt'               => isset( $woo_links ) ? (object) \RockStarLab\ImportExport\Service\Sync_Product_Links::run( 'receipt', $woo_links ) : (object) array(),
 				'woo_links_version'               => $request->has_param( 'woo_product_mapping' ) ? 1 : 0,
 				'acf_posts_version'               => null !== $request->get_param( 'acf_post_mapping' ) ? 1 : 0,
 				'acf_media_version'               => null !== $request->get_param( 'acf_media_version' ) ? 1 : 0,
@@ -1051,15 +1060,15 @@ class Content_Sync_API_Controller {
 	 * @return mixed
 	 */
 	private function import_product_variations( $parent_post_id, $variations, $image_map, $image_sources = array(), $verified = false ) {
-		$helpers = [
+		$helpers = array(
 			'find_existing_post_by_source_meta' => function ( ...$args ) {
 				return $this->find_existing_post_by_source_meta( ...$args ); },
 			'resolve_synced_term'               => function ( ...$args ) {
 				return $this->resolve_synced_term( ...$args ); },
 			'save_synced_post_meta'             => function ( ...$args ) {
 				return $this->save_synced_post_meta( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_extension', false, 'peer', 'import_product_variations', [ $parent_post_id, $variations, $image_map, $image_sources, $verified ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_extension', false, 'peer', 'import_product_variations', array( $parent_post_id, $variations, $image_map, $image_sources, $verified ), $helpers );
 	}
 
 	/**
@@ -1072,15 +1081,15 @@ class Content_Sync_API_Controller {
 	 * @return int[] Array of local child product post IDs.
 	 */
 	private function import_grouped_children( $parent_post_id, $children, $image_map, $image_sources = array() ) {
-		$helpers = [
+		$helpers = array(
 			'find_existing_post_by_source_meta' => function ( ...$args ) {
 				return $this->find_existing_post_by_source_meta( ...$args ); },
 			'resolve_synced_term'               => function ( ...$args ) {
 				return $this->resolve_synced_term( ...$args ); },
 			'save_synced_post_meta'             => function ( ...$args ) {
 				return $this->save_synced_post_meta( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_extension', false, 'peer', 'import_grouped_children', [ $parent_post_id, $children, $image_map, $image_sources ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_extension', false, 'peer', 'import_grouped_children', array( $parent_post_id, $children, $image_map, $image_sources ), $helpers );
 	}
 
 	/**
@@ -1364,27 +1373,27 @@ class Content_Sync_API_Controller {
 	 * @return int|false
 	 */
 	private function find_existing_product_by_sku( array $post_data ) {
-		$helpers = [
+		$helpers = array(
 			'find_existing_post_by_source_meta' => function ( ...$args ) {
 				return $this->find_existing_post_by_source_meta( ...$args ); },
 			'resolve_synced_term'               => function ( ...$args ) {
 				return $this->resolve_synced_term( ...$args ); },
 			'save_synced_post_meta'             => function ( ...$args ) {
 				return $this->save_synced_post_meta( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_extension', false, 'peer', 'find_existing_product_by_sku', [ $post_data ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_extension', false, 'peer', 'find_existing_product_by_sku', array( $post_data ), $helpers );
 	}
 
 	private function sync_woocommerce_product_type( $post_id, array $post_data ) {
-		$helpers = [
+		$helpers = array(
 			'find_existing_post_by_source_meta' => function ( ...$args ) {
 				return $this->find_existing_post_by_source_meta( ...$args ); },
 			'resolve_synced_term'               => function ( ...$args ) {
 				return $this->resolve_synced_term( ...$args ); },
 			'save_synced_post_meta'             => function ( ...$args ) {
 				return $this->save_synced_post_meta( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_extension', false, 'peer', 'sync_woocommerce_product_type', [ $post_id, $post_data ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_extension', false, 'peer', 'sync_woocommerce_product_type', array( $post_id, $post_data ), $helpers );
 	}
 
 	/**
@@ -1402,8 +1411,8 @@ class Content_Sync_API_Controller {
 
 		global $wpdb;
 
-		$update = [];
-		$format = [];
+		$update = array();
+		$format = array();
 
 		if ( ! empty( $post_data['post_modified'] ) ) {
 			$update['post_modified'] = (string) $post_data['post_modified'];
@@ -1415,7 +1424,7 @@ class Content_Sync_API_Controller {
 			$format[]                    = '%s';
 		}
 
-		$wpdb->update( $wpdb->posts, $update, [ 'ID' => $post_id ], $format, [ '%d' ] );
+		$wpdb->update( $wpdb->posts, $update, array( 'ID' => $post_id ), $format, array( '%d' ) );
 		clean_post_cache( $post_id );
 	}
 
@@ -1654,7 +1663,7 @@ class Content_Sync_API_Controller {
 	 * @param array $users Server-validated comment-to-local-user assignments.
 	 * @return void|\WP_Error
 	 */
-	private function import_synced_comments( $post_id, $comments, array $users = [] ) {
+	private function import_synced_comments( $post_id, $comments, array $users = array() ) {
 		$source_to_local = array();
 
 		foreach ( (array) $comments as $comment_data ) {
@@ -1897,10 +1906,10 @@ class Content_Sync_API_Controller {
 			$posts_data = \RockStarLab\ImportExport\Service\Sync_Product_Links::run(
 				'export',
 				$posts_data,
-				[
+				array(
 					'mapping'      => $request->get_param( 'woo_product_mapping' ),
 					'graph_hashes' => $request->get_param( 'woo_graph_hashes' ),
-				]
+				)
 			);
 			if ( is_wp_error( $posts_data ) ) {
 				return $posts_data;
@@ -1951,7 +1960,7 @@ class Content_Sync_API_Controller {
 	 */
 	public function check_media( $request ) {
 		$result = ( new \RockStarLab\ImportExport\Service\Media_Transport_Service() )->check( $request->get_params() );
-		return is_wp_error( $result ) ? $result : new \WP_REST_Response( [ 'success' => true ] + $result, 200 );
+		return is_wp_error( $result ) ? $result : new \WP_REST_Response( array( 'success' => true ) + $result, 200 );
 	}
 
 	/**
@@ -1962,7 +1971,7 @@ class Content_Sync_API_Controller {
 	 */
 	public function upload_media( $request ) {
 		$result = ( new \RockStarLab\ImportExport\Service\Media_Transport_Service() )->upload( $request->get_params() );
-		return is_wp_error( $result ) ? $result : new \WP_REST_Response( [ 'success' => true ] + $result, 200 );
+		return is_wp_error( $result ) ? $result : new \WP_REST_Response( array( 'success' => true ) + $result, 200 );
 	}
 
 	/**
@@ -2061,9 +2070,14 @@ class Content_Sync_API_Controller {
 		}
 
 		// HTML/shortcode IDs may refer to deleted media or unrelated posts.
-		return array_values( array_filter( array_unique( $image_ids ), static function ( $id ) {
-			return 'attachment' === get_post_type( $id ) && wp_get_attachment_url( $id );
-		} ) );
+		return array_values(
+			array_filter(
+				array_unique( $image_ids ),
+				static function ( $id ) {
+					return 'attachment' === get_post_type( $id ) && wp_get_attachment_url( $id );
+				}
+			)
+		);
 	}
 
 	private function extract_image_urls_from_term_acf_html( $content ) {
@@ -2162,7 +2176,7 @@ class Content_Sync_API_Controller {
 
 		$args['post_type'] = array_values( array_intersect( (array) $args['post_type'], \RockStarLab\ImportExport\Abilities\Sync_Peer_Policy::browsable_types() ) );
 		if ( ! $args['post_type'] ) {
-			$args['post_type'] = [ '__rsl_ie_denied' ]; }
+			$args['post_type'] = array( '__rsl_ie_denied' ); }
 		/**
 		 * Query args of a Content Sync post list (for example: every language).
 		 *
@@ -2321,7 +2335,7 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function list_terms( $request ) {
-		$helpers = [
+		$helpers = array(
 			'extract_term_acf_images'                 => function ( ...$args ) {
 				return $this->extract_term_acf_images( ...$args ); },
 			'prepare_term_for_sync'                   => function ( ...$args ) {
@@ -2332,7 +2346,7 @@ class Content_Sync_API_Controller {
 				return $this->resolve_synced_media_references( ...$args ); },
 			'resolve_synced_term'                     => function ( ...$args ) {
 				return $this->resolve_synced_term( ...$args ); },
-		];
+		);
 		$result  = apply_filters( 'rsl_ie_sync_terms_peer', \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(), 'list_terms', $request->get_params(), $helpers );
 		return is_wp_error( $result ) ? $result : new \WP_REST_Response( $result );
 	}
@@ -2344,7 +2358,7 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function send_terms( $request ) {
-		$helpers = [
+		$helpers = array(
 			'extract_term_acf_images'                 => function ( ...$args ) {
 				return $this->extract_term_acf_images( ...$args ); },
 			'prepare_term_for_sync'                   => function ( ...$args ) {
@@ -2355,7 +2369,7 @@ class Content_Sync_API_Controller {
 				return $this->resolve_synced_media_references( ...$args ); },
 			'resolve_synced_term'                     => function ( ...$args ) {
 				return $this->resolve_synced_term( ...$args ); },
-		];
+		);
 		$result  = apply_filters( 'rsl_ie_sync_terms_peer', \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(), 'send_terms', $request->get_params(), $helpers );
 		return is_wp_error( $result ) ? $result : new \WP_REST_Response( $result );
 	}
@@ -2367,7 +2381,7 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function receive_terms( $request ) {
-		$helpers = [
+		$helpers = array(
 			'extract_term_acf_images'                 => function ( ...$args ) {
 				return $this->extract_term_acf_images( ...$args ); },
 			'prepare_term_for_sync'                   => function ( ...$args ) {
@@ -2378,7 +2392,7 @@ class Content_Sync_API_Controller {
 				return $this->resolve_synced_media_references( ...$args ); },
 			'resolve_synced_term'                     => function ( ...$args ) {
 				return $this->resolve_synced_term( ...$args ); },
-		];
+		);
 		$result  = apply_filters( 'rsl_ie_sync_terms_peer', \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(), 'receive_terms', $request->get_params(), $helpers );
 		return is_wp_error( $result ) ? $result : new \WP_REST_Response( $result );
 	}
@@ -3207,7 +3221,7 @@ class Content_Sync_API_Controller {
 		if ( '' !== $description ) {
 			$args['description'] = $description;
 		}
-		$new_term     = wp_insert_term( wp_slash( sanitize_text_field( (string) $term_info['name'] ) ), $taxonomy, wp_slash( $args ) );
+		$new_term = wp_insert_term( wp_slash( sanitize_text_field( (string) $term_info['name'] ) ), $taxonomy, wp_slash( $args ) );
 		if ( is_wp_error( $new_term ) || empty( $new_term['term_id'] ) ) {
 			return 0;
 		}
@@ -3303,15 +3317,15 @@ class Content_Sync_API_Controller {
 	 * @return bool Whether the taxonomy is available.
 	 */
 	private function ensure_woocommerce_attribute_taxonomy( $taxonomy ) {
-		$helpers = [
+		$helpers = array(
 			'find_existing_post_by_source_meta' => function ( ...$args ) {
 				return $this->find_existing_post_by_source_meta( ...$args ); },
 			'resolve_synced_term'               => function ( ...$args ) {
 				return $this->resolve_synced_term( ...$args ); },
 			'save_synced_post_meta'             => function ( ...$args ) {
 				return $this->save_synced_post_meta( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_extension', false, 'peer', 'ensure_woocommerce_attribute_taxonomy', [ $taxonomy ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_extension', false, 'peer', 'ensure_woocommerce_attribute_taxonomy', array( $taxonomy ), $helpers );
 	}
 
 	/**
@@ -3321,15 +3335,15 @@ class Content_Sync_API_Controller {
 	 * @return mixed
 	 */
 	private function refresh_woocommerce_product_after_sync( $post_id ) {
-		$helpers = [
+		$helpers = array(
 			'find_existing_post_by_source_meta' => function ( ...$args ) {
 				return $this->find_existing_post_by_source_meta( ...$args ); },
 			'resolve_synced_term'               => function ( ...$args ) {
 				return $this->resolve_synced_term( ...$args ); },
 			'save_synced_post_meta'             => function ( ...$args ) {
 				return $this->save_synced_post_meta( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_extension', false, 'peer', 'refresh_woocommerce_product_after_sync', [ $post_id ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_extension', false, 'peer', 'refresh_woocommerce_product_after_sync', array( $post_id ), $helpers );
 	}
 
 	/**
@@ -3409,7 +3423,7 @@ class Content_Sync_API_Controller {
 	 */
 	private function standalone_comment_importer() {
 		return new \RockStarLab\ImportExport\Service\Comment_Sync_Importer(
-			[
+			array(
 				'resolve'  => function ( $data, $map ) {
 					return $this->resolve_synced_comment_post_id( $data, $map ); },
 				'media'    => function ( $value, $post ) {
@@ -3418,7 +3432,7 @@ class Content_Sync_API_Controller {
 					return $this->import_comment_acf_for_sync( $id, $data ); },
 				'acf_meta' => function ( $key, $data ) {
 					return $this->is_acf_comment_sync_meta_key( $key, $data ); },
-			]
+			)
 		);
 	}
 	/**
@@ -3431,7 +3445,7 @@ class Content_Sync_API_Controller {
 		if ( ! $post_ids || count( $post_ids ) > 50 ) {
 			return \RockStarLab\ImportExport\Service\Migration_Sync_Maps::error();
 		}
-		$access = \RockStarLab\ImportExport\Abilities\Sync_Peer_Policy::check( 'send_content', [ 'post_ids' => $post_ids ] );
+		$access = \RockStarLab\ImportExport\Abilities\Sync_Peer_Policy::check( 'send_content', array( 'post_ids' => $post_ids ) );
 		return is_wp_error( $access ) ? $access : $this->prepare_posts( $post_ids );
 	}
 
@@ -3514,8 +3528,8 @@ class Content_Sync_API_Controller {
 						}
 
 						// Yoast / Rank Math settings of the term travel with the post.
-						$term_info                  = \RockStarLab\ImportExport\Helper\Seo_Fields::add_term_seo_to_payload( $term_info, $term, $taxonomy );
-						$term_info                  = (array) apply_filters( 'rsl_ie_sync_term_payload', $term_info, $term, $taxonomy );
+						$term_info                 = \RockStarLab\ImportExport\Helper\Seo_Fields::add_term_seo_to_payload( $term_info, $term, $taxonomy );
+						$term_info                 = (array) apply_filters( 'rsl_ie_sync_term_payload', $term_info, $term, $taxonomy );
 						$terms_data[ $taxonomy ][] = $term_info;
 
 						foreach ( array_merge( \RockStarLab\ImportExport\Helper\Seo_Fields::term_seo_image_ids( $term_info ), \RockStarLab\ImportExport\Helper\Term_Payload::meta_image_ids( $term_info ) ) as $image_id ) {
@@ -3622,7 +3636,7 @@ class Content_Sync_API_Controller {
 				}
 			}
 
-				$post_data = array(
+				$post_data  = array(
 					'ID'                => $post->ID,
 					'post_title'        => $post->post_title,
 					'post_content'      => $post->post_content,
@@ -3661,24 +3675,24 @@ class Content_Sync_API_Controller {
 				}
 
 				if ( 'product' === $post->post_type ) {
-					$helpers    = [
+					$helpers    = array(
 						'get_term_parent_path'       => function ( ...$args ) {
 							return $this->get_term_parent_path( ...$args ); },
 						'get_term_slug_by_id'        => function ( ...$args ) {
 							return $this->get_term_slug_by_id( ...$args ); },
 						'portable_synced_meta_value' => function ( ...$args ) {
 							return $this->portable_synced_meta_value( ...$args ); },
-					];
+					);
 					$enriched   = apply_filters(
 						'rsl_ie_sync_extension',
-						[
+						array(
 							'post'    => $post_data,
 							'images'  => $all_images,
-							'context' => [],
-						],
+							'context' => array(),
+						),
 						'peer',
 						'enrich_post',
-						[ $post_data, $post, $all_images ],
+						array( $post_data, $post, $all_images ),
 						$helpers
 					);
 					$post_data  = $enriched['post'];
@@ -3695,10 +3709,10 @@ class Content_Sync_API_Controller {
 				$posts_data[] = $post_data;
 		}
 
-		return [
+		return array(
 			'posts'     => $posts_data,
 			'images'    => $all_images,
 			'not_found' => $not_found_ids,
-		];
+		);
 	}
 }

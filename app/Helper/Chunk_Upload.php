@@ -20,19 +20,19 @@ class Chunk_Upload {
 
 	/** Register legacy endpoints and cleanup. */
 	public function __construct() {
-		add_action( 'wp_ajax_rsl_ie_upload_chunk', [ $this, 'handle_chunk_upload' ] );
-		add_action( 'wp_ajax_rsl_ie_finalize_upload', [ $this, 'handle_finalize_upload' ] );
-		add_action( 'wp_ajax_rsl_ie_abort_upload', [ $this, 'handle_abort_upload' ] );
-		add_action( 'wp_ajax_rsl_ie_reload_preview', [ $this, 'handle_reload_preview' ] );
-		add_action( 'wp_ajax_rsl_ie_get_custom_post_types', [ $this, 'handle_get_custom_post_types' ] );
-		add_action( 'wp_ajax_rsl_ie_upload_from_url', [ $this, 'handle_upload_from_url' ] );
-		foreach ( [ 'rsl_ie_upload_chunk', 'rsl_ie_finalize_upload', 'rsl_ie_abort_upload', 'rsl_ie_reload_preview', 'rsl_ie_get_custom_post_types', 'rsl_ie_upload_from_url' ] as $action ) {
+		add_action( 'wp_ajax_rsl_ie_upload_chunk', array( $this, 'handle_chunk_upload' ) );
+		add_action( 'wp_ajax_rsl_ie_finalize_upload', array( $this, 'handle_finalize_upload' ) );
+		add_action( 'wp_ajax_rsl_ie_abort_upload', array( $this, 'handle_abort_upload' ) );
+		add_action( 'wp_ajax_rsl_ie_reload_preview', array( $this, 'handle_reload_preview' ) );
+		add_action( 'wp_ajax_rsl_ie_get_custom_post_types', array( $this, 'handle_get_custom_post_types' ) );
+		add_action( 'wp_ajax_rsl_ie_upload_from_url', array( $this, 'handle_upload_from_url' ) );
+		foreach ( array( 'rsl_ie_upload_chunk', 'rsl_ie_finalize_upload', 'rsl_ie_abort_upload', 'rsl_ie_reload_preview', 'rsl_ie_get_custom_post_types', 'rsl_ie_upload_from_url' ) as $action ) {
 			Ajax_Security::register_action( $action );
 		}
 		if ( ! wp_next_scheduled( 'rsl_ie_cleanup_old_chunks' ) ) {
 			wp_schedule_event( time(), 'daily', 'rsl_ie_cleanup_old_chunks' );
 		}
-		add_action( 'rsl_ie_cleanup_old_chunks', [ $this, 'cleanup_old_chunks' ] );
+		add_action( 'rsl_ie_cleanup_old_chunks', array( $this, 'cleanup_old_chunks' ) );
 	}
 
 	/** Receive one multipart fragment. */
@@ -45,7 +45,7 @@ class Chunk_Upload {
 			return;
 		}
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput,WordPress.Security.NonceVerification -- PHP upload origin is verified by File_Service after the nonce above.
-		$file = isset( $_FILES['chunk'] ) && is_array( $_FILES['chunk'] ) ? $_FILES['chunk'] : [];
+		$file = isset( $_FILES['chunk'] ) && is_array( $_FILES['chunk'] ) ? $_FILES['chunk'] : array();
 		$this->respond( $service->upload_chunk( $record['file_id'], $this->param( 'chunk_index' ), $file ) );
 	}
 
@@ -101,11 +101,11 @@ class Chunk_Upload {
 	 * @return array
 	 */
 	private function manifest() {
-		return [
+		return array(
 			'file_name'    => $this->param( 'file_name' ),
 			'file_size'    => $this->param( 'file_size' ),
 			'total_chunks' => $this->param( 'total_chunks' ),
-		];
+		);
 	}
 
 	/**
@@ -114,11 +114,11 @@ class Chunk_Upload {
 	 * @return array
 	 */
 	private function parser_options() {
-		return [
+		return array(
 			'delimiter'  => $this->param( 'delimiter', ',' ),
-			'has_header' => in_array( $this->param( 'has_header', 'true' ), [ 'true', '1' ], true ),
+			'has_header' => in_array( $this->param( 'has_header', 'true' ), array( 'true', '1' ), true ),
 			'encoding'   => $this->param( 'encoding', 'auto' ),
-		];
+		);
 	}
 
 	/**
@@ -147,9 +147,9 @@ class Chunk_Upload {
 		if ( $preview ) {
 			$result['file_path'] = 'rsl-ie-file:' . $result['file_id'];
 			$result['columns']   = $result['headers'];
-			$rows                = [];
+			$rows                = array();
 			foreach ( $result['preview'] as $row ) {
-				$values  = [];
+				$values  = array();
 				$numeric = array_keys( $row ) === range( 0, count( $row ) - 1 );
 				foreach ( $result['headers'] as $index => $column ) {
 					$value    = $row[ $numeric ? $index : $column ] ?? '';
@@ -157,10 +157,10 @@ class Chunk_Upload {
 				}
 				$rows[] = $values;
 			}
-			$result['preview'] = [
+			$result['preview'] = array(
 				'headers' => $result['headers'],
 				'data'    => $rows,
-			];
+			);
 		}
 		wp_send_json_success( $result );
 	}

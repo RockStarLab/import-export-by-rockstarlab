@@ -32,13 +32,13 @@ class Import_Row_Error {
 		$message = wp_strip_all_tags( (string) $error->get_error_message() );
 		$data    = $error->get_error_data();
 		$field   = is_array( $data ) && isset( $data['field'] ) && is_scalar( $data['field'] ) ? (string) $data['field'] : self::guess_field( $code, $message, $item );
-		$entry   = [
+		$entry   = array(
 			'row'     => (int) $row,
 			'message' => '' !== $message ? $message : __( 'The row could not be imported.', 'import-export-by-rockstarlab' ),
 			'code'    => $code,
 			'field'   => $field,
 			'hint'    => self::hint( $code, $field, $message ),
-		];
+		);
 		if ( $keep_values ) {
 			$entry['values'] = self::values( $item );
 		}
@@ -52,10 +52,10 @@ class Import_Row_Error {
 	 * @return array
 	 */
 	public static function values( array $item ) {
-		$out = [];
+		$out = array();
 		foreach ( $item as $key => $value ) {
 			$key = (string) $key;
-			if ( '' === $key || '_' === $key[0] || in_array( $key, [ 'post_meta', 'taxonomies' ], true ) ) {
+			if ( '' === $key || '_' === $key[0] || in_array( $key, array( 'post_meta', 'taxonomies' ), true ) ) {
 				continue;
 			}
 			if ( is_array( $value ) || is_object( $value ) ) {
@@ -71,7 +71,10 @@ class Import_Row_Error {
 			}
 		}
 		// Custom fields and terms were moved into nested arrays; show them under their column names.
-		foreach ( [ 'post_meta' => 'meta_', 'taxonomies' => 'taxonomy_' ] as $group => $prefix ) {
+		foreach ( array(
+			'post_meta'  => 'meta_',
+			'taxonomies' => 'taxonomy_',
+		) as $group => $prefix ) {
 			if ( empty( $item[ $group ] ) || ! is_array( $item[ $group ] ) ) {
 				continue;
 			}
@@ -82,7 +85,7 @@ class Import_Row_Error {
 				if ( 'taxonomies' === $group && is_array( $value ) ) {
 					$value = $value['terms'] ?? '';
 				}
-				$value = is_scalar( $value ) ? (string) $value : (string) wp_json_encode( $value );
+				$value                 = is_scalar( $value ) ? (string) $value : (string) wp_json_encode( $value );
 				$out[ $prefix . $key ] = function_exists( 'mb_substr' ) ? mb_substr( $value, 0, self::VALUE_LENGTH ) : substr( $value, 0, self::VALUE_LENGTH );
 			}
 		}
@@ -101,18 +104,18 @@ class Import_Row_Error {
 		if ( 'missing_required_fields' === $code && preg_match( '/:\s*(.+)$/', $message, $m ) ) {
 			return trim( $m[1] );
 		}
-		$by_code = [
-			'invalid_date'               => 'post_date',
-			'invalid_page_template'      => '_wp_page_template',
-			'empty_content'              => 'post_content',
-			'missing_comment_content'    => 'comment_content',
-			'missing_post_id'            => 'ID',
-			'invalid_taxonomy'           => 'taxonomies',
-			'rsl_ie_media_not_image'     => isset( $item['featured_image_url'] ) ? 'featured_image_url' : '',
-			'rsl_ie_download_failed'     => isset( $item['featured_image_url'] ) ? 'featured_image_url' : '',
-			'download_failed'            => isset( $item['file'] ) ? 'file' : '',
+		$by_code = array(
+			'invalid_date'                    => 'post_date',
+			'invalid_page_template'           => '_wp_page_template',
+			'empty_content'                   => 'post_content',
+			'missing_comment_content'         => 'comment_content',
+			'missing_post_id'                 => 'ID',
+			'invalid_taxonomy'                => 'taxonomies',
+			'rsl_ie_media_not_image'          => isset( $item['featured_image_url'] ) ? 'featured_image_url' : '',
+			'rsl_ie_download_failed'          => isset( $item['featured_image_url'] ) ? 'featured_image_url' : '',
+			'download_failed'                 => isset( $item['file'] ) ? 'file' : '',
 			'rsl_ie_media_url_not_importable' => isset( $item['file'] ) ? 'file' : '',
-		];
+		);
 		if ( isset( $by_code[ $code ] ) ) {
 			return $by_code[ $code ];
 		}
@@ -134,7 +137,7 @@ class Import_Row_Error {
 	 * @return string
 	 */
 	public static function hint( $code, $field = '', $message = '' ) {
-		$hints = [
+		$hints = array(
 			'missing_required_fields'         => __( 'Map a column of your file to this field in the Field Mapping step, or fill in the empty cells.', 'import-export-by-rockstarlab' ),
 			'empty_content'                   => __( 'The row has no title, content or excerpt. Fill in at least one of them or remove the row.', 'import-export-by-rockstarlab' ),
 			'empty_data'                      => __( 'The row is empty. Remove it from the file.', 'import-export-by-rockstarlab' ),
@@ -152,7 +155,7 @@ class Import_Row_Error {
 			'comment_creation_failed'         => __( 'WordPress did not save the comment. Check that the post it belongs to exists.', 'import-export-by-rockstarlab' ),
 			'db_insert_error'                 => __( 'The database refused the row. Check the values of this row for unusual characters or very long text.', 'import-export-by-rockstarlab' ),
 			'rsl_ie_import_exception'         => __( 'An unexpected error stopped this row. Check its values; if it keeps failing, send the error text to support.', 'import-export-by-rockstarlab' ),
-		];
+		);
 		if ( isset( $hints[ $code ] ) ) {
 			return $hints[ $code ];
 		}
@@ -176,38 +179,38 @@ class Import_Row_Error {
 	 * @return string
 	 */
 	public static function csv( array $errors ) {
-		$columns = [];
+		$columns = array();
 		foreach ( $errors as $error ) {
-			foreach ( array_keys( (array) ( $error['values'] ?? [] ) ) as $key ) {
+			foreach ( array_keys( (array) ( $error['values'] ?? array() ) ) as $key ) {
 				$columns[ (string) $key ] = true;
 			}
 		}
 		$columns = array_keys( $columns );
 		$handle  = fopen( 'php://temp', 'w+' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- In-memory CSV buffer.
 		$header  = array_merge(
-			[
+			array(
 				__( 'Row', 'import-export-by-rockstarlab' ),
 				__( 'Field', 'import-export-by-rockstarlab' ),
 				__( 'Error', 'import-export-by-rockstarlab' ),
 				__( 'How to fix', 'import-export-by-rockstarlab' ),
-			],
+			),
 			$columns
 		);
-		fputcsv( $handle, array_map( [ __CLASS__, 'cell' ], $header ), ',', '"', '' );
+		fputcsv( $handle, array_map( array( __CLASS__, 'cell' ), $header ), ',', '"', '' );
 		foreach ( $errors as $error ) {
 			if ( ! is_array( $error ) ) {
 				continue;
 			}
-			$line = [
+			$line = array(
 				(string) ( $error['row'] ?? '' ),
 				(string) ( $error['field'] ?? '' ),
 				(string) ( $error['message'] ?? '' ),
 				(string) ( $error['hint'] ?? self::hint( (string) ( $error['code'] ?? '' ), '', (string) ( $error['message'] ?? '' ) ) ),
-			];
+			);
 			foreach ( $columns as $column ) {
 				$line[] = (string) ( $error['values'][ $column ] ?? '' );
 			}
-			fputcsv( $handle, array_map( [ __CLASS__, 'cell' ], $line ), ',', '"', '' );
+			fputcsv( $handle, array_map( array( __CLASS__, 'cell' ), $line ), ',', '"', '' );
 		}
 		rewind( $handle );
 		$csv = (string) stream_get_contents( $handle );
@@ -223,6 +226,6 @@ class Import_Row_Error {
 	 */
 	private static function cell( $value ) {
 		$value = (string) $value;
-		return '' !== $value && in_array( $value[0], [ '=', '+', '-', '@', "\t", "\r" ], true ) && ! is_numeric( $value ) ? "'" . $value : $value;
+		return '' !== $value && in_array( $value[0], array( '=', '+', '-', '@', "\t", "\r" ), true ) && ! is_numeric( $value ) ? "'" . $value : $value;
 	}
 }

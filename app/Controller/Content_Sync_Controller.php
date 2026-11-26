@@ -748,7 +748,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( $verify->get_error_message() );
 			return;
 		}
-		$input  = array(
+		$input = array(
 			'site_id'  => $this->get_request_param( 'site_id', 0 ),
 			'taxonomy' => $this->get_request_param( 'taxonomy', '' ),
 			'term_ids' => $this->get_request_array( 'term_ids', array() ),
@@ -842,7 +842,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( $verify->get_error_message() );
 			return;
 		}
-		$input  = array(
+		$input              = array(
 			'site_id'        => $this->get_request_param( 'site_id', 0 ),
 			'comment_ids'    => $this->get_request_array( 'comment_ids', array() ),
 			'target_post_id' => $this->get_request_param( 'target_post_id', 0 ),
@@ -865,7 +865,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( $verify->get_error_message() );
 			return;
 		}
-		$input  = array(
+		$input       = array(
 			'site_id'        => $this->get_request_param( 'site_id', 0 ),
 			'comment_ids'    => $this->get_request_array( 'comment_ids', array() ),
 			'target_post_id' => $this->get_request_param( 'target_post_id', 0 ),
@@ -959,7 +959,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( $verify->get_error_message() );
 			return;
 		}
-		$input  = array(
+		$input = array(
 			'site_id'      => $this->get_request_param( 'site_id', 0 ),
 			'post_ids'     => $this->get_request_array( 'post_ids', array() ),
 			'post_mapping' => $this->get_request_param( 'post_mapping', array() ),
@@ -993,7 +993,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( $verify->get_error_message() );
 			return;
 		}
-		$input  = array(
+		$input = array(
 			'site_id'      => $this->get_request_param( 'site_id', 0 ),
 			'post_ids'     => $this->get_request_array( 'post_ids', array() ),
 			'post_mapping' => $this->get_request_param( 'post_mapping', array() ),

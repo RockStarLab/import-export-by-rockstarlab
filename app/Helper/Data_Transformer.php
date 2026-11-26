@@ -75,8 +75,8 @@ class Data_Transformer {
 	 * @param array $required_fields Array of required field names
 	 * @return bool|array True if all fields valid, array of error messages if validation fails
 	 */
-	public static function validate_required( $data, $required_fields = [] ) {
-		$errors = [];
+	public static function validate_required( $data, $required_fields = array() ) {
+		$errors = array();
 
 		foreach ( $required_fields as $field ) {
 			if ( ! isset( $data[ $field ] ) || empty( $data[ $field ] ) ) {
@@ -101,10 +101,10 @@ class Data_Transformer {
 	 * }
 	 * @return mixed Transformed value
 	 */
-	public static function transform_field( $value, $transformations = [] ) {
+	public static function transform_field( $value, $transformations = array() ) {
 		foreach ( $transformations as $transformation ) {
 			$type   = $transformation['type'] ?? '';
-			$params = $transformation['params'] ?? [];
+			$params = $transformation['params'] ?? array();
 
 			switch ( $type ) {
 				case 'search_replace':
@@ -144,11 +144,11 @@ class Data_Transformer {
 				case 'pro_transformation':
 					$value = Field_Transformation_Bridge::apply(
 						$value,
-						(array) ( $params['ids'] ?? [] ),
-						[
+						(array) ( $params['ids'] ?? array() ),
+						array(
 							'operation' => 'data_transformer',
 							'params'    => $params,
-						]
+						)
 					);
 					break;
 			}
@@ -198,7 +198,7 @@ class Data_Transformer {
 	 * @return array Array with normalized keys
 	 */
 	public static function normalize_array_keys( $array, $lowercase = true ) {
-		$normalized = [];
+		$normalized = array();
 
 		foreach ( $array as $key => $value ) {
 			$new_key                = $lowercase ? strtolower( $key ) : $key;
@@ -218,7 +218,7 @@ class Data_Transformer {
 	 */
 	public static function deep_clean( $value ) {
 		if ( is_array( $value ) ) {
-			return array_map( [ __CLASS__, 'deep_clean' ], $value );
+			return array_map( array( __CLASS__, 'deep_clean' ), $value );
 		}
 
 		if ( is_string( $value ) ) {

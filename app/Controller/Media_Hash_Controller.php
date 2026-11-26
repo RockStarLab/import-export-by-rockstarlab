@@ -24,12 +24,12 @@ class Media_Hash_Controller extends Base_Controller {
 	 * @return array<string,array<string,string>>
 	 */
 	protected function get_ajax_actions() {
-			return [
-				'get_hash_statistics'  => [ 'callback' => 'get_hash_statistics' ],
-				'bulk_add_hashes'      => [ 'callback' => 'bulk_add_hashes' ],
-				'check_duplicate_hash' => [ 'callback' => 'check_duplicate_hash' ],
-				'get_debug_site_info'  => [ 'callback' => 'get_debug_site_info' ],
-			];
+			return array(
+				'get_hash_statistics'  => array( 'callback' => 'get_hash_statistics' ),
+				'bulk_add_hashes'      => array( 'callback' => 'bulk_add_hashes' ),
+				'check_duplicate_hash' => array( 'callback' => 'check_duplicate_hash' ),
+				'get_debug_site_info'  => array( 'callback' => 'get_debug_site_info' ),
+			);
 	}
 
 	/**
@@ -81,10 +81,10 @@ class Media_Hash_Controller extends Base_Controller {
 			$this->send_error( $verification );
 		}
 
-		$this->validate_required_params( [ 'file_path' ] );
+		$this->validate_required_params( array( 'file_path' ) );
 		$file_path = $this->get_request_param( 'file_path' );
 
-		$result = ( new Media_Hash_Service() )->check_duplicate( [ 'file_path' => $file_path ] );
+		$result = ( new Media_Hash_Service() )->check_duplicate( array( 'file_path' => $file_path ) );
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result );
 		}
@@ -101,9 +101,9 @@ class Media_Hash_Controller extends Base_Controller {
 		}
 
 		$this->send_success(
-			[
+			array(
 				'info' => $this->build_debug_site_info(),
-			]
+			)
 		);
 	}
 
@@ -119,7 +119,7 @@ class Media_Hash_Controller extends Base_Controller {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
-		$lines           = [];
+		$lines           = array();
 		$active_theme    = wp_get_theme();
 		$upload_dir      = wp_upload_dir();
 		$server_software = filter_input( INPUT_SERVER, 'SERVER_SOFTWARE', FILTER_UNSAFE_RAW );
@@ -131,7 +131,7 @@ class Media_Hash_Controller extends Base_Controller {
 		$this->append_debug_section(
 			$lines,
 			'WordPress',
-			[
+			array(
 				'Site URL'            => site_url(),
 				'Home URL'            => home_url(),
 				'Current Request URL' => \RockStarLab\ImportExport\Helper\Site_URL::current_request_site_url(),
@@ -147,13 +147,13 @@ class Media_Hash_Controller extends Base_Controller {
 				'Max Memory Limit'    => defined( 'WP_MAX_MEMORY_LIMIT' ) ? WP_MAX_MEMORY_LIMIT : 'Not set',
 				'Cron Disabled'       => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ? 'Yes' : 'No',
 				'Alternate Cron'      => defined( 'ALTERNATE_WP_CRON' ) && ALTERNATE_WP_CRON ? 'Yes' : 'No',
-			]
+			)
 		);
 
 		$this->append_debug_section(
 			$lines,
 			'Content Sync, Media Sync, Import, Export with AI Agents Support',
-			[
+			array(
 				'Free Version'      => defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : 'Unknown',
 				'Free Plugin Path'  => defined( 'RSL_IE_PATH' ) ? RSL_IE_PATH : 'Unknown',
 				'PRO Addon Active'  => class_exists( '\RockStarLab\ImportExport\Helper\Pro_Addon' ) && \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ? 'Yes' : 'No',
@@ -163,25 +163,25 @@ class Media_Hash_Controller extends Base_Controller {
 				'Upload Base Dir'   => $upload_dir['basedir'],
 				'Upload Base URL'   => $upload_dir['baseurl'],
 				'Upload Error'      => $upload_dir['error'] ?: 'None',
-			]
+			)
 		);
 
 		$this->append_debug_section(
 			$lines,
 			'Active Theme',
-			[
+			array(
 				'Name'       => $active_theme->get( 'Name' ),
 				'Version'    => $active_theme->get( 'Version' ),
 				'Author'     => wp_strip_all_tags( $active_theme->get( 'Author' ) ),
 				'Template'   => $active_theme->get_template(),
 				'Stylesheet' => $active_theme->get_stylesheet(),
-			]
+			)
 		);
 
 		$this->append_debug_section(
 			$lines,
 			'Server',
-			[
+			array(
 				'PHP Version'         => PHP_VERSION,
 				'PHP SAPI'            => PHP_SAPI,
 				'Server Software'     => $server_software ? sanitize_text_field( wp_unslash( $server_software ) ) : 'Unknown',
@@ -192,13 +192,13 @@ class Media_Hash_Controller extends Base_Controller {
 				'Table Prefix Length' => strlen( $wpdb->prefix ),
 				'ABSPATH Writable'    => wp_is_writable( ABSPATH ) ? 'Yes' : 'No',
 				'Filesystem Method'   => get_filesystem_method(),
-			]
+			)
 		);
 
 		$this->append_debug_section(
 			$lines,
 			'PHP Limits',
-			[
+			array(
 				'memory_limit'        => ini_get( 'memory_limit' ),
 				'max_execution_time'  => ini_get( 'max_execution_time' ),
 				'max_input_time'      => ini_get( 'max_input_time' ),
@@ -206,13 +206,13 @@ class Media_Hash_Controller extends Base_Controller {
 				'post_max_size'       => ini_get( 'post_max_size' ),
 				'upload_max_filesize' => ini_get( 'upload_max_filesize' ),
 				'max_file_uploads'    => ini_get( 'max_file_uploads' ),
-			]
+			)
 		);
 
 		$this->append_debug_section(
 			$lines,
 			'PHP Extensions',
-			[
+			array(
 				'curl'      => extension_loaded( 'curl' ) ? 'Loaded' : 'Missing',
 				'dom'       => extension_loaded( 'dom' ) ? 'Loaded' : 'Missing',
 				'fileinfo'  => extension_loaded( 'fileinfo' ) ? 'Loaded' : 'Missing',
@@ -227,7 +227,7 @@ class Media_Hash_Controller extends Base_Controller {
 				'xmlreader' => extension_loaded( 'xmlreader' ) ? 'Loaded' : 'Missing',
 				'xmlwriter' => extension_loaded( 'xmlwriter' ) ? 'Loaded' : 'Missing',
 				'zip'       => extension_loaded( 'zip' ) ? 'Loaded' : 'Missing',
-			]
+			)
 		);
 
 		$this->append_plugins_debug_info( $lines );
@@ -263,7 +263,7 @@ class Media_Hash_Controller extends Base_Controller {
 	 */
 	private function append_plugins_debug_info( &$lines ) {
 		$plugins        = get_plugins();
-		$active_plugins = (array) get_option( 'active_plugins', [] );
+		$active_plugins = (array) get_option( 'active_plugins', array() );
 
 		$lines[] = '### Plugins';
 		$lines[] = 'Active Plugins: ' . count( $active_plugins );

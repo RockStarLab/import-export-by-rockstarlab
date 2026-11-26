@@ -20,18 +20,18 @@ class Site_Migration_Controller extends Base_Controller {
 
 	protected function get_ajax_actions() {
 		return array(
-			'migration_get_plan'              => array( 'callback' => 'get_plan' ),
-			'migration_dismiss_intro_notice'  => array( 'callback' => 'dismiss_intro_notice' ),
-			'migration_start'                 => array( 'callback' => 'start_migration' ),
-			'migration_get'                   => array( 'callback' => 'get_migration' ),
-			'migration_advance'               => array( 'callback' => 'advance_migration' ),
-			'migration_update'                => array( 'callback' => 'update_migration' ),
-			'migration_package_exports'       => array( 'callback' => 'package_exports' ),
-			'migration_upload_package'        => array( 'callback' => 'upload_package' ),
-			'migration_prepare_package'       => array( 'callback' => 'prepare_package' ),
-			'migration_get_file_headers'      => array( 'callback' => 'get_file_headers' ),
-			'migration_get_download_url'      => array( 'callback' => 'get_download_url' ),
-			'migration_secure_download'       => array( 'callback' => 'secure_download' ),
+			'migration_get_plan'             => array( 'callback' => 'get_plan' ),
+			'migration_dismiss_intro_notice' => array( 'callback' => 'dismiss_intro_notice' ),
+			'migration_start'                => array( 'callback' => 'start_migration' ),
+			'migration_get'                  => array( 'callback' => 'get_migration' ),
+			'migration_advance'              => array( 'callback' => 'advance_migration' ),
+			'migration_update'               => array( 'callback' => 'update_migration' ),
+			'migration_package_exports'      => array( 'callback' => 'package_exports' ),
+			'migration_upload_package'       => array( 'callback' => 'upload_package' ),
+			'migration_prepare_package'      => array( 'callback' => 'prepare_package' ),
+			'migration_get_file_headers'     => array( 'callback' => 'get_file_headers' ),
+			'migration_get_download_url'     => array( 'callback' => 'get_download_url' ),
+			'migration_secure_download'      => array( 'callback' => 'secure_download' ),
 		);
 	}
 
@@ -45,7 +45,7 @@ class Site_Migration_Controller extends Base_Controller {
 			$this->send_error( __( 'You do not have permission to perform this action', 'import-export-by-rockstarlab' ), null, 403 );
 		}
 
-		$result = ( new \RockStarLab\ImportExport\Service\Settings_Service() )->execute( 'preferences-update', [ 'migration_intro_dismissed' => true ] );
+		$result = ( new \RockStarLab\ImportExport\Service\Settings_Service() )->execute( 'preferences-update', array( 'migration_intro_dismissed' => true ) );
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result, null, 400 );
 			return;
@@ -63,11 +63,11 @@ class Site_Migration_Controller extends Base_Controller {
 
 		$this->send_success(
 			array(
-				'steps'          => $steps,
-				'isProActive'    => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active(),
-				'proOnlyTypes'   => $this->get_pro_only_labels(),
-				'proCta'         => \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_cta(),
-				'proDismissed'   => (bool) get_user_meta( get_current_user_id(), 'rsl_ie_dismiss_pro_promo_migration', true ),
+				'steps'        => $steps,
+				'isProActive'  => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active(),
+				'proOnlyTypes' => $this->get_pro_only_labels(),
+				'proCta'       => \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_cta(),
+				'proDismissed' => (bool) get_user_meta( get_current_user_id(), 'rsl_ie_dismiss_pro_promo_migration', true ),
 			)
 		);
 	}
@@ -87,12 +87,12 @@ class Site_Migration_Controller extends Base_Controller {
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 			return; }
-		$input  = [ 'job_id' => absint( $this->get_request_param( 'job_id', 0 ) ) ];
+		$input  = array( 'job_id' => absint( $this->get_request_param( 'job_id', 0 ) ) );
 		$result = ( new \RockStarLab\ImportExport\Service\Migration_Service() )->execute( 'migration-get', $input );
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result, null, $result->get_error_data()['status'] ?? 400 );
 			return; }
-		if ( $advance && in_array( $result['status'], [ 'pending', 'processing' ], true ) ) {
+		if ( $advance && in_array( $result['status'], array( 'pending', 'processing' ), true ) ) {
 			\RockStarLab\ImportExport\Service\Job_Runner::run_scheduled( $input['job_id'] );
 			$result = ( new \RockStarLab\ImportExport\Service\Migration_Service() )->execute( 'migration-get', $input );
 			if ( is_wp_error( $result ) ) {
@@ -103,7 +103,11 @@ class Site_Migration_Controller extends Base_Controller {
 		if ( ! empty( $result['child_job_id'] ) ) {
 			$child = ( new \RockStarLab\ImportExport\Service\Job_Service() )->record( $result['child_job_id'] );
 			if ( ! is_wp_error( $child ) && (int) ( json_decode( $child->parameters, true )['migration_parent_id'] ?? 0 ) === $input['job_id'] ) {
-				$result['active_file'] = [ 'processed' => (int) $child->processed_items, 'total' => (int) $child->total_items, 'type' => $child->data_type ];
+				$result['active_file'] = array(
+					'processed' => (int) $child->processed_items,
+					'total'     => (int) $child->total_items,
+					'type'      => $child->data_type,
+				);
 			}
 		}
 		$this->send_success( $result );
@@ -118,14 +122,14 @@ class Site_Migration_Controller extends Base_Controller {
 		$mode      = sanitize_key( (string) $this->get_request_param( 'mode', 'export_file' ) );
 		$operation = sanitize_key( (string) $this->get_request_param( 'operation', 'export' ) );
 		if ( 'export_file' === $mode && 'import' === $operation ) {
-			$input    = [
+			$input    = array(
 				'file_id'             => (string) $this->get_request_param( 'file_id', '' ),
 				'sha256'              => (string) $this->get_request_param( 'sha256', '' ),
 				'request_id'          => (string) $this->get_request_param( 'request_id', wp_generate_uuid4() ),
 				'duplicate_handling'  => 'update' === sanitize_key( (string) $this->get_request_param( 'duplicate_handling', 'skip' ) ) ? 'update' : 'skip',
 				'download_media'      => true,
 				'replace_links_rules' => $this->get_request_array( 'replace_links_rules' ),
-			];
+			);
 			$selected = $this->get_request_array( 'steps' );
 			if ( $selected ) {
 				$input['steps'] = $selected;
@@ -140,17 +144,17 @@ class Site_Migration_Controller extends Base_Controller {
 		if ( 'export_file' === $mode && 'export' === $operation ) {
 			$steps  = array_map(
 				static function ( $key ) {
-					return [ 'key' => $key ];
+					return array( 'key' => $key );
 				},
 				$this->get_request_array( 'steps' )
 			);
 			$result = ( new \RockStarLab\ImportExport\Service\Migration_Service() )->execute(
 				'migration-start',
-				[
+				array(
 					'operation'  => 'export_file',
 					'steps'      => $steps,
 					'request_id' => (string) $this->get_request_param( 'request_id', wp_generate_uuid4() ),
-				]
+				)
 			);
 			if ( is_wp_error( $result ) ) {
 				$this->send_error( $result, null, $result->get_error_data()['status'] ?? 400 );
@@ -438,13 +442,17 @@ class Site_Migration_Controller extends Base_Controller {
 		// Signal the browser only once the authorized package is ready to stream.
 		$download_token = isset( $_GET['download_token'] ) ? sanitize_key( wp_unslash( $_GET['download_token'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( $download_token && strlen( $download_token ) <= 64 ) {
-			setcookie( 'rsl_ie_migration_download_' . $download_token, '1', array(
-				'expires'  => time() + 180,
-				'path'     => '/',
-				'secure'   => is_ssl(),
-				'httponly' => false,
-				'samesite' => 'Lax',
-			) );
+			setcookie(
+				'rsl_ie_migration_download_' . $download_token,
+				'1',
+				array(
+					'expires'  => time() + 180,
+					'path'     => '/',
+					'secure'   => is_ssl(),
+					'httponly' => false,
+					'samesite' => 'Lax',
+				)
+			);
 		}
 		header( 'Content-Type: application/zip' );
 		header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( basename( $job->file_path ) ) . '"' );
@@ -455,7 +463,7 @@ class Site_Migration_Controller extends Base_Controller {
 
 	private function get_available_steps() {
 		$steps = \RockStarLab\ImportExport\Abilities\Migration_Plan::steps();
-		return is_wp_error( $steps ) ? [] : $steps;
+		return is_wp_error( $steps ) ? array() : $steps;
 	}
 
 	private function sanitize_step_keys( $steps ) {

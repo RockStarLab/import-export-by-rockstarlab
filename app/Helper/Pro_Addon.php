@@ -58,7 +58,7 @@ class Pro_Addon {
 		if ( function_exists( 'rsl_ie_fs' ) ) {
 			// Freemius account screen can open the license activation modal when
 			// activate_license=true is present.
-			return (string) rsl_ie_fs()->get_account_url( false, [ 'activate_license' => 'true' ], false );
+			return (string) rsl_ie_fs()->get_account_url( false, array( 'activate_license' => 'true' ), false );
 		}
 
 		return admin_url( 'admin.php?page=import-export-by-rockstarlab-account&activate_license=true' );
@@ -83,10 +83,10 @@ class Pro_Addon {
 	 * @return array{url:string,label:string}
 	 */
 	public static function get_promo_cta() {
-		return [
+		return array(
 			'url'   => admin_url( 'admin.php?page=import-export-by-rockstarlab-addons' ),
 			'label' => __( 'Buy PRO Addon', 'import-export-by-rockstarlab' ),
-		];
+		);
 	}
 
 	/**
@@ -102,58 +102,59 @@ class Pro_Addon {
 	public static function get_promo_features( $context ) {
 		$context = strtolower( trim( (string) $context ) );
 
-		$features = [];
+		$features = array();
 		$cards    = self::get_pro_content_type_cards( 'migration' === $context ? 'export' : $context );
 
 		foreach ( $cards as $card ) {
-			if ( 'migration' === $context && 'database_table' === ( $card['value'] ?? '' ) ) { continue; }
+			if ( 'migration' === $context && 'database_table' === ( $card['value'] ?? '' ) ) {
+				continue; }
 			if ( empty( $card['title'] ) ) {
 				continue;
 			}
 
-			$features[] = [
+			$features[] = array(
 				'title'       => (string) $card['title'],
 				'description' => (string) ( $card['description'] ?? '' ),
-			];
+			);
 		}
 
 		// Advertise WooCommerce PRO features even when WooCommerce is not active.
-		if ( in_array( $context, [ 'import', 'export', 'migration' ], true ) && ! class_exists( 'WooCommerce' ) ) {
+		if ( in_array( $context, array( 'import', 'export', 'migration' ), true ) && ! class_exists( 'WooCommerce' ) ) {
 			$is_import = 'import' === $context;
-			$woo_cards = [
-				[
+			$woo_cards = array(
+				array(
 					'title'       => __( 'WooCommerce Products', 'import-export-by-rockstarlab' ),
 					'description' => $is_import ? __( 'Import WooCommerce products', 'import-export-by-rockstarlab' ) : __( 'Export WooCommerce products', 'import-export-by-rockstarlab' ),
-				],
-				[
+				),
+				array(
 					'title'       => __( 'WooCommerce Orders', 'import-export-by-rockstarlab' ),
 					'description' => $is_import ? __( 'Import WooCommerce orders', 'import-export-by-rockstarlab' ) : __( 'Export WooCommerce orders', 'import-export-by-rockstarlab' ),
-				],
-				[
+				),
+				array(
 					'title'       => __( 'WooCommerce Refunds', 'import-export-by-rockstarlab' ),
 					'description' => $is_import ? __( 'Import WooCommerce refunds', 'import-export-by-rockstarlab' ) : __( 'Export WooCommerce refunds', 'import-export-by-rockstarlab' ),
-				],
-				[
+				),
+				array(
 					'title'       => __( 'WooCommerce Customers', 'import-export-by-rockstarlab' ),
 					'description' => $is_import ? __( 'Import WooCommerce customers', 'import-export-by-rockstarlab' ) : __( 'Export WooCommerce customers', 'import-export-by-rockstarlab' ),
-				],
-				[
+				),
+				array(
 					'title'       => __( 'WooCommerce Coupons', 'import-export-by-rockstarlab' ),
 					'description' => $is_import ? __( 'Import WooCommerce coupons', 'import-export-by-rockstarlab' ) : __( 'Export WooCommerce coupons', 'import-export-by-rockstarlab' ),
-				],
-				[
+				),
+				array(
 					'title'       => __( 'WooCommerce Attributes', 'import-export-by-rockstarlab' ),
 					'description' => $is_import ? __( 'Import WooCommerce attributes', 'import-export-by-rockstarlab' ) : __( 'Export WooCommerce attributes', 'import-export-by-rockstarlab' ),
-				],
-			];
+				),
+			);
 			$features  = array_merge( $features, $woo_cards );
 		}
 
 		if ( 'migration' !== $context ) {
-			$features[] = [
+			$features[] = array(
 				'title'       => __( 'Data Transformation Tool', 'import-export-by-rockstarlab' ),
 				'description' => __( 'Transform data during import or export process', 'import-export-by-rockstarlab' ),
-			];
+			);
 		}
 
 		return $features;
@@ -170,164 +171,164 @@ class Pro_Addon {
 	public static function get_pro_content_type_cards( $context ) {
 		$context = strtolower( trim( (string) $context ) );
 
-		$cards = [];
+		$cards = array();
 
-		if ( in_array( $context, [ 'import', 'export' ], true ) ) {
+		if ( in_array( $context, array( 'import', 'export' ), true ) ) {
 			$is_import = 'import' === $context;
 
-			$cards[]     = [
+			$cards[]     = array(
 				'value'       => 'custom_post_types',
 				'icon'        => 'dashicons-admin-generic',
 				'title'       => __( 'Custom Post Types', 'import-export-by-rockstarlab' ),
 				'description' => $is_import
 					? __( 'Import any custom post types', 'import-export-by-rockstarlab' )
 					: __( 'Export any custom post types', 'import-export-by-rockstarlab' ),
-			];
-			$cards[]     = [
+			);
+			$cards[]     = array(
 				'value'       => 'menu',
 				'icon'        => 'dashicons-menu',
 				'title'       => __( 'Menus', 'import-export-by-rockstarlab' ),
 				'description' => $is_import
 					? __( 'Import navigation menus', 'import-export-by-rockstarlab' )
 					: __( 'Export navigation menus', 'import-export-by-rockstarlab' ),
-			];
-			$cards[]     = [
+			);
+			$cards[]     = array(
 				'value'       => 'user',
 				'icon'        => 'dashicons-admin-users',
 				'title'       => __( 'Users', 'import-export-by-rockstarlab' ),
 				'description' => $is_import
 					? __( 'Import user accounts', 'import-export-by-rockstarlab' )
 					: __( 'Export user accounts', 'import-export-by-rockstarlab' ),
-			];
-				$cards[] = [
+			);
+				$cards[] = array(
 					'value'       => 'taxonomy',
 					'icon'        => 'dashicons-category',
 					'title'       => __( 'Taxonomy Terms', 'import-export-by-rockstarlab' ),
 					'description' => $is_import
 						? __( 'Import categories, tags, and custom taxonomies', 'import-export-by-rockstarlab' )
 						: __( 'Export categories, tags, and custom taxonomies', 'import-export-by-rockstarlab' ),
-				];
+				);
 
 				if ( class_exists( 'WooCommerce' ) ) {
-					$cards[] = [
+					$cards[] = array(
 						'value'       => 'woo_product',
 						'icon'        => 'dashicons-products',
 						'title'       => __( 'WooCommerce Products', 'import-export-by-rockstarlab' ),
 						'description' => $is_import
 							? __( 'Import WooCommerce products', 'import-export-by-rockstarlab' )
 							: __( 'Export WooCommerce products', 'import-export-by-rockstarlab' ),
-					];
-					$cards[] = [
+					);
+					$cards[] = array(
 						'value'       => 'woo_order',
 						'icon'        => 'dashicons-cart',
 						'title'       => __( 'WooCommerce Orders (8.0+)', 'import-export-by-rockstarlab' ),
 						'description' => $is_import
 							? __( 'Import WooCommerce orders', 'import-export-by-rockstarlab' )
 							: __( 'Export WooCommerce orders', 'import-export-by-rockstarlab' ),
-					];
-					$cards[] = [
+					);
+					$cards[] = array(
 						'value'       => 'woo_coupon',
 						'icon'        => 'dashicons-tickets-alt',
 						'title'       => __( 'WooCommerce Coupons', 'import-export-by-rockstarlab' ),
 						'description' => $is_import
 							? __( 'Import WooCommerce coupons', 'import-export-by-rockstarlab' )
 							: __( 'Export WooCommerce coupons', 'import-export-by-rockstarlab' ),
-					];
-					$cards[] = [
+					);
+					$cards[] = array(
 						'value'       => 'woo_attribute',
 						'icon'        => 'dashicons-tag',
 						'title'       => __( 'WooCommerce Attributes', 'import-export-by-rockstarlab' ),
 						'description' => $is_import
 							? __( 'Import WooCommerce attributes', 'import-export-by-rockstarlab' )
 							: __( 'Export WooCommerce attributes', 'import-export-by-rockstarlab' ),
-					];
-					$cards[] = [
+					);
+					$cards[] = array(
 						'value'       => 'woo_review',
 						'icon'        => 'dashicons-star-filled',
 						'title'       => __( 'WooCommerce Reviews', 'import-export-by-rockstarlab' ),
 						'description' => $is_import
 							? __( 'Import WooCommerce product reviews', 'import-export-by-rockstarlab' )
 							: __( 'Export WooCommerce product reviews', 'import-export-by-rockstarlab' ),
-					];
-					$cards[] = [
+					);
+					$cards[] = array(
 						'value'       => 'woo_refund',
 						'icon'        => 'dashicons-undo',
 						'title'       => __( 'WooCommerce Refunds', 'import-export-by-rockstarlab' ),
 						'description' => $is_import
 							? __( 'Import WooCommerce refunds', 'import-export-by-rockstarlab' )
 							: __( 'Export WooCommerce refunds', 'import-export-by-rockstarlab' ),
-					];
-					$cards[] = [
+					);
+					$cards[] = array(
 						'value'       => 'woo_customer',
 						'icon'        => 'dashicons-groups',
 						'title'       => __( 'WooCommerce Customers', 'import-export-by-rockstarlab' ),
 						'description' => $is_import
 							? __( 'Import WooCommerce customers', 'import-export-by-rockstarlab' )
 							: __( 'Export WooCommerce customers', 'import-export-by-rockstarlab' ),
-					];
-					$cards[] = [
+					);
+					$cards[] = array(
 						'value'       => 'woo_shipping_zone',
 						'icon'        => 'dashicons-location-alt',
 						'title'       => __( 'WooCommerce Shipping Zones', 'import-export-by-rockstarlab' ),
 						'description' => $is_import
 							? __( 'Import shipping zones with regions and methods', 'import-export-by-rockstarlab' )
 							: __( 'Export shipping zones with regions and methods', 'import-export-by-rockstarlab' ),
-					];
-					$cards[] = [
+					);
+					$cards[] = array(
 						'value'       => 'woo_tax_rate',
 						'icon'        => 'dashicons-chart-pie',
 						'title'       => __( 'WooCommerce Tax Rates', 'import-export-by-rockstarlab' ),
 						'description' => $is_import
 							? __( 'Import tax rates of all tax classes', 'import-export-by-rockstarlab' )
 							: __( 'Export tax rates of all tax classes', 'import-export-by-rockstarlab' ),
-					];
+					);
 				}
 
-				$cards[] = [
+				$cards[] = array(
 					'value'       => 'database_table',
 					'icon'        => 'dashicons-database-view',
 					'title'       => __( 'MySQL Database Table', 'import-export-by-rockstarlab' ),
 					'description' => $is_import
 						? __( 'Import any MySQL table fields', 'import-export-by-rockstarlab' )
 						: __( 'Export any MySQL table fields', 'import-export-by-rockstarlab' ),
-				];
+				);
 		}
 
 		if ( 'updater' === $context ) {
-			$cards[] = [
+			$cards[] = array(
 				'value'       => 'custom_post_types',
 				'icon'        => 'dashicons-admin-generic',
 				'title'       => __( 'Custom Post Types', 'import-export-by-rockstarlab' ),
 				'description' => __( 'Update custom post types', 'import-export-by-rockstarlab' ),
-			];
-			$cards[] = [
+			);
+			$cards[] = array(
 				'value'       => 'user',
 				'icon'        => 'dashicons-admin-users',
 				'title'       => __( 'Users', 'import-export-by-rockstarlab' ),
 				'description' => __( 'Update user accounts', 'import-export-by-rockstarlab' ),
-			];
-			$cards[] = [
+			);
+			$cards[] = array(
 				'value'       => 'taxonomy',
 				'icon'        => 'dashicons-tag',
 				'title'       => __( 'Taxonomy Terms', 'import-export-by-rockstarlab' ),
 				'description' => __( 'Update taxonomy terms', 'import-export-by-rockstarlab' ),
-			];
+			);
 
 			if ( class_exists( 'WooCommerce' ) ) {
-				$cards[] = [
+				$cards[] = array(
 					'value'       => 'woo_product',
 					'icon'        => 'dashicons-products',
 					'title'       => __( 'WooCommerce Products', 'import-export-by-rockstarlab' ),
 					'description' => __( 'Update WooCommerce products', 'import-export-by-rockstarlab' ),
-				];
+				);
 			}
 
-			$cards[] = [
+			$cards[] = array(
 				'value'       => 'database_table',
 				'icon'        => 'dashicons-database-view',
 				'title'       => __( 'MySQL Database Table', 'import-export-by-rockstarlab' ),
 				'description' => __( 'Update database table records', 'import-export-by-rockstarlab' ),
-			];
+			);
 		}
 
 		return $cards;
