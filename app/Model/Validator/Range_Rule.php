@@ -37,7 +37,7 @@ class Range_Rule extends Validation_Rule {
 					__( '%s must be a number', 'import-export-by-rockstarlab' ),
 					$field_name
 				),
-				[ 'field' => $context['field_name'] ?? null ]
+				array( 'field' => $context['field_name'] ?? null )
 			);
 		}
 
@@ -55,11 +55,11 @@ class Range_Rule extends Validation_Rule {
 					$field_name,
 					$min
 				),
-				[
+				array(
 					'field' => $context['field_name'] ?? null,
 					'value' => $numeric_value,
 					'min'   => $min,
-				]
+				)
 			);
 		}
 
@@ -73,11 +73,11 @@ class Range_Rule extends Validation_Rule {
 					$field_name,
 					$max
 				),
-				[
+				array(
 					'field' => $context['field_name'] ?? null,
 					'value' => $numeric_value,
 					'max'   => $max,
-				]
+				)
 			);
 		}
 

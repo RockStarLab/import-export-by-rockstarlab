@@ -20,13 +20,13 @@ class Urls_Exporter extends Abstract_Exporter {
 	 */
 	public static function get_exportable_post_types() {
 		$post_types = get_post_types(
-			[
+			array(
 				'public' => true,
-			],
+			),
 			'objects'
 		);
 
-		$result = [];
+		$result = array();
 		foreach ( $post_types as $post_type ) {
 			if ( ! self::is_exportable_post_type( $post_type ) ) {
 				continue;
@@ -60,11 +60,11 @@ class Urls_Exporter extends Abstract_Exporter {
 		$query = new \WP_Query(
 			self::post_query_args(
 				$post_type,
-				[
+				array(
 					'posts_per_page' => 1,
 					'fields'         => 'ids',
 					'no_found_rows'  => false,
-				]
+				)
 			)
 		);
 
@@ -102,28 +102,28 @@ class Urls_Exporter extends Abstract_Exporter {
 	 */
 	private static function post_query_args( $post_type, array $extra ) {
 		$args = array_merge(
-			[
+			array(
 				'post_type'              => $post_type,
 				'post_status'            => self::get_public_statuses_for_type( $post_type ),
 				'ignore_sticky_posts'    => true,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
-			],
+			),
 			$extra
 		);
 		if ( 'elementor_library' === $post_type ) {
-			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Bounded exclusion of Elementor kits.
+			$args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Bounded exclusion of Elementor kits.
 				'relation' => 'OR',
-				[
+				array(
 					'key'     => '_elementor_template_type',
 					'compare' => 'NOT EXISTS',
-				],
-				[
+				),
+				array(
 					'key'     => '_elementor_template_type',
 					'value'   => 'kit',
 					'compare' => '!=',
-				],
-			];
+				),
+			);
 		}
 		return $args;
 	}
@@ -135,13 +135,13 @@ class Urls_Exporter extends Abstract_Exporter {
 	 */
 	public static function get_exportable_taxonomies() {
 		$taxonomies = get_taxonomies(
-			[
+			array(
 				'public' => true,
-			],
+			),
 			'objects'
 		);
 
-		$result = [];
+		$result = array();
 		foreach ( $taxonomies as $taxonomy ) {
 			if ( ! self::is_exportable_taxonomy( $taxonomy ) ) {
 				continue;
@@ -173,10 +173,10 @@ class Urls_Exporter extends Abstract_Exporter {
 		}
 
 		$count = wp_count_terms(
-			[
+			array(
 				'taxonomy'   => $taxonomy,
 				'hide_empty' => false,
-			]
+			)
 		);
 
 		if ( is_wp_error( $count ) ) {
@@ -228,9 +228,9 @@ class Urls_Exporter extends Abstract_Exporter {
 	 * @return array
 	 */
 	public function get_supported_filters() {
-		return [
+		return array(
 			'content_types' => __( 'Public post types and taxonomies to include', 'import-export-by-rockstarlab' ),
-		];
+		);
 	}
 
 	/**
@@ -239,9 +239,9 @@ class Urls_Exporter extends Abstract_Exporter {
 	 * @return array
 	 */
 	public function get_available_fields() {
-		return [
+		return array(
 			'url',
-		];
+		);
 	}
 
 	/**
@@ -278,7 +278,7 @@ class Urls_Exporter extends Abstract_Exporter {
 	 * @param array $options Options.
 	 * @return int
 	 */
-	public function get_count( $options = [] ) {
+	public function get_count( $options = array() ) {
 		$total     = 0;
 		$selection = $this->get_selected_url_sources( $options );
 
@@ -303,12 +303,12 @@ class Urls_Exporter extends Abstract_Exporter {
 	 * @param array $options Options.
 	 * @return array
 	 */
-	public function get_data( $options = [] ) {
+	public function get_data( $options = array() ) {
 		$limit     = isset( $options['limit'] ) ? (int) $options['limit'] : -1;
 		$offset    = isset( $options['offset'] ) ? max( 0, (int) $options['offset'] ) : 0;
 		$remaining = $limit > 0 ? $limit : -1;
 		$skip      = $offset;
-		$items     = [];
+		$items     = array();
 		$selection = $this->get_selected_url_sources( $options );
 
 		foreach ( $selection['post_types'] as $post_type ) {
@@ -321,13 +321,13 @@ class Urls_Exporter extends Abstract_Exporter {
 
 			$query_args = self::post_query_args(
 				$post_type,
-				[
+				array(
 					'posts_per_page' => $remaining > 0 ? $remaining : -1,
 					'offset'         => $skip,
 					'orderby'        => 'ID',
 					'order'          => 'ASC',
 					'no_found_rows'  => true,
-				]
+				)
 			);
 
 			$query = new \WP_Query( $query_args );
@@ -337,9 +337,9 @@ class Urls_Exporter extends Abstract_Exporter {
 					continue;
 				}
 
-				$items[] = [
+				$items[] = array(
 					'url' => $url,
-				];
+				);
 
 				if ( $remaining > 0 ) {
 					--$remaining;
@@ -365,14 +365,14 @@ class Urls_Exporter extends Abstract_Exporter {
 			}
 
 			$terms = get_terms(
-				[
+				array(
 					'taxonomy'   => $taxonomy,
 					'hide_empty' => false,
 					'orderby'    => 'term_id',
 					'order'      => 'ASC',
 					'offset'     => $skip,
 					'number'     => $remaining > 0 ? $remaining : 0,
-				]
+				)
 			);
 
 			if ( is_wp_error( $terms ) || empty( $terms ) ) {
@@ -386,9 +386,9 @@ class Urls_Exporter extends Abstract_Exporter {
 					continue;
 				}
 
-				$items[] = [
+				$items[] = array(
 					'url' => $url,
-				];
+				);
 
 				if ( $remaining > 0 ) {
 					--$remaining;
@@ -420,9 +420,9 @@ class Urls_Exporter extends Abstract_Exporter {
 					continue;
 				}
 
-				$items[] = [
+				$items[] = array(
 					'url' => $url,
-				];
+				);
 
 				if ( $remaining > 0 ) {
 					--$remaining;
@@ -448,14 +448,14 @@ class Urls_Exporter extends Abstract_Exporter {
 	 */
 	protected function process_item( $item, $index ) {
 		if ( is_array( $item ) && isset( $item['url'] ) ) {
-			return [
+			return array(
 				'url' => $item['url'],
-			];
+			);
 		}
 
-		return [
+		return array(
 			'url' => '',
-		];
+		);
 	}
 
 	/**
@@ -464,7 +464,7 @@ class Urls_Exporter extends Abstract_Exporter {
 	 * @return string[]
 	 */
 	public static function get_default_source_tokens() {
-		$tokens = [];
+		$tokens = array();
 		foreach ( array_keys( self::get_exportable_post_types() ) as $name ) {
 			$tokens[] = 'post_type:' . $name;
 		}
@@ -483,9 +483,9 @@ class Urls_Exporter extends Abstract_Exporter {
 	 * @return string[]
 	 */
 	public static function get_available_source_tokens() {
-		$tokens = array_merge( self::get_default_source_tokens(), [ 'feed:main', 'feed:atom', 'feed:comments', 'rest:root' ] );
+		$tokens = array_merge( self::get_default_source_tokens(), array( 'feed:main', 'feed:atom', 'feed:comments', 'rest:root' ) );
 		foreach ( array_keys( self::get_exportable_post_types() ) as $name ) {
-			foreach ( [ 'post_type_feed', 'rest_post_type' ] as $kind ) {
+			foreach ( array( 'post_type_feed', 'rest_post_type' ) as $kind ) {
 				if ( self::is_supported_generated_source( $kind, $name ) ) {
 					$tokens[] = $kind . ':' . $name;
 				}
@@ -501,18 +501,18 @@ class Urls_Exporter extends Abstract_Exporter {
 	 * @return array
 	 */
 	private function get_selected_url_sources( $options ) {
-		$selected = $options['content_types'] ?? [];
+		$selected = $options['content_types'] ?? array();
 		if ( empty( $selected ) || ! is_array( $selected ) ) {
-			return [
+			return array(
 				'post_types'        => array_keys( self::get_exportable_post_types() ),
 				'taxonomies'        => array_keys( self::get_exportable_taxonomies() ),
 				'generated_sources' => self::get_default_generated_sources(),
-			];
+			);
 		}
 
-		$post_types        = [];
-		$taxonomies        = [];
-		$generated_sources = [];
+		$post_types        = array();
+		$taxonomies        = array();
+		$generated_sources = array();
 
 		foreach ( $selected as $source ) {
 			$source = (string) $source;
@@ -538,10 +538,10 @@ class Urls_Exporter extends Abstract_Exporter {
 			}
 
 			if ( self::is_supported_generated_source( $kind, $name ) ) {
-				$generated_sources[] = [
+				$generated_sources[] = array(
 					'kind' => $kind,
 					'name' => $name,
-				];
+				);
 				continue;
 			}
 
@@ -550,11 +550,11 @@ class Urls_Exporter extends Abstract_Exporter {
 			}
 		}
 
-		return [
+		return array(
 			'post_types'        => array_values( array_unique( $post_types ) ),
 			'taxonomies'        => array_values( array_unique( $taxonomies ) ),
 			'generated_sources' => self::unique_generated_sources( $generated_sources ),
-		];
+		);
 	}
 
 	/**
@@ -563,31 +563,31 @@ class Urls_Exporter extends Abstract_Exporter {
 	 * @return array<int,array{kind:string,name:string}>
 	 */
 	private static function get_default_generated_sources() {
-		$sources = [
-			[
+		$sources = array(
+			array(
 				'kind' => 'standard',
 				'name' => 'homepage',
-			],
-			[
+			),
+			array(
 				'kind' => 'standard',
 				'name' => 'authors',
-			],
-			[
+			),
+			array(
 				'kind' => 'standard',
 				'name' => 'date_archives',
-			],
-			[
+			),
+			array(
 				'kind' => 'standard',
 				'name' => 'search_results',
-			],
-		];
+			),
+		);
 
 		foreach ( array_keys( self::get_exportable_post_types() ) as $post_type ) {
 			if ( self::is_supported_generated_source( 'post_type_archive', $post_type ) ) {
-				$sources[] = [
+				$sources[] = array(
 					'kind' => 'post_type_archive',
 					'name' => $post_type,
-				];
+				);
 			}
 		}
 
@@ -603,18 +603,18 @@ class Urls_Exporter extends Abstract_Exporter {
 	 */
 	private static function is_supported_generated_source( $kind, $name ) {
 		if ( 'standard' === $kind ) {
-			return in_array( $name, [ 'homepage', 'authors', 'date_archives', 'search_results' ], true );
+			return in_array( $name, array( 'homepage', 'authors', 'date_archives', 'search_results' ), true );
 		}
 
 		if ( 'feed' === $kind ) {
-			return in_array( $name, [ 'main', 'atom', 'comments' ], true );
+			return in_array( $name, array( 'main', 'atom', 'comments' ), true );
 		}
 
 		if ( 'rest' === $kind ) {
 			return 'root' === $name;
 		}
 
-		if ( in_array( $kind, [ 'post_type_archive', 'post_type_feed', 'rest_post_type' ], true ) ) {
+		if ( in_array( $kind, array( 'post_type_archive', 'post_type_feed', 'rest_post_type' ), true ) ) {
 			return self::is_post_type_name_exportable( $name ) && ! empty( self::get_generated_urls_for_source( $kind, $name ) );
 		}
 
@@ -628,8 +628,8 @@ class Urls_Exporter extends Abstract_Exporter {
 	 * @return array<int,array{kind:string,name:string}>
 	 */
 	private static function unique_generated_sources( $sources ) {
-		$result = [];
-		$seen   = [];
+		$result = array();
+		$seen   = array();
 
 		foreach ( $sources as $source ) {
 			$key = $source['kind'] . ':' . $source['name'];
@@ -654,7 +654,7 @@ class Urls_Exporter extends Abstract_Exporter {
 	private static function get_generated_urls_for_source( $kind, $name ) {
 		if ( 'standard' === $kind ) {
 			if ( 'homepage' === $name ) {
-				return [ trailingslashit( \RockStarLab\ImportExport\Helper\Site_URL::current_request_site_url() ) ];
+				return array( trailingslashit( \RockStarLab\ImportExport\Helper\Site_URL::current_request_site_url() ) );
 			}
 
 			if ( 'authors' === $name ) {
@@ -666,26 +666,26 @@ class Urls_Exporter extends Abstract_Exporter {
 			}
 
 			if ( 'search_results' === $name ) {
-				return [ home_url( '/?s=' ) ];
+				return array( home_url( '/?s=' ) );
 			}
 		}
 
 		if ( 'feed' === $kind ) {
 			if ( 'main' === $name ) {
-				return [ get_feed_link( 'rss2' ) ];
+				return array( get_feed_link( 'rss2' ) );
 			}
 
 			if ( 'atom' === $name ) {
-				return [ get_feed_link( 'atom' ) ];
+				return array( get_feed_link( 'atom' ) );
 			}
 
 			if ( 'comments' === $name ) {
-				return [ get_feed_link( 'comments_rss2' ) ];
+				return array( get_feed_link( 'comments_rss2' ) );
 			}
 		}
 
 		if ( 'rest' === $kind && 'root' === $name ) {
-				return [ trailingslashit( \RockStarLab\ImportExport\Helper\Site_URL::current_request_site_url() . '/wp-json' ) ];
+				return array( trailingslashit( \RockStarLab\ImportExport\Helper\Site_URL::current_request_site_url() . '/wp-json' ) );
 		}
 
 		if ( 'post_type_archive' === $kind ) {
@@ -693,22 +693,22 @@ class Urls_Exporter extends Abstract_Exporter {
 			// WooCommerce's product archive is the Shop page, which the pages already list.
 			$page = $url ? self::page_with_url( $url ) : 0;
 			if ( $page && self::is_post_type_name_exportable( 'page' ) ) {
-				return [];
+				return array();
 			}
-			return $url ? [ $url ] : [];
+			return $url ? array( $url ) : array();
 		}
 
 		if ( 'post_type_feed' === $kind ) {
 			$url = self::get_post_type_feed_link( $name );
-			return $url ? [ $url ] : [];
+			return $url ? array( $url ) : array();
 		}
 
 		if ( 'rest_post_type' === $kind ) {
 			$url = self::get_post_type_rest_url( $name );
-			return $url ? [ $url ] : [];
+			return $url ? array( $url ) : array();
 		}
 
-		return [];
+		return array();
 	}
 
 	/**
@@ -718,12 +718,12 @@ class Urls_Exporter extends Abstract_Exporter {
 	 */
 	private static function get_author_archive_urls() {
 		$user_ids = get_users(
-			[
+			array(
 				'fields'              => 'ID',
 				'has_published_posts' => array_keys( self::get_exportable_post_types() ),
 				'orderby'             => 'ID',
 				'order'               => 'ASC',
-			]
+			)
 		);
 
 		return array_values(
@@ -744,16 +744,16 @@ class Urls_Exporter extends Abstract_Exporter {
 	 * @return string[]
 	 */
 	private static function get_date_archive_urls() {
-		$urls = [];
-		foreach ( [ 'yearly', 'monthly' ] as $archive_type ) {
+		$urls = array();
+		foreach ( array( 'yearly', 'monthly' ) as $archive_type ) {
 			$archive_links = wp_get_archives(
-				[
+				array(
 					'type'   => $archive_type,
 					'format' => 'custom',
 					'echo'   => 0,
 					'before' => '',
 					'after'  => "\n",
-				]
+				)
 			);
 
 			if ( ! is_string( $archive_links ) || '' === $archive_links ) {
@@ -813,7 +813,7 @@ class Urls_Exporter extends Abstract_Exporter {
 			return false;
 		}
 
-		if ( in_array( $post_type->name, [ 'revision', 'nav_menu_item', 'wp_navigation' ], true ) ) {
+		if ( in_array( $post_type->name, array( 'revision', 'nav_menu_item', 'wp_navigation' ), true ) ) {
 			return false;
 		}
 
@@ -868,9 +868,9 @@ class Urls_Exporter extends Abstract_Exporter {
 	 */
 	private static function get_public_statuses_for_type( $post_type ) {
 		if ( 'attachment' === $post_type ) {
-			return [ 'inherit' ];
+			return array( 'inherit' );
 		}
 
-		return [ 'publish' ];
+		return array( 'publish' );
 	}
 }

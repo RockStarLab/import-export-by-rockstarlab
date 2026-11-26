@@ -6,8 +6,8 @@ defined( 'ABSPATH' ) || exit;
 
 class XLSX_Part_Map {
 
-	private const MAIN = [ 'http://schemas.openxmlformats.org/spreadsheetml/2006/main', 'http://purl.oclc.org/ooxml/spreadsheetml/main' ];
-	private const REL  = [ 'http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'http://purl.oclc.org/ooxml/officeDocument/relationships' ];
+	private const MAIN = array( 'http://schemas.openxmlformats.org/spreadsheetml/2006/main', 'http://purl.oclc.org/ooxml/spreadsheetml/main' );
+	private const REL  = array( 'http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'http://purl.oclc.org/ooxml/officeDocument/relationships' );
 
 	/** Data-only XLSX imports use the first sheet, independently of activeTab. */
 	public static function resolve( Spreadsheet_XML_Parts $parts, $sheet_index = 0 ) {
@@ -42,7 +42,7 @@ class XLSX_Part_Map {
 			}
 			if ( 1 === $node->depth && 'workbookPr' === $node->localName && $main_namespace === $node->namespaceURI ) {
 				$value    = (string) $node->getAttribute( 'date1904' );
-				$calendar = ( is_numeric( $value ) ? (bool) $value : in_array( $value, [ 'true', 'TRUE' ], true ) ) ? 1904 : 1900;
+				$calendar = ( is_numeric( $value ) ? (bool) $value : in_array( $value, array( 'true', 'TRUE' ), true ) ) ? 1904 : 1900;
 			}
 			if ( 1 === $node->depth ) {
 				$in_sheets = 'sheets' === $node->localName && $main_namespace === $node->namespaceURI && ! $node->isEmptyElement; }
@@ -63,11 +63,11 @@ class XLSX_Part_Map {
 			throw new \RuntimeException( __( 'Missing spreadsheet sheet.', 'import-export-by-rockstarlab' ) ); }
 		$directory = dirname( $workbook );
 		$rels      = ( '.' === $directory ? '' : $directory . '/' ) . '_rels/' . basename( $workbook ) . '.rels';
-		$result    = [
+		$result    = array(
 			'worksheet' => null,
 			'strings'   => null,
 			'styles'    => null,
-		];
+		);
 		foreach ( self::relationships( $parts, $rels ) as $rel ) {
 			$key = null;
 			if ( $id === $rel['id'] ) {
@@ -88,8 +88,8 @@ class XLSX_Part_Map {
 			throw new \RuntimeException( __( 'Missing spreadsheet worksheet relationship.', 'import-export-by-rockstarlab' ) ); }
 		$result['calendar']    = $calendar;
 		$result['sheet_count'] = $sheet_count;
-		$result['decimals']    = null === $result['styles'] ? [] : self::fixed_decimals( $parts, $result['styles'] );
-		$result['dates']       = null === $result['styles'] ? [] : self::date_styles( $parts, $result['styles'] );
+		$result['decimals']    = null === $result['styles'] ? array() : self::fixed_decimals( $parts, $result['styles'] );
+		$result['dates']       = null === $result['styles'] ? array() : self::date_styles( $parts, $result['styles'] );
 		unset( $result['styles'] );
 		return $result;
 	}
@@ -103,8 +103,11 @@ class XLSX_Part_Map {
 	 * @return array<int,int> Style index => decimals.
 	 */
 	private static function fixed_decimals( Spreadsheet_XML_Parts $parts, $path ) {
-		$codes    = [ 2 => 2, 4 => 2 ];
-		$decimals = [];
+		$codes    = array(
+			2 => 2,
+			4 => 2,
+		);
+		$decimals = array();
 		$in_xfs   = false;
 		$index    = 0;
 		try {
@@ -114,7 +117,7 @@ class XLSX_Part_Map {
 				if ( \XMLReader::ELEMENT !== $node->nodeType ) {
 					continue; }
 				if ( 0 === $node->depth && ( 'styleSheet' !== $node->localName || ! in_array( $node->namespaceURI, self::MAIN, true ) ) ) {
-					return []; }
+					return array(); }
 				if ( 2 === $node->depth && 'numFmt' === $node->localName ) {
 					if ( preg_match( '/^(?:#,##)?0\.(0{1,10})$/', (string) $node->getAttribute( 'formatCode' ), $match ) ) {
 						$codes[ (int) $node->getAttribute( 'numFmtId' ) ] = strlen( $match[1] ); }
@@ -131,7 +134,7 @@ class XLSX_Part_Map {
 			}
 		} catch ( \RuntimeException $e ) {
 			// Styles are optional for data import; a broken styles part only loses decimals.
-			return [];
+			return array();
 		}
 		return $decimals;
 	}
@@ -152,7 +155,7 @@ class XLSX_Part_Map {
 		try {
 			for ( $index = 0; $index < min( $first['sheet_count'], 20 ); ++$index ) {
 				$map  = $index ? self::resolve( $parts, $index ) : $first;
-				$rows = [];
+				$rows = array();
 				try {
 					foreach ( XLSX_Cell_Stream::cells( $parts, $map, $strings ) as $cell ) {
 						if ( '' !== trim( (string) $cell['value'] ) ) {
@@ -183,8 +186,21 @@ class XLSX_Part_Map {
 	 * @return array<int,string> Style index => 'date', 'datetime' or 'time'.
 	 */
 	private static function date_styles( Spreadsheet_XML_Parts $parts, $path ) {
-		$codes  = [ 14 => 'date', 15 => 'date', 16 => 'date', 17 => 'date', 22 => 'datetime', 18 => 'time', 19 => 'time', 20 => 'time', 21 => 'time', 45 => 'time', 46 => 'time', 47 => 'time' ];
-		$styles = [];
+		$codes  = array(
+			14 => 'date',
+			15 => 'date',
+			16 => 'date',
+			17 => 'date',
+			22 => 'datetime',
+			18 => 'time',
+			19 => 'time',
+			20 => 'time',
+			21 => 'time',
+			45 => 'time',
+			46 => 'time',
+			47 => 'time',
+		);
+		$styles = array();
 		$in_xfs = false;
 		$index  = 0;
 		try {
@@ -194,7 +210,7 @@ class XLSX_Part_Map {
 				if ( \XMLReader::ELEMENT !== $node->nodeType ) {
 					continue; }
 				if ( 0 === $node->depth && ( 'styleSheet' !== $node->localName || ! in_array( $node->namespaceURI, self::MAIN, true ) ) ) {
-					return []; }
+					return array(); }
 				if ( 2 === $node->depth && 'numFmt' === $node->localName ) {
 					$kind = self::date_kind( (string) $node->getAttribute( 'formatCode' ) );
 					if ( $kind ) {
@@ -211,7 +227,7 @@ class XLSX_Part_Map {
 				}
 			}
 		} catch ( \RuntimeException $e ) {
-			return [];
+			return array();
 		}
 		return $styles;
 	}
@@ -219,7 +235,7 @@ class XLSX_Part_Map {
 	/** Whether a custom number format shows a date, a date and time, or a time. */
 	private static function date_kind( $code ) {
 		// Drop quoted text, escaped characters, colors/conditions and the elapsed-time brackets.
-		$plain = preg_replace( [ '/"[^"]*"/', '/\\\\./', '/\[[^\]]*\]/' ], '', strtolower( explode( ';', $code )[0] ) );
+		$plain = preg_replace( array( '/"[^"]*"/', '/\\\\./', '/\[[^\]]*\]/' ), '', strtolower( explode( ';', $code )[0] ) );
 		$date  = (bool) preg_match( '/[dy]|m{3,}/', $plain );
 		$time  = (bool) preg_match( '/[hs]/', $plain );
 		if ( $date && $time ) {
@@ -256,12 +272,12 @@ class XLSX_Part_Map {
 					throw new \RuntimeException( __( 'Invalid spreadsheet relationships.', 'import-export-by-rockstarlab' ) ); }
 			}
 			if ( 1 === $node->depth && 'Relationship' === $node->localName && $namespace === $node->namespaceURI ) {
-				yield [
+				yield array(
 					'id'     => $node->getAttribute( 'Id' ),
 					'type'   => $node->getAttribute( 'Type' ),
 					'target' => $node->getAttribute( 'Target' ),
 					'mode'   => $node->getAttribute( 'TargetMode' ),
-				];
+				);
 			}
 		}
 		if ( ! $root ) {
@@ -278,11 +294,11 @@ class XLSX_Part_Map {
 
 	private static function target( $source, array $rel ) {
 		$target = $rel['target'];
-		if ( ! in_array( $rel['mode'], [ null, '', 'Internal' ], true ) || ! is_string( $target ) || '' === $target || preg_match( '/[\\\\\\x00-\\x20?#:]|^\/\//', $target ) ) {
+		if ( ! in_array( $rel['mode'], array( null, '', 'Internal' ), true ) || ! is_string( $target ) || '' === $target || preg_match( '/[\\\\\\x00-\\x20?#:]|^\/\//', $target ) ) {
 			throw new \RuntimeException( __( 'Invalid spreadsheet part target.', 'import-export-by-rockstarlab' ) ); }
 		$directory = dirname( $source );
 		$path      = '/' === $target[0] || '.' === $directory ? $target : $directory . '/' . $target;
-		$segments  = [];
+		$segments  = array();
 		foreach ( explode( '/', $path ) as $segment ) {
 			if ( '' === $segment || '.' === $segment ) {
 				continue; }

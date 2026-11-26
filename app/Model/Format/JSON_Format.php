@@ -20,7 +20,7 @@ class JSON_Format implements File_Format_Interface {
 	 * @param array  $options   Optional. Parser options (depth, flags)
 	 * @return array|WP_Error Array of parsed data or WP_Error on failure
 	 */
-	public function parse( $file_path, $options = [] ) {
+	public function parse( $file_path, $options = array() ) {
 		if ( ! file_exists( $file_path ) ) {
 			return new \WP_Error( 'file_not_found', __( 'JSON file not found', 'import-export-by-rockstarlab' ) );
 		}
@@ -35,9 +35,9 @@ class JSON_Format implements File_Format_Interface {
 		} finally {
 			fclose( $handle ); }
 		if ( '[' === $first || '{' === $first ) {
-			$data = [];
+			$data = array();
 			try {
-				foreach ( JSON_Row_Stream::rows( $file_path, [ 'object_members' => '{' === $first ] + $options ) as $value ) {
+				foreach ( JSON_Row_Stream::rows( $file_path, array( 'object_members' => '{' === $first ) + $options ) as $value ) {
 					if ( '{' === $first ) {
 						foreach ( $value as $key => $member ) {
 							$data[ $key ] = $member; }
@@ -88,12 +88,12 @@ class JSON_Format implements File_Format_Interface {
 	 * @param array  $options   Optional. Parser options
 	 * @return array|WP_Error Array of parsed data or WP_Error on failure
 	 */
-	public function parse_chunk( $file_path, $offset, $limit, $options = [] ) {
+	public function parse_chunk( $file_path, $offset, $limit, $options = array() ) {
 		return $this->scan_rows( $file_path, $offset, $limit, $options );
 	}
 
 	/** Iterate validated rows; legacy objects use a private disk index for duplicate keys. */
-	public function rows( $path, array $options = [] ) {
+	public function rows( $path, array $options = array() ) {
 		$handle = @fopen( $path, 'rb' );
 		if ( ! $handle ) {
 			throw new \RuntimeException( __( 'Cannot read JSON file.', 'import-export-by-rockstarlab' ) ); }
@@ -115,8 +115,8 @@ class JSON_Format implements File_Format_Interface {
 	 * @return array|null [ 'path' => 'db.0.data.posts', 'rows' => [...] ] or null.
 	 */
 	public static function nested_records( $path ) {
-		static $cache = [];
-		$size = @filesize( $path );
+		static $cache = array();
+		$size         = @filesize( $path );
 		if ( false === $size || $size > 64 * MB_IN_BYTES ) {
 			return null;
 		}
@@ -127,8 +127,8 @@ class JSON_Format implements File_Format_Interface {
 		$cache[ $key ] = null;
 		// Cheap check first: the file holds a single object member or a single array element.
 		try {
-			$probe = 0;
-			$reader = JSON_Row_Stream::rows( $path, [ 'object_members' => true ] );
+			$probe  = 0;
+			$reader = JSON_Row_Stream::rows( $path, array( 'object_members' => true ) );
 			foreach ( $reader as $unused ) {
 				if ( ++$probe > 1 ) {
 					return null;
@@ -137,7 +137,7 @@ class JSON_Format implements File_Format_Interface {
 		} catch ( \Throwable $error ) {
 			return null;
 		}
-		$data          = json_decode( (string) file_get_contents( $path ), true, 512 );
+		$data = json_decode( (string) file_get_contents( $path ), true, 512 );
 		if ( ! is_array( $data ) || 1 !== count( $data ) ) {
 			return null;
 		}
@@ -168,9 +168,13 @@ class JSON_Format implements File_Format_Interface {
 				}
 				if ( $records ) {
 					$name  = strtolower( (string) substr( strrchr( '.' . $node_path, '.' ), 1 ) );
-					$score = $keys * ( in_array( $name, [ 'posts', 'pages', 'items', 'records', 'entries', 'rows', 'products', 'results' ], true ) ? 2 : 1 );
+					$score = $keys * ( in_array( $name, array( 'posts', 'pages', 'items', 'records', 'entries', 'rows', 'products', 'results' ), true ) ? 2 : 1 );
 					if ( null === $best || $score > $best['score'] ) {
-						$best = [ 'path' => $node_path, 'rows' => array_values( $node ), 'score' => $score ];
+						$best = array(
+							'path'  => $node_path,
+							'rows'  => array_values( $node ),
+							'score' => $score,
+						);
 					}
 					return;
 				}
@@ -210,7 +214,7 @@ class JSON_Format implements File_Format_Interface {
 		$data = json_decode( $raw, true, 512 );
 		if ( JSON_ERROR_NONE !== json_last_error() ) {
 			// JSON Lines: every non-empty line is one object.
-			$rows = [];
+			$rows = array();
 			foreach ( preg_split( '/\r\n|\r|\n/', trim( $raw ) ) as $line ) {
 				$line = trim( $line );
 				if ( '' === $line ) {
@@ -222,13 +226,21 @@ class JSON_Format implements File_Format_Interface {
 				}
 				$rows[] = $item;
 			}
-			return count( $rows ) > 1 ? [ 'rows' => $rows, 'source' => 'json_lines', 'path' => '' ] : null;
+			return count( $rows ) > 1 ? array(
+				'rows'   => $rows,
+				'source' => 'json_lines',
+				'path'   => '',
+			) : null;
 		}
 		if ( ! is_array( $data ) || ! $data ) {
 			return null;
 		}
 		if ( self::is_list( $data ) ) {
-			return $bom ? [ 'rows' => $data, 'source' => 'json_bom', 'path' => '' ] : null;
+			return $bom ? array(
+				'rows'   => $data,
+				'source' => 'json_bom',
+				'path'   => '',
+			) : null;
 		}
 		$scalars = true;
 		$objects = true;
@@ -243,10 +255,18 @@ class JSON_Format implements File_Format_Interface {
 			}
 		}
 		if ( $scalars ) {
-			return [ 'rows' => [ $data ], 'source' => 'json_object', 'path' => '' ];
+			return array(
+				'rows'   => array( $data ),
+				'source' => 'json_object',
+				'path'   => '',
+			);
 		}
 		if ( $objects && count( $data ) > 1 ) {
-			return $bom ? [ 'rows' => array_values( $data ), 'source' => 'json_bom', 'path' => '' ] : null; // Keyed records {"a": {...}, "b": {...}}.
+			return $bom ? array(
+				'rows'   => array_values( $data ),
+				'source' => 'json_bom',
+				'path'   => '',
+			) : null; // Keyed records {"a": {...}, "b": {...}}.
 		}
 		// The largest list of objects anywhere in the object (up to 6 levels deep).
 		$best = null;
@@ -264,7 +284,11 @@ class JSON_Format implements File_Format_Interface {
 					$keys += count( $item );
 				}
 				if ( $keys > 0 && ( null === $best || $keys > $best['score'] ) ) {
-					$best = [ 'path' => $node_path, 'rows' => array_values( $node ), 'score' => $keys ];
+					$best = array(
+						'path'  => $node_path,
+						'rows'  => array_values( $node ),
+						'score' => $keys,
+					);
 				}
 				if ( $keys > 0 ) {
 					return;
@@ -276,9 +300,17 @@ class JSON_Format implements File_Format_Interface {
 		};
 		$walk( $data, '', 0 );
 		if ( null === $best ) {
-			return $bom ? [ 'rows' => [ $data ], 'source' => 'json_bom', 'path' => '' ] : null;
+			return $bom ? array(
+				'rows'   => array( $data ),
+				'source' => 'json_bom',
+				'path'   => '',
+			) : null;
 		}
-		return [ 'rows' => $best['rows'], 'source' => 'json_records', 'path' => $best['path'] ];
+		return array(
+			'rows'   => $best['rows'],
+			'source' => 'json_records',
+			'path'   => $best['path'],
+		);
 	}
 
 	/**
@@ -294,7 +326,7 @@ class JSON_Format implements File_Format_Interface {
 		if ( ! is_array( $row ) ) {
 			return $row;
 		}
-		$extra = [];
+		$extra = array();
 		$walk  = static function ( $value, $prefix, $level ) use ( &$walk, &$extra, $depth ) {
 			foreach ( $value as $key => $child ) {
 				$path = $prefix . '.' . $key;
@@ -329,12 +361,12 @@ class JSON_Format implements File_Format_Interface {
 	}
 
 	/** Validate every item and derive preview metadata from one container scan. */
-	public function preview( $path, array $options = [] ) {
-		$result = [
-			'headers'    => [],
-			'preview'    => [],
+	public function preview( $path, array $options = array() ) {
+		$result = array(
+			'headers'    => array(),
+			'preview'    => array(),
 			'total_rows' => 0,
-		];
+		);
 		try {
 			foreach ( $this->rows( $path, $options ) as $key => $row ) {
 				if ( ! is_array( $row ) ) {
@@ -418,7 +450,7 @@ class JSON_Format implements File_Format_Interface {
 	 * @param array  $options   Optional. Generation options (pretty_print, flags)
 	 * @return bool|WP_Error True on success or WP_Error on failure
 	 */
-	public function generate( $data, $file_path, $options = [] ) {
+	public function generate( $data, $file_path, $options = array() ) {
 		if ( $data instanceof \Traversable ) {
 			return $this->generate_stream( $data, $file_path, $options );
 		}
@@ -497,7 +529,7 @@ class JSON_Format implements File_Format_Interface {
 		}
 		if ( '[' === $first || '{' === $first ) {
 			try {
-				foreach ( JSON_Row_Stream::rows( $file_path, [ 'object_members' => '{' === $first ] ) as $row ) {
+				foreach ( JSON_Row_Stream::rows( $file_path, array( 'object_members' => '{' === $first ) ) as $row ) {
 					unset( $row );
 				}
 				return true;
@@ -538,7 +570,7 @@ class JSON_Format implements File_Format_Interface {
 	 * @param array  $options   Optional. Parser options
 	 * @return array|WP_Error Array of headers or WP_Error on failure
 	 */
-	public function get_headers( $file_path, $options = [] ) {
+	public function get_headers( $file_path, $options = array() ) {
 		// Records can have different keys: the columns are those of the first 50 records.
 		$data = $this->scan_rows( $file_path, 0, 50, $options );
 
@@ -547,10 +579,10 @@ class JSON_Format implements File_Format_Interface {
 		}
 
 		if ( empty( $data ) ) {
-			return [];
+			return array();
 		}
 
-		$headers = [];
+		$headers = array();
 		foreach ( $data as $item ) {
 			if ( ! is_array( $item ) ) {
 				return new \WP_Error( 'invalid_structure', __( 'JSON items must be objects/arrays', 'import-export-by-rockstarlab' ) );
@@ -569,7 +601,7 @@ class JSON_Format implements File_Format_Interface {
 	 * @return int|WP_Error Item count or WP_Error on failure
 	 */
 	public function count_rows( $file_path ) {
-		return $this->scan_rows( $file_path, 0, 0, [], true );
+		return $this->scan_rows( $file_path, 0, 0, array(), true );
 	}
 
 	/** Validate the entire document while retaining only the requested rows. */
@@ -582,7 +614,7 @@ class JSON_Format implements File_Format_Interface {
 			$first = fgetc( $stream );
 		} while ( false !== $first && false !== strpos( " \t\r\n", $first ) );
 		fclose( $stream );
-		if ( ! in_array( $first, [ '[', '{' ], true ) ) {
+		if ( ! in_array( $first, array( '[', '{' ), true ) ) {
 			$all = $this->parse( $path, $options );
 			return is_wp_error( $all ) ? $all : ( $count_only ? count( $all ) : array_slice( $all, $offset, $limit ) );
 		}
@@ -593,7 +625,7 @@ class JSON_Format implements File_Format_Interface {
 			$offset = $offset < 0 ? max( 0, $total + $offset ) : $offset;
 			$limit  = $limit < 0 ? max( 0, $total + $limit - $offset ) : $limit;
 		}
-		$rows  = [];
+		$rows  = array();
 		$count = 0;
 		try {
 			foreach ( ( '{' === $first ? JSON_Object_Stream::rows( $path, $options ) : JSON_Row_Stream::rows( $path, $options ) ) as $key => $row ) {
@@ -618,7 +650,7 @@ class JSON_Format implements File_Format_Interface {
 	 * @return array
 	 */
 	public function get_extensions() {
-		return [ 'json' ];
+		return array( 'json' );
 	}
 
 	/**
@@ -627,10 +659,10 @@ class JSON_Format implements File_Format_Interface {
 	 * @return array
 	 */
 	public function get_mime_types() {
-		return [
+		return array(
 			'application/json',
 			'text/json',
-		];
+		);
 	}
 
 	/**
@@ -641,15 +673,15 @@ class JSON_Format implements File_Format_Interface {
 	 * @return \WP_Error
 	 */
 	public static function invalid_json_error( $code, $error ) {
-		$reason = $error instanceof \Throwable ? $error->getMessage() : '';
-		$hints  = [
+		$reason  = $error instanceof \Throwable ? $error->getMessage() : '';
+		$hints   = array(
 			'Incomplete JSON container.' => __( 'The file ends before the JSON is complete: a closing ] or } is missing. Download or export it again.', 'import-export-by-rockstarlab' ),
 			'Unbalanced JSON row.'       => __( 'The file ends before the JSON is complete: a closing ] or } is missing. Download or export it again.', 'import-export-by-rockstarlab' ),
 			'Invalid JSON row.'          => __( 'A record is not valid JSON, for example because of a missing comma or quotation mark. Check the file in a JSON validator.', 'import-export-by-rockstarlab' ),
 			'Missing JSON row.'          => __( 'A record is not valid JSON, for example because of a missing comma or quotation mark. Check the file in a JSON validator.', 'import-export-by-rockstarlab' ),
 			'Expected a JSON container without trailing content.' => __( 'There is text after the end of the JSON. Remove it, or save only the JSON array.', 'import-export-by-rockstarlab' ),
 			'JSON depth exceeded.'       => __( 'The JSON is nested too deeply to import.', 'import-export-by-rockstarlab' ),
-		];
+		);
 		$message = __( 'Invalid JSON file', 'import-export-by-rockstarlab' );
 		if ( isset( $hints[ $reason ] ) ) {
 			/* translators: %s: what is wrong with the file */

@@ -15,9 +15,9 @@ class ODS_Cell_Stream {
 		$row               = 1;
 		$column            = 1;
 		$repeat_rows       = 1;
-		$wrappers          = [];
+		$wrappers          = array();
 		$spreadsheet_depth = null;
-		foreach ( [ 'sheet', 'sheet_depth', 'row_depth', 'row', 'column', 'repeat_rows', 'wrappers', 'spreadsheet_depth' ] as $field ) {
+		foreach ( array( 'sheet', 'sheet_depth', 'row_depth', 'row', 'column', 'repeat_rows', 'wrappers', 'spreadsheet_depth' ) as $field ) {
 			if ( isset( $checkpoint['state'] ) && array_key_exists( $field, $checkpoint['state'] ) ) {
 				$$field = $checkpoint['state'][ $field ]; }
 		}
@@ -32,7 +32,7 @@ class ODS_Cell_Stream {
 					unset( $wrappers[ $node->depth ] ); }
 				if ( $sheet_depth === $node->depth ) {
 					$sheet_depth = null;
-					$wrappers    = []; }
+					$wrappers    = array(); }
 				continue;
 			}
 			if ( \XMLReader::ELEMENT !== $node->nodeType ) {
@@ -52,7 +52,7 @@ class ODS_Cell_Stream {
 			if ( ( null !== $selected && $sheet !== $selected ) || null === $sheet_depth ) {
 				continue; }
 			$parent_is_rows = $node->depth === $sheet_depth + 1 || isset( $wrappers[ $node->depth - 1 ] );
-			if ( $parent_is_rows && in_array( $node->localName, [ 'table-row-group', 'table-header-rows', 'table-rows' ], true ) ) {
+			if ( $parent_is_rows && in_array( $node->localName, array( 'table-row-group', 'table-header-rows', 'table-rows' ), true ) ) {
 				if ( ! $node->isEmptyElement ) {
 					$wrappers[ $node->depth ] = true; }
 				continue;
@@ -68,7 +68,7 @@ class ODS_Cell_Stream {
 					$row_depth = $node->depth; }
 				continue;
 			}
-			if ( null === $row_depth || $node->depth !== $row_depth + 1 || ! in_array( $node->localName, [ 'table-cell', 'covered-table-cell' ], true ) ) {
+			if ( null === $row_depth || $node->depth !== $row_depth + 1 || ! in_array( $node->localName, array( 'table-cell', 'covered-table-cell' ), true ) ) {
 				continue; }
 			$repeat_columns = self::repeat( $node, 'number-columns-repeated' );
 			if ( $repeat_columns > PHP_INT_MAX - $column || $repeat_rows > PHP_INT_MAX - $row ) {
@@ -85,27 +85,27 @@ class ODS_Cell_Stream {
 					break; }
 			}
 			if ( $populated && $compact ) {
-				yield [
+				yield array(
 					'row'            => $row,
 					'column'         => $column,
 					'value'          => $value,
 					'repeat_rows'    => $repeat_rows,
 					'repeat_columns' => $repeat_columns,
-				];
+				);
 			} elseif ( $populated ) {
 				for ( $r = 0; $r < $repeat_rows; ++$r ) {
 					for ( $c = 0; $c < $repeat_columns; ++$c ) {
-						yield [
+						yield array(
 							'row'    => $row + $r,
 							'column' => $column + $c,
 							'value'  => $value,
-						]; }
+						); }
 				}
 			}
 			$column += max( 1, $repeat_columns );
 		}
 		if ( $resume ) {
-			foreach ( [ 'sheet', 'sheet_depth', 'row_depth', 'row', 'column', 'repeat_rows', 'wrappers', 'spreadsheet_depth' ] as $field ) {
+			foreach ( array( 'sheet', 'sheet_depth', 'row_depth', 'row', 'column', 'repeat_rows', 'wrappers', 'spreadsheet_depth' ) as $field ) {
 				$checkpoint['state'][ $field ] = $$field; }
 		}
 	}
@@ -113,7 +113,7 @@ class ODS_Cell_Stream {
 		$value = $node->getAttributeNs( $attribute, self::TABLE );
 		if ( null === $value ) {
 			return 1; }
-		$count = filter_var( $value, FILTER_VALIDATE_INT, [ 'options' => [ 'min_range' => 1 ] ] );
+		$count = filter_var( $value, FILTER_VALIDATE_INT, array( 'options' => array( 'min_range' => 1 ) ) );
 		if ( false === $count ) {
 			throw new \RuntimeException( __( 'Invalid ODS repetition count.', 'import-export-by-rockstarlab' ) ); }
 		return $count;

@@ -19,7 +19,7 @@ interface Exporter_Interface {
 	 * @param array $options Optional. Export options (filters, fields, limits, etc.)
 	 * @return array|WP_Error Exported data or WP_Error
 	 */
-	public function export( $options = [] );
+	public function export( $options = array() );
 
 	/**
 	 * Get data based on export options
@@ -29,7 +29,7 @@ interface Exporter_Interface {
 	 * @param array $options Export options (filters, limits, etc.)
 	 * @return array Raw data array
 	 */
-	public function get_data( $options = [] );
+	public function get_data( $options = array() );
 
 	/**
 	 * Validate export options
@@ -82,5 +82,5 @@ interface Exporter_Interface {
 	 * @param array $options Optional. Export filters
 	 * @return int Total count
 	 */
-	public function get_count( $options = [] );
+	public function get_count( $options = array() );
 }

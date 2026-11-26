@@ -27,7 +27,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	 *
 	 * @var array
 	 */
-	protected $options = [];
+	protected $options = array();
 
 	/**
 	 * Number of source items behind the last get_data() call when it differs from the row count.
@@ -41,15 +41,15 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	 *
 	 * @var array
 	 */
-	protected $stats = [
+	protected $stats = array(
 		'total'      => 0,
 		'exported'   => 0,
 		'skipped'    => 0,
 		'failed'     => 0,
-		'errors'     => [],
+		'errors'     => array(),
 		'start_time' => 0,
 		'end_time'   => 0,
-	];
+	);
 
 	/**
 	 * Constructor
@@ -66,7 +66,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	 * @param array $options Optional. Export options
 	 * @return array|WP_Error Export results or WP_Error
 	 */
-	public function export( $options = [] ) {
+	public function export( $options = array() ) {
 		$this->options          = wp_parse_args( $options, $this->get_default_options() );
 		$this->source_row_count = null;
 		$this->reset_stats();
@@ -89,10 +89,10 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 		}
 		if ( 0 === $this->stats['total'] ) {
 			$this->log_warning( __( 'No items found to export', 'import-export-by-rockstarlab' ) );
-			return [
-				'data'  => [],
-				'stats' => array_merge( $this->stats, [ 'processed' => 0 ] ),
-			];
+			return array(
+				'data'  => array(),
+				'stats' => array_merge( $this->stats, array( 'processed' => 0 ) ),
+			);
 		}
 
 		$this->log_info( sprintf( /* translators: %d: stats. */ __( 'Found %d items to export', 'import-export-by-rockstarlab' ), $this->stats['total'] ) );
@@ -108,7 +108,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 
 		// Some exporters write several rows for one source item (variation rows); the batch offset counts source items.
 		$this->stats['processed'] = null !== $this->source_row_count ? $this->source_row_count : count( $data );
-		$exported_data            = [];
+		$exported_data            = array();
 
 		// Process each item
 		foreach ( $data as $index => $item ) {
@@ -116,11 +116,11 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 
 			if ( is_wp_error( $processed ) ) {
 				++$this->stats['failed'];
-				$this->stats['errors'][] = [
+				$this->stats['errors'][] = array(
 					'row'     => $index + 1,
 					'message' => $processed->get_error_message(),
 					'data'    => $processed->get_error_data(),
-				];
+				);
 				$this->log_error( sprintf( /* translators: %1$d: row number, %2$s: value. */ __( 'Failed to process row %1$d: %2$s', 'import-export-by-rockstarlab' ), $index + 1, $processed->get_error_message() ) );
 			} elseif ( 'skipped' === $processed ) {
 				++$this->stats['skipped'];
@@ -136,7 +136,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 
 		$this->log_info(
 			sprintf(
-				/* translators: %1$s: duration, %2$d: stats, %3$d: stats, %4$d: stats, %5$d: stats. */ __( 'Export completed in %1$s seconds: %2$d total, %3$d exported, %4$d failed, %5$d skipped', 'import-export-by-rockstarlab' ),
+				/* translators: %1$s: duration, %2$d: stats, %3$d: stats, %4$d: stats, %5$d: stats. */                __( 'Export completed in %1$s seconds: %2$d total, %3$d exported, %4$d failed, %5$d skipped', 'import-export-by-rockstarlab' ),
 				$duration,
 				$this->stats['total'],
 				$this->stats['exported'],
@@ -145,10 +145,10 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 			)
 		);
 
-		return [
+		return array(
 			'data'  => $exported_data,
 			'stats' => $this->stats,
-		];
+		);
 	}
 
 	/**
@@ -178,7 +178,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	 * @param array $options Export options
 	 * @return array|WP_Error Data array or WP_Error
 	 */
-	abstract public function get_data( $options = [] );
+	abstract public function get_data( $options = array() );
 
 	/**
 	 * Process single item
@@ -192,7 +192,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	protected function process_item( $item, $index ) {
 		// Custom columns added on the Fields step hold a fixed value (or stay empty for transformations to fill).
 		if ( is_array( $item ) && ! empty( $this->options['fields'] ) && is_array( $this->options['fields'] ) ) {
-			$custom_values = is_array( $this->options['custom_values'] ?? null ) ? $this->options['custom_values'] : [];
+			$custom_values = is_array( $this->options['custom_values'] ?? null ) ? $this->options['custom_values'] : array();
 			foreach ( $this->options['fields'] as $field ) {
 				if ( ! is_string( $field ) || 0 !== strpos( $field, 'custom_' ) ) {
 					continue;
@@ -251,13 +251,13 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 			foreach ( $function_ids as $function_id ) {
 				$value = \RockStarLab\ImportExport\Helper\Field_Transformation_Bridge::apply(
 					$value,
-					[ $function_id ],
-					[
+					array( $function_id ),
+					array(
 						'operation' => 'export',
 						'field'     => $field_key,
 						'item'      => $item,
 						'exporter'  => $this,
-					]
+					)
 				);
 			}
 
@@ -274,11 +274,11 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	 * @return array Default options
 	 */
 	protected function get_default_options() {
-		return [
+		return array(
 			'limit'  => -1,  // -1 = no limit
 			'offset' => 0,
 			'fields' => $this->get_default_fields(),
-		];
+		);
 	}
 
 	/**
@@ -293,7 +293,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 			return $data;
 		}
 
-		$filtered = [];
+		$filtered = array();
 
 		foreach ( $data as $item ) {
 			if ( $this->item_matches_filters( $item, $filters ) ) {
@@ -320,15 +320,15 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	 * Reset statistics
 	 */
 	protected function reset_stats() {
-		$this->stats = [
+		$this->stats = array(
 			'total'      => 0,
 			'exported'   => 0,
 			'skipped'    => 0,
 			'failed'     => 0,
-			'errors'     => [],
+			'errors'     => array(),
 			'start_time' => 0,
 			'end_time'   => 0,
-		];
+		);
 	}
 
 	/**
@@ -346,7 +346,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	 * @param string $message Log message
 	 * @param array  $data    Optional. Additional data
 	 */
-	protected function log_info( $message, $data = [] ) {
+	protected function log_info( $message, $data = array() ) {
 		\RockStarLab\ImportExport\Service\Job_Log::write( $this->job_id, 'info', $message );
 	}
 
@@ -356,7 +356,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	 * @param string $message Log message
 	 * @param array  $data    Optional. Additional data
 	 */
-	protected function log_warning( $message, $data = [] ) {
+	protected function log_warning( $message, $data = array() ) {
 		\RockStarLab\ImportExport\Service\Job_Log::write( $this->job_id, 'warning', $message );
 	}
 
@@ -366,7 +366,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	 * @param string $message Log message
 	 * @param array  $data    Optional. Additional data
 	 */
-	protected function log_error( $message, $data = [] ) {
+	protected function log_error( $message, $data = array() ) {
 		\RockStarLab\ImportExport\Service\Job_Log::write( $this->job_id, 'error', $message );
 	}
 
@@ -403,7 +403,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 			return $item;
 		}
 
-		$selected = [];
+		$selected = array();
 
 		foreach ( $fields as $field ) {
 			if ( array_key_exists( $field, $item ) ) {

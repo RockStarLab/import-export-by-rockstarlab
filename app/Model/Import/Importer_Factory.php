@@ -18,7 +18,7 @@ class Importer_Factory {
 	 *
 	 * @var array
 	 */
-	private static $importers = [];
+	private static $importers = array();
 
 	/**
 	 * Get importer by type
@@ -55,7 +55,7 @@ class Importer_Factory {
 	 * @return array Map of type => class
 	 */
 	private static function get_importer_map() {
-		$default_map = [
+		$default_map = array(
 			// Free plugin content types.
 				'post' => Post_Importer::class,
 			'posts'    => Post_Importer::class,
@@ -64,7 +64,7 @@ class Importer_Factory {
 			'comment'  => Comment_Importer::class,
 			'comments' => Comment_Importer::class,
 			'media'    => Media_Importer::class,
-		];
+		);
 
 		/**
 		 * Filter registered importers
@@ -109,13 +109,13 @@ class Importer_Factory {
 			return $importer;
 		}
 
-		return [
+		return array(
 			'name'              => $importer->get_name(),
 			'description'       => $importer->get_description(),
 			'required_fields'   => $importer->get_required_fields(),
 			'optional_fields'   => $importer->get_optional_fields(),
 			'supported_options' => $importer->get_supported_options(),
-		];
+		);
 	}
 
 	/**
@@ -124,7 +124,7 @@ class Importer_Factory {
 	 * @return array Array of importer info
 	 */
 	public static function get_all_importers_info() {
-		$info      = [];
+		$info      = array();
 		$importers = self::get_available_importers();
 
 		foreach ( $importers as $type ) {
@@ -165,7 +165,7 @@ class Importer_Factory {
 	 * @param int    $job_id  Optional. Job ID for logging
 	 * @return array|WP_Error Import results or WP_Error
 	 */
-	public static function import( $type, $data, $options = [], $job_id = 0 ) {
+	public static function import( $type, $data, $options = array(), $job_id = 0 ) {
 		$importer = self::get_importer( $type, $job_id );
 
 		if ( is_wp_error( $importer ) ) {

@@ -20,7 +20,7 @@ interface File_Format_Interface {
 	 * @param array  $options   Optional. Parser options (delimiter, encoding, etc.)
 	 * @return array|WP_Error Array of parsed data or WP_Error on failure
 	 */
-	public function parse( $file_path, $options = [] );
+	public function parse( $file_path, $options = array() );
 
 	/**
 	 * Parse file in chunks for memory efficiency
@@ -33,7 +33,7 @@ interface File_Format_Interface {
 	 * @param array  $options   Optional. Parser options
 	 * @return array|WP_Error Array of parsed data or WP_Error on failure
 	 */
-	public function parse_chunk( $file_path, $offset, $limit, $options = [] );
+	public function parse_chunk( $file_path, $offset, $limit, $options = array() );
 
 	/**
 	 * Generate file from data array
@@ -43,7 +43,7 @@ interface File_Format_Interface {
 	 * @param array  $options   Optional. Generation options (headers, formatting, etc.)
 	 * @return bool|WP_Error True on success or WP_Error on failure
 	 */
-	public function generate( $data, $file_path, $options = [] );
+	public function generate( $data, $file_path, $options = array() );
 
 	/**
 	 * Validate file format and structure
@@ -64,7 +64,7 @@ interface File_Format_Interface {
 	 * @param array  $options   Optional. Parser options
 	 * @return array|WP_Error Array of column names or WP_Error on failure
 	 */
-	public function get_headers( $file_path, $options = [] );
+	public function get_headers( $file_path, $options = array() );
 
 	/**
 	 * Count total rows in file

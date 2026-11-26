@@ -20,7 +20,7 @@ interface Importer_Interface {
 	 * @param array $options Optional. Import options (update mode, post status, etc.)
 	 * @return array|WP_Error Import results with success/error counts or WP_Error
 	 */
-	public function import( $data, $options = [] );
+	public function import( $data, $options = array() );
 
 	/**
 	 * Validate data before import
@@ -41,7 +41,7 @@ interface Importer_Interface {
 	 * @param array $mapping  Optional. Field mapping configuration
 	 * @return array Prepared data
 	 */
-	public function prepare( $raw_data, $mapping = [] );
+	public function prepare( $raw_data, $mapping = array() );
 
 	/**
 	 * Get list of required fields

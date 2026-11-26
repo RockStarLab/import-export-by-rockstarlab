@@ -87,7 +87,7 @@ class Data_Type_Rule extends Validation_Rule {
 					__( '%s must be a string', 'import-export-by-rockstarlab' ),
 					$field_name
 				),
-				[ 'field' => $context['field_name'] ?? null ]
+				array( 'field' => $context['field_name'] ?? null )
 			);
 		}
 
@@ -111,7 +111,7 @@ class Data_Type_Rule extends Validation_Rule {
 					__( '%s must be an integer', 'import-export-by-rockstarlab' ),
 					$field_name
 				),
-				[ 'field' => $context['field_name'] ?? null ]
+				array( 'field' => $context['field_name'] ?? null )
 			);
 		}
 
@@ -135,7 +135,7 @@ class Data_Type_Rule extends Validation_Rule {
 					__( '%s must be a number', 'import-export-by-rockstarlab' ),
 					$field_name
 				),
-				[ 'field' => $context['field_name'] ?? null ]
+				array( 'field' => $context['field_name'] ?? null )
 			);
 		}
 
@@ -151,7 +151,7 @@ class Data_Type_Rule extends Validation_Rule {
 	 * @return true|WP_Error
 	 */
 	private function validate_boolean( $value, $field_name, $context ) {
-		$valid_values = [ true, false, 1, 0, '1', '0', 'true', 'false', 'yes', 'no' ];
+		$valid_values = array( true, false, 1, 0, '1', '0', 'true', 'false', 'yes', 'no' );
 
 		if ( ! in_array( $value, $valid_values, true ) ) {
 			return $this->create_error(
@@ -161,7 +161,7 @@ class Data_Type_Rule extends Validation_Rule {
 					__( '%s must be a boolean value', 'import-export-by-rockstarlab' ),
 					$field_name
 				),
-				[ 'field' => $context['field_name'] ?? null ]
+				array( 'field' => $context['field_name'] ?? null )
 			);
 		}
 
@@ -185,10 +185,10 @@ class Data_Type_Rule extends Validation_Rule {
 					__( '%s must be a valid email address', 'import-export-by-rockstarlab' ),
 					$field_name
 				),
-				[
+				array(
 					'field' => $context['field_name'] ?? null,
 					'value' => $value,
-				]
+				)
 			);
 		}
 
@@ -212,10 +212,10 @@ class Data_Type_Rule extends Validation_Rule {
 					__( '%s must be a valid URL', 'import-export-by-rockstarlab' ),
 					$field_name
 				),
-				[
+				array(
 					'field' => $context['field_name'] ?? null,
 					'value' => $value,
-				]
+				)
 			);
 		}
 
@@ -244,11 +244,11 @@ class Data_Type_Rule extends Validation_Rule {
 					$field_name,
 					$format
 				),
-				[
+				array(
 					'field'  => $context['field_name'] ?? null,
 					'value'  => $value,
 					'format' => $format,
-				]
+				)
 			);
 		}
 
@@ -277,11 +277,11 @@ class Data_Type_Rule extends Validation_Rule {
 					$field_name,
 					$format
 				),
-				[
+				array(
 					'field'  => $context['field_name'] ?? null,
 					'value'  => $value,
 					'format' => $format,
-				]
+				)
 			);
 		}
 

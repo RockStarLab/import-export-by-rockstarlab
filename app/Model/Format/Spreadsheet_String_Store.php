@@ -42,7 +42,7 @@ class Spreadsheet_String_Store {
 				if ( \XMLReader::ELEMENT !== $node->nodeType ) {
 					continue; }
 				if ( 0 === $node->depth ) {
-					if ( 'sst' !== $node->localName || ! in_array( $node->namespaceURI, [ 'http://schemas.openxmlformats.org/spreadsheetml/2006/main', 'http://purl.oclc.org/ooxml/spreadsheetml/main' ], true ) ) {
+					if ( 'sst' !== $node->localName || ! in_array( $node->namespaceURI, array( 'http://schemas.openxmlformats.org/spreadsheetml/2006/main', 'http://purl.oclc.org/ooxml/spreadsheetml/main' ), true ) ) {
 						throw new \RuntimeException( __( 'Invalid shared-string root.', 'import-export-by-rockstarlab' ) ); }
 					$root      = true;
 					$namespace = $node->namespaceURI;

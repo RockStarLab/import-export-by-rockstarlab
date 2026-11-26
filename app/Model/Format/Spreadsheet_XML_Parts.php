@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 class Spreadsheet_XML_Parts {
 	private $zip;
 	private $directory;
-	private $paths      = [];
+	private $paths      = array();
 	private $persistent = false;
 
 	public function __construct( $path, $directory = null ) {
@@ -124,16 +124,16 @@ class Spreadsheet_XML_Parts {
 
 	/** Read a bounded set of complete cell/string fragments from a byte checkpoint. */
 	private function slice_nodes( $name, &$checkpoint ) {
-		$state   = $checkpoint['xml'] ?? [
+		$state   = $checkpoint['xml'] ?? array(
 			'offset'      => 0,
-			'stack'       => [],
+			'stack'       => array(),
 			'roots'       => 0,
 			'declaration' => '',
-		];
+		);
 		$input   = new XML_Fragment_Stream( $this->path( $name ), $state['offset'] );
 		$records = 0;
 		$bytes   = 0;
-		foreach ( $input->segments( [ 'c', 'si', 'table-cell', 'covered-table-cell', 'config-item' ], $state, 65536 ) as $segment ) {
+		foreach ( $input->segments( array( 'c', 'si', 'table-cell', 'covered-table-cell', 'config-item' ), $state, 65536 ) as $segment ) {
 			$nonce = bin2hex( random_bytes( 16 ) );
 			$lead  = '';
 			$body  = $segment['body'];
@@ -168,10 +168,10 @@ class Spreadsheet_XML_Parts {
 				$reader->close();
 				libxml_clear_errors();
 				libxml_use_internal_errors( $previous ); }
-			$checkpoint = [
+			$checkpoint = array(
 				'xml'  => $segment['next'],
 				'done' => ! empty( $segment['eof'] ),
-			];
+			);
 			$bytes     += strlen( $segment['body'] );
 			if ( ++$records >= 100 || $bytes >= 1048576 ) {
 				return; }
@@ -201,7 +201,7 @@ class Spreadsheet_XML_Parts {
 			}
 			rmdir( $this->directory );
 		}
-		$this->paths = [];
+		$this->paths = array();
 	}
 
 	public function __destruct() {

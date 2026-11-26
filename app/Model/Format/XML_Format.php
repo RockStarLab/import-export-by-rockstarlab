@@ -41,7 +41,7 @@ class XML_Format implements File_Format_Interface {
 	 * @param array  $options   Optional. Parser options (root, item_tag)
 	 * @return array|WP_Error Array of parsed data or WP_Error on failure
 	 */
-	public function parse( $file_path, $options = [] ) {
+	public function parse( $file_path, $options = array() ) {
 		if ( ! file_exists( $file_path ) ) {
 			return new \WP_Error( 'file_not_found', __( 'XML file not found', 'import-export-by-rockstarlab' ) );
 		}
@@ -249,12 +249,12 @@ class XML_Format implements File_Format_Interface {
 	 * @param array  $options   Optional. Parser options
 	 * @return array|WP_Error Array of parsed data or WP_Error on failure
 	 */
-	public function parse_chunk( $file_path, $offset, $limit, $options = [] ) {
+	public function parse_chunk( $file_path, $offset, $limit, $options = array() ) {
 		if ( ! file_exists( $file_path ) ) {
 			return new \WP_Error( 'file_not_found', __( 'XML file not found', 'import-export-by-rockstarlab' ) );
 		}
 
-		$data  = [];
+		$data  = array();
 		$index = 0;
 		try {
 			foreach ( $this->rows( $file_path, $options ) as $row ) {
@@ -316,7 +316,7 @@ class XML_Format implements File_Format_Interface {
 			return $options;
 		}
 		static $cache = array();
-		$key = '';
+		$key          = '';
 		if ( is_string( $file_path ) && strlen( $file_path ) < 4096 && is_file( $file_path ) ) {
 			clearstatcache( true, $file_path );
 			$head = (string) file_get_contents( $file_path, false, null, 0, 65536 );
@@ -336,7 +336,7 @@ class XML_Format implements File_Format_Interface {
 			$attachments[ $key ] = false !== strpos( $head, 'wordpress.org/export/' ) ? $this->wxr_attachment_map( $file_path ) : array();
 		}
 		$this->wxr_attachments = $attachments[ $key ];
-		list( $root, $tag ) = $cache[ $key ];
+		list( $root, $tag )    = $cache[ $key ];
 		if ( ! empty( $options['item_tag'] ) ) {
 			$tag = (string) $options['item_tag'];
 		}
@@ -523,7 +523,7 @@ class XML_Format implements File_Format_Interface {
 	private function wxr_postmeta_columns( array $entries ) {
 		$row    = array();
 		$values = array();
-		$skip = array( '_edit_lock', '_edit_last', '_wp_old_slug', '_wp_old_date', '_pingme', '_encloseme', '_wp_attached_file', '_wp_attachment_metadata', '_wp_desired_post_slug' );
+		$skip   = array( '_edit_lock', '_edit_last', '_wp_old_slug', '_wp_old_date', '_pingme', '_encloseme', '_wp_attached_file', '_wp_attachment_metadata', '_wp_desired_post_slug' );
 		foreach ( $entries as $entry ) {
 			$fields = array();
 			foreach ( $this->element_children( $entry ) as $child ) {
@@ -607,8 +607,8 @@ class XML_Format implements File_Format_Interface {
 					$parents[2]      = $reader->name;
 				} elseif ( $reader->depth <= 8 ) {
 					// Records wrapped in several single elements (<a><b><c><records><record>).
-					$parents[ $reader->depth ] = $reader->name;
-					$name                      = $parents[ $reader->depth - 1 ] . '>' . $reader->name;
+					$parents[ $reader->depth ]       = $reader->name;
+					$name                            = $parents[ $reader->depth - 1 ] . '>' . $reader->name;
 					$deep[ $reader->depth ][ $name ] = ( $deep[ $reader->depth ][ $name ] ?? 0 ) + 1;
 				}
 			}
@@ -839,7 +839,7 @@ class XML_Format implements File_Format_Interface {
 			return array();
 		}
 
-		$decoded = [];
+		$decoded = array();
 		foreach ( $value as $key => $child_value ) {
 			$decoded[ self::decode_element_name( (string) $key ) ] = $this->normalize_xml_values( $child_value );
 		}
@@ -848,11 +848,15 @@ class XML_Format implements File_Format_Interface {
 		// generate() writes list items as <field_0>, <field_1>…: read them back as a list,
 		// so ["red","green"] round-trips as a list and not as {"field_0":"red",…}.
 		$keys = array_keys( $value );
-		if ( $keys && $keys === array_map( static function ( $i ) { return 'field_' . $i; }, range( 0, count( $keys ) - 1 ) ) ) {
+		if ( $keys && $keys === array_map(
+			static function ( $i ) {
+				return 'field_' . $i; },
+			range( 0, count( $keys ) - 1 )
+		) ) {
 			return array_values( $value );
 		}
 		// Other numeric keys (maps keyed by post or term IDs) come back as the same numbers.
-		$numeric = [];
+		$numeric = array();
 		foreach ( $value as $key => $child_value ) {
 			if ( ! preg_match( '/^field_(\d+)$/D', (string) $key, $match ) ) {
 				return $value;
@@ -870,7 +874,7 @@ class XML_Format implements File_Format_Interface {
 	 * @param array  $options   Optional. Generation options (root, item_tag, pretty_print)
 	 * @return bool|WP_Error True on success or WP_Error on failure
 	 */
-	public function generate( $data, $file_path, $options = [] ) {
+	public function generate( $data, $file_path, $options = array() ) {
 		$root_tag = $options['root_tag'] ?? self::DEFAULT_ROOT;
 		$item_tag = $options['item_tag'] ?? self::DEFAULT_ITEM;
 		$pretty   = $options['pretty_print'] ?? true;
@@ -1056,7 +1060,7 @@ class XML_Format implements File_Format_Interface {
 	 * @param array  $options   Optional. Parser options
 	 * @return array|WP_Error Array of headers or WP_Error on failure
 	 */
-	public function get_headers( $file_path, $options = [] ) {
+	public function get_headers( $file_path, $options = array() ) {
 		// Items differ (one post has tags, another comments): collect the columns of the first 50.
 		// WordPress exports can open with many image items, which are not imported: they do not count.
 		if ( ! file_exists( $file_path ) ) {
@@ -1079,7 +1083,7 @@ class XML_Format implements File_Format_Interface {
 		}
 
 		if ( empty( $chunk ) || ! is_array( $chunk[0] ) ) {
-			return [];
+			return array();
 		}
 
 		$headers = array();
@@ -1121,7 +1125,7 @@ class XML_Format implements File_Format_Interface {
 	 * @return array
 	 */
 	public function get_extensions() {
-		return [ 'xml' ];
+		return array( 'xml' );
 	}
 
 	/**
@@ -1130,9 +1134,9 @@ class XML_Format implements File_Format_Interface {
 	 * @return array
 	 */
 	public function get_mime_types() {
-		return [
+		return array(
 			'application/xml',
 			'text/xml',
-		];
+		);
 	}
 }

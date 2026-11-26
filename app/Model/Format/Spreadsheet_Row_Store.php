@@ -27,7 +27,7 @@ class Spreadsheet_Row_Store {
 		$directory = dirname( $path );
 		if ( ! is_dir( $directory ) && ! mkdir( $directory, 0700, true ) ) {
 			throw new \RuntimeException( __( 'Cannot create row shard.', 'import-export-by-rockstarlab' ) ); }
-		$data   = serialize( [ $column, $value, ! empty( $cell['preserve_existing'] ) ] );
+		$data   = serialize( array( $column, $value, ! empty( $cell['preserve_existing'] ) ) );
 		$record = sprintf( '%020d', strlen( $data ) ) . $data;
 		if ( strlen( $record ) !== file_put_contents( $path, $record, FILE_APPEND ) ) {
 			throw new \RuntimeException( __( 'Cannot store spreadsheet cell.', 'import-export-by-rockstarlab' ) ); }
@@ -78,7 +78,7 @@ class Spreadsheet_Row_Store {
 					$data      .= $chunk;
 					$remaining -= strlen( $chunk );
 				}
-				$cell = unserialize( $data, [ 'allowed_classes' => false ] );
+				$cell = unserialize( $data, array( 'allowed_classes' => false ) );
 				if ( ! is_array( $cell ) || count( $cell ) !== 3 || ! is_int( $cell[0] ) || $cell[0] < 1 || $cell[0] > $this->width || ! is_string( $cell[1] ) ) {
 					throw new \RuntimeException( __( 'Invalid stored spreadsheet cell.', 'import-export-by-rockstarlab' ) ); }
 				if ( ! $cell[2] ) {
@@ -136,11 +136,11 @@ class Spreadsheet_Row_Store {
 
 	/** Derive preview and count from the same staged worksheet, retaining five rows. */
 	public function preview( $has_header = true ) {
-		$result = [
+		$result = array(
 			'headers'    => $this->headers( $has_header ),
-			'preview'    => [],
+			'preview'    => array(),
 			'total_rows' => 0,
-		];
+		);
 		foreach ( $this->rows( $has_header ) as $row ) {
 			if ( $result['total_rows'] < 5 ) {
 				$result['preview'][] = $row;

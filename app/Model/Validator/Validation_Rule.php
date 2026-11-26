@@ -25,14 +25,14 @@ abstract class Validation_Rule {
 	 *
 	 * @var array
 	 */
-	protected $options = [];
+	protected $options = array();
 
 	/**
 	 * Constructor
 	 *
 	 * @param array $options Optional. Rule configuration options
 	 */
-	public function __construct( $options = [] ) {
+	public function __construct( $options = array() ) {
 		$this->options = $options;
 	}
 
@@ -54,7 +54,7 @@ abstract class Validation_Rule {
 	 * @param array $context Optional. Additional context (field name, all data, etc.)
 	 * @return true|WP_Error True if valid, WP_Error if validation fails
 	 */
-	public function validate( $value, $context = [] ) {
+	public function validate( $value, $context = array() ) {
 		// Run this rule's check
 		$result = $this->check( $value, $context );
 
@@ -134,7 +134,7 @@ abstract class Validation_Rule {
 	 * @param array  $data    Optional. Additional error data
 	 * @return WP_Error
 	 */
-	protected function create_error( $code, $message, $data = [] ) {
+	protected function create_error( $code, $message, $data = array() ) {
 		return new \WP_Error( $code, $message, $data );
 	}
 }

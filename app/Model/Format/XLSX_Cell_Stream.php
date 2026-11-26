@@ -24,7 +24,7 @@ class XLSX_Cell_Stream {
 			$in_row    = false;
 			$row       = 0;
 			$column    = 0;
-			foreach ( [ 'namespace', 'in_data', 'in_row', 'row', 'column' ] as $field ) {
+			foreach ( array( 'namespace', 'in_data', 'in_row', 'row', 'column' ) as $field ) {
 				if ( isset( $checkpoint['state'] ) && array_key_exists( $field, $checkpoint['state'] ) ) {
 					$$field = $checkpoint['state'][ $field ]; }
 			}
@@ -40,7 +40,7 @@ class XLSX_Cell_Stream {
 					continue; }
 				if ( 0 === $node->depth ) {
 					$namespace = $node->namespaceURI;
-					if ( 'worksheet' !== $node->localName || ! in_array( $namespace, [ 'http://schemas.openxmlformats.org/spreadsheetml/2006/main', 'http://purl.oclc.org/ooxml/spreadsheetml/main' ], true ) ) {
+					if ( 'worksheet' !== $node->localName || ! in_array( $namespace, array( 'http://schemas.openxmlformats.org/spreadsheetml/2006/main', 'http://purl.oclc.org/ooxml/spreadsheetml/main' ), true ) ) {
 						throw new \RuntimeException( __( 'Invalid worksheet root.', 'import-export-by-rockstarlab' ) ); }
 				}
 				if ( 1 === $node->depth ) {
@@ -62,21 +62,21 @@ class XLSX_Cell_Stream {
 				$xml     = simplexml_load_string( $node->readOuterXml(), \SimpleXMLElement::class, LIBXML_NONET | LIBXML_COMPACT | LIBXML_PARSEHUGE );
 				if ( false === $xml ) {
 					throw new \RuntimeException( __( 'Invalid worksheet cell.', 'import-export-by-rockstarlab' ) ); }
-				$value = $decoder->decode( $xml, $namespace, $coordinate, $strings, [ $formulas, 'resolve' ] );
+				$value = $decoder->decode( $xml, $namespace, $coordinate, $strings, array( $formulas, 'resolve' ) );
 				$style = $node->getAttribute( 's' );
-				if ( ! empty( $map['decimals'] ) && null !== $style && '' !== $style && isset( $map['decimals'][ (int) $style ] ) && in_array( (string) $node->getAttribute( 't' ), [ '', 'n' ], true ) ) {
+				if ( ! empty( $map['decimals'] ) && null !== $style && '' !== $style && isset( $map['decimals'][ (int) $style ] ) && in_array( (string) $node->getAttribute( 't' ), array( '', 'n' ), true ) ) {
 					$value = self::pad_decimals( $value, $map['decimals'][ (int) $style ] ); }
-				if ( ! empty( $map['dates'] ) && null !== $style && '' !== $style && isset( $map['dates'][ (int) $style ] ) && in_array( (string) $node->getAttribute( 't' ), [ '', 'n' ], true ) && is_numeric( $value ) ) {
+				if ( ! empty( $map['dates'] ) && null !== $style && '' !== $style && isset( $map['dates'][ (int) $style ] ) && in_array( (string) $node->getAttribute( 't' ), array( '', 'n' ), true ) && is_numeric( $value ) ) {
 					$value = self::serial_date( (float) $value, $map['dates'][ (int) $style ], $map['calendar'] ); }
-				yield [
+				yield array(
 					'row'               => $indices[1],
 					'column'            => $indices[0],
 					'value'             => $value,
 					'preserve_existing' => $decoder->preserves_existing(),
-				];
+				);
 			}
 			if ( $resume ) {
-				foreach ( [ 'namespace', 'in_data', 'in_row', 'row', 'column' ] as $field ) {
+				foreach ( array( 'namespace', 'in_data', 'in_row', 'row', 'column' ) as $field ) {
 					$checkpoint['state'][ $field ] = $$field; }
 			}
 			if ( null === $namespace && ( ! $resume || ! empty( $checkpoint['nodes']['done'] ) ) ) {

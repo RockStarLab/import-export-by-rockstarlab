@@ -15,7 +15,7 @@ class XLSX_Cell_Decoder {
 		return $this->preserve_existing; }
 
 	public function __construct( $calendar = 1900 ) {
-		if ( ! in_array( $calendar, [ 1900, 1904 ], true ) ) {
+		if ( ! in_array( $calendar, array( 1900, 1904 ), true ) ) {
 			throw new \RuntimeException( __( 'Invalid spreadsheet calendar.', 'import-export-by-rockstarlab' ) ); }
 		$this->calendar = $calendar;
 		$this->book     = new Spreadsheet();
@@ -53,8 +53,8 @@ class XLSX_Cell_Decoder {
 				$shared_formula( (string) $formula_attributes['si'], $coordinate, '=' . (string) $c->f ); }
 			if ( 'b' === $type ) {
 				$value = '0' === $value ? false : true; } elseif ( 'str' === $type ) {
-				return str_replace( [ "\r\n", "\r" ], "\n", StringHelper::controlCharacterOOXML2PHP( $value ) ); } else {
-				$type = 'n'; }
+				return str_replace( array( "\r\n", "\r" ), "\n", StringHelper::controlCharacterOOXML2PHP( $value ) ); } else {
+					$type = 'n'; }
 		} elseif ( $formula && ( 'str' !== $type || $use_formula ) ) {
 			$value = '=' . (string) $c->f;
 			if ( $shared ) {
@@ -78,8 +78,8 @@ class XLSX_Cell_Decoder {
 		// Import text verbatim: the worksheet writer's 32,767-character limit must
 		// not silently truncate data supplied by another exporter.
 		$string_type = '' === $type ? \PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder::dataTypeForValue( $value ) : $type;
-		if ( in_array( $string_type, [ 's', 'str', 'inlineStr' ], true ) ) {
-			return str_replace( [ "\r\n", "\r" ], "\n", (string) $value );
+		if ( in_array( $string_type, array( 's', 'str', 'inlineStr' ), true ) ) {
+			return str_replace( array( "\r\n", "\r" ), "\n", (string) $value );
 		}
 		// Reuse a single cell; this retains binder/date/string semantics without a workbook-sized collection.
 		$target = $this->book->getActiveSheet()->getCell( 'A1' );

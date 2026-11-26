@@ -90,7 +90,7 @@ class Background_Processor {
 				"UPDATE %i SET status = 'failed', completed_at = %s, result = %s WHERE type IN ('content_sync_push', 'content_sync_pull') AND status IN ('pending', 'processing') AND created_at < %s",
 				$table,
 				current_time( 'mysql' ),
-				wp_json_encode( [ 'error' => __( 'The sync request stopped before it finished, for example because of a server time limit. Check the remote site and sync the remaining posts again in smaller batches.', 'import-export-by-rockstarlab' ) ] ),
+				wp_json_encode( array( 'error' => __( 'The sync request stopped before it finished, for example because of a server time limit. Check the remote site and sync the remaining posts again in smaller batches.', 'import-export-by-rockstarlab' ) ) ),
 				wp_date( 'Y-m-d H:i:s', time() - 2 * HOUR_IN_SECONDS )
 			)
 		);
@@ -136,7 +136,7 @@ class Background_Processor {
 			return;
 		}
 
-		if ( 'import' === $job['type'] && ! in_array( (string) ( $job['data_type'] ?? '' ), [ 'media_sync', 'content_update' ], true ) ) {
+		if ( 'import' === $job['type'] && ! in_array( (string) ( $job['data_type'] ?? '' ), array( 'media_sync', 'content_update' ), true ) ) {
 			$result = ( new \RockStarLab\ImportExport\Service\Import_Service() )->process_background_batch( (int) $job_id );
 			if ( ! is_wp_error( $result ) && empty( $result['completed'] ) ) {
 				$this->schedule_next_run( empty( $result['locked'] ) ? 0 : 5 );
@@ -155,7 +155,7 @@ class Background_Processor {
 			);
 
 			// Parse parameters
-			$parameters = ! empty( $job['parameters'] ) ? json_decode( $job['parameters'], true ) : [];
+			$parameters = ! empty( $job['parameters'] ) ? json_decode( $job['parameters'], true ) : array();
 
 			// Process based on job type
 			if ( 'import' === $job['type'] && 'media_sync' === (string) ( $job['data_type'] ?? '' ) ) {

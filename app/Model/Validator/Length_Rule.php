@@ -44,11 +44,11 @@ class Length_Rule extends Validation_Rule {
 					$field_name,
 					$min
 				),
-				[
+				array(
 					'field'  => $context['field_name'] ?? null,
 					'length' => $length,
 					'min'    => $min,
-				]
+				)
 			);
 		}
 
@@ -62,11 +62,11 @@ class Length_Rule extends Validation_Rule {
 					$field_name,
 					$max
 				),
-				[
+				array(
 					'field'  => $context['field_name'] ?? null,
 					'length' => $length,
 					'max'    => $max,
-				]
+				)
 			);
 		}
 
@@ -81,11 +81,11 @@ class Length_Rule extends Validation_Rule {
 					$field_name,
 					$exact
 				),
-				[
+				array(
 					'field'  => $context['field_name'] ?? null,
 					'length' => $length,
 					'exact'  => $exact,
-				]
+				)
 			);
 		}
 

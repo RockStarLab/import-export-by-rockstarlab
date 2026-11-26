@@ -20,14 +20,14 @@ class Validator_Factory {
 	 * @param array  $options   Optional. Rule configuration options
 	 * @return Validation_Rule|WP_Error Rule instance or WP_Error if unknown rule
 	 */
-	public static function create_rule( $rule_name, $options = [] ) {
-		$rule_map = [
+	public static function create_rule( $rule_name, $options = array() ) {
+		$rule_map = array(
 			'required' => Required_Rule::class,
 			'type'     => Data_Type_Rule::class,
 			'length'   => Length_Rule::class,
 			'range'    => Range_Rule::class,
 			'regex'    => Regex_Rule::class,
-		];
+		);
 
 		$rule_name = strtolower( $rule_name );
 
@@ -100,7 +100,7 @@ class Validator_Factory {
 	public static function create_field_validator( $field_name, $rules ) {
 		$chain = self::create_chain( $rules );
 
-		return function ( $value, $context = [] ) use ( $field_name, $chain ) {
+		return function ( $value, $context = array() ) use ( $field_name, $chain ) {
 			if ( is_wp_error( $chain ) ) {
 				return $chain;
 			}
@@ -119,7 +119,7 @@ class Validator_Factory {
 	 * @return true|array True if all valid, array of errors if validation fails
 	 */
 	public static function validate_fields( $data, $field_rules ) {
-		$errors = [];
+		$errors = array();
 
 		foreach ( $field_rules as $field_name => $rules ) {
 			$value     = $data[ $field_name ] ?? null;
@@ -154,7 +154,7 @@ class Validator_Factory {
 	 * @return Validation_Rule
 	 */
 	public static function type( $type ) {
-		return new Data_Type_Rule( [ 'type' => $type ] );
+		return new Data_Type_Rule( array( 'type' => $type ) );
 	}
 
 	/**
@@ -166,10 +166,10 @@ class Validator_Factory {
 	 */
 	public static function length( $min = null, $max = null ) {
 		return new Length_Rule(
-			[
+			array(
 				'min' => $min,
 				'max' => $max,
-			]
+			)
 		);
 	}
 
@@ -182,10 +182,10 @@ class Validator_Factory {
 	 */
 	public static function range( $min = null, $max = null ) {
 		return new Range_Rule(
-			[
+			array(
 				'min' => $min,
 				'max' => $max,
-			]
+			)
 		);
 	}
 
@@ -198,10 +198,10 @@ class Validator_Factory {
 	 */
 	public static function regex( $pattern, $message = '' ) {
 		return new Regex_Rule(
-			[
+			array(
 				'pattern' => $pattern,
 				'message' => $message,
-			]
+			)
 		);
 	}
 
@@ -211,7 +211,7 @@ class Validator_Factory {
 	 * @return Validation_Rule
 	 */
 	public static function email() {
-		return new Data_Type_Rule( [ 'type' => 'email' ] );
+		return new Data_Type_Rule( array( 'type' => 'email' ) );
 	}
 
 	/**
@@ -220,7 +220,7 @@ class Validator_Factory {
 	 * @return Validation_Rule
 	 */
 	public static function url() {
-		return new Data_Type_Rule( [ 'type' => 'url' ] );
+		return new Data_Type_Rule( array( 'type' => 'url' ) );
 	}
 
 	/**
@@ -229,6 +229,6 @@ class Validator_Factory {
 	 * @return Validation_Rule
 	 */
 	public static function integer() {
-		return new Data_Type_Rule( [ 'type' => 'integer' ] );
+		return new Data_Type_Rule( array( 'type' => 'integer' ) );
 	}
 }
