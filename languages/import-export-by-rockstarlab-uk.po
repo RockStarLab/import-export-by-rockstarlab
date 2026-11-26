@@ -8835,6 +8835,10 @@ msgstr "Час передавання медіафайлів минув. Пер�
 msgid "Folder not found in the uploads directory. Enter a folder name relative to uploads (for example ftp-import) or pick one with Browse."
 msgstr "Папку не знайдено в папці завантажень. Введіть назву папки відносно uploads (наприклад, ftp-import) або виберіть її кнопкою «Огляд»."
 
+#: app/Service/Media_Folder_Service.php
+msgid "The folder has no files that match the scan options of this job."
+msgstr "У папці немає файлів, що відповідають налаштуванням сканування цього завдання."
+
 #: app/Service/Media_Folder_Service.php:803
 msgid "Real Media Library is unavailable. Activate the plugin or turn off Real Media Library integration and start sync again."
 msgstr "Real Media Library недоступна. Активуйте плагін або вимкніть інтеграцію з Real Media Library і знову запустіть синхронізацію."
