@@ -31,8 +31,8 @@ class Migration_History_Service {
 	 */
 	public function delete( $root ) {
 		global $wpdb;
-		$locks = [];
-		$jobs  = [ (int) $root->id => $root ];
+		$locks = array();
+		$jobs  = array( (int) $root->id => $root );
 		try {
 			// Inspect persisted ownership, not the parent's potentially incomplete checkpoint.
 			do {
@@ -69,21 +69,21 @@ class Migration_History_Service {
 					return $job;
 				}
 				$state = json_decode( $job->settings, true );
-				if ( (int) $job->user_id !== (int) $root->user_id || ! in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true ) || ! empty( $state['writing'] ) || ! empty( $state['uncertain'] ) || 'transferring' === ( $state['stage'] ?? '' ) ) {
+				if ( (int) $job->user_id !== (int) $root->user_id || ! in_array( $job->status, array( 'completed', 'failed', 'cancelled' ), true ) || ! empty( $state['writing'] ) || ! empty( $state['uncertain'] ) || 'transferring' === ( $state['stage'] ?? '' ) ) {
 					return $this->error( 'job_state_conflict', 409 );
 				}
 				if ( rsl_ie()->Model->job_schedule->find_by(
-					[
+					array(
 						'source_job_id' => $id,
 						'status'        => 'active',
-					]
+					)
 				) ) {
 					return $this->error( 'job_has_active_schedule', 409 );
 				}
 				$jobs[ $id ] = $job;
 			}
 			// Saved selections and their descendants remain reusable by other migrations.
-			$retained = [];
+			$retained = array();
 			do {
 				$changed = false;
 				foreach ( $jobs as $id => $job ) {
@@ -97,7 +97,7 @@ class Migration_History_Service {
 			$jobs = array_diff_key( $jobs, $retained );
 			// Preserve the export policy independently of history before removing its rows.
 			foreach ( $jobs as $id => $job ) {
-				if ( ! in_array( $job->type, [ 'export', 'migration_export' ], true ) || 'completed' !== $job->status ) {
+				if ( ! in_array( $job->type, array( 'export', 'migration_export' ), true ) || 'completed' !== $job->status ) {
 					continue;
 				}
 				$kind    = 'export' === $job->type ? 'export:' : 'migration:';
@@ -120,7 +120,7 @@ class Migration_History_Service {
 				}
 				$params   = json_decode( $job->parameters, true );
 				$state    = json_decode( $job->settings, true );
-				$requests = 'export' === $job->type ? [ $params ] : array_column( $state['requests'] ?? [], 'request' );
+				$requests = 'export' === $job->type ? array( $params ) : array_column( $state['requests'] ?? array(), 'request' );
 				if ( ! $requests ) {
 					return $this->error( 'migration_history_export_policy', 409 );
 				}
@@ -131,7 +131,7 @@ class Migration_History_Service {
 				}
 			}
 			// Refuse nontransactional tables rather than partially deleting a graph.
-			foreach ( [ 'rsl_ie_jobs', 'rsl_ie_job_logs' ] as $suffix ) {
+			foreach ( array( 'rsl_ie_jobs', 'rsl_ie_job_logs' ) as $suffix ) {
 				$engine = $wpdb->get_var( $wpdb->prepare( 'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s', $wpdb->prefix . $suffix ) );
 				if ( 'innodb' !== strtolower( (string) $engine ) ) {
 					return $this->error( 'migration_history_storage', 503 );
@@ -142,10 +142,10 @@ class Migration_History_Service {
 					$name = 'rsl_ie_job_request_' . $job->request_key;
 					if ( ! add_option(
 						$name,
-						[
+						array(
 							'job_id' => $id,
 							'hash'   => $job->request_hash,
-						],
+						),
 						'',
 						false
 					) && ! get_option( $name ) ) {
@@ -157,7 +157,7 @@ class Migration_History_Service {
 				return $this->error( 'job_write_failed', 500 );
 			}
 			foreach ( $jobs as $id => $job ) {
-				if ( 1 !== $wpdb->delete( $wpdb->prefix . 'rsl_ie_jobs', [ 'id' => $id ], [ '%d' ] ) || false === $wpdb->delete( $wpdb->prefix . 'rsl_ie_job_logs', [ 'job_id' => $id ], [ '%d' ] ) ) {
+				if ( 1 !== $wpdb->delete( $wpdb->prefix . 'rsl_ie_jobs', array( 'id' => $id ), array( '%d' ) ) || false === $wpdb->delete( $wpdb->prefix . 'rsl_ie_job_logs', array( 'job_id' => $id ), array( '%d' ) ) ) {
 					$wpdb->query( 'ROLLBACK' );
 					return $this->error( 'job_write_failed', 500 );
 				}
@@ -167,12 +167,12 @@ class Migration_History_Service {
 				return $this->error( 'job_write_failed', 500 );
 			}
 			foreach ( array_keys( $jobs ) as $id ) {
-				wp_clear_scheduled_hook( 'rsl_ie_run_job', [ $id ] );
+				wp_clear_scheduled_hook( 'rsl_ie_run_job', array( $id ) );
 			}
-			return [
+			return array(
 				'job_id'  => (int) $root->id,
 				'deleted' => true,
-			];
+			);
 		} finally {
 			foreach ( array_reverse( $locks ) as $lock ) {
 				Job_Lock::release( $lock );
@@ -188,7 +188,10 @@ class Migration_History_Service {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $status ) {
-		return new \WP_Error( 'rsl_ie_' . $code, /* translators: %s: error code. */
-			sprintf( __( 'Migration history operation failed: %s.', 'import-export-by-rockstarlab' ), $code ), [ 'status' => $status ] );
+		return new \WP_Error(
+			'rsl_ie_' . $code, /* translators: %s: error code. */
+			sprintf( __( 'Migration history operation failed: %s.', 'import-export-by-rockstarlab' ), $code ),
+			array( 'status' => $status )
+		);
 	}
 }

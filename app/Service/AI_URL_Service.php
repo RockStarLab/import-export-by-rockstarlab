@@ -46,15 +46,15 @@ class AI_URL_Service {
 	 */
 	private function error( $code, $status = 400 ) {
 		// Causes a person can fix get their own sentence; the generic text sent people to check URLs when no AI provider was set up.
-		$readable = [
+		$readable = array(
 			'provider_unavailable' => __( 'No AI provider is set up. Set up a text-generation provider in Settings > Connectors (or Plugin Options > AI Integration on WordPress before 7.0), then try again.', 'import-export-by-rockstarlab' ),
 			'connection_failed'    => __( 'The AI provider did not answer. Check its settings and try again.', 'import-export-by-rockstarlab' ),
 			'busy'                 => __( 'This AI URL import is being changed by another request. Try again in a moment.', 'import-export-by-rockstarlab' ),
-		];
+		);
 		if ( isset( $readable[ $code ] ) ) {
-			return new \WP_Error( 'rsl_ie_ai_' . $code, $readable[ $code ], [ 'status' => $status ] );
+			return new \WP_Error( 'rsl_ie_ai_' . $code, $readable[ $code ], array( 'status' => $status ) );
 		}
-		return new \WP_Error( 'rsl_ie_ai_' . $code, __( 'AI URL import could not complete this operation. Check the selected URLs, destination, fields and current permissions.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] ); }
+		return new \WP_Error( 'rsl_ie_ai_' . $code, __( 'AI URL import could not complete this operation. Check the selected URLs, destination, fields and current permissions.', 'import-export-by-rockstarlab' ), array( 'status' => $status ) ); }
 	/**
 	 * Handle the authorized operation.
 	 *
@@ -66,7 +66,7 @@ class AI_URL_Service {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access; }
-		if ( ! in_array( $type, [ 'post', 'page' ], true ) ) {
+		if ( ! in_array( $type, array( 'post', 'page' ), true ) ) {
 			return 'pro' === $edition ? apply_filters( 'rsl_ie_ai_url_target', $this->error( 'target_forbidden', 403 ), $type ) : $this->error( 'target_forbidden', 403 );
 		}
 		return Access_Policy::check_content_type( $type, 'ai_url_import' );
@@ -79,7 +79,7 @@ class AI_URL_Service {
 	 * @param string $edition Trusted namespace.
 	 * @return mixed
 	 */
-	public function execute( $name, array $input = [], $edition = 'free' ) {
+	public function execute( $name, array $input = array(), $edition = 'free' ) {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access; }
@@ -88,29 +88,29 @@ class AI_URL_Service {
 			return $this->error( 'operation' ); }
 		$valid = rest_validate_value_from_schema( $input, $definition['input'], 'input' );
 		if ( is_wp_error( $valid ) ) {
-			$valid->add_data( [ 'status' => 400 ] );
+			$valid->add_data( array( 'status' => 400 ) );
 			return $valid; }
-		foreach ( $definition['input']['properties'] ?? [] as $key => $schema ) {
+		foreach ( $definition['input']['properties'] ?? array() as $key => $schema ) {
 			if ( ! array_key_exists( $key, $input ) && array_key_exists( 'default', $schema ) ) {
 				$input[ $key ] = $schema['default']; }
 		}
 		if ( 'ai-url-settings' === $name ) {
-			$types = [];
-			foreach ( get_post_types( [ 'public' => true ], 'objects' ) as $type ) {
+			$types = array();
+			foreach ( get_post_types( array( 'public' => true ), 'objects' ) as $type ) {
 				if ( 'attachment' !== $type->name && ! is_wp_error( $this->authorize( $type->name, $edition ) ) ) {
-					$types[] = [
+					$types[] = array(
 						'value' => $type->name,
 						'label' => $type->label,
-					]; }
+					); }
 			}
-			return [
+			return array(
 				'post_types'       => $types,
-				'extraction_modes' => [ 'auto', 'alternate' ],
+				'extraction_modes' => array( 'auto', 'alternate' ),
 				'ai_available'     => OpenAI_API_Key::has_api_key(),
 				'acf_available'    => function_exists( 'acf_get_field_groups' ),
 				'max_urls'         => 50,
 				'default_status'   => 'draft',
-			];
+			);
 		}
 		if ( 'ai-url-fields' === $name ) {
 			return $this->fields( $input['post_type'], $edition ); }
@@ -125,14 +125,14 @@ class AI_URL_Service {
 			$context = Execution_Context::capture();
 			if ( is_wp_error( $context ) ) {
 				return $context; }
-			$params = [
+			$params = array(
 				'ai_url_version'    => 1,
 				'edition'           => $edition,
 				'input'             => $input,
 				'execution_context' => $context->to_storage(),
-			] + $prepared['parameters'];
+			) + $prepared['parameters'];
 			return Job_Service::enqueue(
-				[
+				array(
 					'type'        => 'import',
 					'data_type'   => 'ai_url',
 					'file_format' => 'url',
@@ -142,12 +142,12 @@ class AI_URL_Service {
 					'total_items' => count( $input['urls'] ),
 					'parameters'  => wp_json_encode( $params ),
 					'settings'    => wp_json_encode(
-						[
+						array(
 							'writing'    => false,
 							'error_code' => '',
-						]
+						)
 					),
-				],
+				),
 				hash( 'sha256', 'ai-url:' . $edition . ':' . $request ),
 				function () {
 					return OpenAI_API_Key::has_api_key() ? true : $this->error( 'provider_unavailable', 409 );
@@ -159,10 +159,10 @@ class AI_URL_Service {
 		$extractor = new AI_Content_Extractor();
 		if ( 'ai-test-connection' === $name ) {
 			$result = $extractor->test_connection();
-			return is_wp_error( $result ) ? $this->error( 'connection_failed', 502 ) : [
+			return is_wp_error( $result ) ? $this->error( 'connection_failed', 502 ) : array(
 				'model'   => $result,
 				'message' => __( 'AI connection successful.', 'import-export-by-rockstarlab' ),
-			]; }
+			); }
 		if ( ! wp_http_validate_url( $input['url'] ) ) {
 			return $this->error( 'url' ); }
 		$result = $extractor->extract_from_url( $input['url'], 0, $input['extraction_mode'] );
@@ -183,9 +183,9 @@ class AI_URL_Service {
 		$access = $this->authorize( $type, $edition );
 		if ( is_wp_error( $access ) ) {
 			return $access; }
-		$fields = [];
+		$fields = array();
 		if ( function_exists( 'acf_get_field_groups' ) ) {
-			foreach ( acf_get_field_groups( [ 'post_type' => $type ] ) as $group ) {
+			foreach ( acf_get_field_groups( array( 'post_type' => $type ) ) as $group ) {
 				foreach ( (array) acf_get_fields( $group ) as $field ) {
 					$formatted = $this->field( $field, $group['title'] );
 					if ( $formatted ) {
@@ -193,7 +193,7 @@ class AI_URL_Service {
 				}
 			}
 		}
-		return [ 'fields' => $fields ];
+		return array( 'fields' => $fields );
 	}
 	/**
 	 * Handle the authorized operation.
@@ -203,32 +203,32 @@ class AI_URL_Service {
 	 * @param array  $path Ancestors.
 	 * @return array|null
 	 */
-	private function field( array $field, $group, array $path = [] ) {
+	private function field( array $field, $group, array $path = array() ) {
 		if ( count( $path ) > 8 ) {
 			return null; }
-		$path[]   = [
+		$path[]   = array(
 			'key'  => $field['key'],
 			'type' => $field['type'],
-		];
-		$children = [];
-		foreach ( $field['sub_fields'] ?? [] as $child ) {
+		);
+		$children = array();
+		foreach ( $field['sub_fields'] ?? array() as $child ) {
 			$formatted = $this->field( $child, $group, $path );
 			if ( $formatted ) {
 				$children[] = $formatted; }
 		}
 		if ( 'flexible_content' === $field['type'] ) {
-			foreach ( $field['layouts'] ?? [] as $layout ) {
+			foreach ( $field['layouts'] ?? array() as $layout ) {
 				$branch                                   = $path;
 				$branch[ count( $branch ) - 1 ]['layout'] = $layout['name'];
-				foreach ( $layout['sub_fields'] ?? [] as $child ) {
+				foreach ( $layout['sub_fields'] ?? array() as $child ) {
 					$formatted = $this->field( $child, $group, $branch );
 					if ( $formatted ) {
 						$children[] = $formatted; }
 				}
 			}
 		}
-		$allowed = in_array( $field['type'], [ 'text', 'textarea', 'wysiwyg' ], true );
-		return $allowed || $children ? [
+		$allowed = in_array( $field['type'], array( 'text', 'textarea', 'wysiwyg' ), true );
+		return $allowed || $children ? array(
 			'key'        => $field['key'],
 			'name'       => $field['name'],
 			'label'      => $field['label'],
@@ -238,7 +238,7 @@ class AI_URL_Service {
 			'sub_fields' => $children,
 			'is_allowed' => $allowed,
 			'path'       => $path,
-		] : null;
+		) : null;
 	}
 	/**
 	 * Handle the authorized operation.
@@ -248,9 +248,9 @@ class AI_URL_Service {
 	 * @return array
 	 */
 	private function selected_fields( array $fields, $selector ) {
-		$matches = [];
+		$matches = array();
 		foreach ( $fields as $field ) {
-			if ( $field['is_allowed'] && in_array( $selector, [ $field['key'], $field['name'] ], true ) ) {
+			if ( $field['is_allowed'] && in_array( $selector, array( $field['key'], $field['name'] ), true ) ) {
 				$matches[] = $field; }
 			$matches = array_merge( $matches, $this->selected_fields( $field['sub_fields'], $selector ) );
 		}
@@ -271,7 +271,7 @@ class AI_URL_Service {
 		if ( is_wp_error( $access ) ) {
 			return $access; }
 		$type = get_post_type_object( $input['post_type'] );
-		if ( ! $type || ! current_user_can( $type->cap->create_posts ) || ( in_array( $input['post_status'], [ 'publish', 'private' ], true ) && ! current_user_can( $type->cap->publish_posts ) ) || ( $input['import_images'] && ! current_user_can( 'upload_files' ) ) ) {
+		if ( ! $type || ! current_user_can( $type->cap->create_posts ) || ( in_array( $input['post_status'], array( 'publish', 'private' ), true ) && ! current_user_can( $type->cap->publish_posts ) ) || ( $input['import_images'] && ! current_user_can( 'upload_files' ) ) ) {
 			return $this->error( 'destination_forbidden', 403 ); }
 		foreach ( $input['urls'] as $url ) {
 			if ( ! wp_http_validate_url( $url ) ) {
@@ -280,7 +280,7 @@ class AI_URL_Service {
 		$field = 'post_content';
 		if ( 'custom_field' === $input['content_field'] ) {
 			$field = $input['custom_field_name'];
-			if ( ! preg_match( '/^[a-zA-Z][a-zA-Z0-9_-]{0,199}$/D', $field ) || is_protected_meta( $field, 'post' ) || in_array( $field, [ 'post_content', 'post_title', 'post_status', 'post_type' ], true ) || ( get_registered_meta_keys( 'post', $type->name )[ $field ]['auth_callback'] ?? false ) ) {
+			if ( ! preg_match( '/^[a-zA-Z][a-zA-Z0-9_-]{0,199}$/D', $field ) || is_protected_meta( $field, 'post' ) || in_array( $field, array( 'post_content', 'post_title', 'post_status', 'post_type' ), true ) || ( get_registered_meta_keys( 'post', $type->name )[ $field ]['auth_callback'] ?? false ) ) {
 				return $this->error( 'field' ); }
 		} elseif ( 'acf_field' === $input['content_field'] ) {
 			$fields  = $this->fields( $type->name, $edition );
@@ -292,12 +292,12 @@ class AI_URL_Service {
 		$params                        = $input;
 		$params['content_field']       = $field;
 		$params['content_destination'] = $input['content_field'];
-		$params['acf_path']            = $matches[0]['path'] ?? [];
-		return [
+		$params['acf_path']            = $matches[0]['path'] ?? array();
+		return array(
 			'valid'      => true,
 			'total'      => count( $input['urls'] ),
 			'parameters' => $params,
-		];
+		);
 	}
 	/**
 	 * Handle the authorized operation.
@@ -312,18 +312,18 @@ class AI_URL_Service {
 			return $job; }
 		if ( ! self::supports( $job ) ) {
 			return $this->error( 'wrong_job' ); }
-		if ( $cancel && ! in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true ) ) {
+		if ( $cancel && ! in_array( $job->status, array( 'completed', 'failed', 'cancelled' ), true ) ) {
 			$lock = Job_Lock::acquire( $id );
 			if ( ! $lock || is_wp_error( $lock ) ) {
 				return $this->error( 'busy', 409 ); }
 			try {
 				$job = rsl_ie()->Model->job->find( $id );
-				if ( in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
+				if ( in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
 					$saved = rsl_ie()->Model->job->update_status( $id, 'cancelled' );
 					if ( false === $saved || is_wp_error( $saved ) ) {
 						return $this->error( 'cancel_failed', 500 );
 					}
-					wp_clear_scheduled_hook( 'rsl_ie_run_job', [ (int) $id ] );
+					wp_clear_scheduled_hook( 'rsl_ie_run_job', array( (int) $id ) );
 				}
 			} finally {
 				Job_Lock::release( $lock ); }
@@ -331,7 +331,7 @@ class AI_URL_Service {
 		}
 		$params = json_decode( (string) $job->parameters, true );
 		$state  = json_decode( (string) $job->settings, true );
-		return [
+		return array(
 			'job_id'             => (int) $job->id,
 			'status'             => $job->status,
 			'processed'          => (int) $job->processed_items,
@@ -341,9 +341,9 @@ class AI_URL_Service {
 			'progress'           => (float) $job->progress,
 			'error_code'         => $state['error_code'] ?? '',
 			'uncertain'          => ! empty( $state['writing'] ),
-			'import_log'         => $params['import_log'] ?? [],
+			'import_log'         => $params['import_log'] ?? array(),
 			'poll_after_seconds' => 2,
-		];
+		);
 	}
 	/**
 	 * Handle the authorized operation.
@@ -353,10 +353,10 @@ class AI_URL_Service {
 	 */
 	public function process_background_batch( $id ) {
 		$job = rsl_ie()->Model->job->find( $id );
-		if ( ! self::supports( $job ) || ! in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
+		if ( ! self::supports( $job ) || ! in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
 			return false; }
 		$params   = json_decode( $job->parameters, true );
-		$identity = $params['execution_context'] ?? [];
+		$identity = $params['execution_context'] ?? array();
 		$context  = Execution_Context::from_storage( $identity['user_id'] ?? 0, $identity['blog_id'] ?? 0 );
 		if ( is_wp_error( $context ) || ( $identity['user_id'] ?? null ) !== (int) $job->user_id || ( $identity['blog_id'] ?? null ) !== get_current_blog_id() ) {
 			return $this->fail( $job, 'invalid_context' ); }
@@ -367,7 +367,7 @@ class AI_URL_Service {
 					return false; }
 				try {
 					$job = rsl_ie()->Model->job->find( $id );
-					if ( ! in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
+					if ( ! in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
 						return false; }
 					$params = json_decode( $job->parameters, true );
 					$state  = json_decode( (string) $job->settings, true );
@@ -381,7 +381,7 @@ class AI_URL_Service {
 							return $this->fail( $job, 'input_changed' ); }
 					}
 					$state['writing'] = true;
-					$saved            = rsl_ie()->Model->job->update( $id, [ 'settings' => wp_json_encode( $state ) ] );
+					$saved            = rsl_ie()->Model->job->update( $id, array( 'settings' => wp_json_encode( $state ) ) );
 					if ( is_wp_error( $saved ) || false === $saved ) {
 						return false; }
 					$before_processed = (int) $job->processed_items;
@@ -391,7 +391,7 @@ class AI_URL_Service {
 					if ( 'failed' === $job->status || is_wp_error( $result ) || (int) $job->processed_items !== $before_processed + 1 ) {
 						return $this->fail( $job, 'batch_failed' ); }
 					$state['writing'] = false;
-					$saved            = rsl_ie()->Model->job->update( $id, [ 'settings' => wp_json_encode( $state ) ] );
+					$saved            = rsl_ie()->Model->job->update( $id, array( 'settings' => wp_json_encode( $state ) ) );
 					if ( is_wp_error( $saved ) || false === $saved ) {
 						return $this->fail( $job, 'checkpoint_failed' ); }
 					return $result;
@@ -415,11 +415,11 @@ class AI_URL_Service {
 		$state['error_code'] = 'rsl_ie_ai_' . $code;
 		rsl_ie()->Model->job->update(
 			$job->id,
-			[
+			array(
 				'status'       => 'failed',
 				'settings'     => wp_json_encode( $state ),
 				'completed_at' => current_time( 'mysql' ),
-			]
+			)
 		);
 		return false;
 	}

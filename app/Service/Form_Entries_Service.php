@@ -17,18 +17,18 @@ defined( 'ABSPATH' ) || exit;
  * ip, user_agent and user. Only entries are read; nothing is written.
  */
 class Form_Entries_Service {
-	const SOURCES        = [ 'gravityforms', 'flamingo' ];
-	const STATUSES       = [ 'active', 'spam', 'trash' ];
-	const BASE_START     = [ 'entry_id', 'date_created', 'status' ];
-	const BASE_END       = [ 'source_url', 'ip', 'user_agent', 'user' ];
-	const SKIP_GF_TYPES  = [ 'html', 'section', 'page', 'captcha', 'turnstile' ];
+	const SOURCES        = array( 'gravityforms', 'flamingo' );
+	const STATUSES       = array( 'active', 'spam', 'trash' );
+	const BASE_START     = array( 'entry_id', 'date_created', 'status' );
+	const BASE_END       = array( 'source_url', 'ip', 'user_agent', 'user' );
+	const SKIP_GF_TYPES  = array( 'html', 'section', 'page', 'captcha', 'turnstile' );
 	const FLAMINGO_TYPE  = 'flamingo_inbound';
 	const FLAMINGO_TAX   = 'flamingo_inbound_channel';
-	const FLAMINGO_STATE = [
+	const FLAMINGO_STATE = array(
 		'active' => 'publish',
 		'spam'   => 'flamingo-spam',
 		'trash'  => 'trash',
-	];
+	);
 
 	/**
 	 * Dispatch an ability.
@@ -37,16 +37,16 @@ class Form_Entries_Service {
 	 * @param array  $input Input.
 	 * @return array|\WP_Error
 	 */
-	public function execute( $name, array $input = [] ) {
+	public function execute( $name, array $input = array() ) {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access;
 		}
 		if ( 'form-entry-forms' === $name ) {
-			return [
+			return array(
 				'sources' => array_keys( self::available_sources() ),
 				'forms'   => $this->forms(),
-			];
+			);
 		}
 		if ( 'form-entry-fields' === $name ) {
 			$source = (string) ( $input['form_source'] ?? '' );
@@ -55,17 +55,17 @@ class Form_Entries_Service {
 			if ( is_wp_error( $fields ) ) {
 				return $fields;
 			}
-			$out = [];
+			$out = array();
 			foreach ( $fields as $name_key => $label ) {
-				$out[] = [
+				$out[] = array(
 					'name'  => (string) $name_key,
 					'label' => (string) $label,
-				];
+				);
 			}
-			return [
+			return array(
 				'fields'         => $out,
 				'default_fields' => $this->default_fields( $source, $id ),
-			];
+			);
 		}
 		return $this->error( 'operation', __( 'Unknown operation.', 'import-export-by-rockstarlab' ) );
 	}
@@ -76,7 +76,7 @@ class Form_Entries_Service {
 	 * @return array source => label
 	 */
 	public static function available_sources() {
-		$out = [];
+		$out = array();
 		if ( class_exists( 'GFAPI' ) ) {
 			$out['gravityforms'] = 'Gravity Forms';
 		}
@@ -92,37 +92,37 @@ class Form_Entries_Service {
 	 * @return array
 	 */
 	public function forms() {
-		$out = [];
+		$out = array();
 		if ( class_exists( 'GFAPI' ) ) {
 			foreach ( (array) \GFAPI::get_forms( null, false, 'title' ) as $form ) {
-				$out[] = [
+				$out[] = array(
 					'source'  => 'gravityforms',
 					'form_id' => (int) $form['id'],
 					'title'   => (string) $form['title'],
 					'active'  => ! empty( $form['is_active'] ),
-					'entries' => (int) \GFAPI::count_entries( (int) $form['id'], [ 'status' => 'active' ] ),
-				];
+					'entries' => (int) \GFAPI::count_entries( (int) $form['id'], array( 'status' => 'active' ) ),
+				);
 			}
 		}
 		if ( isset( self::available_sources()['flamingo'] ) ) {
 			$parent = get_term_by( 'slug', 'contact-form-7', self::FLAMINGO_TAX );
 			$terms  = get_terms(
-				[
+				array(
 					'taxonomy'   => self::FLAMINGO_TAX,
 					'hide_empty' => false,
-				]
+				)
 			);
-			foreach ( is_wp_error( $terms ) ? [] : $terms as $term ) {
+			foreach ( is_wp_error( $terms ) ? array() : $terms as $term ) {
 				if ( $parent && (int) $term->term_id === (int) $parent->term_id ) {
 					continue; // The "Contact Form 7" group itself is not a form.
 				}
-				$out[] = [
+				$out[] = array(
 					'source'  => 'flamingo',
 					'form_id' => (int) $term->term_id,
 					'title'   => (string) $term->name,
 					'active'  => true,
-					'entries' => $this->flamingo_count( (int) $term->term_id, [ 'status' => 'active' ] ),
-				];
+					'entries' => $this->flamingo_count( (int) $term->term_id, array( 'status' => 'active' ) ),
+				);
 			}
 		}
 		return $out;
@@ -142,13 +142,13 @@ class Form_Entries_Service {
 			return $map;
 		}
 		$labels = self::base_labels( $source );
-		$out    = [];
+		$out    = array();
 		foreach ( $labels as $key => $label ) {
 			if ( in_array( $key, self::BASE_END, true ) ) {
 				foreach ( $map as $column => $unused ) {
 					$out[ $column ] = $column;
 				}
-				$map = [];
+				$map = array();
 			}
 			$out[ $key ] = $label;
 		}
@@ -162,7 +162,7 @@ class Form_Entries_Service {
 	 * @return array key => label
 	 */
 	private static function base_labels( $source ) {
-		$labels = [
+		$labels = array(
 			'entry_id'     => __( 'Entry ID', 'import-export-by-rockstarlab' ),
 			'date_created' => __( 'Date', 'import-export-by-rockstarlab' ),
 			'status'       => __( 'Status', 'import-export-by-rockstarlab' ),
@@ -170,13 +170,13 @@ class Form_Entries_Service {
 			'ip'           => __( 'IP address', 'import-export-by-rockstarlab' ),
 			'user_agent'   => __( 'Browser (user agent)', 'import-export-by-rockstarlab' ),
 			'user'         => __( 'WordPress user', 'import-export-by-rockstarlab' ),
-		];
+		);
 		if ( 'flamingo' === $source ) {
-			$labels = array_slice( $labels, 0, 3, true ) + [
+			$labels = array_slice( $labels, 0, 3, true ) + array(
 				'subject'    => __( 'Subject', 'import-export-by-rockstarlab' ),
 				'from_name'  => __( 'From name', 'import-export-by-rockstarlab' ),
 				'from_email' => __( 'From email', 'import-export-by-rockstarlab' ),
-			] + array_slice( $labels, 3, null, true );
+			) + array_slice( $labels, 3, null, true );
 		}
 		return $labels;
 	}
@@ -190,7 +190,7 @@ class Form_Entries_Service {
 	 */
 	public function default_fields( $source, $form_id ) {
 		$fields = $this->fields( $source, $form_id );
-		return is_wp_error( $fields ) ? $fields : array_values( array_diff( array_keys( $fields ), [ 'ip', 'user_agent', 'user' ] ) );
+		return is_wp_error( $fields ) ? $fields : array_values( array_diff( array_keys( $fields ), array( 'ip', 'user_agent', 'user' ) ) );
 	}
 
 	/**
@@ -201,7 +201,7 @@ class Form_Entries_Service {
 	 * @param array  $filters Export filters.
 	 * @return int|\WP_Error
 	 */
-	public function count( $source, $form_id, array $filters = [] ) {
+	public function count( $source, $form_id, array $filters = array() ) {
 		$query = $this->query( $source, $form_id, $filters );
 		if ( is_wp_error( $query ) ) {
 			return $query;
@@ -272,9 +272,11 @@ class Form_Entries_Service {
 		}
 		// Column headers of the entry columns are taken too: a form field labelled "Date" must not
 		// share the header of the entry date.
-		$lower = static function ( $s ) { return function_exists( 'mb_strtolower' ) ? mb_strtolower( $s ) : strtolower( $s ); };
-		$taken = array_map( $lower, array_merge( self::BASE_START, self::BASE_END, [ 'subject', 'from_name', 'from_email' ], array_values( self::base_labels( $source ) ) ) );
-		$out   = [];
+		$lower = static function ( $s ) {
+			return function_exists( 'mb_strtolower' ) ? mb_strtolower( $s ) : strtolower( $s );
+		};
+		$taken = array_map( $lower, array_merge( self::BASE_START, self::BASE_END, array( 'subject', 'from_name', 'from_email' ), array_values( self::base_labels( $source ) ) ) );
+		$out   = array();
 		$add   = static function ( $label, $ref ) use ( &$out, $taken, $lower ) {
 			$label = trim( wp_strip_all_tags( (string) $label ) );
 			$label = '' === $label ? 'Field ' . $ref : $label;
@@ -287,7 +289,7 @@ class Form_Entries_Service {
 		};
 		if ( 'gravityforms' === $source ) {
 			$form = \GFAPI::get_form( (int) $form_id );
-			foreach ( (array) ( $form['fields'] ?? [] ) as $field ) {
+			foreach ( (array) ( $form['fields'] ?? array() ) as $field ) {
 				if ( ! is_object( $field ) || in_array( $field->type, self::SKIP_GF_TYPES, true ) ) {
 					continue;
 				}
@@ -296,21 +298,21 @@ class Form_Entries_Service {
 			return $out;
 		}
 		// Flamingo keeps no form definition: collect field names from recent messages.
-		$ids = get_posts(
-			[
+		$ids   = get_posts(
+			array(
 				'post_type'      => self::FLAMINGO_TYPE,
 				'post_status'    => array_values( self::FLAMINGO_STATE ),
-				'tax_query'      => [ $this->channel_query( $form_id ) ], // phpcs:ignore WordPress.DB.SlowDBQuery -- One channel.
+				'tax_query'      => array( $this->channel_query( $form_id ) ), // phpcs:ignore WordPress.DB.SlowDBQuery -- One channel.
 				'posts_per_page' => 200,
 				'orderby'        => 'date',
 				'order'          => 'DESC',
 				'fields'         => 'ids',
-			]
+			)
 		);
-		$names = [];
+		$names = array();
 		foreach ( array_reverse( $ids ) as $id ) {
 			$fields = get_post_meta( $id, '_fields', true );
-			foreach ( is_array( $fields ) ? array_keys( $fields ) : [] as $name ) {
+			foreach ( is_array( $fields ) ? array_keys( $fields ) : array() as $name ) {
 				$names[ (string) $name ] = true;
 			}
 		}
@@ -333,13 +335,13 @@ class Form_Entries_Service {
 		if ( is_wp_error( $map ) ) {
 			return $map;
 		}
-		$q = [
+		$q = array(
 			'status' => 'active',
 			'from'   => '',
 			'to'     => '',
-			'ids'    => [],
-			'fields' => [],
-		];
+			'ids'    => array(),
+			'fields' => array(),
+		);
 		foreach ( $filters as $filter ) {
 			if ( ! is_array( $filter ) || ! isset( $filter['field'], $filter['condition'] ) ) {
 				continue;
@@ -350,7 +352,7 @@ class Form_Entries_Service {
 			$value = is_array( $value ) ? implode( ',', array_map( 'strval', $value ) ) : (string) $value;
 			if ( 'status' === $field ) {
 				$values = array_values( array_filter( array_map( 'trim', explode( ',', strtolower( $value ) ) ) ) );
-				if ( ! in_array( $cond, [ 'equals', 'in' ], true ) || 1 !== count( $values ) || ! in_array( $values[0], self::STATUSES, true ) ) {
+				if ( ! in_array( $cond, array( 'equals', 'in' ), true ) || 1 !== count( $values ) || ! in_array( $values[0], self::STATUSES, true ) ) {
 					return $this->error( 'form_status_filter', __( 'Filter Status by one value: active, spam or trash.', 'import-export-by-rockstarlab' ) );
 				}
 				$q['status'] = $values[0];
@@ -362,22 +364,22 @@ class Form_Entries_Service {
 				$q['from'] = max( $q['from'], $range[0] );
 				$q['to']   = '' === $q['to'] ? $range[1] : ( '' === $range[1] ? $q['to'] : min( $q['to'], $range[1] ) );
 			} elseif ( 'entry_id' === $field ) {
-				if ( ! in_array( $cond, [ 'equals', 'in' ], true ) ) {
+				if ( ! in_array( $cond, array( 'equals', 'in' ), true ) ) {
 					return $this->error( 'form_id_filter', __( 'Filter Entry ID with "equals" or "in".', 'import-export-by-rockstarlab' ) );
 				}
 				$q['ids'] = array_values( array_filter( array_map( 'absint', explode( ',', $value ) ) ) );
 				if ( ! $q['ids'] ) {
-					$q['ids'] = [ 0 ];
+					$q['ids'] = array( 0 );
 				}
-			} elseif ( isset( $map[ $field ] ) || ( 'flamingo' === $source && in_array( $field, [ 'subject', 'from_name', 'from_email' ], true ) ) ) {
-				if ( ! in_array( $cond, [ 'equals', 'not_equals', 'contains', 'not_contains' ], true ) ) {
+			} elseif ( isset( $map[ $field ] ) || ( 'flamingo' === $source && in_array( $field, array( 'subject', 'from_name', 'from_email' ), true ) ) ) {
+				if ( ! in_array( $cond, array( 'equals', 'not_equals', 'contains', 'not_contains' ), true ) ) {
 					return $this->error( 'form_field_filter', __( 'Filter form fields with equals, not equals, contains or does not contain.', 'import-export-by-rockstarlab' ) );
 				}
-				$q['fields'][] = [
+				$q['fields'][] = array(
 					'ref'       => $map[ $field ] ?? $field,
 					'condition' => $cond,
 					'value'     => $value,
-				];
+				);
 			} else {
 				/* translators: %s: column name. */
 				return $this->error( 'form_filter_field', sprintf( __( 'This form cannot be filtered by "%s".', 'import-export-by-rockstarlab' ), $field ) );
@@ -386,33 +388,33 @@ class Form_Entries_Service {
 		if ( 'flamingo' === $source ) {
 			return $q;
 		}
-		$search = [ 'status' => $q['status'] ];
+		$search = array( 'status' => $q['status'] );
 		if ( '' !== $q['from'] ) {
 			$search['start_date'] = $q['from'];
 		}
 		if ( '' !== $q['to'] ) {
 			$search['end_date'] = $q['to'];
 		}
-		$ops = [
+		$ops           = array(
 			'equals'       => 'is',
 			'not_equals'   => 'isnot',
 			'contains'     => 'contains',
 			'not_contains' => 'not contains',
-		];
-		$field_filters = [];
+		);
+		$field_filters = array();
 		if ( $q['ids'] ) {
-			$field_filters[] = [
+			$field_filters[] = array(
 				'key'      => 'id',
 				'operator' => 'in',
 				'value'    => $q['ids'],
-			];
+			);
 		}
 		foreach ( $q['fields'] as $f ) {
-			$field_filters[] = [
+			$field_filters[] = array(
 				'key'      => $f['ref'],
 				'operator' => $ops[ $f['condition'] ],
 				'value'    => $f['value'],
-			];
+			);
 		}
 		if ( $field_filters ) {
 			$field_filters['mode']   = 'all';
@@ -443,7 +445,7 @@ class Form_Entries_Service {
 				$to   = $parse( $parts[0], true );
 				break;
 			case 'greater':
-				$end  = $parse( $parts[0], true );
+				$end = $parse( $parts[0], true );
 				// One second after, so "greater than 2026-10-05" starts on 2026-10-06.
 				$from = null === $end ? null : gmdate( 'Y-m-d H:i:s', strtotime( $end . ' UTC' ) + 1 );
 				$to   = '';
@@ -473,7 +475,7 @@ class Form_Entries_Service {
 		if ( null === $from || null === $to ) {
 			return $this->error( 'form_date_filter', __( 'Filter Date with a date like 2026-10-01 (between takes two dates separated by a comma).', 'import-export-by-rockstarlab' ) );
 		}
-		return [ $from, $to ];
+		return array( $from, $to );
 	}
 
 	/**
@@ -491,33 +493,33 @@ class Form_Entries_Service {
 		$entries = \GFAPI::get_entries(
 			$form_id,
 			$search,
-			[
+			array(
 				'key'       => 'id',
 				'direction' => 'ASC',
-			],
-			[
+			),
+			array(
 				'offset'    => $offset,
 				'page_size' => $limit,
-			]
+			)
 		);
-		$rows    = [];
-		foreach ( is_wp_error( $entries ) ? [] : $entries as $entry ) {
-			$row = [
+		$rows    = array();
+		foreach ( is_wp_error( $entries ) ? array() : $entries as $entry ) {
+			$row = array(
 				'entry_id'     => (int) $entry['id'],
 				'date_created' => get_date_from_gmt( (string) $entry['date_created'], 'Y-m-d H:i:s' ),
 				'status'       => (string) $entry['status'],
-			];
+			);
 			foreach ( $map as $column => $field_id ) {
 				$field          = \GFAPI::get_field( $form, $field_id );
 				$row[ $column ] = $field ? $this->text( $field->get_value_export( $entry, (string) $field_id, false, true ) ) : '';
 			}
-			$user        = ! empty( $entry['created_by'] ) ? get_userdata( (int) $entry['created_by'] ) : false;
-			$row        += [
+			$user   = ! empty( $entry['created_by'] ) ? get_userdata( (int) $entry['created_by'] ) : false;
+			$row   += array(
 				'source_url' => (string) ( $entry['source_url'] ?? '' ),
 				'ip'         => (string) ( $entry['ip'] ?? '' ),
 				'user_agent' => (string) ( $entry['user_agent'] ?? '' ),
 				'user'       => $user ? $user->user_login : '',
-			];
+			);
 			$rows[] = $row;
 		}
 		return $rows;
@@ -534,35 +536,35 @@ class Form_Entries_Service {
 	 * @return array
 	 */
 	private function flamingo_rows( $term_id, array $q, array $map, $offset, $limit ) {
-		$args  = $this->flamingo_args( $term_id, $q ) + [
+		$args  = $this->flamingo_args( $term_id, $q ) + array(
 			'posts_per_page' => $limit,
 			'offset'         => $offset,
 			'orderby'        => 'ID',
 			'order'          => 'ASC',
-		];
+		);
 		$posts = get_posts( $args );
 		$state = array_flip( self::FLAMINGO_STATE );
-		$rows  = [];
+		$rows  = array();
 		foreach ( $posts as $post ) {
 			$meta = get_post_meta( $post->ID, '_meta', true );
-			$meta = is_array( $meta ) ? $meta : [];
-			$row  = [
+			$meta = is_array( $meta ) ? $meta : array();
+			$row  = array(
 				'entry_id'     => (int) $post->ID,
 				'date_created' => (string) $post->post_date,
 				'status'       => $state[ $post->post_status ] ?? $post->post_status,
 				'subject'      => $this->text( get_post_meta( $post->ID, '_subject', true ) ),
 				'from_name'    => $this->text( get_post_meta( $post->ID, '_from_name', true ) ),
 				'from_email'   => $this->text( get_post_meta( $post->ID, '_from_email', true ) ),
-			];
+			);
 			foreach ( $map as $column => $name ) {
 				$row[ $column ] = $this->text( get_post_meta( $post->ID, '_field_' . $name, true ) );
 			}
-			$row   += [
+			$row   += array(
 				'source_url' => (string) ( ! empty( $meta['post_url'] ) ? $meta['post_url'] : ( $meta['url'] ?? '' ) ),
 				'ip'         => (string) ( $meta['remote_ip'] ?? '' ),
 				'user_agent' => (string) ( $meta['user_agent'] ?? '' ),
 				'user'       => (string) ( $meta['user_login'] ?? '' ),
-			];
+			);
 			$rows[] = $row;
 		}
 		return $rows;
@@ -576,17 +578,17 @@ class Form_Entries_Service {
 	 * @return int
 	 */
 	private function flamingo_count( $term_id, array $q ) {
-		$q     += [
+		$q    += array(
 			'from'   => '',
 			'to'     => '',
-			'ids'    => [],
-			'fields' => [],
-		];
-		$query  = new \WP_Query(
-			$this->flamingo_args( $term_id, $q ) + [
+			'ids'    => array(),
+			'fields' => array(),
+		);
+		$query = new \WP_Query(
+			$this->flamingo_args( $term_id, $q ) + array(
 				'posts_per_page' => 1,
 				'fields'         => 'ids',
-			]
+			)
 		);
 		return (int) $query->found_posts;
 	}
@@ -599,38 +601,38 @@ class Form_Entries_Service {
 	 * @return array
 	 */
 	private function flamingo_args( $term_id, array $q ) {
-		$args = [
+		$args = array(
 			'post_type'        => self::FLAMINGO_TYPE,
 			'post_status'      => self::FLAMINGO_STATE[ $q['status'] ?? 'active' ],
-			'tax_query'        => [ $this->channel_query( $term_id ) ], // phpcs:ignore WordPress.DB.SlowDBQuery -- One channel.
+			'tax_query'        => array( $this->channel_query( $term_id ) ), // phpcs:ignore WordPress.DB.SlowDBQuery -- One channel.
 			'suppress_filters' => true,
-		];
+		);
 		if ( '' !== $q['from'] || '' !== $q['to'] ) {
-			$date = [ 'inclusive' => true ];
+			$date = array( 'inclusive' => true );
 			if ( '' !== $q['from'] ) {
 				$date['after'] = $q['from'];
 			}
 			if ( '' !== $q['to'] ) {
 				$date['before'] = $q['to'];
 			}
-			$args['date_query'] = [ $date ];
+			$args['date_query'] = array( $date );
 		}
 		if ( $q['ids'] ) {
 			$args['post__in'] = $q['ids'];
 		}
-		$meta = [];
+		$meta = array();
 		foreach ( $q['fields'] as $f ) {
-			$key    = in_array( $f['ref'], [ 'subject', 'from_name', 'from_email' ], true ) ? '_' . $f['ref'] : '_field_' . $f['ref'];
-			$meta[] = [
+			$key    = in_array( $f['ref'], array( 'subject', 'from_name', 'from_email' ), true ) ? '_' . $f['ref'] : '_field_' . $f['ref'];
+			$meta[] = array(
 				'key'     => $key,
 				'value'   => $f['value'],
-				'compare' => [
+				'compare' => array(
 					'equals'       => '=',
 					'not_equals'   => '!=',
 					'contains'     => 'LIKE',
 					'not_contains' => 'NOT LIKE',
-				][ $f['condition'] ],
-			];
+				)[ $f['condition'] ],
+			);
 		}
 		if ( $meta ) {
 			$args['meta_query'] = $meta; // phpcs:ignore WordPress.DB.SlowDBQuery -- Optional filter.
@@ -645,12 +647,12 @@ class Form_Entries_Service {
 	 * @return array
 	 */
 	private function channel_query( $term_id ) {
-		return [
+		return array(
 			'taxonomy'         => self::FLAMINGO_TAX,
 			'field'            => 'term_id',
-			'terms'            => [ (int) $term_id ],
+			'terms'            => array( (int) $term_id ),
 			'include_children' => false,
-		];
+		);
 	}
 
 	/**
@@ -661,7 +663,7 @@ class Form_Entries_Service {
 	 */
 	private function text( $value ) {
 		if ( is_array( $value ) ) {
-			$value = implode( ', ', array_map( [ $this, 'text' ], $value ) );
+			$value = implode( ', ', array_map( array( $this, 'text' ), $value ) );
 		}
 		return is_scalar( $value ) ? wp_specialchars_decode( (string) $value, ENT_QUOTES ) : '';
 	}
@@ -675,6 +677,6 @@ class Form_Entries_Service {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $message, $status = 400 ) {
-		return new \WP_Error( 'rsl_ie_' . $code, $message, [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_' . $code, $message, array( 'status' => $status ) );
 	}
 }

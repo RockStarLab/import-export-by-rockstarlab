@@ -17,10 +17,10 @@ class Migration_Import_Service extends Migration_Service {
 	public static function stored_requests( array $state ) {
 		if ( isset( $state['request_store'] ) ) {
 			yield from Archive_Step_Store::rows( $state['request_store'] ); } else {
-			yield from $state['requests'] ?? []; }
+			yield from $state['requests'] ?? array(); }
 	}
 	private static function request_count( array $state ) {
-		return $state['request_store']['count'] ?? count( $state['requests'] ?? [] );
+		return $state['request_store']['count'] ?? count( $state['requests'] ?? array() );
 	}
 
 	/**
@@ -29,7 +29,7 @@ class Migration_Import_Service extends Migration_Service {
 	 * @return array
 	 */
 	public static function empty_result() {
-		return array_fill_keys( [ 'files_count', 'empty_files', 'success', 'created', 'updated', 'skipped', 'failed', 'replaced_urls' ], 0 );
+		return array_fill_keys( array( 'files_count', 'empty_files', 'success', 'created', 'updated', 'skipped', 'failed', 'replaced_urls' ), 0 );
 	}
 
 	/**
@@ -45,7 +45,7 @@ class Migration_Import_Service extends Migration_Service {
 		$child  = $id ? rsl_ie()->Model->job->find( $id ) : null;
 		if ( $child && (int) $child->user_id === (int) $job->user_id && ( json_decode( $child->parameters, true )['migration_parent_id'] ?? 0 ) === (int) $job->id ) {
 			$rows = json_decode( (string) $child->result, true );
-			foreach ( [ 'success', 'created', 'updated', 'skipped', 'failed', 'replaced_urls' ] as $key ) {
+			foreach ( array( 'success', 'created', 'updated', 'skipped', 'failed', 'replaced_urls' ) as $key ) {
 				$result[ $key ] += (int) ( $rows[ $key ] ?? 0 ); }
 		}
 		return $result;
@@ -61,20 +61,20 @@ class Migration_Import_Service extends Migration_Service {
 		$schema = \RockStarLab\ImportExport\Abilities\Migration_Catalog::definitions()['migration-import-start']['input'];
 		$valid  = rest_validate_value_from_schema( $input, $schema, 'input' );
 		if ( is_wp_error( $valid ) ) {
-			$valid->add_data( [ 'status' => 400 ] );
+			$valid->add_data( array( 'status' => 400 ) );
 			return $valid; }
 		$context = Execution_Context::capture();
 		if ( is_wp_error( $context ) ) {
 			return $context; }
 		$request_id = $input['request_id'];
 		unset( $input['request_id'] );
-		$input += [
+		$input += array(
 			'duplicate_handling'  => 'skip',
 			'download_media'      => true,
-			'replace_links_rules' => [],
-		];
+			'replace_links_rules' => array(),
+		);
 		return Job_Service::enqueue(
-			[
+			array(
 				'type'        => 'migration_import',
 				'data_type'   => 'site_migration',
 				'file_format' => 'zip',
@@ -82,22 +82,22 @@ class Migration_Import_Service extends Migration_Service {
 				'status'      => 'pending',
 				'user_id'     => get_current_user_id(),
 				'parameters'  => wp_json_encode(
-					[
+					array(
 						'migration_version' => 1,
 						'input'             => $input,
 						'execution_context' => $context->to_storage(),
-					]
+					)
 				),
 				'settings'    => wp_json_encode(
-					[
+					array(
 						'stage'    => 'queued',
 						'index'    => 0,
-						'children' => [],
-						'maps'     => [],
+						'children' => array(),
+						'maps'     => array(),
 						'result'   => self::empty_result(),
-					]
+					)
 				),
-			],
+			),
 			$request_id,
 			function () use ( $input ) {
 				$valid = $this->source( $input );
@@ -113,7 +113,7 @@ class Migration_Import_Service extends Migration_Service {
 				if ( is_wp_error( $file ) ) {
 					return $file;
 				}
-				$steps = ( new Migration_Package_Service() )->inspect( $file['path'], true, $input['steps'] ?? [] );
+				$steps = ( new Migration_Package_Service() )->inspect( $file['path'], true, $input['steps'] ?? array() );
 				if ( is_wp_error( $steps ) ) {
 					return 'rsl_ie_migration_package_selection' === $steps->get_error_code() ? $this->error( 'selection', 400 ) : $steps;
 				}
@@ -160,7 +160,8 @@ class Migration_Import_Service extends Migration_Service {
 		}
 		try {
 			foreach ( self::stored_requests( $state ) as $step ) {
-				if ( 'database_table' === ( $step['request']['import_type'] ?? '' ) ) { return $this->error( 'scope', 400 ); }
+				if ( 'database_table' === ( $step['request']['import_type'] ?? '' ) ) {
+					return $this->error( 'scope', 400 ); }
 				$valid = ( new File_Service() )->resolve( $step['request']['file_id'], 'import' );
 				if ( is_wp_error( $valid ) ) {
 					return $valid; }
@@ -188,7 +189,7 @@ class Migration_Import_Service extends Migration_Service {
 			return $valid; }
 		if ( ! hash_equals( $input['sha256'], $package['sha256'] ) ) {
 			return $this->error( 'package_changed', 409 ); }
-		$requests = [];
+		$requests = array();
 		foreach ( $package['steps'] as $step ) {
 			$resolved = ( new File_Service() )->resolve( $step['file_id'], 'import' );
 			if ( is_wp_error( $resolved ) ) {
@@ -202,10 +203,10 @@ class Migration_Import_Service extends Migration_Service {
 				return $scope; }
 			$preferred = 'media' === $step['type'] ? 'file_url' : ( 'comment' === $step['type'] ? 'comment_ID' : 'ID' );
 			// IDs belong to the source database and may identify unrelated destination objects.
-			if ( in_array( $step['type'], [ 'post', 'page', 'custom_post_types' ], true ) ) {
+			if ( in_array( $step['type'], array( 'post', 'page', 'custom_post_types' ), true ) ) {
 				$preferred = in_array( 'post_name', $step['headers'], true ) ? 'post_name' : 'post_title';
 			}
-			$options   = $scope['options'] + [
+			$options = $scope['options'] + array(
 				'duplicate_handling'  => $input['duplicate_handling'],
 				'if_exists'           => $input['duplicate_handling'],
 				'if_not_exists'       => 'create',
@@ -215,33 +216,33 @@ class Migration_Import_Service extends Migration_Service {
 				'batch_size'          => 25,
 				'replace_links'       => ! empty( $input['replace_links_rules'] ),
 				'replace_links_rules' => $input['replace_links_rules'],
-			];
-			$options   = apply_filters( 'rsl_ie_migration_import_options', $options, $step );
-			$request   = [
+			);
+			$options = apply_filters( 'rsl_ie_migration_import_options', $options, $step );
+			$request = array(
 				'file_id'     => $step['file_id'],
 				'import_type' => $step['type'],
 				'format'      => $step['format'],
 				'options'     => $options,
 				'mapping'     => array_map(
 					static function ( $field ) {
-						return [
+						return array(
 							'source_field' => $field,
 							'target_field' => $field,
-						];
+						);
 					},
 					$step['headers']
 				),
-			];
+			);
 			if ( $step['total_rows'] ) {
 				$valid = ( new Import_Service() )->check_request( $request );
 				if ( is_wp_error( $valid ) ) {
 					return $valid; }
 			}
-			$requests[] = [
-				'key'          => $step['key'],
-				'request'      => $request,
-				'empty'        => 0 === $step['total_rows'],
-			];
+			$requests[] = array(
+				'key'     => $step['key'],
+				'request' => $request,
+				'empty'   => 0 === $step['total_rows'],
+			);
 		}
 		return $requests;
 	}
@@ -257,23 +258,23 @@ class Migration_Import_Service extends Migration_Service {
 		if ( is_wp_error( $valid ) ) {
 			return $valid; }
 		$state = json_decode( $job->settings, true );
-		if ( in_array( $state['stage'], [ 'queued', 'preparing' ], true ) ) {
+		if ( in_array( $state['stage'], array( 'queued', 'preparing' ), true ) ) {
 			$input   = json_decode( $job->parameters, true )['input'];
-			$package = $state['package_preparation'] ?? [
+			$package = $state['package_preparation'] ?? array(
 				'sha256'        => $input['sha256'],
 				'count'         => 0,
-				'request_store' => [
+				'request_store' => array(
 					'file_id' => $input['file_id'],
 					'scope'   => 'job-' . $job->id,
 					'count'   => 0,
-				],
-			];
+				),
+			);
 			if ( isset( $package['steps'] ) ) {
-				$package['request_store'] = [
+				$package['request_store'] = array(
 					'file_id' => $input['file_id'],
 					'scope'   => 'job-' . $job->id,
 					'count'   => 0,
-				];
+				);
 				$legacy                   = $this->requests( $input, $package );
 				if ( is_wp_error( $legacy ) ) {
 					return $legacy; }
@@ -282,7 +283,7 @@ class Migration_Import_Service extends Migration_Service {
 				$package['count'] = count( $package['steps'] );
 				unset( $package['steps'] );
 			}
-			$package['entry'] = $package['entry'] ?? [ 'resource' => (int) $job->id ];
+			$package['entry'] = $package['entry'] ?? array( 'resource' => (int) $job->id );
 			$prepared         = ( new Migration_Package_Service() )->prepare( $input['file_id'], $package['count'], $package['entry'] );
 			if ( is_wp_error( $prepared ) ) {
 				return $prepared;
@@ -290,7 +291,7 @@ class Migration_Import_Service extends Migration_Service {
 			if ( ! empty( $prepared['pending'] ) ) {
 				$state['stage']               = 'preparing';
 				$state['package_preparation'] = $package;
-				return $this->save( $job->id, $state, [ 'status' => 'processing' ] );
+				return $this->save( $job->id, $state, array( 'status' => 'processing' ) );
 			}
 			unset( $package['entry'] );
 			if ( ! hash_equals( $input['sha256'], $prepared['sha256'] ) ) {
@@ -308,10 +309,10 @@ class Migration_Import_Service extends Migration_Service {
 				return $this->save(
 					$job->id,
 					$state,
-					[
+					array(
 						'status'     => 'processing',
 						'started_at' => $job->started_at ? $job->started_at : current_time( 'mysql' ),
-					]
+					)
 				);
 			}
 			$state['request_store'] = $package['request_store'];
@@ -321,11 +322,11 @@ class Migration_Import_Service extends Migration_Service {
 			return $this->save(
 				$job->id,
 				$state,
-				[
+				array(
 					'status'      => 'processing',
 					'started_at'  => current_time( 'mysql' ),
 					'total_items' => self::request_count( $state ),
-				]
+				)
 			);
 		}
 		if ( 'finalizing' === $state['stage'] ) {
@@ -338,7 +339,7 @@ class Migration_Import_Service extends Migration_Service {
 				$saved                     = $this->save( $job->id, $state );
 				if ( is_wp_error( $saved ) ) {
 					return $saved; }
-				$cursor = $state['finalization_cursor'] ?? [];
+				$cursor = $state['finalization_cursor'] ?? array();
 				$valid  = ( new Import_Service() )->finalize_migration( $ids[ $index ], $state['maps'], $cursor );
 				if ( is_wp_error( $valid ) ) {
 					return $valid; }
@@ -355,18 +356,19 @@ class Migration_Import_Service extends Migration_Service {
 			return $this->save(
 				$job->id,
 				$state,
-				[
+				array(
 					'status'       => 'completed',
 					'progress'     => 100,
 					'completed_at' => current_time( 'mysql' ),
 					'result'       => wp_json_encode( $state['result'] ),
-				]
+				)
 			);
 		}
 		$index = $state['index'];
 		$step  = isset( $state['request_store'] ) ? Archive_Step_Store::get( $state['request_store'], $index ) : $state['requests'][ $index ];
 		$ready = apply_filters( 'rsl_ie_migration_prepare_import_step', true, $step );
-		if ( is_wp_error( $ready ) ) { return $ready; }
+		if ( is_wp_error( $ready ) ) {
+			return $ready; }
 		if ( $step['empty'] ) {
 			++$state['result']['empty_files'];
 		} else {
@@ -380,27 +382,27 @@ class Migration_Import_Service extends Migration_Service {
 				return $this->save( $job->id, $state );
 			}
 			$child  = rsl_ie()->Model->job->find( $state['children'][ $index ] );
-			$params = $child ? json_decode( $child->parameters, true ) : [];
+			$params = $child ? json_decode( $child->parameters, true ) : array();
 			if ( ! $child || 'import' !== $child->type || (int) $child->user_id !== (int) $job->user_id || ( $params['migration_parent_id'] ?? 0 ) !== (int) $job->id ) {
 				return $this->error( 'child_unavailable', 409 ); }
-			if ( in_array( $child->status, [ 'pending', 'processing' ], true ) ) {
+			if ( in_array( $child->status, array( 'pending', 'processing' ), true ) ) {
 				$result = ( new Import_Service() )->process_background_batch( $child->id );
-				return is_wp_error( $result ) ? $result : [ 'pending' => true ];
+				return is_wp_error( $result ) ? $result : array( 'pending' => true );
 			}
 			// Media rows fail only for files missing on the source site; other failures stop the child.
 			$media_step = 'media' === ( $step['request']['import_type'] ?? '' );
 			if ( 'completed' !== $child->status || ( $child->failed_items > 0 && ! $media_step ) ) {
 				return $this->error( 'child_failed', 409 ); }
-			foreach ( $params['migration_maps'] ?? [] as $domain => $map ) {
+			foreach ( $params['migration_maps'] ?? array() as $domain => $map ) {
 				// Taxonomy maps have a second namespace; all other source IDs share their domain.
 				if ( 'terms' === $domain ) {
 					foreach ( $map as $tax => $ids ) {
-						$state['maps']['terms'][ $tax ] = array_replace( $state['maps']['terms'][ $tax ] ?? [], $ids ); }
+						$state['maps']['terms'][ $tax ] = array_replace( $state['maps']['terms'][ $tax ] ?? array(), $ids ); }
 				} else {
-					$state['maps'][ $domain ] = array_replace( $state['maps'][ $domain ] ?? [], $map ); }
+					$state['maps'][ $domain ] = array_replace( $state['maps'][ $domain ] ?? array(), $map ); }
 			}
-			$counters = $params['cumulative_result'] ?? [];
-			foreach ( [ 'success', 'created', 'updated', 'skipped', 'failed', 'replaced_urls' ] as $key ) {
+			$counters = $params['cumulative_result'] ?? array();
+			foreach ( array( 'success', 'created', 'updated', 'skipped', 'failed', 'replaced_urls' ) as $key ) {
 				$state['result'][ $key ] += (int) ( $counters[ $key ] ?? 0 ); }
 		}
 		++$state['index'];
@@ -408,12 +410,12 @@ class Migration_Import_Service extends Migration_Service {
 		return $this->save(
 			$job->id,
 			$state,
-			[
+			array(
 				'processed_items' => $state['index'],
 				'success_items'   => $state['index'],
 				'progress'        => 95 * $state['index'] / self::request_count( $state ),
 				'result'          => wp_json_encode( $state['result'] ),
-			]
+			)
 		);
 	}
 
@@ -424,12 +426,12 @@ class Migration_Import_Service extends Migration_Service {
 	 * @param array $maps Durable maps.
 	 */
 	public static function restore_maps( $id, array $maps ) {
-		foreach ( [
+		foreach ( array(
 			'posts'    => 'post',
 			'comments' => 'comment',
 			'terms'    => 'term',
-		] as $domain => $key ) {
-			set_transient( 'rsl_ie_import_' . $key . '_id_map_' . $id, $maps[ $domain ] ?? [], DAY_IN_SECONDS );
+		) as $domain => $key ) {
+			set_transient( 'rsl_ie_import_' . $key . '_id_map_' . $id, $maps[ $domain ] ?? array(), DAY_IN_SECONDS );
 		}
 	}
 
@@ -444,11 +446,11 @@ class Migration_Import_Service extends Migration_Service {
 	 * @return array
 	 */
 	public static function capture_maps( $id, array $maps, array $request, array $item, $result ) {
-		foreach ( [
+		foreach ( array(
 			'posts'    => 'post',
 			'comments' => 'comment',
 			'terms'    => 'term',
-		] as $domain => $key ) {
+		) as $domain => $key ) {
 			$map = get_transient( 'rsl_ie_import_' . $key . '_id_map_' . $id );
 			if ( is_array( $map ) ) {
 				$maps[ $domain ] = $map; }
@@ -466,12 +468,12 @@ class Migration_Import_Service extends Migration_Service {
 	 */
 	public static function prepare_rows( $id, array $request, array $rows ) {
 		$job    = $id ? rsl_ie()->Model->job->find( $id ) : null;
-		$params = $job ? json_decode( $job->parameters, true ) : [];
+		$params = $job ? json_decode( $job->parameters, true ) : array();
 		if ( empty( $params['migration_parent_id'] ) ) {
 			return $rows; }
 		if ( ! self::running( $params['migration_parent_id'] ) ) {
 			return File_Store::error( 'migration_parent_required', 409 ); }
-		$maps = $params['migration_seed_maps'] ?? [];
+		$maps = $params['migration_seed_maps'] ?? array();
 		foreach ( $rows as &$row ) {
 			if ( isset( $row['post_author'] ) ) {
 				$row['post_author'] = $maps['users'][ absint( $row['post_author'] ) ] ?? get_current_user_id(); }
@@ -484,15 +486,15 @@ class Migration_Import_Service extends Migration_Service {
 					$access = \RockStarLab\ImportExport\Abilities\Access_Policy::check_content_type(
 						'comment',
 						'import',
-						[
-							'records'              => [ [ 'comment_post_ID' => $target ] ],
+						array(
+							'records'              => array( array( 'comment_post_ID' => $target ) ),
 							'record_ids_are_local' => true,
-						]
+						)
 					);
 					if ( is_wp_error( $access ) ) {
 						return $access; }
 					$row['comment_post_ID'] = $target;
-					foreach ( [ '_aie_source_post_id', 'source_post_id', '_aie_source_post_permalink', 'post_permalink', '_aie_source_post_slug', 'post_slug' ] as $key ) {
+					foreach ( array( '_aie_source_post_id', 'source_post_id', '_aie_source_post_permalink', 'post_permalink', '_aie_source_post_slug', 'post_slug' ) as $key ) {
 						unset( $row[ $key ] ); }
 				}
 				if ( isset( $row['user_id'] ) ) {

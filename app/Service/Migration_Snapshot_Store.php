@@ -17,12 +17,12 @@ class Migration_Snapshot_Store {
 		}
 		$hash   = hash( 'sha256', $json );
 		$table  = $wpdb->prefix . 'rsl_ie_migration_snapshots';
-		$update = in_array( $family, [ 'woo_rows', 'woo_map' ], true ) ? 'digest=digest' : 'digest=VALUES(digest),payload=VALUES(payload)';
+		$update = in_array( $family, array( 'woo_rows', 'woo_map' ), true ) ? 'digest=digest' : 'digest=VALUES(digest),payload=VALUES(payload)';
 		$saved  = $wpdb->query( $wpdb->prepare( 'INSERT INTO %i (job_id,family,batch_index,digest,payload) VALUES (%d,%s,%d,%s,%s) ON DUPLICATE KEY UPDATE ' . $update, $table, $job_id, $family, $index, $hash, $json ) );
 		if ( false === $saved ) {
 			return self::error();
 		}
-		if ( in_array( $family, [ 'woo_rows', 'woo_map' ], true ) ) {
+		if ( in_array( $family, array( 'woo_rows', 'woo_map' ), true ) ) {
 			$stored = $wpdb->get_var( $wpdb->prepare( 'SELECT payload FROM %i WHERE job_id=%d AND family=%s AND batch_index=%d', $table, $job_id, $family, $index ) );
 			if ( ! is_string( $stored ) || ! hash_equals( $hash, hash( 'sha256', $stored ) ) ) {
 				return self::error(); }

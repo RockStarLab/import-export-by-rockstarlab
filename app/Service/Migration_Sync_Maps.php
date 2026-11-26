@@ -20,14 +20,14 @@ class Migration_Sync_Maps {
 	 * @return array|\WP_Error
 	 */
 	public static function capture( array $maps, array $params, array $result ) {
-		$found = [];
-		if ( 'free' === $params['edition'] && in_array( $params['operation'], [ 'sync-push', 'sync-pull' ], true ) ) {
+		$found = array();
+		if ( 'free' === $params['edition'] && in_array( $params['operation'], array( 'sync-push', 'sync-pull' ), true ) ) {
 			$found = self::posts( $params['input'], $result );
-		} elseif ( 'free' === $params['edition'] && in_array( $params['operation'], [ 'sync-media-push', 'sync-media-pull' ], true ) ) {
-			$mapping = [];
-			foreach ( $result['items'] ?? [] as $item ) {
+		} elseif ( 'free' === $params['edition'] && in_array( $params['operation'], array( 'sync-media-push', 'sync-media-pull' ), true ) ) {
+			$mapping = array();
+			foreach ( $result['items'] ?? array() as $item ) {
 				$source = $item['source_id'] ?? 0;
-				if ( ! is_int( $source ) || $source < 1 || isset( $mapping[ $source ] ) || ! in_array( $item['status'] ?? '', [ 'created', 'skipped' ], true ) || ! empty( $item['error_code'] ) ) {
+				if ( ! is_int( $source ) || $source < 1 || isset( $mapping[ $source ] ) || ! in_array( $item['status'] ?? '', array( 'created', 'skipped' ), true ) || ! empty( $item['error_code'] ) ) {
 					return self::error(); }
 				$mapping[ $source ] = $item['attachment_id'] ?? 0;
 			}
@@ -56,8 +56,8 @@ class Migration_Sync_Maps {
 	 * @return array|\WP_Error
 	 */
 	public static function posts( array $input, array $result ) {
-		$mapping = [];
-		foreach ( $result['result']['posts'] ?? [] as $post ) {
+		$mapping = array();
+		foreach ( $result['result']['posts'] ?? array() as $post ) {
 			$source = $post['source_id'] ?? 0;
 			$target = $post['target_id'] ?? 0;
 			if ( ! is_int( $source ) || ! is_int( $target ) || $source < 1 || $target < 1 || isset( $mapping[ $source ] ) || ( $post['type'] ?? '' ) !== $input['post_type'] ) {
@@ -81,7 +81,7 @@ class Migration_Sync_Maps {
 		if ( count( $ids ) !== count( $mapping ) || array_diff( $ids, array_keys( $mapping ) ) || array_diff( array_keys( $mapping ), $ids ) ) {
 			return self::error();
 		}
-		$result = [];
+		$result = array();
 		foreach ( $mapping as $source => $target ) {
 			if ( ! preg_match( '/^[1-9][0-9]*$/D', (string) $source ) || ! is_int( $target ) || $target < 1 ) {
 				return self::error();
@@ -105,16 +105,16 @@ class Migration_Sync_Maps {
 		if ( ! $maps ) {
 			return self::error();
 		}
-		if ( in_array( $step['params']['operation'], [ 'sync-push', 'sync-pull' ], true ) ) {
-			$input = apply_filters( 'rsl_ie_migration_sync_resolve_maps', $step['params']['input'], $step['params'], $maps, [] );
+		if ( in_array( $step['params']['operation'], array( 'sync-push', 'sync-pull' ), true ) ) {
+			$input = apply_filters( 'rsl_ie_migration_sync_resolve_maps', $step['params']['input'], $step['params'], $maps, array() );
 			return $input === $step['params']['input'] && empty( $step['params']['migration_map_page'] ) ? self::error() : $input;
 		}
 
-		if ( 'free' === $step['params']['edition'] && in_array( $step['params']['operation'], [ 'sync-media-push', 'sync-media-pull' ], true ) ) {
-			return apply_filters( 'rsl_ie_migration_sync_resolve_maps', $step['params']['input'], $step['params'], $maps, [] );
+		if ( 'free' === $step['params']['edition'] && in_array( $step['params']['operation'], array( 'sync-media-push', 'sync-media-pull' ), true ) ) {
+			return apply_filters( 'rsl_ie_migration_sync_resolve_maps', $step['params']['input'], $step['params'], $maps, array() );
 		}
-		$sources = $step['source_post_ids'] ?? [];
-		if ( 'free' === $step['params']['edition'] && in_array( $step['params']['operation'], [ 'sync-comments-push', 'sync-comments-pull' ], true ) ) {
+		$sources = $step['source_post_ids'] ?? array();
+		if ( 'free' === $step['params']['edition'] && in_array( $step['params']['operation'], array( 'sync-comments-push', 'sync-comments-pull' ), true ) ) {
 			return apply_filters( 'rsl_ie_migration_sync_resolve_maps', self::comments( $step['params']['input'], $maps, $sources ), $step['params'], $maps, $sources );
 		}
 		return apply_filters( 'rsl_ie_migration_sync_resolve_maps', self::error(), $step['params'], $maps, $sources );
@@ -157,7 +157,7 @@ class Migration_Sync_Maps {
 		if ( ! $sources || isset( $input['post_mapping'] ) || isset( $input['target_post_id'] ) ) {
 			return self::error();
 		}
-		$mapping = [];
+		$mapping = array();
 		foreach ( $sources as $source ) {
 			$key = 'post_type:' . $input['post_type'] . ':' . $source;
 			if ( empty( $maps[ $key ] ) ) {
@@ -175,6 +175,6 @@ class Migration_Sync_Maps {
 	 * @return \WP_Error
 	 */
 	public static function error() {
-		return new \WP_Error( 'rsl_ie_migration_mapping_unavailable', __( 'Migration mappings are incomplete, conflicting or unavailable. Inspect completed steps before starting another migration.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+		return new \WP_Error( 'rsl_ie_migration_mapping_unavailable', __( 'Migration mappings are incomplete, conflicting or unavailable. Inspect completed steps before starting another migration.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 	}
 }

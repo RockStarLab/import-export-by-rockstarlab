@@ -52,7 +52,7 @@ class Import_Service {
 	 *
 	 * @var array
 	 */
-	private $finalization_request = [];
+	private $finalization_request = array();
 
 	/**
 	 * Validate a file with the same options, mapping and policy as execution.
@@ -74,14 +74,14 @@ class Import_Service {
 		$method = new \ReflectionMethod( $importer, 'validate' );
 		$sample = \RockStarLab\ImportExport\Model\Import\Abstract_Importer::class === $method->getDeclaringClass()->getName();
 		$sample = true === apply_filters( 'rsl_ie_import_validation_first_row', $sample, $importer );
-		$importer->set_options( (array) $request['options'] + [ 'source_format' => (string) ( $request['format'] ?? '' ) ] );
+		$importer->set_options( (array) $request['options'] + array( 'source_format' => (string) ( $request['format'] ?? '' ) ) );
 		$mode = apply_filters( 'rsl_ie_import_validation_row_mode', '', $importer );
-		if ( in_array( $mode, [ 'all', 'any' ], true ) ) {
+		if ( in_array( $mode, array( 'all', 'any' ), true ) ) {
 			$matched = false;
 			$sample  = static function ( $item, $index ) use ( $importer, $mode, &$matched ) {
 				if ( $matched ) {
 					return false; }
-				$valid   = ! is_wp_error( $importer->validate( [ $index => $item ] ) );
+				$valid   = ! is_wp_error( $importer->validate( array( $index => $item ) ) );
 				$matched = 'all' === $mode ? ! $valid : $valid;
 				return 0 === $index || $matched;
 			};
@@ -90,10 +90,10 @@ class Import_Service {
 		if ( is_wp_error( $prepared ) ) {
 			return $prepared; }
 		$validation = $importer->validate( $prepared['data'] );
-		return is_wp_error( $validation ) ? $validation : [
+		return is_wp_error( $validation ) ? $validation : array(
 			'valid'       => true,
 			'total_items' => $prepared['total_count'] ?? count( $prepared['data'] ),
-		];
+		);
 	}
 
 	/**
@@ -120,7 +120,7 @@ class Import_Service {
 		if ( $migration_parent_id ) {
 			$request['migration_parent_id'] = (int) $migration_parent_id;
 			$parent                         = rsl_ie()->Model->job->find( $migration_parent_id );
-			$request['migration_seed_maps'] = json_decode( $parent->settings, true )['maps'] ?? [];
+			$request['migration_seed_maps'] = json_decode( $parent->settings, true )['maps'] ?? array();
 		}
 		// Bind the queued job to its source, including edits before its first slice.
 		$request['source_sha256'] = hash_file( 'sha256', $request['file_path'] );
@@ -132,14 +132,14 @@ class Import_Service {
 		$request['offset']            = 0;
 		$request['execution_context'] = $context->to_storage();
 		$result                       = Job_Service::enqueue(
-			[
+			array(
 				'type'       => 'import',
 				'data_type'  => $request['import_type'],
 				'status'     => 'pending',
 				'user_id'    => get_current_user_id(),
 				'file_path'  => $file_path,
 				'parameters' => wp_json_encode( $request ),
-			],
+			),
 			$input['request_id'] ?? ''
 		);
 		return $result;
@@ -198,7 +198,7 @@ class Import_Service {
 		$job_model = rsl_ie()->Model->job;
 		$job       = $job_model->find( (int) $job_id );
 		if ( ! $job || 'import' !== $job->type || 'media_sync' === $job->data_type ) {
-			return new \WP_Error( 'rsl_ie_import_not_found', __( 'Import job not found.', 'import-export-by-rockstarlab' ), [ 'status' => 404 ] );
+			return new \WP_Error( 'rsl_ie_import_not_found', __( 'Import job not found.', 'import-export-by-rockstarlab' ), array( 'status' => 404 ) );
 		}
 		$parent = json_decode( $job->parameters, true )['migration_parent_id'] ?? 0;
 		if ( $parent && ! Migration_Service::running( $parent ) ) {
@@ -210,19 +210,19 @@ class Import_Service {
 		if ( false === $lock ) {
 			return array_merge(
 				$this->snapshot( $job ),
-				[
+				array(
 					'completed' => false,
 					'locked'    => true,
-				]
+				)
 			);
 		}
 		try {
 			// Re-read after acquisition; another runner may have finished meanwhile.
 			$job = $job_model->find( $job->id );
 			if ( ! $job ) {
-				return new \WP_Error( 'rsl_ie_import_not_found', __( 'Import job not found.', 'import-export-by-rockstarlab' ), [ 'status' => 404 ] );
+				return new \WP_Error( 'rsl_ie_import_not_found', __( 'Import job not found.', 'import-export-by-rockstarlab' ), array( 'status' => 404 ) );
 			}
-			if ( ! in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
+			if ( ! in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
 				return $this->snapshot( $job );
 			}
 			$parameters = json_decode( (string) $job->parameters, true );
@@ -230,10 +230,10 @@ class Import_Service {
 				return $this->fail( $job->id, new \WP_Error( 'rsl_ie_invalid_job', __( 'Invalid import job parameters.', 'import-export-by-rockstarlab' ) ) );
 			}
 			// Legacy jobs have a trusted user_id and live in the current site table.
-			$stored = $parameters['execution_context'] ?? [
+			$stored = $parameters['execution_context'] ?? array(
 				'user_id' => (int) $job->user_id,
 				'blog_id' => get_current_blog_id(),
-			];
+			);
 			if ( ! is_array( $stored ) || (int) ( $stored['blog_id'] ?? 0 ) !== get_current_blog_id() || (int) ( $stored['user_id'] ?? 0 ) !== (int) $job->user_id ) {
 				return $this->fail( $job->id, new \WP_Error( 'rsl_ie_invalid_context', __( 'The job execution context is invalid.', 'import-export-by-rockstarlab' ) ) );
 			}
@@ -278,36 +278,36 @@ class Import_Service {
 	 * @return array|\WP_Error
 	 */
 	private function normalize_request( array $input ) {
-		foreach ( [ 'file_id', 'file_path', 'import_type', 'format', 'delimiter', 'encoding' ] as $key ) {
+		foreach ( array( 'file_id', 'file_path', 'import_type', 'format', 'delimiter', 'encoding' ) as $key ) {
 			if ( isset( $input[ $key ] ) && ! is_string( $input[ $key ] ) ) {
-				return new \WP_Error( 'rsl_ie_invalid_input', __( 'Invalid import parameters.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+				return new \WP_Error( 'rsl_ie_invalid_input', __( 'Invalid import parameters.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 			}
 		}
 		if ( empty( $input['mapping'] ) || ! is_array( $input['mapping'] ) || ( isset( $input['options'] ) && ! is_array( $input['options'] ) ) ) {
-			return new \WP_Error( 'rsl_ie_invalid_mapping', __( 'An import mapping and valid options are required.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_invalid_mapping', __( 'An import mapping and valid options are required.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 		}
-		$mapping = [];
+		$mapping = array();
 		foreach ( $input['mapping'] as $source => $entry ) {
 			if ( is_string( $source ) && is_string( $entry ) ) {
-				$entry = [
+				$entry = array(
 					'source_field' => $source,
 					'target_field' => $entry,
-				];
+				);
 			}
 			if ( ! is_array( $entry ) || ! isset( $entry['target_field'] ) || ! is_string( $entry['target_field'] ) || '' === $entry['target_field'] || ( ! isset( $entry['source_index'] ) && ( ! isset( $entry['source_field'] ) || ! is_string( $entry['source_field'] ) || '' === $entry['source_field'] ) ) ) {
-				return new \WP_Error( 'rsl_ie_invalid_mapping', __( 'Each mapping must select a source and a destination field.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+				return new \WP_Error( 'rsl_ie_invalid_mapping', __( 'Each mapping must select a source and a destination field.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 			}
 			$mapping[] = $entry;
 		}
-		$groups = [];
+		$groups = array();
 		foreach ( $mapping as $entry ) {
-			$groups[] = $entry['function_ids'] ?? $entry['functions'] ?? ( empty( $entry['function_id'] ) ? [] : [ $entry['function_id'] ] );
+			$groups[] = $entry['function_ids'] ?? $entry['functions'] ?? ( empty( $entry['function_id'] ) ? array() : array( $entry['function_id'] ) );
 		}
 		$transformations = Access_Policy::check_transformations( $groups );
 		if ( is_wp_error( $transformations ) ) {
 			return $transformations; }
-		$type       = $input['import_type'] ?? '';
-		$options    = $this->normalize_post_options( $type, $input['options'] ?? [] );
+		$type    = $input['import_type'] ?? '';
+		$options = $this->normalize_post_options( $type, $input['options'] ?? array() );
 		// Resolve new-table names before checking the same target used by the importer.
 		if ( 'database_table' === $type && ! empty( $options['create_table_if_missing'] ) && is_string( $options['table_name'] ?? null ) ) {
 			global $wpdb;
@@ -315,13 +315,13 @@ class Import_Service {
 				$options['table_name'] = $wpdb->prefix . $options['table_name'];
 			}
 		}
-		$permission = Access_Policy::check_content_type( $type, 'import', [ 'options' => $options ] );
+		$permission = Access_Policy::check_content_type( $type, 'import', array( 'options' => $options ) );
 		if ( is_wp_error( $permission ) ) {
 			return $permission;
 		}
 		$type = $permission['type'];
 		if ( ! Importer_Factory::is_supported( $type ) ) {
-			return new \WP_Error( 'rsl_ie_unsupported_importer', __( 'The requested importer is unavailable.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_unsupported_importer', __( 'The requested importer is unavailable.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 		}
 		$format  = strtolower( $input['format'] ?? 'csv' );
 		$file_id = $input['file_id'] ?? '';
@@ -349,7 +349,7 @@ class Import_Service {
 			$unique = (string) ( $options['unique_field'] ?? $options['duplicate_check'] ?? '' );
 			$id_col = false;
 			if ( 'ID' === $unique && ! in_array( 'ID', array_column( $mapping, 'target_field' ), true ) ) {
-				$headers = (array) ( $file['headers'] ?? [] );
+				$headers = (array) ( $file['headers'] ?? array() );
 				if ( ! $headers && 'csv' === ( $file['format'] ?? '' ) && is_readable( (string) $file['path'] ) ) {
 					$handle = fopen( (string) $file['path'], 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 					if ( $handle ) {
@@ -364,10 +364,10 @@ class Import_Service {
 				$id_col = array_search( 'ID', array_map( 'strval', $headers ), true );
 			}
 			if ( false !== $id_col ) {
-				$mapping[] = [
+				$mapping[] = array(
 					'source_index' => (int) $id_col,
 					'target_field' => 'ID',
-				];
+				);
 			}
 			$format                = $file['format'];
 			$file_path             = $file['path'];
@@ -383,22 +383,22 @@ class Import_Service {
 		}
 		$delimiter = $input['delimiter'] ?? ',';
 		if ( 1 !== strlen( $delimiter ) ) {
-			return new \WP_Error( 'rsl_ie_invalid_delimiter', __( 'The delimiter must be one byte.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_invalid_delimiter', __( 'The delimiter must be one byte.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 		}
 		$encoding = \RockStarLab\ImportExport\Model\Format\CSV_Format::normalize_encoding( $input['encoding'] ?? 'auto' );
 		if ( null === $encoding ) {
-			return new \WP_Error( 'rsl_ie_invalid_encoding', __( 'Unsupported file encoding.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_invalid_encoding', __( 'Unsupported file encoding.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 		}
 		$options['batch_size'] = max( 1, min( 500, (int) ( $options['batch_size'] ?? 50 ) ) );
 		// Media from the file is downloaded unless the caller turns it off, as the Import screen does.
 		$options['auto_import_media'] = filter_var( $options['auto_import_media'] ?? true, FILTER_VALIDATE_BOOLEAN );
-		$row_filters           = Import_Row_Filter::normalize( $options['row_filters'] ?? [] );
+		$row_filters                  = Import_Row_Filter::normalize( $options['row_filters'] ?? array() );
 		if ( is_wp_error( $row_filters ) ) {
 			return $row_filters;
 		}
 		$options['row_filters']       = $row_filters;
 		$options['row_filters_match'] = 'any' === ( $options['row_filters_match'] ?? 'all' ) ? 'any' : 'all';
-		return [
+		return array(
 			// A file downloaded from a URL is downloaded again when a schedule repeats the import.
 			'source_url'  => $source_url ?? '',
 			'import_type' => $type,
@@ -411,7 +411,7 @@ class Import_Service {
 			'encoding'    => $encoding,
 			'mapping'     => $mapping,
 			'options'     => $options,
-		];
+		);
 	}
 
 	/**
@@ -426,8 +426,8 @@ class Import_Service {
 		if ( is_wp_error( $parser ) ) {
 			return $parser;
 		}
-		if ( in_array( $request['format'], [ 'json', 'csv', 'xml', 'xlsx', 'ods' ], true ) && true === apply_filters( 'rsl_ie_import_stream_preparation', in_array( $request['import_type'], [ 'post', 'page', 'comment', 'media' ], true ), $request['import_type'] ) ) {
-			if ( in_array( $request['format'], [ 'csv', 'xml', 'xlsx', 'ods' ], true ) ) {
+		if ( in_array( $request['format'], array( 'json', 'csv', 'xml', 'xlsx', 'ods' ), true ) && true === apply_filters( 'rsl_ie_import_stream_preparation', in_array( $request['import_type'], array( 'post', 'page', 'comment', 'media' ), true ), $request['import_type'] ) ) {
+			if ( in_array( $request['format'], array( 'csv', 'xml', 'xlsx', 'ods' ), true ) ) {
 				return $this->prepare_streamed_rows( $request, $job_id, $sample ); }
 			$stream = @fopen( $request['file_path'], 'rb' );
 			if ( $stream ) {
@@ -441,11 +441,11 @@ class Import_Service {
 		}
 		$data = $parser->parse(
 			$request['file_path'],
-			[
+			array(
 				'delimiter'  => $request['delimiter'],
 				'encoding'   => $request['encoding'] ?? 'auto',
 				'has_header' => $request['options']['has_header'] ?? true,
-			]
+			)
 		);
 		if ( is_wp_error( $data ) ) {
 			return $data;
@@ -463,25 +463,25 @@ class Import_Service {
 	 * @return array<int,array<string,mixed>>
 	 */
 	public static function wxr_comments( array $raw ) {
-		$list = [];
+		$list = array();
 		if ( isset( $raw['wp:comment'] ) && is_string( $raw['wp:comment'] ) && '' !== $raw['wp:comment'] && '[' === $raw['wp:comment'][0] ) {
 			$decoded = json_decode( $raw['wp:comment'], true );
-			$list    = is_array( $decoded ) ? $decoded : [];
+			$list    = is_array( $decoded ) ? $decoded : array();
 		} elseif ( isset( $raw['wp:comment/wp:comment_id'] ) ) {
-			$one = [];
+			$one = array();
 			foreach ( $raw as $key => $value ) {
 				if ( 0 === strpos( (string) $key, 'wp:comment/' ) ) {
 					$one[ substr( (string) $key, 11 ) ] = $value;
 				}
 			}
-			$list = [ $one ];
+			$list = array( $one );
 		}
-		$out = [];
+		$out = array();
 		foreach ( array_slice( $list, 0, 5000 ) as $comment ) {
 			if ( ! is_array( $comment ) || ! isset( $comment['wp:comment_id'] ) ) {
 				continue;
 			}
-			$clean = [];
+			$clean = array();
 			foreach ( $comment as $key => $value ) {
 				$name = 0 === strpos( (string) $key, 'wp:' ) ? substr( (string) $key, 3 ) : (string) $key;
 				if ( 'commentmeta' === $name ) {
@@ -503,8 +503,8 @@ class Import_Service {
 	 * @return bool
 	 */
 	private function wxr_meta_mapped( array $mapping ) {
-		static $cache = [];
-		$key = md5( wp_json_encode( $mapping ) );
+		static $cache = array();
+		$key          = md5( wp_json_encode( $mapping ) );
 		if ( ! isset( $cache[ $key ] ) ) {
 			$cache[ $key ] = false;
 			foreach ( $mapping as $entry ) {
@@ -546,8 +546,8 @@ class Import_Service {
 		if ( ! $wxr || ( $job_id && get_transient( $key ) ) ) {
 			return;
 		}
-		$taxonomies = [];
-		foreach ( (array) ( $request['mapping'] ?? [] ) as $entry ) {
+		$taxonomies = array();
+		foreach ( (array) ( $request['mapping'] ?? array() ) as $entry ) {
 			$target = is_array( $entry ) ? (string) ( $entry['target_field'] ?? '' ) : '';
 			if ( 0 === strpos( $target, 'taxonomy_' ) && taxonomy_exists( substr( $target, 9 ) ) ) {
 				$taxonomies[ substr( $target, 9 ) ] = true;
@@ -560,7 +560,7 @@ class Import_Service {
 			return;
 		}
 		$terms = \RockStarLab\ImportExport\Model\Format\XML_Format::wxr_terms( (string) $request['file_path'] );
-		$todo  = [];
+		$todo  = array();
 		foreach ( $terms as $term ) {
 			if ( isset( $taxonomies[ $term['taxonomy'] ] ) && current_user_can( get_taxonomy( $term['taxonomy'] )->cap->manage_terms ) ) {
 				$todo[] = $term;
@@ -568,7 +568,7 @@ class Import_Service {
 		}
 		// Parents first: repeat while a pass creates something.
 		for ( $pass = 0; $todo && $pass < 10; ++$pass ) {
-			$left = [];
+			$left = array();
 			foreach ( $todo as $term ) {
 				if ( get_term_by( 'slug', $term['slug'], $term['taxonomy'] ) ) {
 					continue;
@@ -585,11 +585,11 @@ class Import_Service {
 				wp_insert_term(
 					wp_slash( '' !== $term['name'] ? $term['name'] : $term['slug'] ),
 					$term['taxonomy'],
-					[
+					array(
 						'slug'        => $term['slug'],
 						'parent'      => $parent,
 						'description' => wp_slash( $term['description'] ),
-					]
+					)
 				);
 			}
 			if ( count( $left ) === count( $todo ) ) {
@@ -614,7 +614,7 @@ class Import_Service {
 			return array_keys( $row );
 		}
 		$needs = false;
-		foreach ( (array) ( $request['mapping'] ?? [] ) as $entry ) {
+		foreach ( (array) ( $request['mapping'] ?? array() ) as $entry ) {
 			if ( is_array( $entry ) && isset( $entry['source_index'] ) ) {
 				$needs = true;
 				break;
@@ -627,11 +627,11 @@ class Import_Service {
 			$columns = File_Service::xml_columns(
 				Format_Factory::create( 'xml' ),
 				$request['file_path'],
-				[
+				array(
 					'delimiter'  => $request['delimiter'] ?? '',
 					'encoding'   => $request['encoding'] ?? 'auto',
 					'has_header' => $request['options']['has_header'] ?? true,
-				]
+				)
 			);
 		} catch ( \Throwable $error ) {
 			return new \WP_Error( 'xml_parse_error', __( 'Invalid XML file', 'import-export-by-rockstarlab' ) );
@@ -641,10 +641,10 @@ class Import_Service {
 
 	/** Prepare supported streamed rows without retaining a complete raw dataset. */
 	private function prepare_streamed_rows( array $request, $job_id, $sample = false ) {
-		$result = [
-			'data'          => [],
+		$result = array(
+			'data'          => array(),
 			'replaced_urls' => 0,
-		];
+		);
 		if ( $job_id ) {
 			$result['stored_count'] = 0;
 			$reset                  = Import_Row_Store::reset( $job_id );
@@ -653,7 +653,7 @@ class Import_Service {
 		}
 		if ( $sample ) {
 			$result['total_count'] = 0; }
-		$batch       = [];
+		$batch       = array();
 		$batch_bytes = 0;
 		$first       = true;
 		try {
@@ -661,11 +661,11 @@ class Import_Service {
 				? Format_Factory::create( 'json' )->rows( $request['file_path'] )
 				: Format_Factory::create( $request['format'] )->rows(
 					$request['file_path'],
-					[
+					array(
 						'delimiter'  => $request['delimiter'],
 						'encoding'   => $request['encoding'] ?? 'auto',
 						'has_header' => $request['options']['has_header'] ?? true,
-					]
+					)
 				);
 			foreach ( $rows as $row ) {
 				if ( ! is_array( $row ) ) {
@@ -710,7 +710,7 @@ class Import_Service {
 					if ( $sample ) {
 						$result['total_count'] += count( $prepared['data'] ); }
 					$result['replaced_urls'] += $prepared['replaced_urls'];
-					$batch                    = [];
+					$batch                    = array();
 					$batch_bytes              = 0;
 				}
 			}
@@ -764,14 +764,14 @@ class Import_Service {
 			if ( ! $indexed && ! is_string( $source_sha256 ) ) {
 				return File_Store::error( 'source_changed', 409 );
 			}
-			$state = [
+			$state = array(
 				'source_sha256' => $source_sha256,
 				'cursor'        => null,
 				'count'         => 0,
 				'replaced_urls' => 0,
 				'mapping'       => $request['mapping'],
 				'done'          => false,
-			];
+			);
 			// Bind the fast digest only when the same request proved the SHA-256 digest.
 			$fast = $indexed ? null : self::fast_digest( $request['file_path'] );
 			if ( is_string( $fast ) && is_string( $source_sha256 ) && hash_equals( (string) ( $parameters['source_sha256'] ?? $source_sha256 ), $source_sha256 ) ) {
@@ -779,26 +779,26 @@ class Import_Service {
 			}
 		}
 		if ( ! empty( $state['done'] ) ) {
-			return [
+			return array(
 				'stored_count'  => $state['count'],
 				'replaced_urls' => $state['replaced_urls'],
-				'data'          => [],
-			]; }
+				'data'          => array(),
+			); }
 		$request['mapping'] = $state['mapping'];
-		$batch              = [];
+		$batch              = array();
 		$bytes              = 0;
 		// Each slice is a separate request that boots WordPress, so 100-row slices made a
 		// 100k-row file cost ~1,000 requests. The 1 MB byte budget still bounds memory.
 		$slice_rows = max( 1, (int) apply_filters( 'rsl_ie_import_preparation_slice_rows', self::PREPARATION_SLICE_ROWS, $request ) );
-		$done               = true;
-		$cursor             = $state['cursor'];
-		$reader             = ( isset( $parameters['json_object_index'] ) || isset( $parameters['spreadsheet_index'] ) ) ? Import_Object_Store::rows( (int) $job->id, ( $parameters['json_object_index'] ?? $parameters['spreadsheet_index'] )['count'], $cursor ) : ( 'json' === $request['format'] ? \RockStarLab\ImportExport\Model\Format\JSON_Row_Stream::rows( $request['file_path'], [], $cursor ) : Format_Factory::create( $request['format'] )->rows(
+		$done       = true;
+		$cursor     = $state['cursor'];
+		$reader     = ( isset( $parameters['json_object_index'] ) || isset( $parameters['spreadsheet_index'] ) ) ? Import_Object_Store::rows( (int) $job->id, ( $parameters['json_object_index'] ?? $parameters['spreadsheet_index'] )['count'], $cursor ) : ( 'json' === $request['format'] ? \RockStarLab\ImportExport\Model\Format\JSON_Row_Stream::rows( $request['file_path'], array(), $cursor ) : Format_Factory::create( $request['format'] )->rows(
 			$request['file_path'],
-			[
+			array(
 				'delimiter'  => $request['delimiter'],
 				'encoding'   => $request['encoding'] ?? 'auto',
 				'has_header' => $request['options']['has_header'] ?? true,
-			],
+			),
 			$cursor
 		) );
 		try {
@@ -844,13 +844,13 @@ class Import_Service {
 			return File_Store::error( 'source_changed', 409 );
 		}
 		$next               = $parameters;
-		$next[ $state_key ] = [
+		$next[ $state_key ] = array(
 			'cursor'        => $cursor,
 			'count'         => $state['count'] + count( $prepared['data'] ),
 			'replaced_urls' => $state['replaced_urls'] + $prepared['replaced_urls'],
 			'mapping'       => $request['mapping'],
 			'done'          => $done,
-		];
+		);
 		if ( isset( $state['source_sha256'] ) ) {
 			$next[ $state_key ]['source_sha256'] = $state['source_sha256'];
 		}
@@ -861,12 +861,12 @@ class Import_Service {
 		if ( is_wp_error( $saved ) ) {
 			return $saved; }
 		$parameters = $next;
-		return [
+		return array(
 			'preparing'     => ! $done,
 			'stored_count'  => $next[ $state_key ]['count'],
 			'replaced_urls' => $next[ $state_key ]['replaced_urls'],
-			'data'          => [],
-		];
+			'data'          => array(),
+		);
 	}
 
 	/** Retain a witness row for audited all/any validators, preserving error row numbers. */
@@ -874,7 +874,7 @@ class Import_Service {
 		if ( is_callable( $sample ) ) {
 			$ordinal = $result['total_count'] + $index;
 			if ( $sample( $item, $ordinal ) ) {
-				$result['data'] = [ $ordinal => $item ]; }
+				$result['data'] = array( $ordinal => $item ); }
 		} elseif ( ! $sample || ! $result['data'] ) {
 			$result['data'][] = $item; }
 	}
@@ -887,9 +887,9 @@ class Import_Service {
 		if ( is_wp_error( $importer ) ) {
 			return $importer;
 		}
-		$importer->set_options( (array) $options + [ 'source_format' => (string) ( $request['format'] ?? '' ) ] );
+		$importer->set_options( (array) $options + array( 'source_format' => (string) ( $request['format'] ?? '' ) ) );
 		// Row filter: keep only the source rows whose columns meet the conditions.
-		$row_filters   = (array) ( $options['row_filters'] ?? [] );
+		$row_filters   = (array) ( $options['row_filters'] ?? array() );
 		$filtered_rows = 0;
 		if ( $row_filters && $data ) {
 			$kept          = Import_Row_Filter::apply( $data, $row_filters, $options['row_filters_match'] ?? 'all' );
@@ -900,11 +900,11 @@ class Import_Service {
 				Job_Log::write( $job_id, 'info', sprintf( _n( '%d row did not match the row filter and was not imported.', '%d rows did not match the row filter and were not imported.', $filtered_rows, 'import-export-by-rockstarlab' ), $filtered_rows ) );
 			}
 			if ( ! $data ) {
-				return [
-					'data'          => [],
+				return array(
+					'data'          => array(),
 					'replaced_urls' => 0,
 					'filtered_rows' => $filtered_rows,
-				];
+				);
 			}
 		}
 		// Resolve wizard column indices against parsed rows, including headerless CSV.
@@ -917,7 +917,7 @@ class Import_Service {
 					return $keys;
 				}
 				if ( false === $index || ! isset( $keys[ $index ] ) ) {
-					return new \WP_Error( 'rsl_ie_invalid_mapping', __( 'The source column index is outside the file columns.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+					return new \WP_Error( 'rsl_ie_invalid_mapping', __( 'The source column index is outside the file columns.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 				}
 				$entry['source_field'] = (string) $keys[ $index ];
 			}
@@ -925,7 +925,7 @@ class Import_Service {
 		unset( $entry );
 		$replacement_count = 0;
 		// Long spreadsheet values come split over "<column>__partN" columns.
-		if ( in_array( $request['format'] ?? '', [ 'xlsx', 'ods', 'xls' ], true ) ) {
+		if ( in_array( $request['format'] ?? '', array( 'xlsx', 'ods', 'xls' ), true ) ) {
 			$data = array_map(
 				static function ( $row ) {
 					return is_array( $row ) ? \RockStarLab\ImportExport\Model\Format\Spreadsheet_Format::join_long_values( $row ) : $row;
@@ -933,19 +933,19 @@ class Import_Service {
 				$data
 			);
 		}
-		$prepared_data     = $importer->prepare( $data, $mapping );
-		$prepared_data     = $this->sanitize_user_preference_meta_for_import( $import_type, $prepared_data );
-		$prepared_data     = $this->apply_replace_links_rules_to_data( $prepared_data, $options, $replacement_count, $import_type );
-		$prepared_data     = Migration_Import_Service::prepare_rows( $job_id, $request, $prepared_data );
+		$prepared_data = $importer->prepare( $data, $mapping );
+		$prepared_data = $this->sanitize_user_preference_meta_for_import( $import_type, $prepared_data );
+		$prepared_data = $this->apply_replace_links_rules_to_data( $prepared_data, $options, $replacement_count, $import_type );
+		$prepared_data = Migration_Import_Service::prepare_rows( $job_id, $request, $prepared_data );
 		if ( is_wp_error( $prepared_data ) ) {
 			return $prepared_data; }
 		$permission = Access_Policy::check_content_type(
 			$import_type,
 			'import',
-			[
+			array(
 				'options' => $options,
 				'records' => $prepared_data,
-			]
+			)
 		);
 		if ( is_wp_error( $permission ) ) {
 			return $permission;
@@ -953,11 +953,11 @@ class Import_Service {
 			// Preserve source IDs for cross-site relationship fixups (e.g. post_parent).
 			// The columns are the ones mapped to ID / post_parent / post_name, or carry those
 			// names (WordPress exports call them wp:post_id, wp:post_parent and wp:post_name).
-			$source_columns = [
-				'ID'          => [ 'ID', 'wp:post_id' ],
-				'post_parent' => [ 'post_parent', 'wp:post_parent' ],
-				'post_name'   => [ 'post_name', 'wp:post_name' ],
-			];
+			$source_columns = array(
+				'ID'          => array( 'ID', 'wp:post_id' ),
+				'post_parent' => array( 'post_parent', 'wp:post_parent' ),
+				'post_name'   => array( 'post_name', 'wp:post_name' ),
+			);
 			foreach ( (array) $mapping as $entry ) {
 				$target = is_array( $entry ) ? (string) ( $entry['target_field'] ?? '' ) : '';
 				$source = is_array( $entry ) ? (string) ( $entry['source_field'] ?? '' ) : '';
@@ -974,7 +974,7 @@ class Import_Service {
 				return null;
 			};
 		foreach ( $prepared_data as $row_index => &$prepared_row ) {
-			$raw = isset( $data[ $row_index ] ) && is_array( $data[ $row_index ] ) ? $data[ $row_index ] : [];
+			$raw = isset( $data[ $row_index ] ) && is_array( $data[ $row_index ] ) ? $data[ $row_index ] : array();
 			$id  = $source_value( $raw, $source_columns['ID'] );
 			if ( null !== $id && ctype_digit( $id ) ) {
 				$prepared_row['_rsl_ie_source_id'] = absint( $id );
@@ -994,7 +994,12 @@ class Import_Service {
 				// Settings a WordPress export keeps in its own columns and Auto Map does not offer:
 				// without them a password-protected post arrived public, sticky posts lost the
 				// flag and closed comments opened.
-				foreach ( array( 'post_password' => 'wp:post_password', 'comment_status' => 'wp:comment_status', 'ping_status' => 'wp:ping_status', 'is_sticky' => 'wp:is_sticky' ) as $wxr_field => $wxr_column ) {
+				foreach ( array(
+					'post_password'  => 'wp:post_password',
+					'comment_status' => 'wp:comment_status',
+					'ping_status'    => 'wp:ping_status',
+					'is_sticky'      => 'wp:is_sticky',
+				) as $wxr_field => $wxr_column ) {
 					if ( ! array_key_exists( $wxr_field, $prepared_row ) && isset( $raw[ $wxr_column ] ) && is_scalar( $raw[ $wxr_column ] ) ) {
 						$wxr_value = trim( (string) $raw[ $wxr_column ] );
 						if ( 'post_password' === $wxr_field ? '' !== $wxr_value : in_array( $wxr_value, array( 'open', 'closed', '0', '1' ), true ) ) {
@@ -1004,7 +1009,7 @@ class Import_Service {
 				}
 				// Custom fields of the item ("Meta: key" columns). The column mapping only knows the
 				// keys of the first items it previewed; the other posts lost theirs.
-				if ( ! empty( $request['wxr_meta'] ) || $this->wxr_meta_mapped( (array) ( $request['mapping'] ?? [] ) ) ) {
+				if ( ! empty( $request['wxr_meta'] ) || $this->wxr_meta_mapped( (array) ( $request['mapping'] ?? array() ) ) ) {
 					foreach ( $raw as $raw_key => $raw_value ) {
 						if ( 0 !== strpos( (string) $raw_key, 'Meta: ' ) || ! is_scalar( $raw_value ) ) {
 							continue;
@@ -1089,10 +1094,10 @@ class Import_Service {
 			}
 			unset( $prepared_row );
 		}
-		$result = [
+		$result = array(
 			'data'          => $prepared_data,
 			'replaced_urls' => $replacement_count,
-		];
+		);
 		if ( $filtered_rows ) {
 			// Only present when a row filter skipped rows: chunked and full preparation stay identical otherwise.
 			$result['filtered_rows'] = $filtered_rows; }
@@ -1110,11 +1115,11 @@ class Import_Service {
 		if ( ! empty( $parameters['migration_parent_id'] ) ) {
 			if ( ! empty( $parameters['migration_inflight'] ) ) {
 				return File_Store::error( 'migration_uncertain_row', 409 ); }
-			Migration_Import_Service::restore_maps( $job->id, $parameters['migration_maps'] ?? [] );
+			Migration_Import_Service::restore_maps( $job->id, $parameters['migration_maps'] ?? array() );
 		}
 		$job_id    = (int) $job->id;
 		$job_model = rsl_ie()->Model->job;
-		$request   = $this->normalize_request( array_merge( $parameters, [ 'file_path' => $job->file_path ] ) );
+		$request   = $this->normalize_request( array_merge( $parameters, array( 'file_path' => $job->file_path ) ) );
 		if ( is_wp_error( $request ) ) {
 			return $request;
 		}
@@ -1137,10 +1142,10 @@ class Import_Service {
 		if ( is_wp_error( $importer ) ) {
 			return $importer;
 		}
-		$importer->set_options( (array) $request['options'] + [ 'source_format' => (string) ( $request['format'] ?? '' ) ] );
+		$importer->set_options( (array) $request['options'] + array( 'source_format' => (string) ( $request['format'] ?? '' ) ) );
 		if ( ! isset( $parameters['prepared_data'] ) && ! isset( $parameters['prepared_rows_count'] ) ) {
-			$stream_allowed = true === apply_filters( 'rsl_ie_import_stream_preparation', in_array( $request['import_type'], [ 'post', 'page', 'comment', 'media' ], true ), $request['import_type'] );
-			$sheet          = in_array( $request['format'], [ 'xlsx', 'ods' ], true );
+			$stream_allowed = true === apply_filters( 'rsl_ie_import_stream_preparation', in_array( $request['import_type'], array( 'post', 'page', 'comment', 'media' ), true ), $request['import_type'] );
+			$sheet          = in_array( $request['format'], array( 'xlsx', 'ods' ), true );
 			if ( isset( $parameters['spreadsheet_index'] ) && ( ! $stream_allowed || ! $sheet || $parameters['spreadsheet_index']['format'] !== $request['format'] ) ) {
 				return File_Store::error( 'preparation_mode_changed', 409 );
 			}
@@ -1151,10 +1156,10 @@ class Import_Service {
 				}
 				return array_merge(
 					$this->snapshot( $job_model->find( $job_id ) ),
-					[
+					array(
 						'preparing'     => true,
 						'indexed_items' => $parameters['spreadsheet_index']['count'],
-					]
+					)
 				);
 			}
 			$object = 'json' === $request['format'] && ! $this->is_json_array( $request['file_path'] );
@@ -1167,14 +1172,14 @@ class Import_Service {
 						return $indexed; }
 					return array_merge(
 						$this->snapshot( $job_model->find( $job_id ) ),
-						[
+						array(
 							'preparing'     => true,
 							'indexed_items' => $parameters['json_object_index']['count'],
-						]
+						)
 					);
 				}
 			}
-			$resumable = ( in_array( $request['format'], [ 'csv', 'xml' ], true ) || isset( $parameters['spreadsheet_index'] ) || ( 'json' === $request['format'] && ( isset( $parameters['json_object_index'] ) || $this->is_json_array( $request['file_path'] ) ) ) ) && true === $stream_allowed;
+			$resumable = ( in_array( $request['format'], array( 'csv', 'xml' ), true ) || isset( $parameters['spreadsheet_index'] ) || ( 'json' === $request['format'] && ( isset( $parameters['json_object_index'] ) || $this->is_json_array( $request['file_path'] ) ) ) ) && true === $stream_allowed;
 			if ( ( isset( $parameters['csv_preparation'] ) || isset( $parameters['json_preparation'] ) || isset( $parameters['xml_preparation'] ) || isset( $parameters['xlsx_preparation'] ) || isset( $parameters['ods_preparation'] ) ) && ! $resumable ) {
 				return File_Store::error( 'preparation_mode_changed', 409 ); }
 			if ( $resumable && ( isset( $parameters['csv_preparation'] ) || isset( $parameters['json_preparation'] ) || isset( $parameters['xml_preparation'] ) || isset( $parameters['xlsx_preparation'] ) || isset( $parameters['ods_preparation'] ) || Import_Row_Store::supports_checkpoints() ) ) {
@@ -1182,10 +1187,10 @@ class Import_Service {
 				if ( ! is_wp_error( $prepared ) && ! empty( $prepared['preparing'] ) ) {
 					return array_merge(
 						$this->snapshot( $job_model->find( $job_id ) ),
-						[
+						array(
 							'preparing'      => true,
 							'prepared_items' => $prepared['stored_count'],
-						]
+						)
 					);
 				}
 			} else {
@@ -1204,7 +1209,7 @@ class Import_Service {
 			}
 			$parameters['total_items']       = $parameters['prepared_rows_count'] ?? count( $prepared['data'] );
 			$parameters['offset']            = 0;
-			$parameters['cumulative_result'] = [
+			$parameters['cumulative_result'] = array(
 				'total'         => $parameters['total_items'],
 				'success'       => 0,
 				'skipped'       => 0,
@@ -1212,22 +1217,22 @@ class Import_Service {
 				'updated'       => 0,
 				'created'       => 0,
 				'replaced_urls' => $prepared['replaced_urls'],
-				'errors'        => [],
-				'items'         => [],
-			];
+				'errors'        => array(),
+				'items'         => array(),
+			);
 			// "Detect automatically" decides the day/month order once for the whole file: one
 			// 13/04/2025 row proves the file is day first, so 03/04/2025 in it is 3 April too.
 			if ( 'auto' === (string) ( $request['options']['date_order'] ?? 'auto' ) ) {
 				$parameters['date_order_detected'] = $this->detect_date_order( $job_id, $parameters );
 			}
-			$saved                           = $this->checkpoint( $job_id, $parameters );
+			$saved = $this->checkpoint( $job_id, $parameters );
 			if ( is_wp_error( $saved ) ) {
 				return $saved;
 			}
 		}
 		if ( ! empty( $parameters['date_order_detected'] ) && 'auto' === (string) ( $request['options']['date_order'] ?? 'auto' ) ) {
 			$request['options']['date_order'] = $parameters['date_order_detected'];
-			$importer->set_options( (array) $request['options'] + [ 'source_format' => (string) ( $request['format'] ?? '' ) ] );
+			$importer->set_options( (array) $request['options'] + array( 'source_format' => (string) ( $request['format'] ?? '' ) ) );
 		}
 		$stored = isset( $parameters['prepared_rows_count'] );
 		$offset = (int) $parameters['offset'];
@@ -1237,16 +1242,16 @@ class Import_Service {
 		$permission = Access_Policy::check_content_type(
 			$request['import_type'],
 			'import',
-			[
+			array(
 				'options' => $request['options'],
 				'records' => $stored ? $batch : $parameters['prepared_data'],
-			]
+			)
 		);
 		if ( is_wp_error( $permission ) ) {
 			return $permission;
 		}
 		$fresh = $job_model->find( $job_id );
-		if ( ! $fresh || ! in_array( $fresh->status, [ 'pending', 'processing' ], true ) ) {
+		if ( ! $fresh || ! in_array( $fresh->status, array( 'pending', 'processing' ), true ) ) {
 			return $fresh ? $this->snapshot( $fresh ) : new \WP_Error( 'rsl_ie_import_not_found', __( 'Import job not found.', 'import-export-by-rockstarlab' ) );
 		}
 		if ( 'pending' === $fresh->status ) {
@@ -1284,7 +1289,7 @@ class Import_Service {
 			if ( ! $first_row && $time_budget > 0 && $elapsed + $slowest_row >= $time_budget ) {
 				break;
 			}
-			$first_row = false;
+			$first_row   = false;
 			$row_started = microtime( true );
 			if ( 'processing' !== $this->current_status( $job_id ) ) {
 				$fresh = $job_model->find( $job_id );
@@ -1299,11 +1304,11 @@ class Import_Service {
 			$permission = Access_Policy::check_content_type(
 				$request['import_type'],
 				'import',
-				[
+				array(
 					'options'              => $request['options'],
-					'records'              => [ $item ],
+					'records'              => array( $item ),
 					'record_ids_are_local' => ! empty( $parameters['migration_parent_id'] ) && 'comment' === $request['import_type'],
-				]
+				)
 			);
 			if ( is_wp_error( $permission ) ) {
 				return $permission;
@@ -1314,27 +1319,27 @@ class Import_Service {
 				if ( is_wp_error( $saved ) ) {
 					return $saved; }
 			}
-			$result = $importer->import_item( $item, $offset + $index );
+			$result      = $importer->import_item( $item, $offset + $index );
 			$slowest_row = max( $slowest_row, microtime( true ) - $row_started );
 			if ( ! empty( $parameters['migration_parent_id'] ) ) {
-				$parameters['migration_maps']     = Migration_Import_Service::capture_maps( $job_id, $parameters['migration_maps'] ?? [], $request, $item, $result );
+				$parameters['migration_maps']     = Migration_Import_Service::capture_maps( $job_id, $parameters['migration_maps'] ?? array(), $request, $item, $result );
 				$parameters['migration_inflight'] = false;
 			}
 			$cumulative = &$parameters['cumulative_result'];
-			$action     = is_wp_error( $result ) ? 'failed' : ( in_array( $result, [ 'skipped', 'updated' ], true ) ? $result : 'created' );
+			$action     = is_wp_error( $result ) ? 'failed' : ( in_array( $result, array( 'skipped', 'updated' ), true ) ? $result : 'created' );
 			++$cumulative[ $action ];
-			if ( in_array( $action, [ 'created', 'updated' ], true ) ) {
+			if ( in_array( $action, array( 'created', 'updated' ), true ) ) {
 				++$cumulative['success'];
 			}
-			$entry = [
+			$entry = array(
 				'row'       => $offset + $index + 1,
 				'action'    => $action,
 				'source_id' => absint( $item['_rsl_ie_source_id'] ?? 0 ),
 				'target_id' => is_numeric( $result ) ? absint( $result ) : 0,
 				'title'     => (string) ( $item['post_title'] ?? '' ),
-			];
+			);
 			if ( ! is_wp_error( $result ) ) {
-				if ( in_array( $request['import_type'], [ 'post', 'page', 'custom_post_types', 'woo_product' ], true ) ) {
+				if ( in_array( $request['import_type'], array( 'post', 'page', 'custom_post_types', 'woo_product' ), true ) ) {
 					$source = absint( $item['_rsl_ie_source_id'] ?? $item['ID'] ?? 0 );
 					$map    = get_transient( 'rsl_ie_import_post_id_map_' . $job_id );
 					$target = is_numeric( $result ) ? absint( $result ) : absint( $map[ $source ] ?? 0 );
@@ -1358,12 +1363,12 @@ class Import_Service {
 				}
 			}
 			if ( is_wp_error( $result ) ) {
-				$entry['message']       = $result->get_error_message();
+				$entry['message'] = $result->get_error_message();
 				if ( count( $cumulative['errors'] ) < self::RESULT_ERRORS_LIMIT ) {
 					// Row, field, reason and how to fix; the first rows also keep their values for the error CSV.
 					$cumulative['errors'][] = \RockStarLab\ImportExport\Helper\Import_Row_Error::describe(
 						$result,
-						is_array( $item ) ? $item : [],
+						is_array( $item ) ? $item : array(),
 						$entry['row'],
 						count( $cumulative['errors'] ) < \RockStarLab\ImportExport\Helper\Import_Row_Error::VALUE_ROWS
 					);
@@ -1372,12 +1377,12 @@ class Import_Service {
 			if ( method_exists( $importer, 'take_media_issues' ) ) {
 				foreach ( $importer->take_media_issues() as $issue ) {
 					$cumulative['media_errors'] = (int) ( $cumulative['media_errors'] ?? 0 ) + 1;
-					if ( count( $cumulative['media_warnings'] ?? [] ) < 50 ) {
-						$cumulative['media_warnings'][] = [
+					if ( count( $cumulative['media_warnings'] ?? array() ) < 50 ) {
+						$cumulative['media_warnings'][] = array(
 							'row'     => $entry['row'],
 							'url'     => $issue['url'],
 							'message' => $issue['message'],
-						];
+						);
 					}
 				}
 			}
@@ -1406,10 +1411,10 @@ class Import_Service {
 			$permission = Access_Policy::check_content_type(
 				$request['import_type'],
 				'import',
-				[
+				array(
 					'options' => $request['options'],
 					'records' => $stored ? $batch : $parameters['prepared_data'],
-				]
+				)
 			);
 			if ( is_wp_error( $permission ) ) {
 				return $permission;
@@ -1417,23 +1422,23 @@ class Import_Service {
 			if ( empty( $parameters['migration_parent_id'] ) ) {
 				// Recover only identities confirmed by this job, including skipped rows.
 				$post_key = 'rsl_ie_import_post_id_map_' . $job_id;
-				$posts    = ( $parameters['relationship_maps']['posts'] ?? [] ) + (array) get_transient( $post_key );
+				$posts    = ( $parameters['relationship_maps']['posts'] ?? array() ) + (array) get_transient( $post_key );
 				if ( $posts ) {
 					set_transient( $post_key, $posts, DAY_IN_SECONDS ); }
 				$comment_key = 'rsl_ie_import_comment_id_map_' . $job_id;
 				$term_key    = 'rsl_ie_import_term_id_map_' . $job_id;
 				$comments    = (array) get_transient( $comment_key );
 				$terms       = (array) get_transient( $term_key );
-				$comments    = ( $parameters['relationship_maps']['comments'] ?? [] ) + $comments;
-				foreach ( $parameters['relationship_maps']['terms'] ?? [] as $taxonomy => $confirmed ) {
-					$terms[ $taxonomy ] = $confirmed + ( $terms[ $taxonomy ] ?? [] );
+				$comments    = ( $parameters['relationship_maps']['comments'] ?? array() ) + $comments;
+				foreach ( $parameters['relationship_maps']['terms'] ?? array() as $taxonomy => $confirmed ) {
+					$terms[ $taxonomy ] = $confirmed + ( $terms[ $taxonomy ] ?? array() );
 				}
 				if ( $comments ) {
 					set_transient( $comment_key, $comments, DAY_IN_SECONDS ); }
 				if ( $terms ) {
 					set_transient( $term_key, $terms, DAY_IN_SECONDS ); }
 				if ( $stored ) {
-					$cursor    = $parameters['finalization_cursor'] ?? [];
+					$cursor    = $parameters['finalization_cursor'] ?? array();
 					$finalized = $this->finalize_stored_rows( $job_id, $parameters['prepared_rows_count'], $request, $cursor );
 					if ( is_wp_error( $finalized ) ) {
 						return $finalized; }
@@ -1455,7 +1460,7 @@ class Import_Service {
 			if ( $importer instanceof \RockStarLab\ImportExport\Model\Import\Post_Importer ) {
 				$importer->resolve_pending_acf_references();
 				// Elementor query controls / dynamic tags pointing to posts of this file.
-				\RockStarLab\ImportExport\Helper\Elementor_Refs::resolve_pending( [], empty( $parameters['migration_parent_id'] ) ); // A migration retries in its later steps.
+				\RockStarLab\ImportExport\Helper\Elementor_Refs::resolve_pending( array(), empty( $parameters['migration_parent_id'] ) ); // A migration retries in its later steps.
 			}
 			global $wpdb;
 			$updated = $wpdb->query( $wpdb->prepare( "UPDATE %i SET status = 'completed', progress = 100, completed_at = %s WHERE id = %d AND status = 'processing'", $wpdb->prefix . 'rsl_ie_jobs', current_time( 'mysql' ), $job_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Preserve concurrent lifecycle changes.
@@ -1477,7 +1482,7 @@ class Import_Service {
 	 */
 	public function finalize_migration( $id, array $maps, &$cursor = null ) {
 		$job    = rsl_ie()->Model->job->find( $id );
-		$params = $job ? json_decode( $job->parameters, true ) : [];
+		$params = $job ? json_decode( $job->parameters, true ) : array();
 		if ( ! $job || 'completed' !== $job->status || ! Migration_Service::running( $params['migration_parent_id'] ?? 0 ) ) {
 			return File_Store::error( 'migration_parent_required', 409 ); }
 		$request = $this->normalize_request( $params );
@@ -1491,7 +1496,7 @@ class Import_Service {
 			}
 			return $this->finalize_stored_rows( $id, $params['prepared_rows_count'], $request );
 		}
-		$data = $params['prepared_data'] ?? [];
+		$data = $params['prepared_data'] ?? array();
 		$this->fix_post_parent_relationships( $id, $data );
 		$this->fix_acf_media_relationships( $data );
 		$this->fix_acf_post_reference_relationships( $data );
@@ -1516,14 +1521,14 @@ class Import_Service {
 		$map                        = get_transient( $key );
 		$bounded                    = is_array( $cursor );
 		if ( $bounded && ( ! $cursor || ! is_array( $map ) ) ) {
-			$cursor = [
+			$cursor = array(
 				'phase'  => 'validate',
 				'offset' => 0,
-			];
+			);
 		}
 		$rebuild = ! is_array( $map ) || ! $map;
 		if ( $rebuild ) {
-			$map = []; }
+			$map = array(); }
 		for ( $offset = $bounded ? ( 'validate' === $cursor['phase'] ? $cursor['offset'] : $count ) : 0; $offset < $count; ) {
 			$slice_start = $offset;
 			$rows        = Import_Row_Store::read_batch( $job_id, $count, $offset, 100 );
@@ -1533,14 +1538,14 @@ class Import_Service {
 			$access  = Access_Policy::check_content_type(
 				$request['import_type'],
 				'import',
-				[
+				array(
 					'options' => $request['options'],
 					'records' => $rows,
-				]
+				)
 			);
 			if ( is_wp_error( $access ) ) {
 				return $access; }
-			if ( in_array( $request['import_type'], [ 'post', 'page', 'custom_post_types', 'woo_product' ], true ) ) {
+			if ( in_array( $request['import_type'], array( 'post', 'page', 'custom_post_types', 'woo_product' ), true ) ) {
 				$missing = array_filter(
 					$rows,
 					static function ( $row ) use ( $map ) {
@@ -1552,13 +1557,13 @@ class Import_Service {
 			}
 			if ( $bounded ) {
 				set_transient( $key, $map, DAY_IN_SECONDS );
-				$cursor = $offset < $count ? [
+				$cursor = $offset < $count ? array(
 					'phase'  => 'validate',
 					'offset' => $offset,
-				] : [
+				) : array(
 					'phase'  => 'repair',
 					'offset' => 0,
-				];
+				);
 				if ( $slice_start > 0 || $offset < $count ) {
 					return false; }
 			}
@@ -1573,38 +1578,38 @@ class Import_Service {
 			$access  = Access_Policy::check_content_type(
 				$request['import_type'],
 				'import',
-				[
+				array(
 					'options' => $request['options'],
 					'records' => $rows,
-				]
+				)
 			);
 			if ( is_wp_error( $access ) ) {
 				return $access; }
 			foreach ( $rows as $index => $row ) {
-				foreach ( [ 'fix_post_parent_relationships', 'fix_acf_media_relationships', 'fix_acf_post_reference_relationships', 'fix_comment_parent_relationships', 'fix_term_parent_relationships' ] as $repair ) {
+				foreach ( array( 'fix_post_parent_relationships', 'fix_acf_media_relationships', 'fix_acf_post_reference_relationships', 'fix_comment_parent_relationships', 'fix_term_parent_relationships' ) as $repair ) {
 					$fresh  = rsl_ie()->Model->job->find( $job_id );
 					$parent = $fresh ? ( json_decode( $fresh->parameters, true )['migration_parent_id'] ?? 0 ) : 0;
 					if ( ! $fresh || ( $parent ? ! Migration_Service::running( $parent ) : 'processing' !== $fresh->status ) ) {
 						if ( $bounded ) {
-							$cursor = [
+							$cursor = array(
 								'phase'  => 'repair',
 								'offset' => $offset - count( $rows ) + $index,
-							];
+							);
 						}
 						return false;
 					}
-					if ( in_array( $repair, [ 'fix_acf_media_relationships', 'fix_acf_post_reference_relationships' ], true ) ) {
-						$this->$repair( [ $row ] );
+					if ( in_array( $repair, array( 'fix_acf_media_relationships', 'fix_acf_post_reference_relationships' ), true ) ) {
+						$this->$repair( array( $row ) );
 					} else {
-						$this->$repair( $job_id, [ $row ], false );
+						$this->$repair( $job_id, array( $row ), false );
 					}
 				}
 			}
 			if ( $bounded && $offset < $count ) {
-				$cursor = [
+				$cursor = array(
 					'phase'  => 'repair',
 					'offset' => $offset,
-				];
+				);
 				return false;
 			}
 		}
@@ -1636,14 +1641,14 @@ class Import_Service {
 	 * @return string 'dmy', 'mdy', or '' when the rows give no answer or contradict each other.
 	 */
 	private function detect_date_order( $job_id, array $parameters ) {
-		$fields = [ 'post_date', 'post_date_gmt', 'post_modified', 'post_modified_gmt', 'comment_date', 'comment_date_gmt' ];
-		$votes  = [
+		$fields = array( 'post_date', 'post_date_gmt', 'post_modified', 'post_modified_gmt', 'comment_date', 'comment_date_gmt' );
+		$votes  = array(
 			'dmy' => 0,
 			'mdy' => 0,
-		];
+		);
 		$count  = (int) ( $parameters['prepared_rows_count'] ?? 0 );
 		$stored = isset( $parameters['prepared_rows_count'] );
-		$limit  = min( $stored ? $count : count( (array) ( $parameters['prepared_data'] ?? [] ) ), 20000 );
+		$limit  = min( $stored ? $count : count( (array) ( $parameters['prepared_data'] ?? array() ) ), 20000 );
 		for ( $offset = 0; $offset < $limit; $offset += 500 ) {
 			$rows = $stored ? Import_Row_Store::read_batch( $job_id, $count, $offset, 500 ) : array_slice( (array) $parameters['prepared_data'], $offset, 500 );
 			if ( is_wp_error( $rows ) || ! $rows ) {
@@ -1695,7 +1700,7 @@ class Import_Service {
 		$offset = (int) $parameters['offset'];
 		return rsl_ie()->Model->job->update(
 			$job_id,
-			[
+			array(
 				'parameters'      => wp_json_encode( $parameters ),
 				'result'          => wp_json_encode( $result ),
 				'total_items'     => $total,
@@ -1704,7 +1709,7 @@ class Import_Service {
 				'failed_items'    => (int) $result['failed'],
 				'skipped_items'   => (int) $result['skipped'],
 				'progress'        => $total > 0 ? min( 99, round( $offset / $total * 100 ) ) : 0,
-			]
+			)
 		);
 	}
 
@@ -1716,13 +1721,13 @@ class Import_Service {
 	 */
 	private function snapshot( $job ) {
 		$result = json_decode( (string) $job->result, true );
-		return [
-			'completed' => ! in_array( $job->status, [ 'pending', 'processing' ], true ),
+		return array(
+			'completed' => ! in_array( $job->status, array( 'pending', 'processing' ), true ),
 			'status'    => $job->status,
 			'offset'    => (int) $job->processed_items,
 			'progress'  => (float) $job->progress,
-			'result'    => is_array( $result ) ? $result : [],
-		];
+			'result'    => is_array( $result ) ? $result : array(),
+		);
 	}
 
 	/**
@@ -1748,9 +1753,9 @@ class Import_Service {
 	 */
 	private function fail( $job_id, \WP_Error $error ) {
 		$job = rsl_ie()->Model->job->find( $job_id );
-		if ( $job && in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
+		if ( $job && in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
 			$result               = json_decode( (string) $job->result, true );
-			$result               = is_array( $result ) ? $result : [];
+			$result               = is_array( $result ) ? $result : array();
 			$result['error']      = $error->get_error_message();
 			$result['error_code'] = $error->get_error_code();
 			Job_Log::write( $job_id, 'error', $error->get_error_message() );
@@ -1773,17 +1778,17 @@ class Import_Service {
 	 */
 	private function normalize_post_options( $import_type, $options ) {
 		if ( ! is_array( $options ) ) {
-			$options = [];
+			$options = array();
 		}
 
 		$import_type = strtolower( trim( (string) $import_type ) );
 
-		$map = [
+		$map = array(
 			'post'  => 'post',
 			'posts' => 'post',
 			'page'  => 'page',
 			'pages' => 'page',
-		];
+		);
 
 		if ( empty( $options['post_type'] ) && isset( $map[ $import_type ] ) ) {
 			$options['post_type'] = $map[ $import_type ];
@@ -1811,9 +1816,9 @@ class Import_Service {
 		}
 
 		// Download inputs must still point to the source until the importer has fetched them.
-		$source_fields = [ 'featured_image', 'featured_image_url', 'product_gallery', '_thumbnail_url' ];
+		$source_fields = array( 'featured_image', 'featured_image_url', 'product_gallery', '_thumbnail_url' );
 		if ( 'media' === $import_type ) {
-			$source_fields = array_merge( $source_fields, [ 'file', 'file_url', 'file_path', 'url', 'path' ] );
+			$source_fields = array_merge( $source_fields, array( 'file', 'file_url', 'file_path', 'url', 'path' ) );
 		}
 		foreach ( $data as $index => $row ) {
 			$data[ $index ] = $this->apply_replace_links_rules_to_value( $row, $rules, $replacement_count, $source_fields );
@@ -1830,7 +1835,7 @@ class Import_Service {
 	 * @return array Prepared data.
 	 */
 	private function sanitize_user_preference_meta_for_import( $import_type, $data ) {
-		if ( ! in_array( strtolower( (string) $import_type ), [ 'user', 'users' ], true ) || empty( $data ) || ! is_array( $data ) ) {
+		if ( ! in_array( strtolower( (string) $import_type ), array( 'user', 'users' ), true ) || empty( $data ) || ! is_array( $data ) ) {
 			return $data;
 		}
 
@@ -1878,7 +1883,7 @@ class Import_Service {
 			return false;
 		}
 
-		$exact = [
+		$exact = array(
 			'rich_editing',
 			'syntax_highlighting',
 			'infinite_scrolling',
@@ -1896,13 +1901,13 @@ class Import_Service {
 			'wp_media_library_mode',
 			'wp_dashboard_quick_press_last_post_id',
 			'wp_product_import_error_log',
-		];
+		);
 
 		if ( in_array( $key, $exact, true ) ) {
 			return true;
 		}
 
-		foreach ( [ 'metaboxhidden_', 'closedpostboxes_', 'meta-box-order_', 'manageedit-', 'edit_', 'screen_layout_' ] as $prefix ) {
+		foreach ( array( 'metaboxhidden_', 'closedpostboxes_', 'meta-box-order_', 'manageedit-', 'edit_', 'screen_layout_' ) as $prefix ) {
 			if ( 0 === strpos( $key, $prefix ) ) {
 				return true;
 			}
@@ -1919,14 +1924,14 @@ class Import_Service {
 	 */
 	private function get_replace_links_rules( $options ) {
 		if ( empty( $options['replace_links_rules'] ) || ! is_array( $options['replace_links_rules'] ) ) {
-			return [];
+			return array();
 		}
 
 		if ( isset( $options['replace_links'] ) && ! filter_var( $options['replace_links'], FILTER_VALIDATE_BOOLEAN ) ) {
-			return [];
+			return array();
 		}
 
-		$rules = [];
+		$rules = array();
 		foreach ( $options['replace_links_rules'] as $rule ) {
 			if ( ! is_array( $rule ) ) {
 				continue;
@@ -1939,10 +1944,10 @@ class Import_Service {
 				continue;
 			}
 
-			$rules[] = [
+			$rules[] = array(
 				'search'  => $search,
 				'replace' => $replace,
-			];
+			);
 		}
 
 		return $rules;
@@ -1974,7 +1979,7 @@ class Import_Service {
 		return $host && strtolower( (string) $host ) === strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
 	}
 
-	private function apply_replace_links_rules_to_value( $value, $rules, &$replacement_count = 0, array $source_fields = [] ) {
+	private function apply_replace_links_rules_to_value( $value, $rules, &$replacement_count = 0, array $source_fields = array() ) {
 		if ( is_object( $value ) && $value instanceof \stdClass ) {
 			return (object) $this->apply_replace_links_rules_to_value( (array) $value, $rules, $replacement_count, $source_fields );
 		}
@@ -2025,7 +2030,7 @@ class Import_Service {
 					$value = (string) preg_replace_callback(
 						'~' . preg_quote( $search, '~' ) . '([^\s"\'<>()\]\[]*)~',
 						static function ( $m ) use ( $replace, &$replacement_count ) {
-							$tail = str_replace( [ '\\/', '%2F', '%2f' ], '/', $m[1] );
+							$tail = str_replace( array( '\\/', '%2F', '%2f' ), '/', $m[1] );
 							if ( false !== strpos( $tail, 'wp-content/uploads/' ) ) {
 								return $m[0];
 							}
@@ -2101,10 +2106,10 @@ class Import_Service {
 			}
 
 			wp_update_post(
-				[
+				array(
 					'ID'          => $target_id,
 					'post_parent' => $target_parent,
-				]
+				)
 			);
 		}
 
@@ -2143,14 +2148,14 @@ class Import_Service {
 			// Fields imported from portable acf_<name> columns were resolved by slug, login or name and
 			// already hold this site's IDs. Remapping them again as source IDs sent a link to an
 			// unrelated post whenever its local ID matched the source ID of another row in the file.
-			$portable = [];
+			$portable = array();
 			foreach ( array_keys( $row ) as $column ) {
 				if ( is_string( $column ) && 0 === strpos( $column, 'acf_' ) && strlen( $column ) > 4 ) {
 					$portable[] = substr( $column, 4 );
 				}
 			}
 
-			$meta = [];
+			$meta = array();
 			foreach ( $raw_meta as $key => $values ) {
 				if ( ! is_array( $values ) || ! array_key_exists( 0, $values ) ) {
 					continue;
@@ -2207,14 +2212,14 @@ class Import_Service {
 			// Fields imported from portable acf_<name> columns already hold this site's IDs. Remapping
 			// them again through the global "source ID => local ID" map turned a correct local ID into
 			// an unrelated attachment whenever it matched a source ID from an earlier import.
-			$portable = [];
+			$portable = array();
 			foreach ( array_keys( $row ) as $column ) {
 				if ( is_string( $column ) && 0 === strpos( $column, 'acf_' ) && strlen( $column ) > 4 ) {
 					$portable[] = substr( $column, 4 );
 				}
 			}
 
-			$meta = [];
+			$meta = array();
 			foreach ( $raw_meta as $key => $values ) {
 				if ( ! is_array( $values ) || ! array_key_exists( 0, $values ) ) {
 					continue;
@@ -2240,7 +2245,7 @@ class Import_Service {
 				'',
 				'',
 				$image_map,
-				[]
+				array()
 			);
 
 			foreach ( $updated_meta as $key => $value ) {
@@ -2269,10 +2274,10 @@ class Import_Service {
 		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact attachment source map is needed for post-import ACF media repair.
 
 		if ( empty( $rows ) ) {
-			return [];
+			return array();
 		}
 
-		$map = [];
+		$map = array();
 		foreach ( $rows as $row ) {
 			$attachment_id = absint( $row['post_id'] ?? 0 );
 			$source_id     = absint( $row['meta_value'] ?? 0 );
@@ -2292,7 +2297,7 @@ class Import_Service {
 	 * @return array
 	 */
 	private function build_post_source_id_map_from_meta( array $prepared_data ) {
-		$map = [];
+		$map = array();
 		foreach ( $prepared_data as $row ) {
 			$source_id = isset( $row['_rsl_ie_source_id'] ) ? absint( $row['_rsl_ie_source_id'] ) : absint( $row['ID'] ?? 0 );
 			if ( $source_id <= 0 ) {
@@ -2321,7 +2326,7 @@ class Import_Service {
 		}
 
 		$posts = get_posts(
-			[
+			array(
 				'post_type'              => 'any',
 				'post_status'            => 'any',
 				'posts_per_page'         => -1,
@@ -2329,22 +2334,22 @@ class Import_Service {
 				'no_found_rows'          => true,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
-				'meta_query'             => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Source ID repair lookup after import jobs.
+				'meta_query'             => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Source ID repair lookup after import jobs.
 					'relation' => 'OR',
-					[
+					array(
 						'key'   => '_rsl_ie_source_post_id',
 						'value' => (string) $source_id,
-					],
-					[
+					),
+					array(
 						'key'   => '_rsl_ie_source_id',
 						'value' => (string) $source_id,
-					],
-					[
+					),
+					array(
 						'key'   => '_rsl_ie_original_post_id',
 						'value' => (string) $source_id,
-					],
-				],
-			]
+					),
+				),
+			)
 		);
 
 		foreach ( $posts as $post_id ) {
@@ -2370,10 +2375,10 @@ class Import_Service {
 			Access_Policy::check_content_type(
 				$request['import_type'],
 				'import',
-				[
+				array(
 					'options'      => $request['options'],
-					'selected_ids' => [ $post_id ],
-				]
+					'selected_ids' => array( $post_id ),
+				)
 			)
 		);
 	}
@@ -2398,8 +2403,8 @@ class Import_Service {
 			return;
 		}
 
-		$update  = [];
-		$formats = [];
+		$update  = array();
+		$formats = array();
 		if ( isset( $item['comment_date'] ) && '' !== (string) $item['comment_date'] ) {
 			$update['comment_date'] = (string) $item['comment_date'];
 			$formats[]              = '%s';
@@ -2415,9 +2420,9 @@ class Import_Service {
 		$wpdb->update(
 			$wpdb->comments,
 			$update,
-			[ 'comment_ID' => $comment_id ],
+			array( 'comment_ID' => $comment_id ),
 			$formats,
-			[ '%d' ]
+			array( '%d' )
 		);
 
 		clean_comment_cache( $comment_id );
@@ -2434,7 +2439,7 @@ class Import_Service {
 	 */
 	private function find_imported_comment_id( $source_id ) {
 		$comment_ids = get_comments(
-			[
+			array(
 				'fields'     => 'ids',
 				'number'     => 1,
 				'orderby'    => 'comment_ID',
@@ -2442,7 +2447,7 @@ class Import_Service {
 				'status'     => 'any',
 				'meta_key'   => '_aie_source_comment_id',
 				'meta_value' => (string) absint( $source_id ),
-			]
+			)
 		);
 		return $comment_ids ? absint( $comment_ids[0] ) : 0;
 	}
@@ -2475,13 +2480,13 @@ class Import_Service {
 			// in the Source Comment ID / Source Parent Comment ID fields or in comment_ID / comment_parent.
 			$source_id     = 0;
 			$source_parent = 0;
-			foreach ( [ '_rsl_ie_source_comment_id', '_aie_source_comment_id', 'source_comment_id', 'comment_ID' ] as $field ) {
+			foreach ( array( '_rsl_ie_source_comment_id', '_aie_source_comment_id', 'source_comment_id', 'comment_ID' ) as $field ) {
 				if ( isset( $row[ $field ] ) && '' !== (string) $row[ $field ] ) {
 					$source_id = absint( $row[ $field ] );
 					break;
 				}
 			}
-			foreach ( [ '_rsl_ie_source_comment_parent_id', '_aie_source_comment_parent_id', 'source_comment_parent_id', 'comment_parent' ] as $field ) {
+			foreach ( array( '_rsl_ie_source_comment_parent_id', '_aie_source_comment_parent_id', 'source_comment_parent_id', 'comment_parent' ) as $field ) {
 				if ( isset( $row[ $field ] ) && '' !== (string) $row[ $field ] ) {
 					$source_parent = absint( $row[ $field ] );
 					break;
@@ -2493,14 +2498,14 @@ class Import_Service {
 			// The parent may come from an earlier import: find it by its stored source ID.
 			if ( $target_id > 0 && $source_parent > 0 && $target_parent <= 0 ) {
 				$found         = get_comments( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Targeted lookup by importer meta.
-					[
+					array(
 						'number'     => 1,
 						'fields'     => 'ids',
 						'status'     => 'any',
 						'meta_key'   => '_aie_source_comment_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Targeted lookup.
 						'meta_value' => (string) $source_parent, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Targeted lookup.
 						'post_id'    => (int) ( get_comment( $target_id )->comment_post_ID ?? 0 ),
-					]
+					)
 				);
 				$target_parent = ! empty( $found[0] ) ? absint( $found[0] ) : 0;
 			}
@@ -2519,10 +2524,10 @@ class Import_Service {
 			}
 
 			\RockStarLab\ImportExport\Helper\Comment_Update::update(
-				[
+				array(
 					'comment_ID'     => $target_id,
 					'comment_parent' => $target_parent,
-				]
+				)
 			);
 		}
 
@@ -2548,7 +2553,7 @@ class Import_Service {
 
 		$key = 'rsl_ie_import_term_id_map_' . $job_id;
 		$map = get_transient( $key );
-		$map = is_array( $map ) ? $map : [];
+		$map = is_array( $map ) ? $map : array();
 
 		foreach ( $prepared_data as $row ) {
 			$taxonomy = isset( $row['taxonomy'] ) ? sanitize_key( (string) $row['taxonomy'] ) : '';
@@ -2556,7 +2561,7 @@ class Import_Service {
 				continue;
 			}
 
-			$tax_map = isset( $map[ $taxonomy ] ) && is_array( $map[ $taxonomy ] ) ? $map[ $taxonomy ] : [];
+			$tax_map = isset( $map[ $taxonomy ] ) && is_array( $map[ $taxonomy ] ) ? $map[ $taxonomy ] : array();
 
 			$source_id     = isset( $row['_rsl_ie_source_term_id'] ) ? absint( $row['_rsl_ie_source_term_id'] ) : absint( $row['term_id'] ?? 0 );
 			$source_parent = isset( $row['_rsl_ie_source_parent_term_id'] ) ? absint( $row['_rsl_ie_source_parent_term_id'] ) : absint( $row['parent'] ?? 0 );
@@ -2601,7 +2606,7 @@ class Import_Service {
 				continue;
 			}
 
-			$result = wp_update_term( $target_id, $taxonomy, [ 'parent' => $target_parent ] );
+			$result = wp_update_term( $target_id, $taxonomy, array( 'parent' => $target_parent ) );
 			if ( is_wp_error( $result ) ) {
 				continue;
 			}

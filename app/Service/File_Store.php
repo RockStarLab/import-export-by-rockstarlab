@@ -43,7 +43,7 @@ class File_Store {
 		if ( ! $base || ! is_dir( $base ) ) {
 			return self::error( 'private_storage', 503 );
 		}
-		$roots = [ ABSPATH, WP_CONTENT_DIR ];
+		$roots = array( ABSPATH, WP_CONTENT_DIR );
 		if ( ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
 			$roots[] = $_SERVER['DOCUMENT_ROOT']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- Server configuration, canonicalized below; never a request path.
 		}
@@ -158,7 +158,7 @@ class File_Store {
 			$table   = $wpdb->prefix . 'rsl_ie_file_chunks';
 			$deleted = $limit > 0
 				? $wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE file_id=%s ORDER BY chunk_index LIMIT %d', $table, $id, $limit ) )
-				: $wpdb->delete( $table, [ 'file_id' => $id ], [ '%s' ] );
+				: $wpdb->delete( $table, array( 'file_id' => $id ), array( '%s' ) );
 			if ( false === $deleted ) {
 				return self::error( 'file_write', 500 );
 			}
@@ -232,7 +232,7 @@ class File_Store {
 	 */
 	public static function error( $reason, $status = 400, $message = '' ) {
 		// Problems a person can fix themselves get a sentence instead of a code.
-		$readable = [
+		$readable = array(
 			'spreadsheet_invalid' => __( 'The spreadsheet could not be read. Open it in Excel, Google Sheets or LibreOffice and save it again as .xlsx, .ods or .csv.', 'import-export-by-rockstarlab' ),
 			// A broken or wrong package said "File operation failed: zip_invalid.".
 			'zip_invalid'         => __( 'This file is not a valid ZIP archive. Download the content migration package again from the source site and upload the .zip file without changing it.', 'import-export-by-rockstarlab' ),
@@ -245,10 +245,10 @@ class File_Store {
 			'upload_incomplete'   => __( 'The upload did not finish. Upload the file again.', 'import-export-by-rockstarlab' ),
 			'file_not_found'      => __( 'The file is no longer on the server (old uploads are cleaned up). Upload it again.', 'import-export-by-rockstarlab' ),
 			'busy'                => __( 'This file is being processed by another job. Try again in a moment.', 'import-export-by-rockstarlab' ),
-		];
+		);
 		if ( '' === $message ) {
 			$message = $readable[ $reason ] ?? sprintf( /* translators: %s: File operation failure code. */ __( 'File operation failed: %s.', 'import-export-by-rockstarlab' ), $reason );
 		}
-		return new \WP_Error( 'rsl_ie_' . $reason, $message, [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_' . $reason, $message, array( 'status' => $status ) );
 	}
 }

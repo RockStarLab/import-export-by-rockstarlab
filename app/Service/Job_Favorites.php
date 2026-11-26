@@ -26,10 +26,10 @@ class Job_Favorites {
 	public static function ids( $user_id = 0 ) {
 		$user_id = $user_id ? (int) $user_id : get_current_user_id();
 		if ( $user_id <= 0 ) {
-			return [];
+			return array();
 		}
 		$ids = get_user_option( self::META, $user_id );
-		return is_array( $ids ) ? array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) ) : [];
+		return is_array( $ids ) ? array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) ) : array();
 	}
 
 	/**
@@ -55,12 +55,12 @@ class Job_Favorites {
 		$user_id = $user_id ? (int) $user_id : get_current_user_id();
 		$job_id  = (int) $job_id;
 		if ( $user_id <= 0 ) {
-			return new \WP_Error( 'rsl_ie_job_favorite_user', __( 'Sign in to mark favorite jobs.', 'import-export-by-rockstarlab' ), [ 'status' => 401 ] );
+			return new \WP_Error( 'rsl_ie_job_favorite_user', __( 'Sign in to mark favorite jobs.', 'import-export-by-rockstarlab' ), array( 'status' => 401 ) );
 		}
 		if ( $favorite && ( $job_id <= 0 || ! rsl_ie()->Model->job->find( $job_id ) ) ) {
-			return new \WP_Error( 'rsl_ie_job_not_found', __( 'Job not found', 'import-export-by-rockstarlab' ), [ 'status' => 404 ] );
+			return new \WP_Error( 'rsl_ie_job_not_found', __( 'Job not found', 'import-export-by-rockstarlab' ), array( 'status' => 404 ) );
 		}
-		$ids = array_values( array_diff( self::ids( $user_id ), [ $job_id ] ) );
+		$ids = array_values( array_diff( self::ids( $user_id ), array( $job_id ) ) );
 		if ( $favorite ) {
 			array_unshift( $ids, $job_id );
 			$ids = array_slice( $ids, 0, self::MAX );

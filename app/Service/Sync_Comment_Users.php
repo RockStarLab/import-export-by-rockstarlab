@@ -20,8 +20,8 @@ class Sync_Comment_Users {
 	 * @param array $site Optional PUSH connection.
 	 * @return array|\WP_Error
 	 */
-	public static function prepare( array $comments, $mapping = null, $destination = true, array $site = [] ) {
-		return null === $mapping ? [] : apply_filters( 'rsl_ie_sync_comment_users', Migration_Sync_Maps::error(), $comments, $mapping, $destination, $site );
+	public static function prepare( array $comments, $mapping = null, $destination = true, array $site = array() ) {
+		return null === $mapping ? array() : apply_filters( 'rsl_ie_sync_comment_users', Migration_Sync_Maps::error(), $comments, $mapping, $destination, $site );
 	}
 
 	/**
@@ -33,10 +33,10 @@ class Sync_Comment_Users {
 	 * @param array $site Optional PUSH connection.
 	 * @return array|\WP_Error
 	 */
-	public static function posts( array $posts, $mapping = null, $destination = true, array $site = [] ) {
-		$comments = [];
+	public static function posts( array $posts, $mapping = null, $destination = true, array $site = array() ) {
+		$comments = array();
 		foreach ( $posts as $post ) {
-			foreach ( $post['comments'] ?? [] as $comment ) {
+			foreach ( $post['comments'] ?? array() as $comment ) {
 				$comments[] = $comment;
 			}
 		}

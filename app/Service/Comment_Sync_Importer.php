@@ -38,9 +38,9 @@ class Comment_Sync_Importer {
 		$comments = Sync_Graph::order( $comments, 'comment_ID', 'comment_parent' );
 		if ( is_wp_error( $comments ) ) {
 			return $comments; }
-		$targets = [];
+		$targets = array();
 		foreach ( $comments as &$comment ) {
-			foreach ( [ 'meta', 'acf', 'post' ] as $key ) {
+			foreach ( array( 'meta', 'acf', 'post' ) as $key ) {
 				if ( isset( $comment[ $key ] ) && ! is_array( $comment[ $key ] ) ) {
 					return Standalone_Sync_Policy::denied(); }
 			}
@@ -72,7 +72,7 @@ class Comment_Sync_Importer {
 					$comment['comment_parent'] = 0;
 					continue;
 				}
-				$record          = $existing_parent ? get_comment( $existing_parent ) : null;
+				$record = $existing_parent ? get_comment( $existing_parent ) : null;
 				if ( ! $record || ! current_user_can( 'edit_comment', $existing_parent ) || ! Standalone_Sync_Policy::comment_type( $record->comment_type, $comment['comment_type'] ?? 'comment' ) || $existing_parent === $comment['_sync_existing'] ) {
 					return Standalone_Sync_Policy::denied();
 				}
@@ -99,14 +99,14 @@ class Comment_Sync_Importer {
 		$comments = $this->prepare( $comments, $mapping, $target, $allow_missing_parents );
 		if ( is_wp_error( $comments ) ) {
 			return $comments; }
-		$result = [
+		$result  = array(
 			'created' => 0,
 			'updated' => 0,
 			'failed'  => 0,
-			'errors'  => [],
-			'mapping' => [],
-		];
-		$touched = [];
+			'errors'  => array(),
+			'mapping' => array(),
+		);
+		$touched = array();
 		foreach ( $comments as $comment ) {
 			$source        = (int) $comment['comment_ID'];
 			$post          = $comment['_sync_target'];
@@ -118,12 +118,12 @@ class Comment_Sync_Importer {
 				// A preceding parent write failed; never turn its reply into a root.
 				return Migration_Sync_Maps::error();
 			}
-			$data = [
+			$data = array(
 				'comment_post_ID' => $post,
 				'comment_parent'  => $parent,
 				'user_id'         => $users[ $source ] ?? 0,
-			];
-			foreach ( [ 'comment_author', 'comment_author_IP', 'comment_agent', 'comment_date', 'comment_date_gmt', 'comment_approved' ] as $key ) {
+			);
+			foreach ( array( 'comment_author', 'comment_author_IP', 'comment_agent', 'comment_date', 'comment_date_gmt', 'comment_approved' ) as $key ) {
 				if ( isset( $comment[ $key ] ) ) {
 					$data[ $key ] = sanitize_text_field( (string) $comment[ $key ] ); }
 			}
@@ -145,7 +145,7 @@ class Comment_Sync_Importer {
 				} finally {
 					remove_filter( 'wp_kses_allowed_html', $sync_html, 10 );
 				}
-				$id                 = is_wp_error( $saved ) ? $saved : $existing; } else {
+				$id = is_wp_error( $saved ) ? $saved : $existing; } else {
 				$id = wp_insert_comment( wp_slash( $data ) ); }
 				if ( ! $id || is_wp_error( $id ) ) {
 					++$result['failed'];
@@ -158,7 +158,7 @@ class Comment_Sync_Importer {
 				$result['mapping'][ $source ] = (int) $id;
 				update_comment_meta( $id, '_rsl_ie_original_comment_id', $source );
 				( $this->helpers['acf'] )( $id, $comment );
-				foreach ( $comment['meta'] ?? [] as $key => $value ) {
+				foreach ( $comment['meta'] ?? array() as $key => $value ) {
 					if ( '_rsl_ie_original_comment_id' === $key || ( $this->helpers['acf_meta'] )( $key, $comment ) ) {
 						continue; }
 					update_comment_meta( $id, sanitize_key( $key ), ( $this->helpers['media'] )( $value, 0 ) );
@@ -185,14 +185,14 @@ class Comment_Sync_Importer {
 	 */
 	private function existing( $post, $source ) {
 		$ids = get_comments(
-			[
+			array(
 				'post_id'    => $post,
 				'status'     => 'any',
 				'number'     => 1,
 				'fields'     => 'ids',
 				'meta_key'   => '_rsl_ie_original_comment_id',
 				'meta_value' => (int) $source,
-			]
+			)
 		); // phpcs:ignore WordPress.DB.SlowDBQuery -- Scoped source identity lookup.
 		return $ids ? (int) $ids[0] : 0;
 	}

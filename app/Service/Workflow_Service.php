@@ -27,7 +27,7 @@ class Workflow_Service {
 	 * @param array|object|null $input Core-validated input.
 	 * @return array|\WP_Error
 	 */
-	public function execute( $action, $input = [] ) {
+	public function execute( $action, $input = array() ) {
 		$permission = Access_Policy::check_management();
 		if ( is_wp_error( $permission ) ) {
 			return $permission; }
@@ -37,21 +37,21 @@ class Workflow_Service {
 		if ( 'get-content-schema' === $action ) {
 			return $this->content_schema( $input['content_type'], $input['meta_offset'] ?? 0 ); }
 		if ( 'list-url-sources' === $action ) {
-			$sources = [];
+			$sources = array();
 			foreach ( \RockStarLab\ImportExport\Model\Export\Urls_Exporter::get_available_source_tokens() as $token ) {
 				$request = Export_Request::normalize(
-					[
+					array(
 						'export_type' => 'urls',
-						'options'     => [ 'content_types' => [ $token ] ],
-					]
+						'options'     => array( 'content_types' => array( $token ) ),
+					)
 				);
 				if ( ! is_wp_error( $request ) ) {
 					$sources[] = $token; }
 			}
-			return [ 'sources' => $sources ];
+			return array( 'sources' => $sources );
 		}
 		if ( 'get-diagnostics' === $action ) {
-			return [
+			return array(
 				'api_version'          => 1,
 				'plugin_version'       => RSL_IE_VERSION,
 				'wordpress_version'    => get_bloginfo( 'version' ),
@@ -60,7 +60,7 @@ class Workflow_Service {
 				'recovery_scheduled'   => false !== wp_next_scheduled( 'rsl_ie_recover_jobs' ),
 				'max_upload_bytes'     => File_Service::max_bytes(),
 				'max_json_chunk_bytes' => 1048576,
-			];
+			);
 		}
 
 		if ( 0 === strpos( $action, 'import-' ) || 0 === strpos( $action, 'export-' ) ) {
@@ -72,7 +72,7 @@ class Workflow_Service {
 				return $this->prepare( $input ); }
 			$service = 'import' === $operation ? new Import_Service() : new Export_Service();
 			$method  = substr( $action, strlen( $operation ) + 1 );
-			if ( ! in_array( $method, [ 'count', 'preview', 'validate', 'start' ], true ) || ! is_callable( [ $service, $method ] ) ) {
+			if ( ! in_array( $method, array( 'count', 'preview', 'validate', 'start' ), true ) || ! is_callable( array( $service, $method ) ) ) {
 				return $this->error( 'unknown_workflow', 404 ); }
 			return $service->$method( $input );
 		}
@@ -85,13 +85,13 @@ class Workflow_Service {
 			case 'upload-chunk':
 				return $this->chunk( $input );
 			case 'upload-complete':
-				return $files->finalize( $input['file_id'], $input['parser_options'] ?? [], $input['resumable'] ?? false );
+				return $files->finalize( $input['file_id'], $input['parser_options'] ?? array(), $input['resumable'] ?? false );
 			case 'upload-from-url':
-				$fetched = $files->from_url( (string) $input['url'], $input['parser_options'] ?? [] );
-				return is_wp_error( $fetched ) ? $fetched : array_diff_key( $fetched, [ 'source_url' => true ] );
+				$fetched = $files->from_url( (string) $input['url'], $input['parser_options'] ?? array() );
+				return is_wp_error( $fetched ) ? $fetched : array_diff_key( $fetched, array( 'source_url' => true ) );
 			case 'remote-servers':
 				$permission = Access_Policy::check_management();
-				return is_wp_error( $permission ) ? $permission : [ 'servers' => Remote_File_Service::servers() ];
+				return is_wp_error( $permission ) ? $permission : array( 'servers' => Remote_File_Service::servers() );
 			case 'remote-browse':
 				$listing = ( new Remote_File_Service() )->browse( (string) $input['server_id'], (string) ( $input['path'] ?? '/' ) );
 				if ( ! is_wp_error( $listing ) ) {
@@ -104,7 +104,7 @@ class Workflow_Service {
 			case 'upload-abort':
 				return $files->abort( $input['file_id'] );
 			case 'file-preview':
-				return $files->preview( $input['file_id'], $input['parser_options'] ?? [] );
+				return $files->preview( $input['file_id'], $input['parser_options'] ?? array() );
 			case 'file-get':
 				return isset( $input['job_id'] ) ? $files->from_job( $input['job_id'] ) : $files->get( $input['file_id'] );
 			case 'job-list':
@@ -153,23 +153,23 @@ class Workflow_Service {
 		if ( is_wp_error( $exporter ) ) {
 			return $exporter; }
 		$import = null;
-		if ( ! in_array( $type, [ 'urls', 'form_entries' ], true ) ) {
+		if ( ! in_array( $type, array( 'urls', 'form_entries' ), true ) ) {
 			$importer = Importer_Factory::get_importer( $type );
 			if ( is_wp_error( $importer ) ) {
 				return $importer; }
-			$import = [
+			$import = array(
 				'required_fields' => $importer->get_required_fields(),
 				'optional_fields' => $importer->get_optional_fields(),
 				'option_help'     => $importer->get_supported_options(),
 				'input_schema'    => Workflow_Schemas::import_input( true ),
-			];
+			);
 		}
-		if ( in_array( $type, [ 'post', 'page' ], true ) ) {
+		if ( in_array( $type, array( 'post', 'page' ), true ) ) {
 			$import['optional_fields'][] = Elementor_Fields::DOCUMENT_FIELD;
 		}
 		$export_fields = $exporter->get_available_fields();
-		if ( in_array( $type, [ 'post', 'page' ], true ) ) {
-			$base_fields   = array_merge( $import['required_fields'], $import['optional_fields'], $exporter->get_default_fields(), [ 'ID', 'guid', 'elementor_document', '_wp_page_template' ] );
+		if ( in_array( $type, array( 'post', 'page' ), true ) ) {
+			$base_fields   = array_merge( $import['required_fields'], $import['optional_fields'], $exporter->get_default_fields(), array( 'ID', 'guid', 'elementor_document', '_wp_page_template' ) );
 			$export_fields = array_values(
 				array_filter(
 					$export_fields,
@@ -179,24 +179,24 @@ class Workflow_Service {
 				)
 			);
 		}
-		return [
+		return array(
 			'content_type' => $type,
 			'import'       => $import,
-			'export'       => [
+			'export'       => array(
 				'fields'         => $export_fields,
 				'default_fields' => $exporter->get_default_fields(),
 				'filter_help'    => $exporter->get_supported_filters(),
 				'custom_meta'    => $this->meta_fields( $type, $meta_offset ),
 				'taxonomies'     => $this->taxonomies( $type ),
 				'input_schema'   => Workflow_Schemas::export_input( true ),
-			],
-			'integrations' => [
-				'acf'       => ! in_array( $type, [ 'urls', 'form_entries' ], true ) ? ACF_Fields::get_fields_for_content_type( $type ) : [],
-				'yoast'     => in_array( $type, [ 'post', 'page' ], true ) && defined( 'WPSEO_VERSION' ) ? Seo_Fields::get_yoast_fields( $type ) : [],
-				'rank_math' => in_array( $type, [ 'post', 'page' ], true ) && Seo_Fields::is_rank_math_active() ? Seo_Fields::get_rank_math_fields( $type ) : [],
-				'elementor' => in_array( $type, [ 'post', 'page' ], true ) && Elementor_Fields::is_active() ? Elementor_Fields::get_fields() : [],
-			],
-		];
+			),
+			'integrations' => array(
+				'acf'       => ! in_array( $type, array( 'urls', 'form_entries' ), true ) ? ACF_Fields::get_fields_for_content_type( $type ) : array(),
+				'yoast'     => in_array( $type, array( 'post', 'page' ), true ) && defined( 'WPSEO_VERSION' ) ? Seo_Fields::get_yoast_fields( $type ) : array(),
+				'rank_math' => in_array( $type, array( 'post', 'page' ), true ) && Seo_Fields::is_rank_math_active() ? Seo_Fields::get_rank_math_fields( $type ) : array(),
+				'elementor' => in_array( $type, array( 'post', 'page' ), true ) && Elementor_Fields::is_active() ? Elementor_Fields::get_fields() : array(),
+			),
+		);
 	}
 	/**
 	 * Discover relation fields of a Free post type, not standalone term operations.
@@ -205,16 +205,16 @@ class Workflow_Service {
 	 * @return array
 	 */
 	private function taxonomies( $type ) {
-		if ( ! in_array( $type, [ 'post', 'page', 'media' ], true ) ) {
-			return []; }
-		$result = [];
+		if ( ! in_array( $type, array( 'post', 'page', 'media' ), true ) ) {
+			return array(); }
+		$result = array();
 		foreach ( get_object_taxonomies( 'media' === $type ? 'attachment' : $type, 'objects' ) as $taxonomy ) {
-			$result[] = [
+			$result[] = array(
 				'name'         => $taxonomy->name,
 				'label'        => $taxonomy->label,
 				'hierarchical' => (bool) $taxonomy->hierarchical,
 				'field'        => 'taxonomy_' . $taxonomy->name,
-			];
+			);
 		}
 		return $result;
 	}
@@ -229,18 +229,18 @@ class Workflow_Service {
 	private function meta_fields( $type, $offset ) {
 		global $wpdb;
 		$offset = max( 0, (int) $offset );
-		if ( in_array( $type, [ 'urls', 'form_entries' ], true ) ) {
-			return [
-				'fields'      => [],
+		if ( in_array( $type, array( 'urls', 'form_entries' ), true ) ) {
+			return array(
+				'fields'      => array(),
 				'next_offset' => null,
-			]; }
+			); }
 		if ( 'comment' === $type ) {
 			$sql = $wpdb->prepare( "SELECT DISTINCT m.meta_key FROM %i m INNER JOIN %i c ON m.comment_id = c.comment_ID INNER JOIN %i p ON c.comment_post_ID = p.ID WHERE p.post_type IN ('post','page') AND c.comment_type IN ('','comment','pingback','trackback') AND m.meta_key NOT LIKE %s ORDER BY m.meta_key LIMIT 101 OFFSET %d", $wpdb->commentmeta, $wpdb->comments, $wpdb->posts, $wpdb->esc_like( '_' ) . '%', $offset );
 		} else {
 			$sql = $wpdb->prepare( 'SELECT DISTINCT m.meta_key FROM %i m INNER JOIN %i p ON m.post_id = p.ID WHERE p.post_type = %s AND m.meta_key NOT LIKE %s ORDER BY m.meta_key LIMIT 101 OFFSET %d', $wpdb->postmeta, $wpdb->posts, 'media' === $type ? 'attachment' : $type, $wpdb->esc_like( '_' ) . '%', $offset );
 		}
 		$keys = $wpdb->get_col( $sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.NotPrepared -- Both complete queries are prepared above; discover names without content values.
-		return [
+		return array(
 			'fields'      => array_map(
 				static function ( $key ) {
 					return 'meta_' . $key;
@@ -248,7 +248,7 @@ class Workflow_Service {
 				array_slice( $keys, 0, 100 )
 			),
 			'next_offset' => count( $keys ) > 100 ? $offset + 100 : null,
-		];
+		);
 	}
 
 	/**
@@ -261,16 +261,16 @@ class Workflow_Service {
 		$schema = $this->content_schema( $input['import_type'] );
 		if ( is_wp_error( $schema ) || empty( $schema['import'] ) ) {
 			return is_wp_error( $schema ) ? $schema : $this->error( 'unsupported_operation', 400 ); }
-		$file = ( new File_Service() )->preview( $input['file_id'], $input['parser_options'] ?? [] );
+		$file = ( new File_Service() )->preview( $input['file_id'], $input['parser_options'] ?? array() );
 		if ( is_wp_error( $file ) ) {
 			return $file; }
-		$fields  = array_merge( $schema['import']['required_fields'], $schema['import']['optional_fields'] );
-		$fields  = array_merge( $fields, self::acf_columns( $schema ) );
+		$fields = array_merge( $schema['import']['required_fields'], $schema['import']['optional_fields'] );
+		$fields = array_merge( $fields, self::acf_columns( $schema ) );
 		// Yoast SEO and Rank Math columns of this plugin's own export (yoast_wpseo_title,
 		// rank_math_title...) map by name too, as Auto Map does in the admin.
-		$seo_type = in_array( $input['import_type'], [ 'post', 'page' ], true ) ? $input['import_type'] : ( post_type_exists( (string) $input['import_type'] ) ? (string) $input['import_type'] : '' );
+		$seo_type = in_array( $input['import_type'], array( 'post', 'page' ), true ) ? $input['import_type'] : ( post_type_exists( (string) $input['import_type'] ) ? (string) $input['import_type'] : '' );
 		if ( '' !== $seo_type ) {
-			$seo = [];
+			$seo = array();
 			if ( defined( 'WPSEO_VERSION' ) ) {
 				$seo = array_merge( $seo, \RockStarLab\ImportExport\Helper\Seo_Fields::get_yoast_fields( $seo_type ) );
 			}
@@ -279,26 +279,26 @@ class Workflow_Service {
 			}
 			$fields = array_merge( $fields, array_values( array_filter( array_map( static fn( $f ) => is_array( $f ) ? (string) ( $f['name'] ?? '' ) : '', $seo ) ) ) );
 		}
-		$mapping = [];
+		$mapping = array();
 		$headers = array_map( 'strval', (array) $file['headers'] );
 		// Column names of WordPress exports (WXR) and the WordPress REST API, as Auto Map in the
 		// admin reads them: WP-CLI and AI agent imports of such files mapped nothing and failed.
-		$aliases = [
-			'title'            => 'post_title',
-			'title.rendered'   => 'post_title',
-			'content:encoded'  => 'post_content',
-			'content.rendered' => 'post_content',
-			'excerpt:encoded'  => 'post_excerpt',
-			'excerpt.rendered' => 'post_excerpt',
-			'wp:post_name'     => 'post_name',
-			'wp:post_date'     => 'post_date',
-			'wp:post_date_gmt' => 'post_date_gmt',
-			'wp:status'        => 'post_status',
-			'wp:menu_order'    => 'menu_order',
+		$aliases        = array(
+			'title'             => 'post_title',
+			'title.rendered'    => 'post_title',
+			'content:encoded'   => 'post_content',
+			'content.rendered'  => 'post_content',
+			'excerpt:encoded'   => 'post_excerpt',
+			'excerpt.rendered'  => 'post_excerpt',
+			'wp:post_name'      => 'post_name',
+			'wp:post_date'      => 'post_date',
+			'wp:post_date_gmt'  => 'post_date_gmt',
+			'wp:status'         => 'post_status',
+			'wp:menu_order'     => 'menu_order',
 			'wp:attachment_url' => 'file_url',
-			'dc:creator'       => 'author_login',
-		];
-		$mapped_targets = [];
+			'dc:creator'        => 'author_login',
+		);
+		$mapped_targets = array();
 		foreach ( $headers as $index => $header ) {
 			$target = in_array( $header, $fields, true ) ? $header : $this->relation_target( $input['import_type'], $header );
 			$alias  = $aliases[ strtolower( $header ) ] ?? '';
@@ -310,13 +310,13 @@ class Workflow_Service {
 			} elseif ( '' === $target && preg_match( '/^\x{FEFF}?(meta_[A-Za-z0-9_\-]+)$/u', $header, $meta_match ) && ! isset( $mapped_targets[ $meta_match[1] ] ) ) {
 				// Custom field columns of this plugin's own export ("meta_<key>", hidden keys included).
 				$target = $meta_match[1];
-			} elseif ( '' === $target && preg_match( '/^taxonomy_([a-z0-9_-]+)$/', $header, $tax_col ) && ( taxonomy_exists( $tax_col[1] ) || in_array( $tax_col[1], [ 'language', 'post_translations' ], true ) ) ) {
+			} elseif ( '' === $target && preg_match( '/^taxonomy_([a-z0-9_-]+)$/', $header, $tax_col ) && ( taxonomy_exists( $tax_col[1] ) || in_array( $tax_col[1], array( 'language', 'post_translations' ), true ) ) ) {
 				// Term columns of this plugin's own export ("taxonomy_<taxonomy>"), including the language
 				// and translation group columns that WPML and Polylang sites add to every content type.
 				$target = $header;
-			} elseif ( in_array( $input['import_type'], [ 'post', 'page' ], true ) && 'category' === $header && taxonomy_exists( 'category' ) && in_array( 'taxonomies', $fields, true ) ) {
+			} elseif ( in_array( $input['import_type'], array( 'post', 'page' ), true ) && 'category' === $header && taxonomy_exists( 'category' ) && in_array( 'taxonomies', $fields, true ) ) {
 				$dynamic = 'taxonomy_category';
-			} elseif ( in_array( $input['import_type'], [ 'post', 'page' ], true ) && 'tag' === $header && taxonomy_exists( 'post_tag' ) && in_array( 'taxonomies', $fields, true ) ) {
+			} elseif ( in_array( $input['import_type'], array( 'post', 'page' ), true ) && 'tag' === $header && taxonomy_exists( 'post_tag' ) && in_array( 'taxonomies', $fields, true ) ) {
 				$dynamic = 'taxonomy_post_tag';
 			} elseif ( preg_match( '/^category:([a-z0-9_-]+)$/', $header, $tax_match ) && taxonomy_exists( $tax_match[1] ) && in_array( 'taxonomies', $fields, true ) ) {
 				$dynamic = 'taxonomy_' . $tax_match[1];
@@ -336,16 +336,16 @@ class Workflow_Service {
 			// A readable copy ("category_names") is used only when the file has no portable column for it.
 			if ( $target !== $header && in_array( $target, $headers, true ) ) {
 				continue; }
-			$mapping[] = [
+			$mapping[] = array(
 				'source_index' => $index,
 				'target_field' => $target,
-			];
+			);
 		}
-		return [
+		return array(
 			'file'    => $file,
 			'schema'  => $schema,
 			'mapping' => $mapping,
-		];
+		);
 	}
 	/**
 	 * The "acf_<field>" columns that exports write for the ACF fields of this content type, so
@@ -356,8 +356,8 @@ class Workflow_Service {
 	 * @return string[]
 	 */
 	public static function acf_columns( $schema ) {
-		$columns = [];
-		foreach ( (array) ( $schema['integrations']['acf'] ?? $schema['acf'] ?? [] ) as $field ) {
+		$columns = array();
+		foreach ( (array) ( $schema['integrations']['acf'] ?? $schema['acf'] ?? array() ) as $field ) {
 			$name = is_array( $field ) ? (string) ( $field['name'] ?? '' ) : '';
 			if ( '' !== $name ) {
 				$columns[] = 'acf_' . $name;
@@ -374,14 +374,14 @@ class Workflow_Service {
 	 * @return string Target field, or '' when the column is not one of them.
 	 */
 	private function relation_target( $type, $header ) {
-		if ( ! in_array( $type, [ 'post', 'page' ], true ) ) {
+		if ( ! in_array( $type, array( 'post', 'page' ), true ) ) {
 			return ''; }
-		$aliases = [
+		$aliases = array(
 			'categories'     => 'categories',
 			'category_names' => 'categories',
 			'tags'           => 'tags',
 			'tag_names'      => 'tags',
-		];
+		);
 		if ( 'post' === $type && isset( $aliases[ $header ] ) ) {
 			return $aliases[ $header ]; }
 		if ( 0 === strpos( $header, 'taxonomy_' ) && is_object_in_taxonomy( $type, substr( $header, 9 ) ) ) {
@@ -420,6 +420,6 @@ class Workflow_Service {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $status ) {
-		return new \WP_Error( 'rsl_ie_' . $code, __( 'The workflow request is not available or is invalid.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_' . $code, __( 'The workflow request is not available or is invalid.', 'import-export-by-rockstarlab' ), array( 'status' => $status ) );
 	}
 }

@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
 /** Native operation adapter with independent durable recovery state. */
 class UpdraftPlus_Service {
 	const HOOK       = 'rsl_ie_updraft_worker';
-	const COMPONENTS = [ 'db', 'plugins', 'themes', 'uploads', 'others' ];
+	const COMPONENTS = array( 'db', 'plugins', 'themes', 'uploads', 'others' );
 
 	/**
 	 * Install cron and native operation lifecycle hooks.
@@ -24,13 +24,13 @@ class UpdraftPlus_Service {
 	 * @return void
 	 */
 	public static function hooks() {
-		add_action( self::HOOK, [ self::class, 'worker' ] );
-		add_filter( 'updraftplus_backup_complete', [ self::class, 'backup_complete' ] );
-		add_filter( 'updraftplus_logline', [ self::class, 'backup_log' ], 10, 2 );
-		add_action( 'updraftplus_restore_completed', [ self::class, 'restore_complete' ] );
-		add_action( 'updraftplus_pre_entity_restoration', [ self::class, 'guard_native_restore' ], 1 );
+		add_action( self::HOOK, array( self::class, 'worker' ) );
+		add_filter( 'updraftplus_backup_complete', array( self::class, 'backup_complete' ) );
+		add_filter( 'updraftplus_logline', array( self::class, 'backup_log' ), 10, 2 );
+		add_action( 'updraftplus_restore_completed', array( self::class, 'restore_complete' ) );
+		add_action( 'updraftplus_pre_entity_restoration', array( self::class, 'guard_native_restore' ), 1 );
 		// Also prevent manually/scheduled-started native backups overlapping an agent restore.
-		add_filter( 'updraftplus_boot_backup', [ self::class, 'allow_native_backup' ], 10, 1 );
+		add_filter( 'updraftplus_boot_backup', array( self::class, 'allow_native_backup' ), 10, 1 );
 	}
 
 	/**
@@ -80,7 +80,7 @@ class UpdraftPlus_Service {
 	 * @return array
 	 */
 	private static function output( array $job ) {
-		return array_intersect_key( $job, array_flip( [ 'job_id', 'type', 'status', 'stage', 'created_at', 'updated_at', 'backup_id', 'native_job_id', 'error_code', 'message', 'recovery_url' ] ) );
+		return array_intersect_key( $job, array_flip( array( 'job_id', 'type', 'status', 'stage', 'created_at', 'updated_at', 'backup_id', 'native_job_id', 'error_code', 'message', 'recovery_url' ) ) );
 	}
 	/**
 	 * Load an operation belonging to this administrator and workflow.
@@ -103,7 +103,7 @@ class UpdraftPlus_Service {
 	 * @return bool
 	 */
 	private static function terminal( $job ) {
-		return in_array( $job['status'], [ 'completed', 'failed', 'cancelled' ], true ); }
+		return in_array( $job['status'], array( 'completed', 'failed', 'cancelled' ), true ); }
 
 	/**
 	 * Validate and dispatch an authorized ability request.
@@ -113,9 +113,9 @@ class UpdraftPlus_Service {
 	 * @return array|\WP_Error
 	 * @throws \RuntimeException When the operation cannot safely proceed.
 	 */
-	public function execute( $name, $input = [] ) {
+	public function execute( $name, $input = array() ) {
 		if ( ! self::allowed() ) {
-			return new \WP_Error( 'updraft_access_denied', 'Enable both abilities switches and use an authorized UpdraftPlus administrator.', [ 'status' => 403 ] );
+			return new \WP_Error( 'updraft_access_denied', 'Enable both abilities switches and use an authorized UpdraftPlus administrator.', array( 'status' => 403 ) );
 		}
 		$definitions = UpdraftPlus_Catalog::definitions();
 		if ( ! isset( $definitions[ $name ] ) || ! is_array( $input ) ) {
@@ -129,29 +129,29 @@ class UpdraftPlus_Service {
 		try {
 			global $updraftplus;
 			if ( 'updraftplus-status' === $name ) {
-				return [
+				return array(
 					'version'           => (string) $updraftplus->version,
 					'native_busy'       => self::native_busy(),
 					'cron_disabled'     => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON,
 					'restore_supported' => self::supported_restore(),
-					'limitations'       => [ 'Restore: requires UpdraftPlus 1.26.8 or later, single site, direct filesystem, local standard archives from this site.', 'Encrypted, incremental, foreign, multisite and remote-only restores require the UpdraftPlus dashboard.', 'Database or plugin restoration may remove API access. Reconnect in WordPress; never treat a disconnected request as success.' ],
-				];
+					'limitations'       => array( 'Restore: requires UpdraftPlus 1.26.8 or later, single site, direct filesystem, local standard archives from this site.', 'Encrypted, incremental, foreign, multisite and remote-only restores require the UpdraftPlus dashboard.', 'Database or plugin restoration may remove API access. Reconnect in WordPress; never treat a disconnected request as success.' ),
+				);
 			}
 			if ( 'updraftplus-backup-list' === $name ) {
 				$history = \UpdraftPlus_Backup_History::get_history();
-				$result  = [];
+				$result  = array();
 				foreach ( array_slice( $history, $input['offset'] ?? 0, $input['limit'] ?? 20, true ) as $id => $set ) {
 					$result[] = self::metadata( $id, $set );
 				}
-				return [
+				return array(
 					'backups' => $result,
 					'total'   => count( $history ),
-				];
+				);
 			}
 			if ( 'updraftplus-backup-get' === $name ) {
 				return self::metadata( $input['backup_id'], self::backup( $input['backup_id'] ) );
 			}
-			if ( in_array( $name, [ 'updraftplus-backup-status', 'updraftplus-restore-status' ], true ) ) {
+			if ( in_array( $name, array( 'updraftplus-backup-status', 'updraftplus-restore-status' ), true ) ) {
 				$job = self::owned_job( $input['job_id'], 'updraftplus-backup-status' === $name ? 'backup' : 'restore' );
 				return self::output( self::refresh( $job ) );
 			}
@@ -191,8 +191,8 @@ class UpdraftPlus_Service {
 			}
 			self::idle();
 			if ( 'updraftplus-backup-start' === $name && ! empty( $input['send_to_remote'] ) ) {
-				$services = (array) \UpdraftPlus_Options::get_updraft_option( 'updraft_service', [] );
-				$services = array_values( array_diff( $services, [ 'none', '' ] ) );
+				$services = (array) \UpdraftPlus_Options::get_updraft_option( 'updraft_service', array() );
+				$services = array_values( array_diff( $services, array( 'none', '' ) ) );
 				if ( ! $services || ! \UpdraftPlus_Storage_Methods_Interface::get_enabled_storage_objects_and_ids( $services ) ) {
 					self::fail( 'updraft_remote_storage_not_configured' );
 				}
@@ -209,7 +209,7 @@ class UpdraftPlus_Service {
 				self::verify_archives( $plan );
 			}
 			$id  = bin2hex( random_bytes( 16 ) );
-			$job = [
+			$job = array(
 				'job_id'        => $id,
 				'type'          => $plan ? 'restore' : 'backup',
 				'status'        => 'queued',
@@ -223,18 +223,18 @@ class UpdraftPlus_Service {
 				'recovery_url'  => admin_url( 'options-general.php?page=updraftplus' ),
 				'owner'         => self::owner(),
 				'user_id'       => get_current_user_id(),
-				'input'         => $plan ? [] : $input,
+				'input'         => $plan ? array() : $input,
 				'plan'          => $plan,
-			];
+			);
 			self::save( $job );
 			UpdraftPlus_Store::write(
 				$key,
-				[
+				array(
 					'hash'   => $hash,
 					'job_id' => $id,
-				]
+				)
 			);
-			UpdraftPlus_Store::write( 'active', [ 'job_id' => $id ] );
+			UpdraftPlus_Store::write( 'active', array( 'job_id' => $id ) );
 			if ( $plan ) {
 				$plan['used'] = $id;
 				UpdraftPlus_Store::write( 'plan-' . $input['plan_id'], $plan ); }
@@ -248,7 +248,7 @@ class UpdraftPlus_Service {
 			return self::output( $job );
 		} catch ( \RuntimeException $e ) {
 			$code = preg_match( '/^updraft_[a-z_]+$/D', $e->getMessage() ) ? $e->getMessage() : 'updraft_operation_failed';
-			return new \WP_Error( $code, self::error_message( $code ), [ 'status' => 409 ] );
+			return new \WP_Error( $code, self::error_message( $code ), array( 'status' => 409 ) );
 		} finally {
 			if ( $lock ) {
 				UpdraftPlus_Store::unlock( $lock );
@@ -263,7 +263,7 @@ class UpdraftPlus_Service {
 	 * @return string
 	 */
 	public static function error_message( $code ) {
-		$messages = [
+		$messages = array(
 			'updraft_access_revoked'                => __( 'Backup and restore through AI agents were turned off while the job was running.', 'import-export-by-rockstarlab' ),
 			'updraft_archive_changed'               => __( 'A backup file changed after the restore plan was made. Make a new restore plan.', 'import-export-by-rockstarlab' ),
 			'updraft_archive_checksum_mismatch'     => __( 'A backup file does not match its checksum, so it may be damaged. Use another backup.', 'import-export-by-rockstarlab' ),
@@ -295,8 +295,8 @@ class UpdraftPlus_Service {
 			'updraft_restore_version_unsupported'   => __( 'This UpdraftPlus version is not supported for restoring through AI agents. Update UpdraftPlus or use its dashboard.', 'import-export-by-rockstarlab' ),
 			'updraft_unsafe_archive'                => __( 'A backup file contains unsafe paths and was not restored. Use another backup.', 'import-export-by-rockstarlab' ),
 			'updraft_zip_extension_required'        => __( 'The PHP Zip extension is required. Ask your host to enable it.', 'import-export-by-rockstarlab' ),
-		];
-		$message = $messages[ $code ] ?? __( 'The operation did not complete.', 'import-export-by-rockstarlab' );
+		);
+		$message  = $messages[ $code ] ?? __( 'The operation did not complete.', 'import-export-by-rockstarlab' );
 		/* translators: %s: error code */
 		return $message . ' ' . sprintf( __( 'Nothing is confirmed as done; check the UpdraftPlus dashboard. Code: %s.', 'import-export-by-rockstarlab' ), $code );
 	}
@@ -308,10 +308,10 @@ class UpdraftPlus_Service {
 	 * @return void
 	 */
 	private static function schedule( $id ) {
-		if ( wp_next_scheduled( self::HOOK, [ $id ] ) ) {
+		if ( wp_next_scheduled( self::HOOK, array( $id ) ) ) {
 			return;
 		}
-		if ( ! wp_schedule_single_event( time() + 1, self::HOOK, [ $id ] ) ) {
+		if ( ! wp_schedule_single_event( time() + 1, self::HOOK, array( $id ) ) ) {
 			self::fail( 'updraft_cron_schedule_failed' );
 		}
 		if ( ! ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ) ) {
@@ -357,7 +357,7 @@ class UpdraftPlus_Service {
 	 * @return array
 	 */
 	private static function metadata( $id, $set ) {
-		$components = [];
+		$components = array();
 		$count      = 0;
 		$local      = 0;
 		$size       = 0;
@@ -377,7 +377,7 @@ class UpdraftPlus_Service {
 					}
 			}
 		}
-		return [
+		return array(
 			'backup_id'           => (string) $id,
 			'created_at'          => (int) $id,
 			'components'          => $components,
@@ -385,8 +385,8 @@ class UpdraftPlus_Service {
 			'local_archive_count' => $local,
 			'size_bytes'          => max( 0, $size ),
 			'result'              => self::historical_result( $set ),
-			'remote_storage'      => array_values( array_intersect( (array) ( $set['service'] ?? [] ), [ 'dropbox', 's3', 's3generic', 'googledrive', 'ftp', 'sftp', 'webdav', 'azure', 'cloudfiles', 'openstack', 'onedrive', 'pcloud', 'backblaze', 'googlecloud', 'dreamobjects', 'email', 'updraftvault' ] ) ),
-		];
+			'remote_storage'      => array_values( array_intersect( (array) ( $set['service'] ?? array() ), array( 'dropbox', 's3', 's3generic', 'googledrive', 'ftp', 'sftp', 'webdav', 'azure', 'cloudfiles', 'openstack', 'onedrive', 'pcloud', 'backblaze', 'googlecloud', 'dreamobjects', 'email', 'updraftvault' ) ) ),
+		);
 	}
 	/**
 	 * Report success only when the completion callback was recorded.
@@ -416,7 +416,7 @@ class UpdraftPlus_Service {
 			return true;
 		}
 		foreach ( (array) _get_cron_array() as $events ) {
-			foreach ( (array) ( $events['updraft_backup_resume'] ?? [] ) as $event ) {
+			foreach ( (array) ( $events['updraft_backup_resume'] ?? array() ) as $event ) {
 				$nonce = $event['args'][1] ?? '';
 				if ( $nonce === $except ) {
 					continue;
@@ -512,10 +512,10 @@ class UpdraftPlus_Service {
 				self::save( $job );
 				UpdraftPlus_Store::write(
 					'origin-' . $job['native_job_id'],
-					[
+					array(
 						'site'      => site_url(),
 						'completed' => true,
-					]
+					)
 				);
 			}
 		} catch ( \RuntimeException $e ) {
@@ -533,7 +533,7 @@ class UpdraftPlus_Service {
 	 */
 	public static function backup_log( $line, $nonce ) {
 		// phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- Must match the native plugin's translated terminal messages.
-		$failures = [ __( 'The backup attempt has finished, apparently unsuccessfully', 'updraftplus' ), __( 'The backup was aborted by the user', 'updraftplus' ) ];
+		$failures = array( __( 'The backup attempt has finished, apparently unsuccessfully', 'updraftplus' ), __( 'The backup was aborted by the user', 'updraftplus' ) );
 		if ( ! in_array( $line, $failures, true ) ) {
 			return $line;
 		}
@@ -605,21 +605,21 @@ class UpdraftPlus_Service {
 			self::fail( 'updraft_restore_version_unsupported' );
 		}
 		$set = self::backup( $input['backup_id'] );
-		if ( ! empty( $set['meta_foreign'] ) || ! empty( $set['is_multisite'] ) || count( $set['incremental_sets'] ?? [] ) > 1 ) {
+		if ( ! empty( $set['meta_foreign'] ) || ! empty( $set['is_multisite'] ) || count( $set['incremental_sets'] ?? array() ) > 1 ) {
 			self::fail( 'updraft_restore_format_unsupported' );
 		}
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		if ( 'direct' !== get_filesystem_method() || ! wp_is_writable( WP_CONTENT_DIR ) ) {
 			self::fail( 'updraft_direct_filesystem_required' );
 		}
-		$archives = [];
+		$archives = array();
 		$bytes    = 0;
 		$entities = $updraftplus->get_backupable_file_entities( true );
 		foreach ( $input['components'] as $component ) {
 			if ( 'db' === $component ) {
 				continue;
 			}
-			foreach ( (array) ( $entities[ $component ]['path'] ?? [] ) as $path ) {
+			foreach ( (array) ( $entities[ $component ]['path'] ?? array() ) as $path ) {
 				if ( is_link( $path ) || ! is_dir( $path ) || ! wp_is_writable( $path ) ) {
 					self::fail( 'updraft_component_not_writable' );
 				}
@@ -642,8 +642,8 @@ class UpdraftPlus_Service {
 				if ( ! $size || ( null !== $expected && $size !== (int) $expected ) ) {
 					self::fail( 'updraft_archive_size_mismatch' );
 				}
-				foreach ( (array) ( $set['checksums'] ?? [] ) as $algorithm => $checksums ) {
-					if ( in_array( $algorithm, [ 'sha1', 'sha256', 'md5' ], true ) && isset( $checksums[ $component . $index ] ) && ! hash_equals( $checksums[ $component . $index ], hash_file( $algorithm, $path ) ) ) {
+				foreach ( (array) ( $set['checksums'] ?? array() ) as $algorithm => $checksums ) {
+					if ( in_array( $algorithm, array( 'sha1', 'sha256', 'md5' ), true ) && isset( $checksums[ $component . $index ] ) && ! hash_equals( $checksums[ $component . $index ], hash_file( $algorithm, $path ) ) ) {
 						self::fail( 'updraft_archive_checksum_mismatch' );
 					}
 				}
@@ -671,7 +671,7 @@ class UpdraftPlus_Service {
 					} finally {
 						$zip->close(); }
 				} else {
-					$analysis = $updraftplus->analyse_db_file( (int) $input['backup_id'], [], $path, true );
+					$analysis = $updraftplus->analyse_db_file( (int) $input['backup_id'], array(), $path, true );
 					if ( ! empty( $analysis[2] ) || empty( $analysis[3]['same_url'] ) || ! empty( $analysis[3]['multisite'] ) ) {
 						self::fail( 'updraft_database_preflight_failed' );
 					}
@@ -692,7 +692,7 @@ class UpdraftPlus_Service {
 		}
 		$token  = bin2hex( random_bytes( 32 ) );
 		$id     = bin2hex( random_bytes( 16 ) );
-		$output = [
+		$output = array(
 			'plan_id'             => $id,
 			'confirmation_token'  => $token,
 			'expires_at'          => time() + 600,
@@ -700,16 +700,16 @@ class UpdraftPlus_Service {
 			'components'          => $input['components'],
 			'required_free_bytes' => $required,
 			'warning'             => 'Restoration overwrites selected components: ' . implode( ', ', $input['components'] ) . '. Newer data may be lost. Database/plugins may replace accounts, credentials, settings and this integration. Explicitly confirm before starting. Keep WordPress hosting and UpdraftPlus dashboard access available.',
-		];
+		);
 		$stored = $output;
 		unset( $stored['confirmation_token'] );
-		$stored += [
+		$stored += array(
 			'token_hash' => hash( 'sha256', $token ),
 			'owner'      => self::owner(),
 			'archives'   => $archives,
 			'set'        => $set,
 			'site'       => site_url(),
-		];
+		);
 		UpdraftPlus_Store::write( 'plan-' . $id, $stored );
 		return $output;
 	}
@@ -818,10 +818,10 @@ class UpdraftPlus_Service {
 			self::save( $job );
 			global $updraftplus;
 			if ( 'backup' === $job['type'] ) {
-				UpdraftPlus_Store::write( 'origin-' . $job['native_job_id'], [ 'site' => site_url() ] );
-				$files  = array_values( array_diff( $job['input']['components'], [ 'db' ] ) );
+				UpdraftPlus_Store::write( 'origin-' . $job['native_job_id'], array( 'site' => site_url() ) );
+				$files  = array_values( array_diff( $job['input']['components'], array( 'db' ) ) );
 				$remote = ! empty( $job['input']['send_to_remote'] );
-				$result = $updraftplus->boot_backup( $files ? 1 : 0, in_array( 'db', $job['input']['components'], true ) ? 1 : 0, $files, false, $remote ? false : 'none', [ 'use_nonce' => $job['native_job_id'] ] );
+				$result = $updraftplus->boot_backup( $files ? 1 : 0, in_array( 'db', $job['input']['components'], true ) ? 1 : 0, $files, false, $remote ? false : 'none', array( 'use_nonce' => $job['native_job_id'] ) );
 				if ( false === $result ) {
 					self::fail( 'updraft_backup_start_failed' );
 				}
@@ -834,7 +834,7 @@ class UpdraftPlus_Service {
 				$job = UpdraftPlus_Store::read( 'job-' . $id );
 			}
 			if ( isset( $job ) && $job && ! self::terminal( $job ) ) {
-				$safe_checkpoint = ! empty( $job['checkpoint'] ) && in_array( $job['status'], [ 'queued', 'paused' ], true );
+				$safe_checkpoint = ! empty( $job['checkpoint'] ) && in_array( $job['status'], array( 'queued', 'paused' ), true );
 				$job['status']   = 'restore' === $job['type'] && ( 'running' === $job['status'] || ! empty( $job['checkpoint'] ) ) ? 'interrupted' : 'failed';
 				if ( $safe_checkpoint ) {
 					$job['status'] = 'paused';
@@ -867,26 +867,26 @@ class UpdraftPlus_Service {
 			self::fail( 'updraft_direct_filesystem_required' );
 		}
 		$updraftplus->initiate_restore_job( $job['native_job_id'] );
-		$options      = [
+		$options      = array(
 			'updraft_encryptionphrase'          => '',
 			'updraft_incremental_restore_point' => -1,
 			'delete_during_restore'             => false,
-		];
+		);
 		$continuation = $job['checkpoint'] ?? null;
 		if ( $continuation ) {
 			$updraftplus->jobdata_set_from_array( $continuation );
 		}
 		$updraftplus->jobdata_set_multi(
-			[
+			array(
 				'backup_timestamp' => (int) $job['backup_id'],
 				'updraft_restore'  => $job['plan']['components'],
 				'restore_options'  => $options,
-			]
+			)
 		);
 		$set              = $job['plan']['set'];
 		$set['timestamp'] = (int) $job['backup_id'];
 		// Archives were verified locally. Do not download or delete them during restore.
-		$set['service']   = [];
+		$set['service']   = array();
 		$finished         = false;
 		$handler_restored = false;
 		register_shutdown_function(
@@ -911,7 +911,7 @@ class UpdraftPlus_Service {
 		$checkpoint = static function () use ( &$job ) {
 			global $updraftplus;
 			$job['checkpoint'] = $updraftplus->jobdata_getarray( $job['native_job_id'] );
-			$remaining         = array_filter( $job['checkpoint']['second_loop_entities'] ?? [] );
+			$remaining         = array_filter( $job['checkpoint']['second_loop_entities'] ?? array() );
 			if ( ! $remaining ) {
 				return; // Let native final cleanup confirm completion.
 			}
@@ -931,7 +931,7 @@ class UpdraftPlus_Service {
 			}
 		);
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Native restorer logging lifecycle.
-		set_error_handler( [ $updraftplus, 'php_error' ] );
+		set_error_handler( array( $updraftplus, 'php_error' ) );
 		try {
 			$updraftplus_restorer = new \Updraft_Restorer( new \Updraft_Restorer_Skin(), $set, false, $options, $continuation );
 			$result               = $updraftplus_restorer->perform_restore( array_combine( $job['plan']['components'], $job['plan']['components'] ), $options );

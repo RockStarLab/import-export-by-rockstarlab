@@ -14,10 +14,10 @@ class Job_Runner {
 	/** Register hooks once during plugin bootstrap. */
 	public static function register() {
 		// phpcs:ignore WordPress.WP.CronInterval -- Minute recovery schedules at most 100 jobs and does not execute batches.
-		add_filter( 'cron_schedules', [ __CLASS__, 'schedules' ] );
-		add_action( 'rsl_ie_run_job', [ __CLASS__, 'run_scheduled' ] );
-		add_action( 'rsl_ie_recover_jobs', [ __CLASS__, 'recover' ] );
-		add_action( 'init', [ __CLASS__, 'ensure_recovery' ] );
+		add_filter( 'cron_schedules', array( __CLASS__, 'schedules' ) );
+		add_action( 'rsl_ie_run_job', array( __CLASS__, 'run_scheduled' ) );
+		add_action( 'rsl_ie_recover_jobs', array( __CLASS__, 'recover' ) );
+		add_action( 'init', array( __CLASS__, 'ensure_recovery' ) );
 	}
 
 	/** Schedule after init, when translated interval labels may be loaded. */
@@ -35,10 +35,10 @@ class Job_Runner {
 	 */
 	public static function schedules( $schedules ) {
 		// phpcs:ignore WordPress.WP.CronInterval -- Bounded recovery only schedules jobs; batches run in separate events.
-		$schedules['rsl_ie_minute'] = [
+		$schedules['rsl_ie_minute'] = array(
 			'interval' => 60,
 			'display'  => __( 'Plugin job recovery every minute', 'import-export-by-rockstarlab' ),
-		];
+		);
 		return $schedules;
 	}
 
@@ -52,7 +52,7 @@ class Job_Runner {
 		$job = rsl_ie()->Model->job->find( (int) $job_id );
 		if ( $job && ! empty( json_decode( $job->parameters, true )['migration_parent_id'] ) ) {
 			return true; }
-		$args = [ (int) $job_id ];
+		$args = array( (int) $job_id );
 		if ( wp_next_scheduled( 'rsl_ie_run_job', $args ) ) {
 			return true;
 		}
@@ -72,7 +72,7 @@ class Job_Runner {
 
 	public static function run( $job_id, $drain_migration = false ) {
 		$job = rsl_ie()->Model->job->find( (int) $job_id );
-		if ( ! $job || ( ! Job_Service::supports( $job ) && ! Sync_Job_Service::supports( $job ) && ! Migration_Service::supports( $job ) && ! AI_URL_Service::supports( $job ) && ! ( 'import' === $job->type && 'media_sync' === $job->data_type ) ) || ! in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
+		if ( ! $job || ( ! Job_Service::supports( $job ) && ! Sync_Job_Service::supports( $job ) && ! Migration_Service::supports( $job ) && ! AI_URL_Service::supports( $job ) && ! ( 'import' === $job->type && 'media_sync' === $job->data_type ) ) || ! in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
 			return;
 		}
 		// Cron runs in the site language; messages saved into the job (warnings, media errors)
@@ -86,7 +86,7 @@ class Job_Runner {
 			}
 		}
 		$job = rsl_ie()->Model->job->find( (int) $job_id );
-		if ( $job && in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
+		if ( $job && in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
 			self::schedule( $job_id );
 		}
 	}
@@ -103,7 +103,7 @@ class Job_Runner {
 		if ( AI_URL_Service::supports( $job ) ) {
 			( new AI_URL_Service() )->process_background_batch( (int) $job_id );
 		} else {
-			$service = Migration_Service::supports( $job ) ? new Migration_Service() : ( Sync_Job_Service::supports( $job ) ? new Sync_Job_Service() : ( 'media_sync' === $job->data_type ? new Media_Folder_Service() : ( 'import' === $job->type ? new Import_Service() : new Export_Service() ) ) );
+			$service  = Migration_Service::supports( $job ) ? new Migration_Service() : ( Sync_Job_Service::supports( $job ) ? new Sync_Job_Service() : ( 'media_sync' === $job->data_type ? new Media_Folder_Service() : ( 'import' === $job->type ? new Import_Service() : new Export_Service() ) ) );
 			$started  = microtime( true );
 			$deadline = $started + 8;
 			do {
@@ -132,7 +132,7 @@ class Job_Runner {
 				// Background exports (schedules, AI agents) drain too: with the default batch of 3 items,
 				// one batch per cron event left a 74-post scheduled export running for many minutes.
 				$drains  = Migration_Service::supports( $job ) || $service instanceof Import_Service || $service instanceof Export_Service;
-				$advance = ! is_wp_error( $outcome ) && empty( $outcome['locked'] ) && $drain_migration && $drains && $current && in_array( $current->status, [ 'pending', 'processing' ], true );
+				$advance = ! is_wp_error( $outcome ) && empty( $outcome['locked'] ) && $drain_migration && $drains && $current && in_array( $current->status, array( 'pending', 'processing' ), true );
 			} while ( $advance && microtime( true ) < ( $service instanceof Import_Service ? $started + Import_Service::BATCH_TIME_BUDGET / 2 : $deadline ) );
 		}
 	}

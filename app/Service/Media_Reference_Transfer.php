@@ -5,11 +5,14 @@ namespace RockStarLab\ImportExport\Service;
 defined( 'ABSPATH' ) || exit;
 
 class Media_Reference_Transfer {
-	private static $context = [];
+	private static $context = array();
 
 	/** The connection comes only from an authorized outbound service, never peer input. */
 	public static function run( $direction, array $site, callable $callback ) {
-		self::$context[] = [ 'direction' => $direction, 'site' => $site ];
+		self::$context[] = array(
+			'direction' => $direction,
+			'site'      => $site,
+		);
 		try {
 			return $callback();
 		} finally {
@@ -18,16 +21,21 @@ class Media_Reference_Transfer {
 	}
 
 	public static function export( array $proofs ) {
-		$files = [];
+		$files   = array();
 		$context = end( self::$context );
-		$media = new Media_Library_Sync_Service();
+		$media   = new Media_Library_Sync_Service();
 		foreach ( $proofs as $id => $proof ) {
 			if ( $media->reference_proof( (int) $id, true ) !== $proof ) {
 				return Migration_Sync_Maps::error();
 			}
-			$file = [ 'attachment_id' => (int) $id, 'media_reference_version' => 1, 'proof' => $proof, 'acf' => [] ];
+			$file = array(
+				'attachment_id'           => (int) $id,
+				'media_reference_version' => 1,
+				'proof'                   => $proof,
+				'acf'                     => array(),
+			);
 			if ( $context && 'push' === $context['direction'] ) {
-				$result = ( new Media_Chunk_Transfer() )->execute( 'push', $context['site'], [ 'media_ids' => [ (int) $id ] ] );
+				$result = ( new Media_Chunk_Transfer() )->execute( 'push', $context['site'], array( 'media_ids' => array( (int) $id ) ) );
 				if ( is_wp_error( $result ) ) {
 					return $result;
 				}
@@ -48,13 +56,13 @@ class Media_Reference_Transfer {
 			return $check;
 		}
 		$context = end( self::$context );
-		$mapping = [];
-		$media = new Media_Library_Sync_Service();
+		$mapping = array();
+		$media   = new Media_Library_Sync_Service();
 		foreach ( $files as $file ) {
 			$id = $file['attachment_id'];
 			if ( $context && 'pull' === $context['direction'] ) {
 				// A peer cannot choose a local target ID during Pull.
-				$result = ( new Media_Chunk_Transfer() )->execute( 'pull', $context['site'], [ 'media_ids' => [ $id ] ] );
+				$result = ( new Media_Chunk_Transfer() )->execute( 'pull', $context['site'], array( 'media_ids' => array( $id ) ) );
 				if ( is_wp_error( $result ) ) {
 					return $result;
 				}
@@ -77,10 +85,10 @@ class Media_Reference_Transfer {
 		if ( count( $files ) !== count( $proofs ) ) {
 			return Migration_Sync_Maps::error();
 		}
-		$seen = [];
+		$seen = array();
 		foreach ( $files as $file ) {
 			$id = $file['attachment_id'] ?? null;
-			if ( ! is_int( $id ) || isset( $seen[ $id ] ) || ! isset( $proofs[ $id ] ) || 1 !== ( $file['media_reference_version'] ?? null ) || ( $file['proof'] ?? null ) !== $proofs[ $id ] || ( $file['acf'] ?? null ) !== [] || array_diff( array_keys( $file ), [ 'attachment_id', 'media_reference_version', 'proof', 'acf', 'target_attachment_id', 'url' ] ) ) {
+			if ( ! is_int( $id ) || isset( $seen[ $id ] ) || ! isset( $proofs[ $id ] ) || 1 !== ( $file['media_reference_version'] ?? null ) || ( $file['proof'] ?? null ) !== $proofs[ $id ] || ( $file['acf'] ?? null ) !== array() || array_diff( array_keys( $file ), array( 'attachment_id', 'media_reference_version', 'proof', 'acf', 'target_attachment_id', 'url' ) ) ) {
 				return Migration_Sync_Maps::error();
 			}
 			$seen[ $id ] = true;

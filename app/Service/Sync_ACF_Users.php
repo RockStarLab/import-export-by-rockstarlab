@@ -19,7 +19,7 @@ class Sync_ACF_Users {
 	 * @param array  $context Parsed protocol input.
 	 * @return array|true|\WP_Error
 	 */
-	public static function run( $operation, array $data, array $context = [] ) {
+	public static function run( $operation, array $data, array $context = array() ) {
 		return apply_filters( 'rsl_ie_sync_acf_users', Migration_Sync_Maps::error(), $operation, $data, $context );
 	}
 }

@@ -28,13 +28,13 @@ class Job_Notification_Service {
 	const LOCK         = 'rsl_ie_notifications_lock';
 	const HOURLY_LIMIT = 30;
 	const LOG_SIZE     = 30;
-	const TYPES        = [ 'import', 'export', 'sync', 'migration' ];
+	const TYPES        = array( 'import', 'export', 'sync', 'migration' );
 
 	/** Register hooks. */
 	public static function init() {
 		$service = new self();
-		add_action( self::CRON_HOOK, [ $service, 'sweep' ] );
-		add_action( 'shutdown', [ $service, 'on_shutdown' ], 20 );
+		add_action( self::CRON_HOOK, array( $service, 'sweep' ) );
+		add_action( 'shutdown', array( $service, 'on_shutdown' ), 20 );
 	}
 
 	/**
@@ -43,35 +43,35 @@ class Job_Notification_Service {
 	 * @return array
 	 */
 	public function settings() {
-		$raw = get_option( self::OPTION, [] );
-		$raw = is_array( $raw ) ? $raw : [];
+		$raw = get_option( self::OPTION, array() );
+		$raw = is_array( $raw ) ? $raw : array();
 		// An unedited subject or message follows the current language instead of the language it was saved in.
-		foreach ( [ 'subject', 'message' ] as $key ) {
+		foreach ( array( 'subject', 'message' ) as $key ) {
 			if ( isset( $raw[ $key ] ) && $this->is_default_text( $key, (string) $raw[ $key ] ) ) {
 				unset( $raw[ $key ] );
 			}
 		}
 		return array_replace_recursive(
-			[
+			array(
 				'enabled'   => false,
 				'when'      => 'errors',
-				'job_types' => [ 'import', 'export' ],
-				'email'     => [
+				'job_types' => array( 'import', 'export' ),
+				'email'     => array(
 					'enabled'    => false,
-					'recipients' => [],
-				],
-				'slack'     => [
+					'recipients' => array(),
+				),
+				'slack'     => array(
 					'enabled' => false,
 					'url'     => '',
-				],
-				'webhook'   => [
+				),
+				'webhook'   => array(
 					'enabled' => false,
 					'url'     => '',
 					'secret'  => '',
-				],
+				),
 				'subject'   => $this->default_subject(),
 				'message'   => $this->default_message(),
-			],
+			),
 			$raw
 		);
 	}
@@ -83,29 +83,29 @@ class Job_Notification_Service {
 	 */
 	public function public_settings() {
 		$s = $this->settings();
-		return [
+		return array(
 			'enabled'      => (bool) $s['enabled'],
 			'when'         => $s['when'],
 			'job_types'    => array_values( $s['job_types'] ),
-			'email'        => [
+			'email'        => array(
 				'enabled'    => (bool) $s['email']['enabled'],
 				'recipients' => array_values( $s['email']['recipients'] ),
-			],
-			'slack'        => [
+			),
+			'slack'        => array(
 				'enabled' => (bool) $s['slack']['enabled'],
 				'url_set' => '' !== $s['slack']['url'],
 				'url'     => self::mask_url( $s['slack']['url'] ),
-			],
-			'webhook'      => [
+			),
+			'webhook'      => array(
 				'enabled'    => (bool) $s['webhook']['enabled'],
 				'url_set'    => '' !== $s['webhook']['url'],
 				'url'        => self::mask_url( $s['webhook']['url'] ),
 				'secret_set' => '' !== $s['webhook']['secret'],
-			],
+			),
 			'subject'      => $s['subject'],
 			'message'      => $s['message'],
 			'placeholders' => array_keys( $this->placeholders( null ) ),
-		];
+		);
 	}
 
 	/**
@@ -123,7 +123,7 @@ class Job_Notification_Service {
 			$s['enabled'] = self::bool( $input['enabled'] );
 		}
 		if ( isset( $input['when'] ) ) {
-			if ( ! in_array( $input['when'], [ 'always', 'errors' ], true ) ) {
+			if ( ! in_array( $input['when'], array( 'always', 'errors' ), true ) ) {
 				return $this->error( 'notification_when', __( 'Choose when to notify: always or only when something failed.', 'import-export-by-rockstarlab' ) );
 			}
 			$s['when'] = $input['when'];
@@ -141,7 +141,7 @@ class Job_Notification_Service {
 			}
 			if ( isset( $input['email']['recipients'] ) ) {
 				$list = is_array( $input['email']['recipients'] ) ? $input['email']['recipients'] : preg_split( '/[\s,;]+/', (string) $input['email']['recipients'] );
-				$good = [];
+				$good = array();
 				foreach ( (array) $list as $address ) {
 					$address = trim( (string) $address );
 					if ( '' === $address ) {
@@ -161,7 +161,7 @@ class Job_Notification_Service {
 				$s['email']['recipients'] = array_values( $good );
 			}
 		}
-		foreach ( [ 'slack', 'webhook' ] as $channel ) {
+		foreach ( array( 'slack', 'webhook' ) as $channel ) {
 			if ( ! isset( $input[ $channel ] ) || ! is_array( $input[ $channel ] ) ) {
 				continue;
 			}
@@ -182,13 +182,16 @@ class Job_Notification_Service {
 		}
 		$new_secret = null;
 		if ( ! empty( $input['regenerate_secret'] ) || ( $s['webhook']['enabled'] && '' === $s['webhook']['secret'] ) ) {
-			$new_secret              = wp_generate_password( 40, false, false );
+			$new_secret             = wp_generate_password( 40, false, false );
 			$s['webhook']['secret'] = $new_secret;
 		}
-		foreach ( [ 'subject' => 200, 'message' => 2000 ] as $key => $max ) {
+		foreach ( array(
+			'subject' => 200,
+			'message' => 2000,
+		) as $key => $max ) {
 			if ( isset( $input[ $key ] ) ) {
-				$text = 'subject' === $key ? sanitize_text_field( (string) $input[ $key ] ) : sanitize_textarea_field( (string) $input[ $key ] );
-				$text = function_exists( 'mb_substr' ) ? mb_substr( $text, 0, $max ) : substr( $text, 0, $max );
+				$text      = 'subject' === $key ? sanitize_text_field( (string) $input[ $key ] ) : sanitize_textarea_field( (string) $input[ $key ] );
+				$text      = function_exists( 'mb_substr' ) ? mb_substr( $text, 0, $max ) : substr( $text, 0, $max );
 				$s[ $key ] = '' !== trim( $text ) ? $text : ( 'subject' === $key ? $this->default_subject() : $this->default_message() );
 			}
 		}
@@ -204,7 +207,7 @@ class Job_Notification_Service {
 			}
 		}
 		$was = (bool) $this->settings()['enabled'];
-		foreach ( [ 'subject', 'message' ] as $key ) {
+		foreach ( array( 'subject', 'message' ) as $key ) {
 			if ( $this->is_default_text( $key, (string) $s[ $key ] ) ) {
 				$s[ $key ] = '';
 			}
@@ -212,7 +215,13 @@ class Job_Notification_Service {
 		$this->store( self::OPTION, $s );
 		if ( $s['enabled'] && ! $was ) {
 			// Start from now: jobs that finished before notifications were turned on are not reported.
-			$this->store( self::STATE, [ 'floor' => $this->max_job_id(), 'notified' => [] ] );
+			$this->store(
+				self::STATE,
+				array(
+					'floor'    => $this->max_job_id(),
+					'notified' => array(),
+				)
+			);
 		}
 		$out = $this->public_settings();
 		if ( null !== $new_secret ) {
@@ -238,47 +247,47 @@ if (expected !== headers[\'x-rsl-signature\']) {
 }
 const body = JSON.parse(raw);
 return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, status: body.job ? body.job.status : null, failed: body.job ? body.job.failed : 0, errors: body.errors, text: body.text } }];';
-		return [
+		return array(
 			'name'        => __( 'WordPress: job finished', 'import-export-by-rockstarlab' ),
-			'nodes'       => [
-				[
-					'parameters'  => [
+			'nodes'       => array(
+				array(
+					'parameters'  => array(
 						'httpMethod' => 'POST',
 						'path'       => 'rsl-job-finished',
-						'options'    => [ 'rawBody' => true ],
-					],
+						'options'    => array( 'rawBody' => true ),
+					),
 					'id'          => wp_generate_uuid4(),
 					'name'        => __( 'Job finished', 'import-export-by-rockstarlab' ),
 					'type'        => 'n8n-nodes-base.webhook',
 					'typeVersion' => 2,
-					'position'    => [ 0, 0 ],
+					'position'    => array( 0, 0 ),
 					'webhookId'   => wp_generate_uuid4(),
-				],
-				[
-					'parameters'  => [ 'jsCode' => $code ],
+				),
+				array(
+					'parameters'  => array( 'jsCode' => $code ),
 					'id'          => wp_generate_uuid4(),
 					'name'        => __( 'Check signature', 'import-export-by-rockstarlab' ),
 					'type'        => 'n8n-nodes-base.code',
 					'typeVersion' => 2,
-					'position'    => [ 240, 0 ],
-				],
-			],
-			'connections' => [
-				'Job finished' => [
-					'main' => [
-						[
-							[
+					'position'    => array( 240, 0 ),
+				),
+			),
+			'connections' => array(
+				'Job finished' => array(
+					'main' => array(
+						array(
+							array(
 								'node'  => __( 'Check signature', 'import-export-by-rockstarlab' ),
 								'type'  => 'main',
 								'index' => 0,
-							],
-						],
-					],
-				],
-			],
-			'settings'    => [ 'executionOrder' => 'v1' ],
+							),
+						),
+					),
+				),
+			),
+			'settings'    => array( 'executionOrder' => 'v1' ),
 			'pinData'     => new \stdClass(),
-		];
+		);
 	}
 
 	/**
@@ -288,7 +297,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @param array  $input Input.
 	 * @return array|\WP_Error
 	 */
-	public function execute( $name, array $input = [] ) {
+	public function execute( $name, array $input = array() ) {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access;
@@ -299,7 +308,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 		}
 		$valid = rest_validate_value_from_schema( $input, $definition['input'], 'input' );
 		if ( is_wp_error( $valid ) ) {
-			$valid->add_data( [ 'status' => 400 ] );
+			$valid->add_data( array( 'status' => 400 ) );
 			return $valid;
 		}
 		switch ( $name ) {
@@ -310,12 +319,12 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 			case 'notification-test':
 				return $this->send_test();
 			case 'notification-log':
-				return [ 'entries' => $this->log_entries() ];
+				return array( 'entries' => $this->log_entries() );
 			case 'notification-n8n-workflow':
-				return [
+				return array(
 					'workflow'      => json_decode( wp_json_encode( self::n8n_workflow() ), true ),
 					'workflow_json' => (string) wp_json_encode( self::n8n_workflow(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ),
-				];
+				);
 			case 'job-errors':
 				return $this->job_errors( (int) $input['job_id'], (int) ( $input['limit'] ?? 100 ), (int) ( $input['offset'] ?? 0 ), ! empty( $input['csv'] ) );
 		}
@@ -337,7 +346,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 			return $this->error( 'job_not_found', __( 'Job not found.', 'import-export-by-rockstarlab' ), 404 );
 		}
 		$errors = self::stored_errors( $job );
-		$out    = [
+		$out    = array(
 			'job_id'       => (int) $job->id,
 			'status'       => (string) $job->status,
 			'errors_total' => count( $errors ),
@@ -348,7 +357,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 				},
 				array_slice( $errors, max( 0, $offset ), max( 1, min( 500, $limit ) ) )
 			),
-		];
+		);
 		if ( $csv ) {
 			$out['file_name'] = sprintf( 'import-%d-errors.csv', (int) $job->id );
 			$out['csv']       = \RockStarLab\ImportExport\Helper\Import_Row_Error::csv( $errors );
@@ -375,15 +384,15 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 */
 	public static function stored_errors( $job ) {
 		$result = json_decode( (string) $job->result, true );
-		$errors = is_array( $result ) && is_array( $result['errors'] ?? null ) ? $result['errors'] : [];
+		$errors = is_array( $result ) && is_array( $result['errors'] ?? null ) ? $result['errors'] : array();
 		if ( ! $errors ) {
 			$params = json_decode( (string) $job->parameters, true );
-			$errors = is_array( $params['cumulative_result']['errors'] ?? null ) ? $params['cumulative_result']['errors'] : [];
+			$errors = is_array( $params['cumulative_result']['errors'] ?? null ) ? $params['cumulative_result']['errors'] : array();
 		}
-		$out = [];
+		$out = array();
 		foreach ( $errors as $error ) {
 			if ( ! is_array( $error ) ) {
-				$error = [ 'message' => (string) $error ];
+				$error = array( 'message' => (string) $error );
 			}
 			$error['row']     = isset( $error['row'] ) ? (int) $error['row'] : 0;
 			$error['message'] = (string) ( $error['message'] ?? '' );
@@ -420,15 +429,15 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	public function sweep() {
 		$s = $this->settings();
 		if ( empty( $s['enabled'] ) ) {
-			return [];
+			return array();
 		}
 		if ( ! add_option( self::LOCK, time(), '', false ) ) {
 			if ( time() - (int) get_option( self::LOCK, 0 ) < 120 ) {
-				return [];
+				return array();
 			}
 			update_option( self::LOCK, time(), false );
 		}
-		$handled  = [];
+		$handled  = array();
 		$switched = $this->switch_to_site_locale();
 		$s        = $this->settings();
 		try {
@@ -442,7 +451,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 			foreach ( $this->take_due_retries() as $retry ) {
 				$job = rsl_ie()->Model->job->find( (int) $retry['job_id'] );
 				if ( $job && in_array( $retry['channel'], $this->channels( $s ), true ) ) {
-					$handled[ (int) $job->id ] = $this->deliver( $job, $s, [ $retry['channel'] ], (int) $retry['attempt'] );
+					$handled[ (int) $job->id ] = $this->deliver( $job, $s, array( $retry['channel'] ), (int) $retry['attempt'] );
 				}
 			}
 			$this->advance_floor();
@@ -472,7 +481,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	public function send_test() {
 		$switched = $this->switch_to_site_locale();
 		$s        = $this->settings();
-		$results  = [];
+		$results  = array();
 		foreach ( $this->channels( $s ) as $channel ) {
 			$results[ $channel ] = $this->send( $channel, $s, null );
 			$this->log( 0, $channel, $results[ $channel ] );
@@ -483,7 +492,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 		if ( ! $results ) {
 			return $this->error( 'notification_no_channel', __( 'Turn on email, Slack or a webhook first.', 'import-export-by-rockstarlab' ) );
 		}
-		return [ 'results' => $results ];
+		return array( 'results' => $results );
 	}
 
 	/**
@@ -492,8 +501,8 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @return array
 	 */
 	public function log_entries() {
-		$log = get_option( self::LOG, [] );
-		return array_reverse( is_array( $log ) ? $log : [] );
+		$log = get_option( self::LOG, array() );
+		return array_reverse( is_array( $log ) ? $log : array() );
 	}
 
 	/**
@@ -506,13 +515,13 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @return array
 	 */
 	private function deliver( $job, array $s, array $channels, $attempt = 1 ) {
-		$out = [];
+		$out = array();
 		foreach ( $channels as $channel ) {
 			if ( ! $this->within_rate_limit() ) {
-				$out[ $channel ] = [
+				$out[ $channel ] = array(
 					'ok'     => false,
 					'detail' => 'rate_limited',
-				];
+				);
 				$this->log( (int) $job->id, $channel, $out[ $channel ] );
 				continue;
 			}
@@ -534,7 +543,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @return array ok, detail, retry.
 	 */
 	private function send( $channel, array $s, $job ) {
-		$vars    = $this->placeholders( $job );
+		$vars = $this->placeholders( $job );
 		// An empty placeholder (a job without a name) must not leave a double space.
 		$subject = trim( preg_replace( '/ {2,}/', ' ', strtr( $s['subject'], $vars ) ) );
 		if ( ! $job ) {
@@ -544,13 +553,13 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 		$message = preg_replace( '/ {2,}/', ' ', strtr( $s['message'], $vars ) );
 		if ( 'email' === $channel ) {
 			$sent = wp_mail( $s['email']['recipients'], $subject, $message );
-			return [
+			return array(
 				'ok'     => (bool) $sent,
 				'detail' => $sent ? 'sent' : 'wp_mail_failed',
-			];
+			);
 		}
 		if ( 'slack' === $channel ) {
-			$response = $this->post( $s['slack']['url'], wp_json_encode( [ 'text' => '*' . $subject . "*\n" . $message ] ), [] );
+			$response = $this->post( $s['slack']['url'], wp_json_encode( array( 'text' => '*' . $subject . "*\n" . $message ) ), array() );
 			return $this->http_result( $response );
 		}
 		$body      = wp_json_encode( $this->payload( $job, $vars, $subject, $message ) );
@@ -558,11 +567,11 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 		$response  = $this->post(
 			$s['webhook']['url'],
 			$body,
-			[
+			array(
 				'X-RSL-Event'     => $job ? 'job.finished' : 'test',
 				'X-RSL-Timestamp' => $timestamp,
 				'X-RSL-Signature' => 'sha256=' . hash_hmac( 'sha256', $timestamp . '.' . $body, (string) $s['webhook']['secret'] ),
-			]
+			)
 		);
 		return $this->http_result( $response );
 	}
@@ -577,24 +586,24 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @return array
 	 */
 	private function payload( $job, array $vars, $subject, $message ) {
-		$errors = [];
+		$errors = array();
 		if ( $job ) {
 			foreach ( array_slice( self::stored_errors( $job ), 0, 20 ) as $error ) {
-				$errors[] = [
+				$errors[] = array(
 					'row'     => $error['row'],
 					'field'   => $error['field'],
 					'message' => $error['message'],
 					'hint'    => $error['hint'],
-				];
+				);
 			}
 		}
-		return [
+		return array(
 			'event'   => $job ? 'job.finished' : 'test',
-			'site'    => [
+			'site'    => array(
 				'name' => wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ),
 				'url'  => home_url( '/' ),
-			],
-			'job'     => $job ? [
+			),
+			'job'     => $job ? array(
 				'id'           => (int) $job->id,
 				'name'         => (string) $job->job_name,
 				'type'         => (string) $job->type,
@@ -607,11 +616,11 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 				'started_at'   => (string) $job->started_at,
 				'completed_at' => (string) $job->completed_at,
 				'url'          => $vars['{job_url}'],
-			] : null,
+			) : null,
 			'errors'  => $errors,
 			'subject' => $subject,
 			'text'    => $message,
-		];
+		);
 	}
 
 	/**
@@ -621,12 +630,12 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @return array
 	 */
 	private function placeholders( $job ) {
-		$counts = $job ? self::counts( $job ) : [
+		$counts = $job ? self::counts( $job ) : array(
 			'total'   => 120,
 			'success' => 118,
 			'failed'  => 2,
 			'skipped' => 0,
-		];
+		);
 		$errors = '';
 		if ( $job ) {
 			foreach ( array_slice( self::stored_errors( $job ), 0, 5 ) as $error ) {
@@ -637,11 +646,11 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 			$errors = __( 'Row 7 (post_date): Invalid date. (sample)', 'import-export-by-rockstarlab' ) . "\n";
 		}
 		$duration = $job && $job->started_at && $job->completed_at ? max( 0, strtotime( $job->completed_at ) - strtotime( $job->started_at ) ) : 0;
-		$labels   = [
+		$labels   = array(
 			'completed' => __( 'completed', 'import-export-by-rockstarlab' ),
 			'failed'    => __( 'failed', 'import-export-by-rockstarlab' ),
 			'cancelled' => __( 'cancelled', 'import-export-by-rockstarlab' ),
-		];
+		);
 		$status   = $job ? (string) $job->status : 'completed';
 		if ( 'completed' === $status && $counts['failed'] > 0 ) {
 			$status_label = __( 'completed with errors', 'import-export-by-rockstarlab' );
@@ -650,7 +659,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 		} else {
 			$status_label = $labels[ $status ] ?? $status;
 		}
-		return [
+		return array(
 			'{site_name}'    => wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ),
 			'{job_id}'       => $job ? (string) $job->id : '123',
 			'{job_name}'     => $job ? (string) ( $job->job_name ?: '' ) : __( 'Test notification', 'import-export-by-rockstarlab' ),
@@ -665,7 +674,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 			'{duration}'     => $duration >= 60 ? sprintf( __( '%1$sm %2$ss', 'import-export-by-rockstarlab' ), floor( $duration / 60 ), $duration % 60 ) : sprintf( /* translators: %d: seconds (short unit). */ __( '%ds', 'import-export-by-rockstarlab' ), $duration ),
 			'{errors}'       => trim( $errors ),
 			'{job_url}'      => admin_url( 'admin.php?page=rsl-ie-jobs-log' ),
-		];
+		);
 	}
 
 	/**
@@ -678,15 +687,15 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 		$result = json_decode( (string) $job->result, true );
 		if ( ! is_array( $result ) || ! isset( $result['total'] ) ) {
 			$params = json_decode( (string) $job->parameters, true );
-			$result = is_array( $params['cumulative_result'] ?? null ) ? $params['cumulative_result'] : [];
+			$result = is_array( $params['cumulative_result'] ?? null ) ? $params['cumulative_result'] : array();
 		}
 		$total = (int) ( $result['total'] ?? $job->total_items );
-		return [
+		return array(
 			'total'   => $total ? $total : (int) $job->processed_items,
 			'success' => (int) ( $result['success'] ?? $job->success_items ),
 			'failed'  => (int) ( $result['failed'] ?? $job->failed_items ),
 			'skipped' => (int) ( $result['skipped'] ?? $job->skipped_items ),
-		];
+		);
 	}
 
 	/**
@@ -722,7 +731,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 */
 	public static function job_kind( $job ) {
 		$type = (string) $job->type;
-		if ( in_array( $type, [ 'import', 'export' ], true ) ) {
+		if ( in_array( $type, array( 'import', 'export' ), true ) ) {
 			return $type;
 		}
 		if ( 0 === strpos( $type, 'migration' ) ) {
@@ -741,7 +750,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @return string[]
 	 */
 	private function channels( array $s ) {
-		$out = [];
+		$out = array();
 		if ( ! empty( $s['email']['enabled'] ) && $s['email']['recipients'] ) {
 			$out[] = 'email';
 		}
@@ -764,7 +773,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 		global $wpdb;
 		$state = $this->state();
 		$rows  = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM %i WHERE id > %d AND status IN ('completed','failed','cancelled') ORDER BY id ASC LIMIT %d", $wpdb->prefix . 'rsl_ie_jobs', (int) $state['floor'], 200 ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Live job state.
-		$out   = [];
+		$out   = array();
 		foreach ( (array) $rows as $row ) {
 			if ( ! isset( $state['notified'][ (int) $row->id ] ) ) {
 				$out[] = $row;
@@ -782,7 +791,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @param int $id Job ID.
 	 */
 	private function mark_notified( $id ) {
-		$state                     = $this->state();
+		$state                    = $this->state();
 		$state['notified'][ $id ] = 1;
 		if ( count( $state['notified'] ) > 5000 ) {
 			$state['notified'] = array_slice( $state['notified'], -5000, null, true );
@@ -823,13 +832,13 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	private function state() {
 		$state = get_option( self::STATE, null );
 		if ( ! is_array( $state ) || ! isset( $state['floor'] ) ) {
-			$state = [
+			$state = array(
 				'floor'    => $this->max_job_id(),
-				'notified' => [],
-			];
+				'notified' => array(),
+			);
 			$this->store( self::STATE, $state );
 		}
-		$state['notified'] = is_array( $state['notified'] ?? null ) ? $state['notified'] : [];
+		$state['notified'] = is_array( $state['notified'] ?? null ) ? $state['notified'] : array();
 		return $state;
 	}
 
@@ -886,14 +895,14 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @param int    $attempt Next attempt.
 	 */
 	private function queue_retry( $job_id, $channel, $attempt ) {
-		$queue   = get_option( self::RETRIES, [] );
-		$queue   = is_array( $queue ) ? array_slice( $queue, -50 ) : [];
-		$queue[] = [
+		$queue   = get_option( self::RETRIES, array() );
+		$queue   = is_array( $queue ) ? array_slice( $queue, -50 ) : array();
+		$queue[] = array(
 			'job_id'  => $job_id,
 			'channel' => $channel,
 			'attempt' => $attempt,
 			'due'     => time() + ( 2 === $attempt ? 5 * MINUTE_IN_SECONDS : 30 * MINUTE_IN_SECONDS ),
-		];
+		);
 		$this->store( self::RETRIES, $queue );
 		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
 			wp_schedule_single_event( time() + 5 * MINUTE_IN_SECONDS, self::CRON_HOOK );
@@ -906,7 +915,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @return bool
 	 */
 	private function due_retries() {
-		foreach ( (array) get_option( self::RETRIES, [] ) as $retry ) {
+		foreach ( (array) get_option( self::RETRIES, array() ) as $retry ) {
 			if ( is_array( $retry ) && (int) $retry['due'] <= time() ) {
 				return true;
 			}
@@ -920,10 +929,10 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @return array
 	 */
 	private function take_due_retries() {
-		$queue = get_option( self::RETRIES, [] );
-		$due   = [];
-		$keep  = [];
-		foreach ( is_array( $queue ) ? $queue : [] as $retry ) {
+		$queue = get_option( self::RETRIES, array() );
+		$due   = array();
+		$keep  = array();
+		foreach ( is_array( $queue ) ? $queue : array() as $retry ) {
 			if ( ! is_array( $retry ) ) {
 				continue;
 			}
@@ -952,13 +961,13 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @return array|\WP_Error
 	 */
 	private function post( $url, $body, array $headers ) {
-		$args = [
+		$args = array(
 			'timeout'     => 5,
 			'redirection' => 0,
-			'headers'     => [ 'Content-Type' => 'application/json; charset=utf-8' ] + $headers,
+			'headers'     => array( 'Content-Type' => 'application/json; charset=utf-8' ) + $headers,
 			'body'        => $body,
 			'user-agent'  => 'Import Export by RockStarLab/' . ( defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '' ) . '; ' . home_url( '/' ),
-		];
+		);
 		return self::local_dev() ? wp_remote_post( $url, $args ) : wp_safe_remote_post( $url, $args );
 	}
 
@@ -969,12 +978,12 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @return string
 	 */
 	public static function detail_label( $detail ) {
-		$labels = [
+		$labels = array(
 			'sent'           => __( 'sent', 'import-export-by-rockstarlab' ),
 			'wp_mail_failed' => __( 'not sent: the site mailer (wp_mail) failed', 'import-export-by-rockstarlab' ),
 			'rate_limited'   => __( 'not sent: more than 30 notifications in an hour', 'import-export-by-rockstarlab' ),
 			'http_error'     => __( 'no answer from the address', 'import-export-by-rockstarlab' ),
-		];
+		);
 		return $labels[ $detail ] ?? (string) $detail;
 	}
 
@@ -986,18 +995,18 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 */
 	private function http_result( $response ) {
 		if ( is_wp_error( $response ) ) {
-			return [
+			return array(
 				'ok'     => false,
 				'detail' => 'http_error',
 				'retry'  => true,
-			];
+			);
 		}
 		$code = (int) wp_remote_retrieve_response_code( $response );
-		return [
+		return array(
 			'ok'     => $code >= 200 && $code < 300,
 			'detail' => 'HTTP ' . $code,
 			'retry'  => 429 === $code || $code >= 500,
-		];
+		);
 	}
 
 	/**
@@ -1009,16 +1018,16 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @param int    $attempt Attempt.
 	 */
 	private function log( $job_id, $channel, array $result, $attempt = 1 ) {
-		$log   = get_option( self::LOG, [] );
-		$log   = is_array( $log ) ? $log : [];
-		$log[] = [
+		$log   = get_option( self::LOG, array() );
+		$log   = is_array( $log ) ? $log : array();
+		$log[] = array(
 			'time'    => gmdate( 'Y-m-d H:i:s' ),
 			'job_id'  => (int) $job_id,
 			'channel' => $channel,
 			'ok'      => ! empty( $result['ok'] ),
 			'detail'  => (string) ( $result['detail'] ?? '' ),
 			'attempt' => (int) $attempt,
-		];
+		);
 		$this->store( self::LOG, array_slice( $log, -self::LOG_SIZE ) );
 	}
 
@@ -1031,9 +1040,9 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	public static function validate_slack_url( $url ) {
 		$parts = wp_parse_url( $url );
 		if ( ! $parts || 'https' !== ( $parts['scheme'] ?? '' ) || 'hooks.slack.com' !== strtolower( $parts['host'] ?? '' ) || ! preg_match( '#^/(services|triggers|workflows)/[A-Za-z0-9/_-]+$#', $parts['path'] ?? '' ) ) {
-			return new \WP_Error( 'rsl_ie_notification_slack', __( 'Use a Slack incoming webhook URL that starts with https://hooks.slack.com/.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_notification_slack', __( 'Use a Slack incoming webhook URL that starts with https://hooks.slack.com/.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 		}
-		return esc_url_raw( $url, [ 'https' ] );
+		return esc_url_raw( $url, array( 'https' ) );
 	}
 
 	/**
@@ -1044,13 +1053,13 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 */
 	public static function validate_webhook_url( $url ) {
 		$local = self::local_dev();
-		$clean = esc_url_raw( $url, $local ? [ 'http', 'https' ] : [ 'https' ] );
+		$clean = esc_url_raw( $url, $local ? array( 'http', 'https' ) : array( 'https' ) );
 		$parts = wp_parse_url( $clean );
 		if ( '' === $clean || ! $parts || empty( $parts['host'] ) || ! empty( $parts['user'] ) || ! empty( $parts['pass'] ) || strlen( $clean ) > 2000 ) {
-			return new \WP_Error( 'rsl_ie_notification_webhook', __( 'Enter a webhook URL that starts with https://.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_notification_webhook', __( 'Enter a webhook URL that starts with https://.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 		}
 		if ( ! $local && ! wp_http_validate_url( $clean ) ) {
-			return new \WP_Error( 'rsl_ie_notification_webhook', __( 'This address points to a private or local network and cannot receive webhooks from this site.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_notification_webhook', __( 'This address points to a private or local network and cannot receive webhooks from this site.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 		}
 		return $clean;
 	}
@@ -1061,7 +1070,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @return bool
 	 */
 	private static function local_dev() {
-		return in_array( wp_get_environment_type(), [ 'local', 'development' ], true );
+		return in_array( wp_get_environment_type(), array( 'local', 'development' ), true );
 	}
 
 	/**
@@ -1085,7 +1094,7 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @return bool
 	 */
 	private static function bool( $value ) {
-		return true === $value || 1 === $value || in_array( strtolower( (string) $value ), [ '1', 'true', 'on', 'yes' ], true );
+		return true === $value || 1 === $value || in_array( strtolower( (string) $value ), array( '1', 'true', 'on', 'yes' ), true );
 	}
 
 	/**
@@ -1104,8 +1113,8 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 			return true;
 		}
 		$defaults = 'subject' === $key
-			? [ '[{site_name}] {job_type} #{job_id} {status}: {success} done, {failed} failed', $this->default_subject() ]
-			: [ "{job_type} #{job_id} {job_name} ({content_type}) {status} in {duration}.\nRows: {total} total, {success} done, {failed} failed, {skipped} skipped.\n\n{errors}\n\nJobs Log: {job_url}", $this->default_message() ];
+			? array( '[{site_name}] {job_type} #{job_id} {status}: {success} done, {failed} failed', $this->default_subject() )
+			: array( "{job_type} #{job_id} {job_name} ({content_type}) {status} in {duration}.\nRows: {total} total, {success} done, {failed} failed, {skipped} skipped.\n\n{errors}\n\nJobs Log: {job_url}", $this->default_message() );
 		foreach ( $defaults as $default ) {
 			if ( $norm( $default ) === $text ) {
 				return true;
@@ -1155,6 +1164,6 @@ return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, stat
 	 * @return \WP_Error
 	 */
 	private function error( $code, $message, $status = 400 ) {
-		return new \WP_Error( 'rsl_ie_' . $code, $message, [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_' . $code, $message, array( 'status' => $status ) );
 	}
 }

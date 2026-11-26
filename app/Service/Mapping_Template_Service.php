@@ -29,7 +29,7 @@ class Mapping_Template_Service {
 	 *
 	 * @var string[]
 	 */
-	const OPTION_KEYS = [
+	const OPTION_KEYS = array(
 		'duplicate_check',
 		'duplicate_handling',
 		'duplicate_mode',
@@ -63,7 +63,7 @@ class Mapping_Template_Service {
 		'download_timeout',
 		'table_name',
 		'create_table_if_missing',
-	];
+	);
 
 	/**
 	 * Dispatch an ability after schema validation.
@@ -72,7 +72,7 @@ class Mapping_Template_Service {
 	 * @param array  $input Input.
 	 * @return array|\WP_Error
 	 */
-	public function execute( $name, array $input = [] ) {
+	public function execute( $name, array $input = array() ) {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access;
@@ -83,12 +83,12 @@ class Mapping_Template_Service {
 		}
 		$valid = rest_validate_value_from_schema( $input, $definition['input'], 'input' );
 		if ( is_wp_error( $valid ) ) {
-			$valid->add_data( [ 'status' => 400 ] );
+			$valid->add_data( array( 'status' => 400 ) );
 			return $valid;
 		}
 		switch ( $name ) {
 			case 'mapping-template-list':
-				return [ 'templates' => $this->listing( $input['import_type'] ?? '' ) ];
+				return array( 'templates' => $this->listing( $input['import_type'] ?? '' ) );
 			case 'mapping-template-get':
 				return $this->get( $input['template_id'] );
 			case 'mapping-template-save':
@@ -111,19 +111,19 @@ class Mapping_Template_Service {
 	 */
 	public function listing( $import_type = '' ) {
 		$import_type = sanitize_key( (string) $import_type );
-		$rows        = [];
+		$rows        = array();
 		foreach ( $this->all() as $template ) {
 			if ( '' !== $import_type && $template['import_type'] !== $import_type ) {
 				continue;
 			}
-			$rows[] = [
+			$rows[] = array(
 				'template_id'   => $template['template_id'],
 				'name'          => $template['name'],
 				'import_type'   => $template['import_type'],
 				'mapping_count' => count( $template['mapping'] ),
 				'columns'       => array_values( array_unique( wp_list_pluck( $template['mapping'], 'source_field' ) ) ),
 				'updated_at'    => $template['updated_at'],
-			];
+			);
 		}
 		usort(
 			$rows,
@@ -164,7 +164,7 @@ class Mapping_Template_Service {
 		if ( '' === $type ) {
 			return $this->error( 'template_type', __( 'The template needs an import type.', 'import-export-by-rockstarlab' ), 400 );
 		}
-		$mapping = $this->clean_mapping( $input['mapping'] ?? [] );
+		$mapping = $this->clean_mapping( $input['mapping'] ?? array() );
 		if ( ! $mapping ) {
 			return $this->error( 'template_mapping', __( 'Map at least one column before saving a template.', 'import-export-by-rockstarlab' ), 400 );
 		}
@@ -176,7 +176,7 @@ class Mapping_Template_Service {
 		foreach ( $all as $other ) {
 			if ( $other['template_id'] !== $id && $other['import_type'] === $type && 0 === strcasecmp( $other['name'], $name ) ) {
 				if ( empty( $input['overwrite'] ) ) {
-					return $this->error( 'template_exists', __( 'A template with this name already exists for this content type.', 'import-export-by-rockstarlab' ), 409, [ 'template_id' => $other['template_id'] ] );
+					return $this->error( 'template_exists', __( 'A template with this name already exists for this content type.', 'import-export-by-rockstarlab' ), 409, array( 'template_id' => $other['template_id'] ) );
 				}
 				$id = $other['template_id'];
 			}
@@ -189,17 +189,17 @@ class Mapping_Template_Service {
 		if ( '' === $id ) {
 			$id = 'tpl_' . substr( md5( wp_generate_uuid4() ), 0, 12 );
 		}
-		$all[ $id ] = [
+		$all[ $id ] = array(
 			'template_id'   => $id,
 			'name'          => $name,
 			'import_type'   => $type,
 			'mapping'       => $mapping,
-			'options'       => $this->clean_options( $input['options'] ?? [] ),
-			'parser'        => $this->clean_parser( $input['parser'] ?? [] ),
+			'options'       => $this->clean_options( $input['options'] ?? array() ),
+			'parser'        => $this->clean_parser( $input['parser'] ?? array() ),
 			'source_job_id' => isset( $input['source_job_id'] ) ? absint( $input['source_job_id'] ) : (int) ( $existing['source_job_id'] ?? 0 ),
 			'created_at'    => $existing['created_at'] ?? $now,
 			'updated_at'    => $now,
-		];
+		);
 		$this->store( $all );
 		return $all[ $id ];
 	}
@@ -217,10 +217,10 @@ class Mapping_Template_Service {
 			return $template;
 		}
 		return $this->save(
-			[
+			array(
 				'template_id' => $template['template_id'],
 				'name'        => $name,
-			] + $template
+			) + $template
 		);
 	}
 
@@ -238,10 +238,10 @@ class Mapping_Template_Service {
 		}
 		unset( $all[ $id ] );
 		$this->store( $all );
-		return [
+		return array(
 			'deleted'     => true,
 			'template_id' => $id,
-		];
+		);
 	}
 
 	/**
@@ -269,24 +269,24 @@ class Mapping_Template_Service {
 			/* translators: %d: job ID. */
 			$name = sprintf( __( 'Import job #%d', 'import-export-by-rockstarlab' ), (int) $job->id );
 		}
-		$options = is_array( $params['options'] ?? null ) ? $params['options'] : [];
+		$options = is_array( $params['options'] ?? null ) ? $params['options'] : array();
 		$mapping = $this->name_columns( $params );
 		if ( is_wp_error( $mapping ) ) {
 			return $mapping;
 		}
 		return $this->save(
-			[
+			array(
 				'name'          => $name,
 				'import_type'   => $params['import_type'] ?? $job->data_type,
 				'mapping'       => $mapping,
 				'options'       => $options,
-				'parser'        => [
+				'parser'        => array(
 					'delimiter' => $params['delimiter'] ?? '',
 					'encoding'  => $params['encoding'] ?? '',
-				],
+				),
 				'source_job_id' => (int) $job->id,
 				'overwrite'     => $overwrite,
-			]
+			)
 		);
 	}
 
@@ -300,14 +300,14 @@ class Mapping_Template_Service {
 	 * @return array|\WP_Error
 	 */
 	private function name_columns( array $params ) {
-		$mapping = [];
+		$mapping = array();
 		foreach ( $params['mapping'] as $key => $entry ) {
 			if ( ! is_array( $entry ) ) {
 				// Legacy associative mapping: source column => target field.
-				$entry = [
+				$entry = array(
 					'source_field' => (string) $key,
 					'target_field' => (string) $entry,
-				];
+				);
 			}
 			$mapping[] = $entry;
 		}
@@ -320,11 +320,11 @@ class Mapping_Template_Service {
 		if ( ! $need ) {
 			return $mapping;
 		}
-		$headers = [];
+		$headers = array();
 		if ( ! empty( $params['file_id'] ) && File_Store::valid_id( $params['file_id'] ) ) {
-			$file = ( new File_Service() )->preview( $params['file_id'], [] );
+			$file = ( new File_Service() )->preview( $params['file_id'], array() );
 			if ( ! is_wp_error( $file ) ) {
-				$headers = array_values( (array) ( $file['headers'] ?? [] ) );
+				$headers = array_values( (array) ( $file['headers'] ?? array() ) );
 			}
 		}
 		foreach ( $mapping as $i => $entry ) {
@@ -347,32 +347,32 @@ class Mapping_Template_Service {
 	 * @return array mapping (with source_index), missing, unmapped_columns.
 	 */
 	public function match( array $template, array $columns ) {
-		$index = [];
+		$index = array();
 		foreach ( array_values( $columns ) as $i => $column ) {
 			$key = self::column_key( $column );
 			if ( '' !== $key && ! isset( $index[ $key ] ) ) {
 				$index[ $key ] = $i;
 			}
 		}
-		$mapping = [];
-		$missing = [];
-		$used    = [];
+		$mapping = array();
+		$missing = array();
+		$used    = array();
 		foreach ( $template['mapping'] as $entry ) {
 			$key = self::column_key( $entry['source_field'] );
 			if ( ! isset( $index[ $key ] ) ) {
-				$missing[] = [
+				$missing[] = array(
 					'source_field' => $entry['source_field'],
 					'target_field' => $entry['target_field'],
-				];
+				);
 				continue;
 			}
-			$i                  = $index[ $key ];
-			$used[ $i ]         = true;
-			$row                = [
+			$i          = $index[ $key ];
+			$used[ $i ] = true;
+			$row        = array(
 				'source_index' => $i,
 				'source_field' => (string) array_values( $columns )[ $i ],
 				'target_field' => $entry['target_field'],
-			];
+			);
 			if ( ! empty( $entry['function_ids'] ) ) {
 				$row['function_ids'] = $entry['function_ids'];
 			}
@@ -381,17 +381,17 @@ class Mapping_Template_Service {
 			}
 			$mapping[] = $row;
 		}
-		$unmapped = [];
+		$unmapped = array();
 		foreach ( array_values( $columns ) as $i => $column ) {
 			if ( empty( $used[ $i ] ) ) {
 				$unmapped[] = (string) $column;
 			}
 		}
-		return [
+		return array(
 			'mapping'          => $mapping,
 			'missing'          => $missing,
 			'unmapped_columns' => $unmapped,
-		];
+		);
 	}
 
 	/**
@@ -406,15 +406,15 @@ class Mapping_Template_Service {
 		if ( is_wp_error( $template ) ) {
 			return $template;
 		}
-		$file = ( new File_Service() )->preview( $file_id, [] );
+		$file = ( new File_Service() )->preview( $file_id, array() );
 		if ( is_wp_error( $file ) ) {
 			return $file;
 		}
-		$match = $this->match( $template, (array) ( $file['headers'] ?? [] ) );
+		$match = $this->match( $template, (array) ( $file['headers'] ?? array() ) );
 		// Return only the options import-validate/import-start accept, so the agent can pass them on unchanged.
 		$allowed = \RockStarLab\ImportExport\Abilities\Workflow_Schemas::import_options()['properties'];
 		$options = array_intersect_key( $template['options'], $allowed );
-		return [
+		return array(
 			'template_id' => $template['template_id'],
 			'name'        => $template['name'],
 			'import_type' => $template['import_type'],
@@ -430,15 +430,15 @@ class Mapping_Template_Service {
 			),
 			'matched'     => array_map(
 				static function ( $row ) {
-					return [
+					return array(
 						'source_field' => $row['source_field'],
 						'source_index' => $row['source_index'],
 						'target_field' => $row['target_field'],
-					];
+					);
 				},
 				$match['mapping']
 			),
-		] + $match;
+		) + $match;
 	}
 
 	/**
@@ -459,12 +459,12 @@ class Mapping_Template_Service {
 	 * @return array
 	 */
 	private function all() {
-		$raw = get_option( self::OPTION, [] );
-		$out = [];
-		foreach ( is_array( $raw ) ? $raw : [] as $id => $row ) {
+		$raw = get_option( self::OPTION, array() );
+		$out = array();
+		foreach ( is_array( $raw ) ? $raw : array() as $id => $row ) {
 			if ( is_array( $row ) && isset( $row['template_id'], $row['name'], $row['import_type'], $row['mapping'] ) && $id === $row['template_id'] && is_array( $row['mapping'] ) ) {
-				$row['options'] = is_array( $row['options'] ?? null ) ? $row['options'] : [];
-				$row['parser']  = is_array( $row['parser'] ?? null ) ? $row['parser'] : [];
+				$row['options'] = is_array( $row['options'] ?? null ) ? $row['options'] : array();
+				$row['parser']  = is_array( $row['parser'] ?? null ) ? $row['parser'] : array();
 				$out[ $id ]     = $row;
 			}
 		}
@@ -502,9 +502,9 @@ class Mapping_Template_Service {
 	 * @return array
 	 */
 	private function clean_mapping( $mapping ) {
-		$out  = [];
-		$seen = [];
-		foreach ( is_array( $mapping ) ? $mapping : [] as $entry ) {
+		$out  = array();
+		$seen = array();
+		foreach ( is_array( $mapping ) ? $mapping : array() as $entry ) {
 			if ( ! is_array( $entry ) ) {
 				continue;
 			}
@@ -518,22 +518,22 @@ class Mapping_Template_Service {
 				continue;
 			}
 			$seen[ $key ] = true;
-			$row          = [
+			$row          = array(
 				'source_field' => $source,
 				'target_field' => $target,
-			];
-			$functions    = [];
-			$ids          = [];
-			foreach ( (array) ( $entry['functions'] ?? $entry['function_ids'] ?? [] ) as $function ) {
+			);
+			$functions    = array();
+			$ids          = array();
+			foreach ( (array) ( $entry['functions'] ?? $entry['function_ids'] ?? array() ) as $function ) {
 				$fid = is_array( $function ) ? ( $function['id'] ?? '' ) : $function;
 				if ( ! is_scalar( $fid ) || ! preg_match( '/^[A-Za-z0-9_-]{1,64}$/', (string) $fid ) ) {
 					continue;
 				}
 				$ids[]       = (string) $fid;
-				$functions[] = [
+				$functions[] = array(
 					'id'   => (string) $fid,
 					'name' => is_array( $function ) && isset( $function['name'] ) && is_scalar( $function['name'] ) ? sanitize_text_field( (string) $function['name'] ) : '',
-				];
+				);
 				if ( count( $ids ) >= 100 ) {
 					break;
 				}
@@ -542,7 +542,7 @@ class Mapping_Template_Service {
 				$row['function_ids'] = $ids;
 				$row['functions']    = $functions;
 			}
-			if ( isset( $entry['taxonomy_format'] ) && in_array( $entry['taxonomy_format'], [ 'name', 'slug', 'id' ], true ) ) {
+			if ( isset( $entry['taxonomy_format'] ) && in_array( $entry['taxonomy_format'], array( 'name', 'slug', 'id' ), true ) ) {
 				$row['taxonomy_format'] = $entry['taxonomy_format'];
 			}
 			if ( isset( $entry['field_type'] ) && is_scalar( $entry['field_type'] ) && '' !== sanitize_key( (string) $entry['field_type'] ) ) {
@@ -563,20 +563,20 @@ class Mapping_Template_Service {
 	 * @return array
 	 */
 	private function clean_options( $options ) {
-		$out = [];
-		foreach ( is_array( $options ) ? $options : [] as $key => $value ) {
+		$out = array();
+		foreach ( is_array( $options ) ? $options : array() as $key => $value ) {
 			if ( ! in_array( $key, self::OPTION_KEYS, true ) ) {
 				continue;
 			}
 			if ( 'row_filters' === $key ) {
-				$filters = Import_Row_Filter::normalize( $value );
-				$out[ $key ] = is_wp_error( $filters ) ? [] : array_map(
+				$filters     = Import_Row_Filter::normalize( $value );
+				$out[ $key ] = is_wp_error( $filters ) ? array() : array_map(
 					static function ( $filter ) {
-						return [
+						return array(
 							'field'    => sanitize_text_field( $filter['field'] ),
 							'operator' => $filter['operator'],
 							'value'    => sanitize_text_field( $filter['value'] ),
-						];
+						);
 					},
 					$filters
 				);
@@ -587,17 +587,17 @@ class Mapping_Template_Service {
 				continue;
 			}
 			if ( 'date_order' === $key ) {
-				$out[ $key ] = in_array( $value, [ 'dmy', 'mdy' ], true ) ? $value : 'auto';
+				$out[ $key ] = in_array( $value, array( 'dmy', 'mdy' ), true ) ? $value : 'auto';
 				continue;
 			}
 			if ( 'replace_links_rules' === $key ) {
-				$rules = [];
-				foreach ( is_array( $value ) ? $value : [] as $rule ) {
+				$rules = array();
+				foreach ( is_array( $value ) ? $value : array() as $rule ) {
 					if ( is_array( $rule ) && isset( $rule['search'] ) && is_scalar( $rule['search'] ) && '' !== trim( (string) $rule['search'] ) ) {
-						$rules[] = [
+						$rules[] = array(
 							'search'  => sanitize_text_field( (string) $rule['search'] ),
 							'replace' => isset( $rule['replace'] ) && is_scalar( $rule['replace'] ) ? sanitize_text_field( (string) $rule['replace'] ) : '',
-						];
+						);
 					}
 					if ( count( $rules ) >= 100 ) {
 						break;
@@ -611,9 +611,9 @@ class Mapping_Template_Service {
 			} elseif ( is_int( $value ) || is_float( $value ) ) {
 				$out[ $key ] = (int) $value;
 			} elseif ( is_string( $value ) ) {
-				if ( in_array( strtolower( $value ), [ 'true', 'false' ], true ) ) {
+				if ( in_array( strtolower( $value ), array( 'true', 'false' ), true ) ) {
 					$out[ $key ] = 'true' === strtolower( $value );
-				} elseif ( in_array( $key, [ 'batch_size', 'post_author', 'download_timeout' ], true ) && is_numeric( $value ) ) {
+				} elseif ( in_array( $key, array( 'batch_size', 'post_author', 'download_timeout' ), true ) && is_numeric( $value ) ) {
 					$out[ $key ] = (int) $value;
 				} else {
 					$out[ $key ] = substr( sanitize_text_field( $value ), 0, 191 );
@@ -630,7 +630,7 @@ class Mapping_Template_Service {
 	 * @return array
 	 */
 	private function clean_parser( $parser ) {
-		$out = [];
+		$out = array();
 		if ( is_array( $parser ) ) {
 			if ( isset( $parser['delimiter'] ) && is_string( $parser['delimiter'] ) && '' !== $parser['delimiter'] && strlen( $parser['delimiter'] ) <= 10 ) {
 				$out['delimiter'] = "\t" === $parser['delimiter'] ? "\t" : sanitize_text_field( $parser['delimiter'] );
@@ -660,7 +660,7 @@ class Mapping_Template_Service {
 	 * @param array  $data    Extra data.
 	 * @return \WP_Error
 	 */
-	private function error( $code, $message, $status, array $data = [] ) {
-		return new \WP_Error( 'rsl_ie_' . $code, $message, [ 'status' => $status ] + $data );
+	private function error( $code, $message, $status, array $data = array() ) {
+		return new \WP_Error( 'rsl_ie_' . $code, $message, array( 'status' => $status ) + $data );
 	}
 }

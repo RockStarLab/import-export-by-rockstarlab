@@ -31,7 +31,7 @@ class Export_Service {
 			return $request;
 		}
 		$count = Exporter_Factory::get_count( $request['export_type'], $request['options'] );
-		return is_wp_error( $count ) ? $count : [ 'count' => (int) $count ];
+		return is_wp_error( $count ) ? $count : array( 'count' => (int) $count );
 	}
 
 	/**
@@ -52,17 +52,17 @@ class Export_Service {
 		$result = $exporter->export(
 			array_merge(
 				$request['options'],
-				[
+				array(
 					'limit'  => 10,
 					'offset' => 0,
-				]
+				)
 			)
 		);
-		return is_wp_error( $result ) ? $result : [
+		return is_wp_error( $result ) ? $result : array(
 			// One order or product can give several rows (items, variations); the preview shows ten rows.
 			'preview' => array_slice( array_values( (array) $result['data'] ), 0, 10 ),
 			'fields'  => $exporter->get_available_fields(),
-		];
+		);
 	}
 
 	/**
@@ -74,14 +74,14 @@ class Export_Service {
 	 */
 	public function start( array $input, $migration_parent_id = 0 ) {
 		if ( $migration_parent_id && ! Migration_Service::running( $migration_parent_id ) ) {
-			return new \WP_Error( 'rsl_ie_migration_parent_required', __( 'Run the parent migration.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] ); }
+			return new \WP_Error( 'rsl_ie_migration_parent_required', __( 'Run the parent migration.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) ); }
 		$request = Export_Request::normalize( $input );
 		if ( is_wp_error( $request ) ) {
 			return $request;
 		}
 		$name = $request['options']['custom_export_file_name'] ?? '';
 		if ( ! is_string( $name ) || '' === trim( $name ) ) {
-			return new \WP_Error( 'rsl_ie_export_filename_required', __( 'Custom export file name is required.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_export_filename_required', __( 'Custom export file name is required.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 		}
 		$context = Execution_Context::capture();
 		if ( is_wp_error( $context ) ) {
@@ -91,14 +91,14 @@ class Export_Service {
 		if ( $migration_parent_id ) {
 			$request['migration_parent_id'] = (int) $migration_parent_id; }
 		$result = Job_Service::enqueue(
-			[
+			array(
 				'type'        => 'export',
 				'status'      => 'pending',
 				'user_id'     => get_current_user_id(),
 				'data_type'   => $request['export_type'],
 				'file_format' => $request['format'],
 				'parameters'  => wp_json_encode( $request ),
-			],
+			),
 			$input['request_id'] ?? ''
 		);
 		return $result;
@@ -125,34 +125,34 @@ class Export_Service {
 		$model = rsl_ie()->Model->job;
 		$job   = $model->find( (int) $job_id );
 		if ( ! $job || 'export' !== $job->type ) {
-			return new \WP_Error( 'rsl_ie_export_not_found', __( 'Export job not found.', 'import-export-by-rockstarlab' ), [ 'status' => 404 ] );
+			return new \WP_Error( 'rsl_ie_export_not_found', __( 'Export job not found.', 'import-export-by-rockstarlab' ), array( 'status' => 404 ) );
 		}
 		$parent = json_decode( $job->parameters, true )['migration_parent_id'] ?? 0;
 		if ( $parent && ! Migration_Service::running( $parent ) ) {
-			return new \WP_Error( 'rsl_ie_migration_parent_required', __( 'Run the parent migration.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] ); }
+			return new \WP_Error( 'rsl_ie_migration_parent_required', __( 'Run the parent migration.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) ); }
 		$lock = Job_Lock::acquire( $job->id );
 		if ( is_wp_error( $lock ) ) {
 			return $this->fail( $job->id, $lock );
 		}
 		if ( false === $lock ) {
-			return array_merge( $this->snapshot( $job ), [ 'locked' => true ] );
+			return array_merge( $this->snapshot( $job ), array( 'locked' => true ) );
 		}
 		try {
 			$job = $model->find( $job->id );
 			if ( ! $job ) {
 				return new \WP_Error( 'rsl_ie_export_not_found', __( 'Export job not found.', 'import-export-by-rockstarlab' ) );
 			}
-			if ( ! in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
+			if ( ! in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
 				return $this->snapshot( $job );
 			}
 			$parameters = json_decode( (string) $job->parameters, true );
 			if ( ! is_array( $parameters ) ) {
 				return $this->fail( $job->id, new \WP_Error( 'rsl_ie_invalid_job', __( 'Invalid export job parameters.', 'import-export-by-rockstarlab' ) ) );
 			}
-			$stored = $parameters['execution_context'] ?? [
+			$stored = $parameters['execution_context'] ?? array(
 				'user_id' => (int) $job->user_id,
 				'blog_id' => get_current_blog_id(),
-			];
+			);
 			if ( ! is_array( $stored ) || (int) ( $stored['user_id'] ?? 0 ) !== (int) $job->user_id || (int) ( $stored['blog_id'] ?? 0 ) !== get_current_blog_id() ) {
 				return $this->fail( $job->id, new \WP_Error( 'rsl_ie_invalid_context', __( 'The job execution context is invalid.', 'import-export-by-rockstarlab' ) ) );
 			}
@@ -200,10 +200,10 @@ class Export_Service {
 		}
 		$options = array_merge(
 			$request['options'],
-			[
+			array(
 				'limit'  => $request['options']['items_per_iteration'],
 				'offset' => $offset,
-			]
+			)
 		);
 		$fresh   = $model->find( $job_id );
 		if ( ! $fresh || 'processing' !== $fresh->status ) {
@@ -221,16 +221,16 @@ class Export_Service {
 			return $bytes;
 		}
 		$parameters['spool_bytes'] = $bytes;
-		$cumulative                = $parameters['export_stats'] ?? [
+		$cumulative                = $parameters['export_stats'] ?? array(
 			'exported' => 0,
 			'failed'   => 0,
 			'skipped'  => 0,
-			'errors'   => [],
-		];
-		foreach ( [ 'exported', 'failed', 'skipped' ] as $key ) {
+			'errors'   => array(),
+		);
+		foreach ( array( 'exported', 'failed', 'skipped' ) as $key ) {
 			$cumulative[ $key ] += (int) ( $stats[ $key ] ?? 0 );
 		}
-		foreach ( $stats['errors'] ?? [] as $error ) {
+		foreach ( $stats['errors'] ?? array() as $error ) {
 			$error['row']          += $offset;
 			$cumulative['errors'][] = $error;
 		}
@@ -239,7 +239,7 @@ class Export_Service {
 		$total                      = max( (int) ( $stats['total'] ?? $job->total_items ), $new_offset );
 		$saved                      = $model->update(
 			$job_id,
-			[
+			array(
 				'parameters'      => wp_json_encode( $parameters ),
 				'result'          => wp_json_encode( $cumulative ),
 				'processed_items' => $new_offset,
@@ -247,7 +247,7 @@ class Export_Service {
 				'success_items'   => $cumulative['exported'],
 				'failed_items'    => $cumulative['failed'],
 				'progress'        => $total > 0 ? min( 99, round( $new_offset / $total * 100 ) ) : 0,
-			]
+			)
 		);
 		if ( is_wp_error( $saved ) ) {
 			return $saved;
@@ -260,7 +260,7 @@ class Export_Service {
 				return $request;
 			}
 			// CSV and JSON are written row by row from the spool; XML and spreadsheets still need every row at once.
-			$all_data = in_array( $request['format'], [ 'csv', 'json' ], true ) && $bytes > 0 ? $this->spool_rows( $job_id, $bytes ) : $this->read_spool( $job_id, $bytes );
+			$all_data = in_array( $request['format'], array( 'csv', 'json' ), true ) && $bytes > 0 ? $this->spool_rows( $job_id, $bytes ) : $this->read_spool( $job_id, $bytes );
 			if ( is_wp_error( $all_data ) ) {
 				return $all_data;
 			}
@@ -331,7 +331,7 @@ class Export_Service {
 		if ( ! $handle ) {
 			return $this->io_error();
 		}
-		$data = [];
+		$data = array();
 		try {
 			while ( false !== ( $line = fgets( $handle ) ) ) { // phpcs:ignore WordPress.CodeAnalysis.AssignmentInCondition
 				$line = rtrim( $line, "\n" );
@@ -418,12 +418,12 @@ class Export_Service {
 		$name    = $request['options']['custom_export_file_name'] ?? 'export-{job_id}';
 		// Keep the words of the name: drop tags, turn path separators into dashes (a basename kept only
 		// the text after the last slash, so "../evil <b>name</b>" became "b").
-		$name    = wp_strip_all_tags( str_replace( '{job_id}', (string) $job_id, (string) $name ) );
-		$name    = sanitize_file_name( str_replace( [ '/', '\\' ], '-', $name ) );
-		$name    = trim( (string) $name, '.-_ ' );
+		$name = wp_strip_all_tags( str_replace( '{job_id}', (string) $job_id, (string) $name ) );
+		$name = sanitize_file_name( str_replace( array( '/', '\\' ), '-', $name ) );
+		$name = trim( (string) $name, '.-_ ' );
 		// Remove only a data-file extension the user typed ("prices.csv"); "report.v2" stays as it is.
-		$name    = preg_replace( '/\.(csv|tsv|json|xml|xlsx|ods|zip|txt)$/i', '', $name );
-		$name    = $name ? $name : 'export-' . $job_id;
+		$name = preg_replace( '/\.(csv|tsv|json|xml|xlsx|ods|zip|txt)$/i', '', $name );
+		$name = $name ? $name : 'export-' . $job_id;
 		// Tab-separated files get .tsv, the extension Google Merchant Center and spreadsheet apps expect.
 		$extension = ( 'csv' === $format && "\t" === ( $options['csv_delimiter'] ?? ',' ) ) ? 'tsv' : $format;
 		$info      = File_Service::export_target( $job_id, $name . '.' . $extension );
@@ -439,28 +439,28 @@ class Export_Service {
 			if ( is_wp_error( $formatter ) ) {
 				return $formatter;
 			}
-			$formatter_options = [];
-			if ( 'csv' === $format || in_array( $format, [ 'xlsx', 'ods' ], true ) ) {
+			$formatter_options = array();
+			if ( 'csv' === $format || in_array( $format, array( 'xlsx', 'ods' ), true ) ) {
 				// The header row is on unless it is turned off, as in the export screen (AI agents often omit the flag).
 				$header_flag                  = 'csv' === $format ? 'csv_include_header' : 'spreadsheet_include_header';
 				$include                      = ! array_key_exists( $header_flag, $options ) || ! empty( $options[ $header_flag ] );
 				$formatter_options['headers'] = $include ? null : false;
 				if ( $include && is_array( $data ) && ! $data ) {
-					$fields = $request['options']['fields'] ?? [];
+					$fields   = $request['options']['fields'] ?? array();
 					$exporter = null;
 					if ( ! $fields || in_array( '*', $fields, true ) ) {
 						$exporter = Exporter_Factory::get_exporter( $request['export_type'] );
 						// The exporter needs the request (a form export's columns depend on the form).
-						if ( ! is_wp_error( $exporter ) && is_callable( [ $exporter, 'set_options' ] ) ) {
-							$exporter->set_options( (array) ( $request['options'] ?? [] ) );
+						if ( ! is_wp_error( $exporter ) && is_callable( array( $exporter, 'set_options' ) ) ) {
+							$exporter->set_options( (array) ( $request['options'] ?? array() ) );
 						}
-						$fields = is_wp_error( $exporter ) ? [] : $exporter->get_default_fields();
+						$fields = is_wp_error( $exporter ) ? array() : $exporter->get_default_fields();
 					}
 					// Same column titles as a file with rows (a form export titles its columns by label).
-					if ( $exporter && ! is_wp_error( $exporter ) && is_callable( [ $exporter, 'header_labels' ] ) ) {
+					if ( $exporter && ! is_wp_error( $exporter ) && is_callable( array( $exporter, 'header_labels' ) ) ) {
 						$fields = $exporter->header_labels( $fields );
 					}
-					$formatter_options['headers'] = array_values( array_diff( (array) $fields, [ '*' ] ) );
+					$formatter_options['headers'] = array_values( array_diff( (array) $fields, array( '*' ) ) );
 				}
 				if ( 'csv' === $format ) {
 					$formatter_options['delimiter'] = $options['csv_delimiter'] ?? ',';
@@ -470,11 +470,11 @@ class Export_Service {
 			} else {
 				$formatter_options['pretty_print'] = ! empty( $options[ $format . '_pretty_print' ] );
 			}
-			$headers = self::column_headers( $request['options']['column_headers'] ?? [] );
+			$headers = self::column_headers( $request['options']['column_headers'] ?? array() );
 			if ( $headers ) {
 				$data = is_array( $data ) ? self::rename_columns( $data, $headers ) : ( static function () use ( $data, $headers ) {
 					foreach ( $data as $row ) {
-						yield self::rename_columns( [ $row ], $headers )[0];
+						yield self::rename_columns( array( $row ), $headers )[0];
 					}
 				} )();
 				if ( is_array( $formatter_options['headers'] ?? null ) ) {
@@ -533,23 +533,30 @@ class Export_Service {
 		}
 		$server                  = Remote_File_Service::parse( $destination );
 		$result                  = json_decode( (string) $job->result, true );
-		$result                  = is_array( $result ) ? $result : [];
-		$result['remote_upload'] = [
+		$result                  = is_array( $result ) ? $result : array();
+		$result['remote_upload'] = array(
 			'status' => is_wp_error( $sent ) ? 'failed' : 'uploaded',
 			'server' => is_wp_error( $server ) ? '' : $server[0]['label'],
-		] + ( is_wp_error( $sent ) ? [ 'error' => $sent->get_error_message() ] : $sent );
+		) + ( is_wp_error( $sent ) ? array( 'error' => $sent->get_error_message() ) : $sent );
 		if ( is_wp_error( $sent ) ) {
 			// The file is ready to download, but the job did not do everything it was asked to:
 			// report it like a failed row (Jobs Log, notifications "on errors", CLI exit code 2).
 			/* translators: 1: server name, 2: error message. */
-			$message            = sprintf( __( 'The export file was created, but the upload to %1$s failed: %2$s', 'import-export-by-rockstarlab' ), $result['remote_upload']['server'], $sent->get_error_message() );
-			$result['errors']   = array_merge(
-				[ [ 'row' => 0, 'field' => 'remote_upload', 'code' => $sent->get_error_code(), 'message' => $message ] ],
-				is_array( $result['errors'] ?? null ) ? $result['errors'] : []
+			$message          = sprintf( __( 'The export file was created, but the upload to %1$s failed: %2$s', 'import-export-by-rockstarlab' ), $result['remote_upload']['server'], $sent->get_error_message() );
+			$result['errors'] = array_merge(
+				array(
+					array(
+						'row'     => 0,
+						'field'   => 'remote_upload',
+						'code'    => $sent->get_error_code(),
+						'message' => $message,
+					),
+				),
+				is_array( $result['errors'] ?? null ) ? $result['errors'] : array()
 			);
 			Job_Log::write( $job_id, 'error', $message );
 		}
-		rsl_ie()->Model->job->update( $job_id, [ 'result' => wp_json_encode( $result ) ] );
+		rsl_ie()->Model->job->update( $job_id, array( 'result' => wp_json_encode( $result ) ) );
 	}
 
 	/**
@@ -565,7 +572,7 @@ class Export_Service {
 	 * @return array
 	 */
 	public static function column_headers( $headers ) {
-		$clean = [];
+		$clean = array();
 		if ( ! is_array( $headers ) ) {
 			return $clean;
 		}
@@ -593,7 +600,7 @@ class Export_Service {
 			if ( ! is_array( $row ) ) {
 				continue;
 			}
-			$renamed = [];
+			$renamed = array();
 			foreach ( $row as $key => $value ) {
 				$name = $headers[ $key ] ?? $key;
 				// Two columns renamed to the same name would overwrite each other; keep the field name for the second one.
@@ -605,13 +612,13 @@ class Export_Service {
 	}
 
 	private function snapshot( $job ) {
-		return [
-			'completed' => ! in_array( $job->status, [ 'pending', 'processing' ], true ),
+		return array(
+			'completed' => ! in_array( $job->status, array( 'pending', 'processing' ), true ),
 			'status'    => $job->status,
 			'processed' => (int) $job->processed_items,
 			'total'     => (int) $job->total_items,
 			'progress'  => (float) $job->progress,
-		];
+		);
 	}
 
 	/**
@@ -623,9 +630,9 @@ class Export_Service {
 	 */
 	private function fail( $job_id, \WP_Error $error ) {
 		$job = rsl_ie()->Model->job->find( $job_id );
-		if ( $job && in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
+		if ( $job && in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
 			$result               = json_decode( (string) $job->result, true );
-			$result               = is_array( $result ) ? $result : [];
+			$result               = is_array( $result ) ? $result : array();
 			$result['error']      = $error->get_error_message();
 			$result['error_code'] = $error->get_error_code();
 			Job_Log::write( $job_id, 'error', $error->get_error_message() );
@@ -641,6 +648,6 @@ class Export_Service {
 	 * @return \WP_Error
 	 */
 	private function io_error() {
-		return new \WP_Error( 'rsl_ie_export_write_failed', __( 'Could not read or save export data. The job was stopped.', 'import-export-by-rockstarlab' ), [ 'status' => 500 ] );
+		return new \WP_Error( 'rsl_ie_export_write_failed', __( 'Could not read or save export data. The job was stopped.', 'import-export-by-rockstarlab' ), array( 'status' => 500 ) );
 	}
 }

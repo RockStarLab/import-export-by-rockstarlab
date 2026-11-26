@@ -52,7 +52,7 @@ class Media_Hash_Service {
 		$limit = max( 1, min( 100, (int) ( $input['limit'] ?? 50 ) ) );
 		$done  = true;
 		if ( isset( $input['attachment_ids'] ) ) {
-			if ( ! is_array( $input['attachment_ids'] ) || ! $input['attachment_ids'] || count( $input['attachment_ids'] ) > 100 || array_intersect( array_keys( $input ), [ 'after_id', 'snapshot_max_id', 'limit' ] ) ) {
+			if ( ! is_array( $input['attachment_ids'] ) || ! $input['attachment_ids'] || count( $input['attachment_ids'] ) > 100 || array_intersect( array_keys( $input ), array( 'after_id', 'snapshot_max_id', 'limit' ) ) ) {
 				return $this->error( 'invalid_selection', 400 );
 			}
 			$ids = $input['attachment_ids'];
@@ -71,11 +71,11 @@ class Media_Hash_Service {
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
-		return $result + [
+		return $result + array(
 			'complete'        => $done,
 			'after_id'        => $ids ? max( array_map( 'intval', $ids ) ) : $after,
 			'snapshot_max_id' => $max,
-		];
+		);
 	}
 
 	/**
@@ -92,7 +92,7 @@ class Media_Hash_Service {
 		}
 		$offset = max( 0, (int) $offset );
 		$query  = new \WP_Query(
-			[
+			array(
 				'post_type'      => 'attachment',
 				'post_status'    => 'inherit',
 				'posts_per_page' => max( 1, min( 100, (int) $batch_size ) ),
@@ -100,7 +100,7 @@ class Media_Hash_Service {
 				'fields'         => 'ids',
 				'orderby'        => 'ID',
 				'order'          => 'ASC',
-			]
+			)
 		);
 		$result = $this->index( $query->posts );
 		if ( is_wp_error( $result ) ) {
@@ -108,12 +108,12 @@ class Media_Hash_Service {
 		}
 		$total = (int) Media_Hash::get_statistics()['total'];
 		$next  = $offset + $result['attempted'];
-		return $result + [
+		return $result + array(
 			'total'     => $total,
 			'offset'    => $next,
 			'remaining' => max( 0, $total - $next ),
 			'complete'  => $next >= $total,
-		];
+		);
 	}
 
 	/**
@@ -123,28 +123,28 @@ class Media_Hash_Service {
 	 * @return array|\WP_Error
 	 */
 	private function index( array $ids ) {
-		$seen = [];
+		$seen = array();
 		foreach ( $ids as $id ) {
 			if ( ! is_scalar( $id ) || ! ctype_digit( (string) $id ) || (int) $id < 1 || isset( $seen[ (int) $id ] ) || 'attachment' !== get_post_type( (int) $id ) || ! current_user_can( 'edit_post', (int) $id ) ) {
 				return $this->error( 'attachment_forbidden', 403 );
 			}
 			$seen[ (int) $id ] = true;
 		}
-		$result = [
+		$result = array(
 			'processed' => 0,
 			'errors'    => 0,
 			'attempted' => count( $ids ),
-			'results'   => [],
-		];
+			'results'   => array(),
+		);
 		foreach ( $ids as $id ) {
 			$path = $this->uploads_file( get_attached_file( (int) $id ) );
 			$hash = is_wp_error( $path ) ? false : md5_file( $path );
 			$ok   = $hash && Media_Hash::store_attachment_hash( (int) $id, $hash, $path );
 			++$result[ $ok ? 'processed' : 'errors' ];
-			$result['results'][] = [
+			$result['results'][] = array(
 				'attachment_id' => (int) $id,
 				'status'        => $ok ? 'indexed' : 'unavailable',
-			];
+			);
 		}
 		return $result;
 	}
@@ -160,7 +160,7 @@ class Media_Hash_Service {
 		if ( is_wp_error( $access ) ) {
 			return $access;
 		}
-		if ( 1 !== count( array_intersect( array_keys( $input ), [ 'hash', 'file_path', 'attachment_id' ] ) ) ) {
+		if ( 1 !== count( array_intersect( array_keys( $input ), array( 'hash', 'file_path', 'attachment_id' ) ) ) ) {
 			return $this->error( 'invalid_selection', 400 );
 		}
 		$exclude = 0;
@@ -187,11 +187,11 @@ class Media_Hash_Service {
 		if ( $id && ! current_user_can( 'read_post', $id ) ) {
 			return $this->error( 'attachment_forbidden', 403 );
 		}
-		return [
+		return array(
 			'is_duplicate'   => (bool) $id,
 			'attachment_id'  => (int) $id,
 			'attachment_url' => $id ? (string) wp_get_attachment_url( $id ) : '',
-		];
+		);
 	}
 
 	/**
@@ -222,6 +222,6 @@ class Media_Hash_Service {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $status ) {
-		return new \WP_Error( 'rsl_ie_' . $code, __( 'Check media selection, uploads file availability and permissions.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_' . $code, __( 'Check media selection, uploads file availability and permissions.', 'import-export-by-rockstarlab' ), array( 'status' => $status ) );
 	}
 }

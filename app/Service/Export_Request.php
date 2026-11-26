@@ -23,38 +23,38 @@ class Export_Request {
 	/**
 	 * Filter conditions understood by the Free query builders.
 	 */
-	const CONDITIONS = [ 'equals', 'not_equals', 'contains', 'not_contains', 'starts_with', 'ends_with', 'greater', 'less', 'equals_or_greater', 'equals_or_less', 'between', 'in', 'not_in', 'is_empty', 'is_not_empty' ];
+	const CONDITIONS = array( 'equals', 'not_equals', 'contains', 'not_contains', 'starts_with', 'ends_with', 'greater', 'less', 'equals_or_greater', 'equals_or_less', 'between', 'in', 'not_in', 'is_empty', 'is_not_empty' );
 
 	/**
 	 * Common spellings agents and scripts use for the canonical conditions.
 	 */
-	const CONDITION_ALIASES = [
-		'eq'                 => 'equals',
-		'equal'              => 'equals',
-		'neq'                => 'not_equals',
-		'not_equal'          => 'not_equals',
-		'does_not_contain'   => 'not_contains',
-		'gt'                 => 'greater',
-		'greater_than'       => 'greater',
-		'lt'                 => 'less',
-		'less_than'          => 'less',
-		'gte'                => 'equals_or_greater',
-		'greater_or_equal'   => 'equals_or_greater',
-		'greater_or_equals'  => 'equals_or_greater',
-		'greater_than_equal' => 'equals_or_greater',
-		'greater_than_or_equal' => 'equals_or_greater',
+	const CONDITION_ALIASES = array(
+		'eq'                     => 'equals',
+		'equal'                  => 'equals',
+		'neq'                    => 'not_equals',
+		'not_equal'              => 'not_equals',
+		'does_not_contain'       => 'not_contains',
+		'gt'                     => 'greater',
+		'greater_than'           => 'greater',
+		'lt'                     => 'less',
+		'less_than'              => 'less',
+		'gte'                    => 'equals_or_greater',
+		'greater_or_equal'       => 'equals_or_greater',
+		'greater_or_equals'      => 'equals_or_greater',
+		'greater_than_equal'     => 'equals_or_greater',
+		'greater_than_or_equal'  => 'equals_or_greater',
 		'greater_than_or_equals' => 'equals_or_greater',
-		'ge'                 => 'equals_or_greater',
-		'lte'                => 'equals_or_less',
-		'less_or_equal'      => 'equals_or_less',
-		'less_or_equals'     => 'equals_or_less',
-		'less_than_equal'    => 'equals_or_less',
-		'less_than_or_equal' => 'equals_or_less',
-		'less_than_or_equals' => 'equals_or_less',
-		'le'                 => 'equals_or_less',
-		'empty'              => 'is_empty',
-		'not_empty'          => 'is_not_empty',
-	];
+		'ge'                     => 'equals_or_greater',
+		'lte'                    => 'equals_or_less',
+		'less_or_equal'          => 'equals_or_less',
+		'less_or_equals'         => 'equals_or_less',
+		'less_than_equal'        => 'equals_or_less',
+		'less_than_or_equal'     => 'equals_or_less',
+		'less_than_or_equals'    => 'equals_or_less',
+		'le'                     => 'equals_or_less',
+		'empty'                  => 'is_empty',
+		'not_empty'              => 'is_not_empty',
+	);
 
 	/**
 	 * Map a known alias to its canonical condition; other values pass through unchanged.
@@ -81,17 +81,17 @@ class Export_Request {
 		if ( empty( $input['export_type'] ) || ! is_string( $input['export_type'] ) ) {
 			return self::error();
 		}
-		foreach ( [ 'options', 'filters', 'dynamic_filters', 'fields', 'custom_fields', 'field_functions', 'format_options' ] as $key ) {
+		foreach ( array( 'options', 'filters', 'dynamic_filters', 'fields', 'custom_fields', 'field_functions', 'format_options' ) as $key ) {
 			if ( isset( $input[ $key ] ) && ! is_array( $input[ $key ] ) ) {
 				return self::error();
 			}
 		}
 		$type    = strtolower( trim( $input['export_type'] ) );
-		$options = $input['options'] ?? [];
+		$options = $input['options'] ?? array();
 		unset( $options['_rsl_ie_selected_id_field'], $options['_rsl_ie_free_comment_scope'] );
-		$filters     = [];
-		$tax_filters = [];
-		foreach ( [ $options['filters'] ?? [], $input['filters'] ?? [], $options['dynamic_filters'] ?? [], $input['dynamic_filters'] ?? [] ] as $group ) {
+		$filters     = array();
+		$tax_filters = array();
+		foreach ( array( $options['filters'] ?? array(), $input['filters'] ?? array(), $options['dynamic_filters'] ?? array(), $input['dynamic_filters'] ?? array() ) as $group ) {
 			if ( ! is_array( $group ) ) {
 				return self::error();
 			}
@@ -113,15 +113,15 @@ class Export_Request {
 		}
 		$options['filters'] = array_values( $filters );
 		unset( $options['dynamic_filters'], $options['limit'], $options['offset'], $options['force_include_id'] );
-		foreach ( [ 'fields', 'custom_fields', 'field_functions', 'taxonomy', 'table_name' ] as $key ) {
+		foreach ( array( 'fields', 'custom_fields', 'field_functions', 'taxonomy', 'table_name' ) as $key ) {
 			if ( array_key_exists( $key, $input ) && null !== $input[ $key ] ) {
 				$options[ $key ] = $input[ $key ];
 			}
 		}
 		if ( $tax_filters ) {
-			$options['taxonomy'] = array_merge( is_array( $options['taxonomy'] ?? null ) ? $options['taxonomy'] : [], array_values( $tax_filters ) );
+			$options['taxonomy'] = array_merge( is_array( $options['taxonomy'] ?? null ) ? $options['taxonomy'] : array(), array_values( $tax_filters ) );
 		}
-		foreach ( [ 'fields', 'custom_fields', 'field_functions' ] as $key ) {
+		foreach ( array( 'fields', 'custom_fields', 'field_functions' ) as $key ) {
 			if ( isset( $options[ $key ] ) && ! is_array( $options[ $key ] ) ) {
 				return self::error();
 			}
@@ -135,10 +135,10 @@ class Export_Request {
 		} else {
 			unset( $options['remote_destination'] );
 		}
-		$transformations = Access_Policy::check_transformations( $options['field_functions'] ?? [] );
+		$transformations = Access_Policy::check_transformations( $options['field_functions'] ?? array() );
 		if ( is_wp_error( $transformations ) ) {
 			return $transformations; }
-		foreach ( $options['fields'] ?? [] as $field ) {
+		foreach ( $options['fields'] ?? array() as $field ) {
 			if ( ! is_string( $field ) || '' === $field ) {
 				return self::error();
 			}
@@ -150,11 +150,11 @@ class Export_Request {
 		$free = ( new Free_Content_Provider() )->normalize( $type );
 		if ( null !== $free ) {
 			$type = $free;
-			$map  = [
+			$map  = array(
 				'post'  => 'post',
 				'page'  => 'page',
 				'media' => 'attachment',
-			];
+			);
 			if ( isset( $map[ $type ] ) && empty( $options['post_type'] ) ) {
 				$options['post_type'] = $map[ $type ];
 			}
@@ -169,10 +169,10 @@ class Export_Request {
 			 */
 			$premium = apply_filters(
 				'rsl_ie_normalize_export_request',
-				[
+				array(
 					'export_type' => $type,
 					'options'     => $options,
-				]
+				)
 			);
 			if ( is_wp_error( $premium ) ) {
 				return $premium;
@@ -194,20 +194,20 @@ class Export_Request {
 					}
 				)
 			);
-			$options['filters'][] = [
+			$options['filters'][] = array(
 				'field'     => $id_field,
 				'condition' => 'in',
 				'value'     => implode( ',', $ids ),
-			];
+			);
 		}
 		unset( $options['_rsl_ie_selected_id_field'] );
 		$permission = Access_Policy::check_content_type(
 			$type,
 			'export',
-			[
+			array(
 				'options'      => $options,
 				'selected_ids' => $ids,
-			]
+			)
 		);
 		if ( is_wp_error( $permission ) ) {
 			return $permission;
@@ -229,7 +229,7 @@ class Export_Request {
 							$filter['condition'],
 							implode( ', ', self::CONDITIONS )
 						),
-						[ 'status' => 400 ]
+						array( 'status' => 400 )
 					);
 				}
 			}
@@ -237,10 +237,10 @@ class Export_Request {
 		// A query filter may narrow a Free entity set but may not widen its type.
 		if ( null !== $free && 'urls' !== $type ) {
 			foreach ( $options['filters'] as $filter ) {
-				if ( in_array( $filter['field'], [ 'post_type', 'custom_post_type', 'comment_type' ], true ) && in_array( $filter['condition'], [ 'equals', 'in' ], true ) ) {
+				if ( in_array( $filter['field'], array( 'post_type', 'custom_post_type', 'comment_type' ), true ) && in_array( $filter['condition'], array( 'equals', 'in' ), true ) ) {
 					$values = is_array( $filter['value'] ?? null ) ? $filter['value'] : explode( ',', (string) ( $filter['value'] ?? '' ) );
 					foreach ( $values as $value ) {
-						$permission = Access_Policy::check_content_type( $type, 'export', [ 'records' => [ [ $filter['field'] => trim( (string) $value ) ] ] ] );
+						$permission = Access_Policy::check_content_type( $type, 'export', array( 'records' => array( array( $filter['field'] => trim( (string) $value ) ) ) ) );
 						if ( is_wp_error( $permission ) ) {
 							return $permission;
 						}
@@ -249,8 +249,8 @@ class Export_Request {
 			}
 		}
 		if ( 'comment' === $type ) {
-			if ( ! empty( $options['type'] ) && ! in_array( $options['type'], [ 'comment', 'pingback', 'trackback' ], true ) ) {
-				return new \WP_Error( 'rsl_ie_content_type_forbidden', __( 'This comment type requires its own content provider.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
+			if ( ! empty( $options['type'] ) && ! in_array( $options['type'], array( 'comment', 'pingback', 'trackback' ), true ) ) {
+				return new \WP_Error( 'rsl_ie_content_type_forbidden', __( 'This comment type requires its own content provider.', 'import-export-by-rockstarlab' ), array( 'status' => 403 ) );
 			}
 			$options['_rsl_ie_free_comment_scope'] = true;
 		}
@@ -265,7 +265,7 @@ class Export_Request {
 			// names chosen with the pencil on that step win.
 			$labels = ( new Form_Entries_Service() )->fields( $options['form_source'], $options['form_id'] );
 			if ( ! is_wp_error( $labels ) ) {
-				$chosen                    = is_array( $options['column_headers'] ?? null ) ? $options['column_headers'] : [];
+				$chosen                    = is_array( $options['column_headers'] ?? null ) ? $options['column_headers'] : array();
 				$options['column_headers'] = $chosen + array_filter(
 					$labels,
 					static function ( $label, $key ) {
@@ -276,7 +276,7 @@ class Export_Request {
 			}
 		}
 		if ( 'urls' === $type ) {
-			$sources = self::url_sources( $options['content_types'] ?? [] );
+			$sources = self::url_sources( $options['content_types'] ?? array() );
 			if ( is_wp_error( $sources ) ) {
 				return $sources;
 			}
@@ -291,16 +291,16 @@ class Export_Request {
 			// Visitors type these values: keep spreadsheet apps from running them as formulas.
 			$options['csv_safe'] = 'csv' === $format;
 		}
-		$format_options = is_array( $input['format_options'] ?? null ) ? $input['format_options'] : [];
+		$format_options = is_array( $input['format_options'] ?? null ) ? $input['format_options'] : array();
 		// Form posts send checkbox states as the strings "true"/"false"; store real booleans.
-		foreach ( [ 'csv_include_header', 'csv_use_bom', 'json_pretty_print', 'xml_pretty_print', 'spreadsheet_include_header' ] as $flag ) {
+		foreach ( array( 'csv_include_header', 'csv_use_bom', 'json_pretty_print', 'xml_pretty_print', 'spreadsheet_include_header' ) as $flag ) {
 			if ( array_key_exists( $flag, $format_options ) ) {
 				$format_options[ $flag ] = rest_sanitize_boolean( $format_options[ $flag ] );
 			}
 		}
 		if ( 'csv' === $format ) {
 			$delimiter = $format_options['csv_delimiter'] ?? ',';
-			if ( in_array( $delimiter, [ 'tab', '\\t' ], true ) ) {
+			if ( in_array( $delimiter, array( 'tab', '\\t' ), true ) ) {
 				$delimiter = "\t";
 			}
 			// The Custom option allows short multi-character separators such as ;; or |~|.
@@ -309,12 +309,12 @@ class Export_Request {
 			}
 			$format_options['csv_delimiter'] = $delimiter;
 		}
-		return [
+		return array(
 			'export_type'    => $type,
 			'format'         => $format,
 			'options'        => $options,
 			'format_options' => $format_options,
-		];
+		);
 	}
 
 	/**
@@ -324,13 +324,13 @@ class Export_Request {
 	 * @return array|\WP_Error
 	 */
 	private static function selected_ids( array $options ) {
-		$result = [];
-		foreach ( [ 'selected_ids', 'media_library_selected_ids', 'post_list_selected_ids', 'taxonomy_term_selected_ids' ] as $key ) {
+		$result = array();
+		foreach ( array( 'selected_ids', 'media_library_selected_ids', 'post_list_selected_ids', 'taxonomy_term_selected_ids' ) as $key ) {
 			if ( empty( $options[ $key ] ) ) {
 				continue;
 			}
 			$values = is_array( $options[ $key ] ) ? $options[ $key ] : explode( ',', (string) $options[ $key ] );
-			$ids    = [];
+			$ids    = array();
 			foreach ( $values as $value ) {
 				if ( ! is_scalar( $value ) || ! preg_match( '/^[1-9][0-9]*$/', trim( (string) $value ) ) ) {
 					return self::error();
@@ -359,16 +359,16 @@ class Export_Request {
 		}
 		$defaults = empty( $sources );
 		$sources  = $defaults ? Urls_Exporter::get_default_source_tokens() : $sources;
-		$result   = [];
+		$result   = array();
 		foreach ( $sources as $source ) {
 			if ( ! is_string( $source ) ) {
 				return self::error();
 			}
 			$token           = false === strpos( $source, ':' ) ? 'post_type:' . $source : $source;
 			[ $kind, $name ] = explode( ':', $token, 2 );
-			$allowed         = ( in_array( $kind, [ 'post_type', 'post_type_archive', 'post_type_feed', 'rest_post_type' ], true ) && in_array( $name, [ 'post', 'page' ], true ) )
-				|| ( 'standard' === $kind && in_array( $name, [ 'homepage', 'date_archives', 'search_results' ], true ) )
-				|| ( 'feed' === $kind && in_array( $name, [ 'main', 'atom', 'comments' ], true ) ) || 'rest:root' === $token;
+			$allowed         = ( in_array( $kind, array( 'post_type', 'post_type_archive', 'post_type_feed', 'rest_post_type' ), true ) && in_array( $name, array( 'post', 'page' ), true ) )
+				|| ( 'standard' === $kind && in_array( $name, array( 'homepage', 'date_archives', 'search_results' ), true ) )
+				|| ( 'feed' === $kind && in_array( $name, array( 'main', 'atom', 'comments' ), true ) ) || 'rest:root' === $token;
 			if ( ! $allowed ) {
 				/**
 				 * Authorize URL sources belonging to an optional content provider.
@@ -379,7 +379,7 @@ class Export_Request {
 				$allowed = true === apply_filters( 'rsl_ie_authorize_export_url_source', false, $token );
 			}
 			if ( ! $allowed && ! $defaults ) {
-				return new \WP_Error( 'rsl_ie_url_source_forbidden', __( 'This URL source requires an available content provider.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
+				return new \WP_Error( 'rsl_ie_url_source_forbidden', __( 'This URL source requires an available content provider.', 'import-export-by-rockstarlab' ), array( 'status' => 403 ) );
 			}
 			if ( $allowed ) {
 				$result[] = $token;
@@ -394,7 +394,7 @@ class Export_Request {
 	 * @return \WP_Error
 	 */
 	private static function error() {
-		return new \WP_Error( 'rsl_ie_invalid_export_request', __( 'Invalid export parameters, filters or selected IDs.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+		return new \WP_Error( 'rsl_ie_invalid_export_request', __( 'Invalid export parameters, filters or selected IDs.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 	}
 
 	/**
@@ -418,11 +418,11 @@ class Export_Request {
 			return new \WP_Error(
 				'rsl_ie_invalid_taxonomy_filter',
 				__( 'A taxonomy filter needs "taxonomy" (for example category or product_cat) and "value" with one or more term slugs, names or IDs.', 'import-export-by-rockstarlab' ),
-				[ 'status' => 400 ]
+				array( 'status' => 400 )
 			);
 		}
 		$condition = strtolower( trim( (string) $filter['condition'] ) );
-		$map       = [
+		$map       = array(
 			'equals'     => 'in',
 			'in'         => 'in',
 			'not_equals' => 'not_in',
@@ -430,18 +430,18 @@ class Export_Request {
 			'and'        => 'and',
 			'all'        => 'and',
 			'or'         => 'in',
-		];
+		);
 		if ( ! isset( $map[ $condition ] ) ) {
 			return new \WP_Error(
 				'rsl_ie_invalid_taxonomy_filter',
 				__( 'A taxonomy filter supports the conditions in, not_in and and.', 'import-export-by-rockstarlab' ),
-				[ 'status' => 400 ]
+				array( 'status' => 400 )
 			);
 		}
-		return [
+		return array(
 			'taxonomy'  => sanitize_key( $taxonomy ),
 			'terms'     => $terms,
 			'condition' => $map[ $condition ],
-		];
+		);
 	}
 }

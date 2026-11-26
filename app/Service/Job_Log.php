@@ -20,19 +20,19 @@ class Job_Log {
 	 * @return void
 	 */
 	public static function write( $id, $level, $message ) {
-		if ( (int) $id < 1 || ! in_array( $level, [ 'info', 'warning', 'error', 'debug' ], true ) ) {
+		if ( (int) $id < 1 || ! in_array( $level, array( 'info', 'warning', 'error', 'debug' ), true ) ) {
 			return;
 		}
 		global $wpdb;
 		$wpdb->insert(
 			$wpdb->prefix . 'rsl_ie_job_logs',
-			[
+			array(
 				'job_id'     => (int) $id,
 				'level'      => $level,
 				'message'    => substr( sanitize_text_field( $message ), 0, 8000 ),
 				'created_at' => current_time( 'mysql' ),
-			],
-			[ '%d', '%s', '%s', '%s' ]
+			),
+			array( '%d', '%s', '%s', '%s' )
 		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Append an event without affecting the running job on logging failure.
 	}
 }

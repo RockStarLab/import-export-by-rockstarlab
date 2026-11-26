@@ -36,7 +36,7 @@ class Sync_ACF_Graph {
 	 * @param array  $context Selection or maps.
 	 * @return mixed
 	 */
-	public static function products( $operation, array $data = [], array $context = [] ) {
+	public static function products( $operation, array $data = array(), array $context = array() ) {
 		$result = apply_filters( 'rsl_ie_sync_acf_product_graph', null, $operation, $data, $context );
 		return null === $result ? Migration_Sync_Maps::error() : $result;
 	}
@@ -56,7 +56,7 @@ class Sync_ACF_Graph {
 	 * @param array  $context Phase maps or options.
 	 * @return mixed
 	 */
-	public static function accounts( $operation, array $data = [], array $context = [] ) {
+	public static function accounts( $operation, array $data = array(), array $context = array() ) {
 		$result = apply_filters( 'rsl_ie_sync_acf_account_graph', null, $operation, $data, $context );
 		return null === $result ? Migration_Sync_Maps::error() : $result;
 	}
@@ -69,7 +69,7 @@ class Sync_ACF_Graph {
 	 * @param array  $context Selection or maps.
 	 * @return mixed
 	 */
-	public static function terms( $operation, array $data = [], array $context = [] ) {
+	public static function terms( $operation, array $data = array(), array $context = array() ) {
 		$result = apply_filters( 'rsl_ie_sync_acf_term_graph', null, $operation, $data, $context );
 		return null === $result ? Migration_Sync_Maps::error() : $result;
 	}
@@ -92,7 +92,7 @@ class Sync_ACF_Graph {
 	 * @return true|\WP_Error
 	 */
 	public static function term_targets( array $snapshots, array $maps ) {
-		$seen = [];
+		$seen = array();
 		foreach ( Migration_Snapshot_Store::iterate( $snapshots ) as $records ) {
 			if ( is_wp_error( $records ) ) {
 				return $records; }
@@ -150,7 +150,7 @@ class Sync_ACF_Graph {
 		}
 		$count = 0;
 		foreach ( $state['requests'] as $request ) {
-			if ( ( ! empty( $state['acf_graph']['term_posts'] ) && in_array( $request['params']['operation'], [ 'sync-terms-push', 'sync-terms-pull' ], true ) ) || ( ! empty( $state['acf_graph']['account_posts'] ) && in_array( $request['params']['operation'], [ 'sync-users-push', 'sync-users-pull' ], true ) ) || in_array( $request['params']['operation'], [ 'sync-push', 'sync-pull' ], true ) || ( ! empty( $state['acf_graph']['media_fields'] ) && in_array( $request['params']['operation'], [ 'sync-media-push', 'sync-media-pull' ], true ) ) ) {
+			if ( ( ! empty( $state['acf_graph']['term_posts'] ) && in_array( $request['params']['operation'], array( 'sync-terms-push', 'sync-terms-pull' ), true ) ) || ( ! empty( $state['acf_graph']['account_posts'] ) && in_array( $request['params']['operation'], array( 'sync-users-push', 'sync-users-pull' ), true ) ) || in_array( $request['params']['operation'], array( 'sync-push', 'sync-pull' ), true ) || ( ! empty( $state['acf_graph']['media_fields'] ) && in_array( $request['params']['operation'], array( 'sync-media-push', 'sync-media-pull' ), true ) ) ) {
 				++$count;
 			}
 		}
@@ -174,7 +174,7 @@ class Sync_ACF_Graph {
 		$before_terms         = self::$term_posts;
 		self::$term_posts     = self::term_type( $snapshot[0]['post_type'] ?? '' ) ? $snapshot[0]['post_type'] : false;
 		$before_accounts      = self::$account_posts;
-		self::$account_posts  = in_array( $snapshot[0]['post_type'] ?? '', [ '@account', '@account-terms', '@account-all', '@account-full' ], true ) ? $snapshot[0]['post_type'] : false;
+		self::$account_posts  = in_array( $snapshot[0]['post_type'] ?? '', array( '@account', '@account-terms', '@account-all', '@account-full' ), true ) ? $snapshot[0]['post_type'] : false;
 		$before_media         = self::$media_values;
 		self::$media_values   = in_array( 'attachment', array_column( $snapshot, 'post_type' ), true );
 		self::$active         = self::hashes( $snapshot );
@@ -196,12 +196,12 @@ class Sync_ACF_Graph {
 	 */
 	public static function request() {
 		if ( self::$term_posts ) {
-			return [
+			return array(
 				'acf_term_graph_hashes'  => self::$active,
 				'acf_term_graph_version' => 1,
-			] + ( 0 === strpos( self::$term_posts, '@term-posts:' ) ? [] : [ 'acf_term_graph_type' => self::$term_posts ] );
+			) + ( 0 === strpos( self::$term_posts, '@term-posts:' ) ? array() : array( 'acf_term_graph_type' => self::$term_posts ) );
 		}
-		return null === self::$active ? [] : ( self::$account_posts ? [ 'acf_account_graph_hashes' => self::$active ] + ( '@account' === self::$account_posts ? [] : [ 'acf_account_graph_type' => self::$account_posts ] ) : [ 'acf_graph_hashes' => self::$active ] ) + ( self::$media_values ? [ 'acf_attachment_media_version' => 1 ] : [] ) + ( self::$product_fields ? [ 'acf_product_graph_version' => 1 ] : [] );
+		return null === self::$active ? array() : ( self::$account_posts ? array( 'acf_account_graph_hashes' => self::$active ) + ( '@account' === self::$account_posts ? array() : array( 'acf_account_graph_type' => self::$account_posts ) ) : array( 'acf_graph_hashes' => self::$active ) ) + ( self::$media_values ? array( 'acf_attachment_media_version' => 1 ) : array() ) + ( self::$product_fields ? array( 'acf_product_graph_version' => 1 ) : array() );
 	}
 
 	/**
@@ -218,7 +218,7 @@ class Sync_ACF_Graph {
 			return $posts;
 		}
 		if ( $products ?? self::$product_fields ) {
-			return self::products( 'strip', $posts, [ 'hashes' => $hashes ] );
+			return self::products( 'strip', $posts, array( 'hashes' => $hashes ) );
 		}
 		$snapshot = self::snapshot( $posts );
 		if ( is_wp_error( $snapshot ) || ! self::same_hashes( $hashes, self::hashes( $snapshot ) ) ) {
@@ -252,7 +252,7 @@ class Sync_ACF_Graph {
 		if ( self::$product_fields && is_wp_error( self::products( 'received', $posts ) ) ) {
 			return Migration_Sync_Maps::error();
 		}
-		$hashes = [];
+		$hashes = array();
 		foreach ( $posts as $post ) {
 			$hashes[ $post['ID'] ] = $post['acf_graph_hash'] ?? '';
 		}
@@ -266,7 +266,7 @@ class Sync_ACF_Graph {
 	 * @return array
 	 */
 	public static function hashes( array $posts ) {
-		$result = [];
+		$result = array();
 		foreach ( $posts as $post ) {
 			$result[ $post['ID'] ] = hash( 'sha256', wp_json_encode( $post ) );
 		}
@@ -302,27 +302,27 @@ class Sync_ACF_Graph {
 			return self::products( 'read', $ids );
 		}
 		if ( self::term_type( $type ) ) {
-			return self::terms( 'read', $ids, [ 'type' => $type ] );
+			return self::terms( 'read', $ids, array( 'type' => $type ) );
 		}
-		if ( in_array( $type, [ '@account', '@account-terms', '@account-all', '@account-full' ], true ) ) {
-			return self::accounts( 'read', $ids, [ 'type' => $type ] ); }
+		if ( in_array( $type, array( '@account', '@account-terms', '@account-all', '@account-full' ), true ) ) {
+			return self::accounts( 'read', $ids, array( 'type' => $type ) ); }
 		if ( ! $ids || count( $ids ) > 50 || count( array_unique( $ids ) ) !== count( $ids ) ) {
 			return Migration_Sync_Maps::error();
 		}
-		$posts = [];
+		$posts = array();
 		foreach ( $ids as $id ) {
 			if ( ! is_int( $id ) || $id < 1 || is_wp_error( Sync_Peer_Policy::destination( $id, $type ) ) ) {
 				return Migration_Sync_Maps::error();
 			}
-			$meta = [];
+			$meta = array();
 			foreach ( get_post_meta( $id ) as $key => $values ) {
 				$meta[ $key ] = maybe_unserialize( $values[0] );
 			}
-			$posts[] = [
+			$posts[] = array(
 				'ID'        => $id,
 				'post_type' => $type,
 				'meta'      => $meta,
-			];
+			);
 		}
 		$result = self::snapshot( $posts );
 		return $result;
@@ -343,7 +343,7 @@ class Sync_ACF_Graph {
 				}
 			)
 		);
-		$media       = $attachments ? Sync_ACF_Media::snapshot( $attachments ) : [];
+		$media       = $attachments ? Sync_ACF_Media::snapshot( $attachments ) : array();
 		if ( is_wp_error( $media ) ) {
 			return $media;
 		}
@@ -375,7 +375,7 @@ class Sync_ACF_Graph {
 	 */
 	/** Keep only identities required by an ordinary post/media snapshot batch. */
 	public static function batch_context( array $posts, array $context, $selection = false, $keys_only = false ) {
-		$needed = [];
+		$needed = array();
 		foreach ( $posts as $post ) {
 			$type = $post['post_type'] ?? '';
 			// Premium graph providers own their nested reference representation.
@@ -383,10 +383,10 @@ class Sync_ACF_Graph {
 				return $context; }
 			if ( '@' === $type[0] ) {
 				return apply_filters( 'rsl_ie_sync_acf_graph_batch_context', $context, $posts, $selection, $keys_only ); }
-			$identities = [ $post['ID'] ?? 0 => $type ];
-			foreach ( (array) ( $post['acf_post_types'] ?? [] ) as $id => $reference_type ) {
+			$identities = array( $post['ID'] ?? 0 => $type );
+			foreach ( (array) ( $post['acf_post_types'] ?? array() ) as $id => $reference_type ) {
 				$identities[ $id ] = $reference_type; }
-			foreach ( (array) ( $post['acf_attachment_media']['acf_media_values'] ?? [] ) as $ids ) {
+			foreach ( (array) ( $post['acf_attachment_media']['acf_media_values'] ?? array() ) as $ids ) {
 				foreach ( (array) $ids as $id ) {
 					$identities[ $id ] = 'attachment'; }
 			}
@@ -407,7 +407,7 @@ class Sync_ACF_Graph {
 		if ( self::term_type( $posts[0]['post_type'] ?? '' ) ) {
 			return self::terms( 'check', $posts, $selected );
 		}
-		if ( array_intersect( [ '@account', '@account-terms', '@account-all', '@account-full' ], array_column( $posts, 'post_type' ) ) ) {
+		if ( array_intersect( array( '@account', '@account-terms', '@account-all', '@account-full' ), array_column( $posts, 'post_type' ) ) ) {
 			return self::accounts( 'check', $posts, $selected ); }
 		$selected = array_filter(
 			$selected,
@@ -416,7 +416,7 @@ class Sync_ACF_Graph {
 			},
 			ARRAY_FILTER_USE_KEY
 		);
-		$result   = Sync_ACF_Posts::run( 'prepare', $posts, [ 'selected' => $selected ] );
+		$result   = Sync_ACF_Posts::run( 'prepare', $posts, array( 'selected' => $selected ) );
 		$result   = is_wp_error( $result ) ? $result : Sync_ACF_Attachments::verify( $posts );
 		$result   = is_wp_error( $result ) ? $result : Sync_ACF_Media_Fields::files( $posts, null, true );
 		return is_wp_error( $result ) ? $result : Sync_ACF_Media_Graph::check( $posts, $selected );
@@ -437,7 +437,7 @@ class Sync_ACF_Graph {
 			if ( self::term_type( $type ) && is_wp_error( self::terms( 'authorize_verify' ) ) ) {
 				return 0;
 			}
-			if ( in_array( $type, [ '@account', '@account-terms', '@account-all', '@account-full' ], true ) && is_wp_error( self::accounts( 'authorize_verify' ) ) ) {
+			if ( in_array( $type, array( '@account', '@account-terms', '@account-all', '@account-full' ), true ) && is_wp_error( self::accounts( 'authorize_verify' ) ) ) {
 				return 0;
 			}
 		}
@@ -460,7 +460,7 @@ class Sync_ACF_Graph {
 		if ( self::term_type( $posts[0]['post_type'] ?? '' ) ) {
 			return self::terms( $read_only ? 'verify' : 'finalize', $posts, $maps );
 		}
-		if ( array_intersect( [ '@account', '@account-terms', '@account-all', '@account-full' ], array_column( $posts, 'post_type' ) ) ) {
+		if ( array_intersect( array( '@account', '@account-terms', '@account-all', '@account-full' ), array_column( $posts, 'post_type' ) ) ) {
 			return self::accounts( $read_only ? 'verify' : 'finalize', $posts, $maps ); }
 		$maps  = array_filter(
 			$maps,
@@ -479,14 +479,14 @@ class Sync_ACF_Graph {
 			return $media;
 		}
 		$attachment_maps = $maps;
-		$targets         = [];
+		$targets         = array();
 		foreach ( $posts as $post ) {
 			$key                    = 'post_type:' . $post['post_type'] . ':' . $post['ID'];
 			$targets[ $post['ID'] ] = $maps[ $key ] ?? 0;
 			unset( $maps[ $key ] );
 		}
-		$prepared = Sync_ACF_Posts::run( 'prepare', $posts, [ 'mapping' => $maps ] );
-		$result   = is_wp_error( $prepared ) ? $prepared : Sync_ACF_Posts::run( $read_only ? 'verify' : 'finalize', $prepared, [ 'posts' => $targets ] );
+		$prepared = Sync_ACF_Posts::run( 'prepare', $posts, array( 'mapping' => $maps ) );
+		$result   = is_wp_error( $prepared ) ? $prepared : Sync_ACF_Posts::run( $read_only ? 'verify' : 'finalize', $prepared, array( 'posts' => $targets ) );
 		$result   = is_wp_error( $result ) ? $result : Sync_ACF_Media::finalize( $media, $targets, $read_only, true );
 		$result   = is_wp_error( $result ) ? $result : Sync_ACF_Attachments::verify( $posts, $attachment_maps );
 		return is_wp_error( $result ) ? $result : Sync_ACF_Media_Fields::files( $posts, $attachment_maps, true );
@@ -506,44 +506,44 @@ class Sync_ACF_Graph {
 		$response = Remote_API::post(
 			$site['remote_url'],
 			'migration-acf-posts',
-			[
+			array(
 				'timeout' => 60,
-				'headers' => [
+				'headers' => array(
 					'Authorization' => 'Bearer ' . $site['api_key'],
 					'Content-Type'  => 'application/json',
-				],
-				'body'    => wp_json_encode( $input + [ 'version' => 1 ] ),
-			]
+				),
+				'body'    => wp_json_encode( $input + array( 'version' => 1 ) ),
+			)
 		);
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 			return Migration_Sync_Maps::error();
 		}
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
-		if ( ( ! empty( $input['verify_version'] ) || 'verify' === ( $input['operation'] ?? '' ) ) && ( 1 !== ( $data['verify_version'] ?? null ) || ( $data['receipt'] ?? '' ) !== hash( 'sha256', wp_json_encode( $input + [ 'version' => 1 ] ) ) ) ) {
+		if ( ( ! empty( $input['verify_version'] ) || 'verify' === ( $input['operation'] ?? '' ) ) && ( 1 !== ( $data['verify_version'] ?? null ) || ( $data['receipt'] ?? '' ) !== hash( 'sha256', wp_json_encode( $input + array( 'version' => 1 ) ) ) ) ) {
 			return Migration_Sync_Maps::error();
 		}
-		$records    = array_merge( (array) ( $input['posts'] ?? [] ), (array) ( $data['posts'] ?? [] ) );
-		$term_types = array_merge( [ $input['type'] ?? '' ], array_column( $records, 'post_type' ) );
-		if ( in_array( '@product', $term_types, true ) && ( 1 !== ( $data['product_fields_version'] ?? null ) || ( $data['receipt'] ?? '' ) !== hash( 'sha256', wp_json_encode( $input + [ 'version' => 1 ] ) ) ) ) {
+		$records    = array_merge( (array) ( $input['posts'] ?? array() ), (array) ( $data['posts'] ?? array() ) );
+		$term_types = array_merge( array( $input['type'] ?? '' ), array_column( $records, 'post_type' ) );
+		if ( in_array( '@product', $term_types, true ) && ( 1 !== ( $data['product_fields_version'] ?? null ) || ( $data['receipt'] ?? '' ) !== hash( 'sha256', wp_json_encode( $input + array( 'version' => 1 ) ) ) ) ) {
 			return Migration_Sync_Maps::error();
 		}
 		foreach ( $term_types as $type ) {
 			if ( self::term_type( $type ) && 0 !== strpos( $type, '@term-posts:' ) && 1 !== ( $data['term_taxonomies_version'] ?? null ) ) {
 				return Migration_Sync_Maps::error(); }
 		}
-		if ( ( self::term_type( $input['type'] ?? '' ) || array_filter( array_column( $records, 'post_type' ), [ self::class, 'term_type' ] ) ) && 1 !== ( $data['term_posts_version'] ?? null ) ) {
+		if ( ( self::term_type( $input['type'] ?? '' ) || array_filter( array_column( $records, 'post_type' ), array( self::class, 'term_type' ) ) ) && 1 !== ( $data['term_posts_version'] ?? null ) ) {
 			return Migration_Sync_Maps::error();
 		}
 		if ( in_array( '@account-full', $term_types, true ) && 1 !== ( $data['account_users_graph_version'] ?? null ) ) {
 			return Migration_Sync_Maps::error(); }
-		if ( ( in_array( $input['type'] ?? '', [ '@account-terms', '@account-all', '@account-full' ], true ) || array_intersect( [ '@account-terms', '@account-all', '@account-full' ], array_column( $records, 'post_type' ) ) ) && 1 !== ( $data['account_terms_version'] ?? null ) ) {
+		if ( ( in_array( $input['type'] ?? '', array( '@account-terms', '@account-all', '@account-full' ), true ) || array_intersect( array( '@account-terms', '@account-all', '@account-full' ), array_column( $records, 'post_type' ) ) ) && 1 !== ( $data['account_terms_version'] ?? null ) ) {
 			return Migration_Sync_Maps::error(); }
 		if ( ( '@account' === ( $input['type'] ?? '' ) || in_array( '@account', array_column( $records, 'post_type' ), true ) ) && 1 !== ( $data['account_posts_version'] ?? null ) ) {
 			return Migration_Sync_Maps::error(); }
 		if ( in_array( 'attachment', array_column( $records, 'post_type' ), true ) && ( 1 !== ( $data['media_fields_version'] ?? null ) || 1 !== ( $data['media_values_version'] ?? null ) ) ) {
 			return Migration_Sync_Maps::error();
 		}
-		if ( ( Sync_ACF_Attachments::required( $input['posts'] ?? [] ) || Sync_ACF_Attachments::required( (array) ( $data['posts'] ?? [] ) ) ) && 1 !== ( $data['attachments_version'] ?? null ) ) {
+		if ( ( Sync_ACF_Attachments::required( $input['posts'] ?? array() ) || Sync_ACF_Attachments::required( (array) ( $data['posts'] ?? array() ) ) ) && 1 !== ( $data['attachments_version'] ?? null ) ) {
 			return Migration_Sync_Maps::error();
 		}
 		return 1 === ( $data['version'] ?? null ) && true === ( $data['success'] ?? null ) ? $data : Migration_Sync_Maps::error();
@@ -567,7 +567,7 @@ class Sync_ACF_Graph {
 		$operation = $input['operation'] ?? '';
 		if ( 'read' === $operation ) {
 			$result = is_array( $input['ids'] ?? null ) && is_string( $input['type'] ?? null ) ? self::read( $input['ids'], $input['type'] ) : Migration_Sync_Maps::error();
-			return is_wp_error( $result ) ? $result : [
+			return is_wp_error( $result ) ? $result : array(
 				'product_fields_version'      => is_wp_error( self::products( 'authorize' ) ) ? 0 : 1,
 				'term_posts_version'          => is_wp_error( self::terms( 'authorize' ) ) ? 0 : 1,
 				'term_taxonomies_version'     => is_wp_error( self::terms( 'authorize_taxonomies' ) ) ? 0 : 1,
@@ -582,14 +582,14 @@ class Sync_ACF_Graph {
 				'verify_version'              => self::verify_version( $result ),
 				'receipt'                     => hash( 'sha256', wp_json_encode( $input ) ),
 				'posts'                       => $result,
-			];
+			);
 		}
 		$posts = $input['posts'] ?? null;
 		$maps  = $input['maps'] ?? null;
 		if ( ! is_array( $posts ) || ! $posts || count( $posts ) > 50 || ! is_array( $maps ) ) {
 			return Migration_Sync_Maps::error();
 		}
-		$seen = [];
+		$seen = array();
 		foreach ( $posts as $post ) {
 			if ( ! is_array( $post ) || ! is_int( $post['ID'] ?? null ) || $post['ID'] < 1 || isset( $seen[ $post['ID'] ] ) || ! is_string( $post['post_type'] ?? null ) || ! is_array( $post['meta'] ?? null ) ) {
 				return Migration_Sync_Maps::error();
@@ -606,20 +606,20 @@ class Sync_ACF_Graph {
 					return Migration_Sync_Maps::error(); }
 				continue;
 			}
-			if ( is_wp_error( in_array( $post['post_type'], [ '@account', '@account-terms', '@account-all', '@account-full' ], true ) ? self::accounts( 'authorize' ) : Sync_Peer_Policy::post( $post['post_type'], 'sync_pull' ) ) ) {
+			if ( is_wp_error( in_array( $post['post_type'], array( '@account', '@account-terms', '@account-all', '@account-full' ), true ) ? self::accounts( 'authorize' ) : Sync_Peer_Policy::post( $post['post_type'], 'sync_pull' ) ) ) {
 				return Migration_Sync_Maps::error();
 			}
 		}
 		if ( 'check' === $operation ) {
 			foreach ( $maps as $id => $type ) {
 				if ( is_string( $id ) && 0 === strpos( $id, 'user:user:' ) ) {
-					if ( is_wp_error( ( 0 === strpos( $posts[0]['post_type'], '@account' ) ? self::accounts( 'selection_user', [], [ $id => $type ] ) : self::products( 'selection_user', [], [ $id => $type ] ) ) ) ) {
+					if ( is_wp_error( ( 0 === strpos( $posts[0]['post_type'], '@account' ) ? self::accounts( 'selection_user', array(), array( $id => $type ) ) : self::products( 'selection_user', array(), array( $id => $type ) ) ) ) ) {
 						return Migration_Sync_Maps::error();
 					}
 					continue;
 				}
 				if ( is_string( $id ) && 0 === strpos( $id, 'taxonomy:' ) ) {
-					if ( is_wp_error( 0 === strpos( $posts[0]['post_type'], '@account' ) ? self::accounts( 'selection', [], [ $id => $type ] ) : self::terms( 'selection', [], [ $id => $type ] ) ) ) {
+					if ( is_wp_error( 0 === strpos( $posts[0]['post_type'], '@account' ) ? self::accounts( 'selection', array(), array( $id => $type ) ) : self::terms( 'selection', array(), array( $id => $type ) ) ) ) {
 						return Migration_Sync_Maps::error(); }
 					continue;
 				}
@@ -628,12 +628,12 @@ class Sync_ACF_Graph {
 				}
 			}
 			$result = self::check( $posts, $maps );
-		} elseif ( in_array( $operation, [ 'finalize', 'verify' ], true ) ) {
+		} elseif ( in_array( $operation, array( 'finalize', 'verify' ), true ) ) {
 			$result = self::finish( $posts, $maps, 'verify' === $operation );
 		} else {
 			return Migration_Sync_Maps::error();
 		}
-		return is_wp_error( $result ) ? $result : [
+		return is_wp_error( $result ) ? $result : array(
 			'product_fields_version'      => is_wp_error( self::products( 'authorize' ) ) ? 0 : 1,
 			'term_posts_version'          => is_wp_error( self::terms( 'authorize' ) ) ? 0 : 1,
 			'term_taxonomies_version'     => is_wp_error( self::terms( 'authorize_taxonomies' ) ) ? 0 : 1,
@@ -647,6 +647,6 @@ class Sync_ACF_Graph {
 			'success'                     => true,
 			'verify_version'              => self::verify_version( $posts ),
 			'receipt'                     => hash( 'sha256', wp_json_encode( $input ) ),
-		];
+		);
 	}
 }

@@ -19,7 +19,7 @@ class Job_Lock {
 	 *
 	 * @var array
 	 */
-	private static $held = [];
+	private static $held = array();
 
 	/**
 	 * Try to acquire without waiting; connection closure also releases the lock.
@@ -49,7 +49,7 @@ class Job_Lock {
 		}
 		$result = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, %d)', $name, max( 0, min( 15, (int) $wait ) ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Connection-owned synchronization must bypass caches.
 		if ( null === $result ) {
-			return new \WP_Error( 'rsl_ie_lock_unavailable', __( 'The database could not acquire a job lock.', 'import-export-by-rockstarlab' ), [ 'status' => 503 ] );
+			return new \WP_Error( 'rsl_ie_lock_unavailable', __( 'The database could not acquire a job lock.', 'import-export-by-rockstarlab' ), array( 'status' => 503 ) );
 		}
 		if ( '1' !== (string) $result ) {
 			return false;
@@ -96,7 +96,7 @@ class Job_Lock {
 		global $wpdb;
 		if ( isset( self::$held[ $name ] ) ) {
 			if ( self::sqlite() ) {
-				$wpdb->delete( $wpdb->options, [ 'option_name' => self::ROW . $name ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Lock rows must bypass caches.
+				$wpdb->delete( $wpdb->options, array( 'option_name' => self::ROW . $name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Lock rows must bypass caches.
 			} else {
 				$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Connection-owned synchronization must bypass caches.
 			}

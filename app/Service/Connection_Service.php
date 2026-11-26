@@ -27,18 +27,18 @@ class Connection_Service {
 	 * @param array  $input Parsed input, independent of HTTP globals.
 	 * @return array|\WP_Error
 	 */
-	public function execute( $action, array $input = [] ) {
+	public function execute( $action, array $input = array() ) {
 		$access = \RockStarLab\ImportExport\Abilities\Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access;
 		}
-		if ( ! in_array( $action, [ 'add_site', 'delete_site', 'get_my_site_key', 'get_sites', 'regenerate_key', 'regenerate_my_site_key', 'test_connection', 'update_site' ], true ) ) {
+		if ( ! in_array( $action, array( 'add_site', 'delete_site', 'get_my_site_key', 'get_sites', 'regenerate_key', 'regenerate_my_site_key', 'test_connection', 'update_site' ), true ) ) {
 			return $this->plugin_error( __( 'Unknown sync operation.', 'import-export-by-rockstarlab' ) );
 		}
 		$site_id = absint( $input['site_id'] ?? 0 );
 		$lock    = $site_id ? Job_Lock::acquire_resource( 'connection', $site_id ) : null;
 		if ( false === $lock || is_wp_error( $lock ) ) {
-			return new \WP_Error( 'rsl_ie_connection_busy', __( 'This connection is already in use. Try again later.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+			return new \WP_Error( 'rsl_ie_connection_busy', __( 'This connection is already in use. Try again later.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 		}
 		try {
 			return $this->$action( $input );
@@ -371,7 +371,7 @@ class Connection_Service {
 			return (string) preg_replace( '#^www\.#', '', $address );
 		};
 		$url = $key( $url );
-		return '' !== $url && in_array( $url, [ $key( home_url() ), $key( site_url() ) ], true );
+		return '' !== $url && in_array( $url, array( $key( home_url() ), $key( site_url() ) ), true );
 	}
 
 	/**
@@ -381,7 +381,14 @@ class Connection_Service {
 	 * @return \WP_Error
 	 */
 	private function plugin_error( $message ) {
-		return new \WP_Error( 'rsl_ie_sync_error', $message, [ 'status' => 400, 'plugin_message' => true ] );
+		return new \WP_Error(
+			'rsl_ie_sync_error',
+			$message,
+			array(
+				'status'         => 400,
+				'plugin_message' => true,
+			)
+		);
 	}
 
 	/**
@@ -391,9 +398,16 @@ class Connection_Service {
 	 * @return \WP_Error
 	 */
 	private function check_error( \WP_Error $error ) {
-		$safe = [ 'connection_failed', 'remote_redirect', 'plugin_not_installed', 'rest_not_found', 'invalid_api_key', 'password_protected', 'rest_blocked', 'firewall_blocked', 'connection_error', 'invalid_response' ];
+		$safe = array( 'connection_failed', 'remote_redirect', 'plugin_not_installed', 'rest_not_found', 'invalid_api_key', 'password_protected', 'rest_blocked', 'firewall_blocked', 'connection_error', 'invalid_response' );
 		if ( in_array( $error->get_error_code(), $safe, true ) ) {
-			return new \WP_Error( 'rsl_ie_connection_check', $error->get_error_message(), [ 'status' => 400, 'reason' => $error->get_error_code() ] );
+			return new \WP_Error(
+				'rsl_ie_connection_check',
+				$error->get_error_message(),
+				array(
+					'status' => 400,
+					'reason' => $error->get_error_code(),
+				)
+			);
 		}
 		return $this->error( $error->get_error_message() );
 	}
@@ -455,7 +469,7 @@ class Connection_Service {
 	 */
 	private function regenerate_my_site_key() {
 		$result = ( new Credential_Service() )->execute( 'site-key-rotate' );
-		return is_wp_error( $result ) ? $result : $result + [ 'message' => __( 'API key regenerated successfully. All remote sites must update their connection.', 'import-export-by-rockstarlab' ) ];
+		return is_wp_error( $result ) ? $result : $result + array( 'message' => __( 'API key regenerated successfully. All remote sites must update their connection.', 'import-export-by-rockstarlab' ) );
 	}
 
 	/**

@@ -22,14 +22,14 @@ class Sync_ACF_Posts {
 	 * @return array
 	 */
 	public static function definitions( array $definitions ) {
-		foreach ( [ 'sync-push', 'sync-pull' ] as $operation ) {
-			$definitions[ $operation ]['input']['properties']['acf_post_mapping'] = [
+		foreach ( array( 'sync-push', 'sync-pull' ) as $operation ) {
+			$definitions[ $operation ]['input']['properties']['acf_post_mapping'] = array(
 				'type'                 => 'object',
-				'additionalProperties' => [
+				'additionalProperties' => array(
 					'type'    => 'integer',
 					'minimum' => 1,
-				],
-			];
+				),
+			);
 			$definitions[ $operation ]['description']                            .= ' Optional acf_post_mapping enables confirmed ACF Post Object, Relationship and Page Link references. Keys are post_type:TYPE:SOURCE_ID and values are destination IDs in both directions. An empty object resolves references within this batch, including self/cycles. External references require explicit or earlier confirmed parent maps; future batches are not resolved. Both peers need ACF and compatible field definitions. Missing references, unknown definitions and bidirectional fields fail closed. Free supports post/page references; premium types require their PRO policy. No slug/original-ID fallback is used for these fields in this mode.';
 		}
 		return $definitions;
@@ -66,22 +66,22 @@ class Sync_ACF_Posts {
 	 * @param array  $context Mapping, connection or imported identities.
 	 * @return array|true|\WP_Error
 	 */
-	public static function run( $operation, array $data, array $context = [] ) {
+	public static function run( $operation, array $data, array $context = array() ) {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access;
 		}
-		if ( ! function_exists( 'acf_get_field' ) || ! in_array( $operation, [ 'export', 'prepare', 'finalize', 'verify' ], true ) ) {
+		if ( ! function_exists( 'acf_get_field' ) || ! in_array( $operation, array( 'export', 'prepare', 'finalize', 'verify' ), true ) ) {
 			return Migration_Sync_Maps::error();
 		}
-		if ( in_array( $operation, [ 'finalize', 'verify' ], true ) ) {
-			return self::finalize( $data, $context['posts'] ?? [], 'verify' === $operation );
+		if ( in_array( $operation, array( 'finalize', 'verify' ), true ) ) {
+			return self::finalize( $data, $context['posts'] ?? array(), 'verify' === $operation );
 		}
-		$selected = $context['selected'] ?? [];
+		$selected = $context['selected'] ?? array();
 		foreach ( $data as $post ) {
 			$selected[ (int) $post['ID'] ] = $post['post_type'];
 		}
-		$mapping = $context['mapping'] ?? [];
+		$mapping = $context['mapping'] ?? array();
 		if ( ! is_array( $mapping ) ) {
 			return Migration_Sync_Maps::error();
 		}
@@ -95,26 +95,26 @@ class Sync_ACF_Posts {
 				return $access;
 			}
 		}
-		$assignments = [];
+		$assignments = array();
 		foreach ( $data as &$post ) {
-			$fields = self::fields( (array) ( $post['meta'] ?? [] ) );
+			$fields = self::fields( (array) ( $post['meta'] ?? array() ) );
 			if ( is_wp_error( $fields ) ) {
 				return $fields;
 			}
 			if ( 'prepare' === $operation && ( 1 !== ( $post['acf_posts_version'] ?? null ) || wp_json_encode( $fields ) !== wp_json_encode( $post['acf_post_fields'] ?? null ) ) ) {
 				return Migration_Sync_Maps::error();
 			}
-			$record = [
+			$record = array(
 				'type'   => $post['post_type'],
-				'fields' => [],
-			];
-			$types  = [];
+				'fields' => array(),
+			);
+			$types  = array();
 			foreach ( $fields as $name => $field ) {
 				$ids = self::ids( $post['meta'][ $name ], $field['multiple'] );
 				if ( is_wp_error( $ids ) ) {
 					return $ids;
 				}
-				$field['references'] = [];
+				$field['references'] = array();
 				foreach ( $ids as $source ) {
 					$type = $outgoing ? get_post_type( $source ) : ( $post['acf_post_types'][ $source ] ?? null );
 					if ( ! is_string( $type ) || ! preg_match( '/^[a-z0-9_-]+$/D', $type ) || ( $field['post_types'] && ! in_array( $type, $field['post_types'], true ) ) ) {
@@ -129,11 +129,11 @@ class Sync_ACF_Posts {
 					if ( 'prepare' === $operation && ( isset( $selected[ $source ] ) ? $selected[ $source ] !== $type : ! $target ) ) {
 						return Migration_Sync_Maps::error();
 					}
-					$field['references'][] = [
+					$field['references'][] = array(
 						'source' => $source,
 						'type'   => $type,
 						'target' => $target,
-					];
+					);
 				}
 				$record['fields'][ $name ] = $field;
 			}
@@ -156,16 +156,16 @@ class Sync_ACF_Posts {
 			$response = Remote_API::post(
 				$site['remote_url'],
 				'validate',
-				[
+				array(
 					'timeout' => 30,
-					'headers' => [
+					'headers' => array(
 						'Authorization' => 'Bearer ' . $site['api_key'],
 						'Content-Type'  => 'application/json',
-					],
+					),
 					'body'    => '{}',
-				]
+				)
 			);
-			$probe    = is_wp_error( $response ) ? [] : json_decode( wp_remote_retrieve_body( $response ), true );
+			$probe    = is_wp_error( $response ) ? array() : json_decode( wp_remote_retrieve_body( $response ), true );
 			if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) || 1 !== ( $probe['data']['extensions']['acf_posts_version'] ?? null ) ) {
 				return Migration_Sync_Maps::error();
 			}
@@ -184,21 +184,21 @@ class Sync_ACF_Posts {
 		if ( is_wp_error( $posts ) ) {
 			return $posts;
 		}
-		$result = [];
+		$result = array();
 		foreach ( $posts as $post ) {
-			$meta = [];
+			$meta = array();
 			foreach ( $post['acf_post_fields'] as $name => $field ) {
 				$meta[ $name ]       = \RockStarLab\ImportExport\Helper\Serialized::maybe( $post['meta'][ $name ] );
 				$meta[ '_' . $name ] = $field['key'];
 			}
-			$result[] = [
+			$result[] = array(
 				'ID'                => (int) $post['ID'],
 				'post_type'         => $post['post_type'],
 				'meta'              => $meta,
 				'acf_post_fields'   => $post['acf_post_fields'],
 				'acf_post_types'    => $post['acf_post_types'],
 				'acf_posts_version' => 1,
-			];
+			);
 		}
 		return $result;
 	}
@@ -221,15 +221,15 @@ class Sync_ACF_Posts {
 				$definition = $field;
 				unset( $definition['references'] );
 				$live = self::fields(
-					[
+					array(
 						$name       => 0,
 						'_' . $name => $field['key'],
-					]
+					)
 				);
-				if ( is_wp_error( $live ) || [ $name => $definition ] !== $live ) {
+				if ( is_wp_error( $live ) || array( $name => $definition ) !== $live ) {
 					return Migration_Sync_Maps::error();
 				}
-				$ids = [];
+				$ids = array();
 				foreach ( $field['references'] as $reference ) {
 					$id = $reference['target'] ?? ( $posts[ $reference['source'] ] ?? 0 );
 					if ( ! $id || is_wp_error( Sync_Peer_Policy::destination( $id, $reference['type'] ) ) ) {
@@ -260,7 +260,7 @@ class Sync_ACF_Posts {
 	 * @return array|\WP_Error
 	 */
 	public static function fields( array $meta ) {
-		$fields = [];
+		$fields = array();
 		foreach ( $meta as $name => $value ) {
 			$key = $meta[ '_' . $name ] ?? null;
 			if ( 0 === strpos( $name, '_' ) || ! is_string( $key ) || 0 !== strpos( $key, 'field_' ) ) {
@@ -270,7 +270,7 @@ class Sync_ACF_Posts {
 			if ( ! $field ) {
 				return Migration_Sync_Maps::error();
 			}
-			if ( ! in_array( $field['type'] ?? '', [ 'post_object', 'relationship', 'page_link' ], true ) ) {
+			if ( ! in_array( $field['type'] ?? '', array( 'post_object', 'relationship', 'page_link' ), true ) ) {
 				continue;
 			}
 			// Page Link may hold an archive or custom URL instead of a post ID: that is a link, not a
@@ -286,14 +286,14 @@ class Sync_ACF_Posts {
 				return Migration_Sync_Maps::error();
 			}
 			// ACF stores its unrestricted (All post types) selection as an empty string.
-			$types = array_values( (array) ( empty( $field['post_type'] ) ? [] : $field['post_type'] ) );
+			$types = array_values( (array) ( empty( $field['post_type'] ) ? array() : $field['post_type'] ) );
 			sort( $types );
-			$fields[ $name ] = [
+			$fields[ $name ] = array(
 				'key'        => $key,
 				'type'       => $field['type'],
 				'multiple'   => 'relationship' === $field['type'] || ! empty( $field['multiple'] ),
 				'post_types' => $types,
-			];
+			);
 		}
 		ksort( $fields );
 		return $fields;
@@ -308,14 +308,14 @@ class Sync_ACF_Posts {
 	 */
 	public static function ids( $value, $multiple ) {
 		$value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $value );
-		if ( in_array( $value, [ null, false, '', 0, '0', [] ], true ) ) {
-			return [];
+		if ( in_array( $value, array( null, false, '', 0, '0', array() ), true ) ) {
+			return array();
 		}
 		if ( $multiple ? ! is_array( $value ) : is_array( $value ) ) {
 			return Migration_Sync_Maps::error();
 		}
-		$ids = [];
-		foreach ( $multiple ? $value : [ $value ] as $id ) {
+		$ids = array();
+		foreach ( $multiple ? $value : array( $value ) as $id ) {
 			if ( ( ! is_int( $id ) && ! is_string( $id ) ) || ! preg_match( '/^[1-9][0-9]*$/D', (string) $id ) || (string) (int) $id !== (string) $id ) {
 				return Migration_Sync_Maps::error();
 			}

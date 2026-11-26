@@ -10,7 +10,7 @@ namespace RockStarLab\ImportExport\Service;
 defined( 'ABSPATH' ) || exit;
 
 class Import_Row_Filter {
-	const OPERATORS = [ 'equals', 'not_equals', 'contains', 'not_contains', 'starts_with', 'is_empty', 'is_not_empty', 'greater_than', 'less_than', 'in', 'not_in' ];
+	const OPERATORS = array( 'equals', 'not_equals', 'contains', 'not_contains', 'starts_with', 'is_empty', 'is_not_empty', 'greater_than', 'less_than', 'in', 'not_in' );
 
 	/**
 	 * Validate and normalize the row_filters option.
@@ -19,13 +19,13 @@ class Import_Row_Filter {
 	 * @return array|\WP_Error List of {field, operator, value}.
 	 */
 	public static function normalize( $filters ) {
-		if ( null === $filters || '' === $filters || [] === $filters ) {
-			return [];
+		if ( null === $filters || '' === $filters || array() === $filters ) {
+			return array();
 		}
 		if ( ! is_array( $filters ) || count( $filters ) > 20 ) {
 			return self::invalid();
 		}
-		$out = [];
+		$out = array();
 		foreach ( $filters as $filter ) {
 			if ( ! is_array( $filter ) || ! isset( $filter['field'], $filter['operator'] ) || ! is_string( $filter['field'] ) || '' === trim( $filter['field'] ) || ! in_array( $filter['operator'], self::OPERATORS, true ) ) {
 				return self::invalid();
@@ -34,11 +34,11 @@ class Import_Row_Filter {
 			if ( ! is_scalar( $value ) ) {
 				return self::invalid();
 			}
-			$out[] = [
+			$out[] = array(
 				'field'    => trim( $filter['field'] ),
 				'operator' => $filter['operator'],
 				'value'    => (string) $value,
-			];
+			);
 		}
 		return $out;
 	}
@@ -56,11 +56,11 @@ class Import_Row_Filter {
 			return $rows;
 		}
 		$any = 'any' === $match;
-		$out = [];
+		$out = array();
 		foreach ( $rows as $row ) {
 			$hit = ! $any;
 			foreach ( $filters as $filter ) {
-				$ok = self::matches( is_array( $row ) ? $row : [], $filter );
+				$ok = self::matches( is_array( $row ) ? $row : array(), $filter );
 				if ( $any && $ok ) {
 					$hit = true;
 					break;
@@ -100,9 +100,15 @@ class Import_Row_Filter {
 				return '' !== $a;
 			case 'in':
 			case 'not_in':
-				$list = array_filter( array_map( static function ( $v ) {
-					return mb_strtolower( trim( $v ) );
-				}, explode( ',', $want ) ), 'strlen' );
+				$list = array_filter(
+					array_map(
+						static function ( $v ) {
+							return mb_strtolower( trim( $v ) );
+						},
+						explode( ',', $want )
+					),
+					'strlen'
+				);
 				$in   = in_array( $a, $list, true );
 				return 'in' === $filter['operator'] ? $in : ! $in;
 			case 'greater_than':
@@ -126,7 +132,7 @@ class Import_Row_Filter {
 	 * @return float|null
 	 */
 	private static function number( $text ) {
-		$text = trim( str_replace( [ "\xC2\xA0", ' ', "'" ], '', (string) $text ) );
+		$text = trim( str_replace( array( "\xC2\xA0", ' ', "'" ), '', (string) $text ) );
 		$text = preg_replace( '/^[^\d\-+.,]+|[^\d.,]+$/u', '', $text );
 		if ( null === $text || '' === $text ) {
 			return null; }
@@ -135,7 +141,7 @@ class Import_Row_Filter {
 		if ( preg_match( '/^[-+]?\d{1,3}(,\d{3})+(\.\d+)?$/', $text ) ) {
 			$text = str_replace( ',', '', $text );
 		} elseif ( preg_match( '/^[-+]?\d{1,3}(\.\d{3})+(,\d+)?$/', $text ) ) {
-			$text = str_replace( [ '.', ',' ], [ '', '.' ], $text );
+			$text = str_replace( array( '.', ',' ), array( '', '.' ), $text );
 		} elseif ( preg_match( '/^[-+]?\d+,\d+$/', $text ) ) {
 			$text = str_replace( ',', '.', $text );
 		}
@@ -175,18 +181,21 @@ class Import_Row_Filter {
 			}
 		}
 		if ( is_array( $value ) ) {
-			$flat = [];
-			array_walk_recursive( $value, static function ( $v ) use ( &$flat ) {
-				if ( is_scalar( $v ) ) {
-					$flat[] = (string) $v;
+			$flat = array();
+			array_walk_recursive(
+				$value,
+				static function ( $v ) use ( &$flat ) {
+					if ( is_scalar( $v ) ) {
+						$flat[] = (string) $v;
+					}
 				}
-			} );
+			);
 			return implode( ', ', $flat );
 		}
 		return is_scalar( $value ) ? (string) $value : '';
 	}
 
 	private static function invalid() {
-		return new \WP_Error( 'rsl_ie_invalid_row_filters', __( 'Each row filter needs a column, a supported condition and a text value.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+		return new \WP_Error( 'rsl_ie_invalid_row_filters', __( 'Each row filter needs a column, a supported condition and a text value.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 	}
 }

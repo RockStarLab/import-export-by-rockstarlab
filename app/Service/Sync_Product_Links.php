@@ -59,24 +59,24 @@ class Sync_Product_Links {
 		}
 		$count = count(
 			array_filter(
-				$state['requests'] ?? [],
+				$state['requests'] ?? array(),
 				static function ( $request ) {
-					return 'pro' === $request['params']['edition'] && in_array( $request['params']['operation'], [ 'sync-push', 'sync-pull' ], true ) && 'product' === ( $request['params']['input']['post_type'] ?? '' );
+					return 'pro' === $request['params']['edition'] && in_array( $request['params']['operation'], array( 'sync-push', 'sync-pull' ), true ) && 'product' === ( $request['params']['input']['post_type'] ?? '' );
 				}
 			)
 		);
-		if ( count( $state['woo_graph']['snapshots'] ?? [] ) < $count ) {
+		if ( count( $state['woo_graph']['snapshots'] ?? array() ) < $count ) {
 			return 'preparing_woo_references';
 		}
-		if ( ( $state['index'] ?? 0 ) >= count( $state['requests'] ?? [] ) && count( $state['acf_graph']['done'] ?? [] ) < count( $state['acf_graph']['snapshots'] ?? [] ) ) {
+		if ( ( $state['index'] ?? 0 ) >= count( $state['requests'] ?? array() ) && count( $state['acf_graph']['done'] ?? array() ) < count( $state['acf_graph']['snapshots'] ?? array() ) ) {
 			return $fallback;
 		}
-		return ( $state['index'] ?? 0 ) >= count( $state['requests'] ?? [] ) ? 'finalizing_woo_references' : $fallback;
+		return ( $state['index'] ?? 0 ) >= count( $state['requests'] ?? array() ) ? 'finalizing_woo_references' : $fallback;
 	}
 
 	/** Return active transport evidence. @return array */
 	public static function request() {
-		return apply_filters( 'rsl_ie_sync_product_request', null === self::$active ? [] : [ 'woo_graph_hashes' => self::$active ] );
+		return apply_filters( 'rsl_ie_sync_product_request', null === self::$active ? array() : array( 'woo_graph_hashes' => self::$active ) );
 	}
 
 	/**
@@ -87,7 +87,7 @@ class Sync_Product_Links {
 	 * @param array  $context Maps and connection.
 	 * @return mixed
 	 */
-	public static function run( $phase, array $data, array $context = [] ) {
+	public static function run( $phase, array $data, array $context = array() ) {
 		if ( null !== self::$active ) {
 			$context['graph_hashes'] = self::$active;
 		}

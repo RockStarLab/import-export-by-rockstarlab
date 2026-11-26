@@ -23,7 +23,7 @@ class Job_Service {
 	 * @return bool
 	 */
 	public static function supports( $job ) {
-		return $job && empty( json_decode( $job->parameters, true )['migration_parent_id'] ) && in_array( $job->type, [ 'import', 'export' ], true ) && ! in_array( $job->data_type, [ 'media_sync', 'content_update', 'ai_url' ], true );
+		return $job && empty( json_decode( $job->parameters, true )['migration_parent_id'] ) && in_array( $job->type, array( 'import', 'export' ), true ) && ! in_array( $job->data_type, array( 'media_sync', 'content_update', 'ai_url' ), true );
 	}
 
 	/**
@@ -91,15 +91,15 @@ class Job_Service {
 					return self::error( 'request_conflict', 409 );
 				}
 				// A replay cannot revive terminal jobs or replace their immutable input.
-				if ( in_array( $existing->status, [ 'pending', 'processing' ], true ) ) {
+				if ( in_array( $existing->status, array( 'pending', 'processing' ), true ) ) {
 					Job_Runner::schedule( $existing->id );
 				}
-				return [
+				return array(
 					'job_id'             => (int) $existing->id,
 					'status'             => $existing->status,
 					'deduplicated'       => true,
 					'poll_after_seconds' => 2,
-				];
+				);
 			}
 			if ( $key && get_option( 'rsl_ie_job_request_' . $key ) ) {
 				return self::error( 'request_job_deleted', 410 );
@@ -116,12 +116,12 @@ class Job_Service {
 			}
 			Job_Log::write( $id, 'info', __( 'Job queued.', 'import-export-by-rockstarlab' ) );
 			$scheduled = Job_Runner::schedule( $id );
-			$result    = [
+			$result    = array(
 				'job_id'             => (int) $id,
 				'status'             => 'pending',
 				'deduplicated'       => false,
 				'poll_after_seconds' => 2,
-			];
+			);
 			if ( is_wp_error( $scheduled ) ) {
 				$result['scheduling_warning'] = $scheduled->get_error_code();
 			}
@@ -146,7 +146,7 @@ class Job_Service {
 		if ( $value && array_keys( $value ) !== range( 0, count( $value ) - 1 ) ) {
 			ksort( $value );
 		}
-		return array_map( [ __CLASS__, 'canonical' ], $value );
+		return array_map( array( __CLASS__, 'canonical' ), $value );
 	}
 
 	/**
@@ -167,10 +167,10 @@ class Job_Service {
 			return self::error( 'job_not_found', 404 );
 		}
 		$params  = json_decode( (string) $job->parameters, true );
-		$context = $params['execution_context'] ?? [
+		$context = $params['execution_context'] ?? array(
 			'user_id' => (int) $job->user_id,
 			'blog_id' => get_current_blog_id(),
-		];
+		);
 		if ( ! is_array( $context ) || (int) ( $context['user_id'] ?? 0 ) !== (int) $job->user_id ) {
 			return self::error( 'invalid_context', 403 );
 		}
@@ -182,7 +182,7 @@ class Job_Service {
 			if ( ! self::supports( $job ) ) {
 				return self::error( 'job_runner_unavailable', 400 );
 			}
-			$permission = Access_Policy::check_content_type( $job->data_type, $job->type, [ 'options' => $params['options'] ?? [] ] );
+			$permission = Access_Policy::check_content_type( $job->data_type, $job->type, array( 'options' => $params['options'] ?? array() ) );
 			if ( is_wp_error( $permission ) ) {
 				return $permission;
 			}
@@ -208,52 +208,52 @@ class Job_Service {
 	 * @return array
 	 */
 	private function snapshot( $job ) {
-		$actions = [ 'get', 'logs', 'rename' ];
+		$actions = array( 'get', 'logs', 'rename' );
 		if ( self::supports( $job ) || Media_Folder_Service::supports( $job ) ) {
-			if ( in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
-				$actions = array_merge( $actions, [ 'pause', 'cancel' ] );
+			if ( in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
+				$actions = array_merge( $actions, array( 'pause', 'cancel' ) );
 			}
 			if ( 'paused' === $job->status ) {
-				$actions = array_merge( $actions, [ 'resume', 'cancel' ] );
+				$actions = array_merge( $actions, array( 'resume', 'cancel' ) );
 			}
 			if ( 'failed' === $job->status && ! Media_Folder_Service::supports( $job ) ) {
 				$actions[] = 'retry';
 			}
-			if ( in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true ) ) {
-				$actions = array_merge( $actions, [ 'restart', 'delete' ] );
+			if ( in_array( $job->status, array( 'completed', 'failed', 'cancelled' ), true ) ) {
+				$actions = array_merge( $actions, array( 'restart', 'delete' ) );
 			}
 		}
-		if ( self::domain_deletable( $job ) && in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true ) ) {
+		if ( self::domain_deletable( $job ) && in_array( $job->status, array( 'completed', 'failed', 'cancelled' ), true ) ) {
 			$actions[] = 'delete';
 			if ( ! Sync_Job_Service::supports( $job ) ) {
 				$actions[] = 'restart';
 			}
 		}
-		if ( Migration_History_Service::supports( $job ) && in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true ) ) {
+		if ( Migration_History_Service::supports( $job ) && in_array( $job->status, array( 'completed', 'failed', 'cancelled' ), true ) ) {
 			$actions[] = 'delete';
 		}
 		if ( Migration_Service::supports( $job ) ) {
-			if ( in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
-				$actions = array_merge( $actions, [ 'pause', 'cancel' ] ); }
+			if ( in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
+				$actions = array_merge( $actions, array( 'pause', 'cancel' ) ); }
 			if ( 'paused' === $job->status ) {
-				$actions = array_merge( $actions, [ 'resume', 'cancel' ] ); }
+				$actions = array_merge( $actions, array( 'resume', 'cancel' ) ); }
 		}
 		if ( Sync_Job_Service::supports( $job ) ) {
 			$state = json_decode( $job->settings, true );
-			if ( in_array( $state['stage'] ?? '', [ 'queued', 'ready' ], true ) ) {
-				if ( in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
-					$actions = array_merge( $actions, [ 'pause', 'cancel' ] ); }
+			if ( in_array( $state['stage'] ?? '', array( 'queued', 'ready' ), true ) ) {
+				if ( in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
+					$actions = array_merge( $actions, array( 'pause', 'cancel' ) ); }
 				if ( 'paused' === $job->status ) {
-					$actions = array_merge( $actions, [ 'resume', 'cancel' ] ); }
+					$actions = array_merge( $actions, array( 'resume', 'cancel' ) ); }
 			}
 		}
 		// Earlier import checkpoints stored skips only in their cumulative result.
-		$result = json_decode( (string) ( $job->result ?? '' ), true );
+		$result  = json_decode( (string) ( $job->result ?? '' ), true );
 		$skipped = (int) ( $job->skipped_items ?? 0 );
 		if ( 'import' === $job->type && self::supports( $job ) && is_array( $result ) && isset( $result['skipped'] ) ) {
 			$skipped = (int) $result['skipped'];
 		}
-		$snapshot    = [
+		$snapshot = array(
 			'job_id'             => (int) $job->id,
 			'operation'          => $job->type,
 			'content_type'       => $job->data_type,
@@ -267,11 +267,11 @@ class Job_Service {
 			'progress'           => (float) $job->progress,
 			'retries'            => (int) ( $job->retries ?? 0 ),
 			'allowed_actions'    => apply_filters( 'rsl_ie_job_domain_actions', $actions, $job ),
-			'poll_after_seconds' => in_array( $job->status, [ 'pending', 'processing' ], true ) ? 2 : 0,
-		];
+			'poll_after_seconds' => in_array( $job->status, array( 'pending', 'processing' ), true ) ? 2 : 0,
+		);
 		// Imports also tell new items from updated ones, as the import screen does.
 		if ( 'import' === $job->type && is_array( $result ) ) {
-			foreach ( [ 'created', 'updated' ] as $key ) {
+			foreach ( array( 'created', 'updated' ) as $key ) {
 				if ( isset( $result[ $key ] ) && is_numeric( $result[ $key ] ) ) {
 					$snapshot[ $key ] = (int) $result[ $key ];
 				}
@@ -282,7 +282,7 @@ class Job_Service {
 			$snapshot['preparation'] = $preparation;
 		}
 		if ( 'export' === $job->type && is_array( $result ) && is_array( $result['remote_upload'] ?? null ) ) {
-			$snapshot['remote_upload'] = array_intersect_key( $result['remote_upload'], array_flip( [ 'status', 'server', 'path', 'size', 'error' ] ) );
+			$snapshot['remote_upload'] = array_intersect_key( $result['remote_upload'], array_flip( array( 'status', 'server', 'path', 'size', 'error' ) ) );
 		}
 		return $snapshot;
 	}
@@ -299,7 +299,7 @@ class Job_Service {
 		}
 		$params = json_decode( (string) $job->parameters, true );
 		$format = $params['format'] ?? '';
-		if ( ! in_array( $format, [ 'csv', 'json', 'xml', 'xlsx', 'ods' ], true ) ) {
+		if ( ! in_array( $format, array( 'csv', 'json', 'xml', 'xlsx', 'ods' ), true ) ) {
 			return null;
 		}
 		$index = $params['spreadsheet_index'] ?? $params['json_object_index'] ?? null;
@@ -308,11 +308,11 @@ class Job_Service {
 		if ( null === $index && null === $state && ! $ready ) {
 			return null;
 		}
-		$result = [
+		$result = array(
 			'format'        => $format,
 			'phase'         => $ready || ! empty( $state['done'] ) ? 'ready' : ( is_array( $index ) && isset( $index['done'] ) && ! $index['done'] ? 'indexing' : 'preparing' ),
 			'prepared_rows' => max( 0, (int) ( $params['prepared_rows_count'] ?? $state['count'] ?? ( isset( $params['prepared_data'] ) && is_array( $params['prepared_data'] ) ? count( $params['prepared_data'] ) : 0 ) ) ),
-		];
+		);
 		if ( is_array( $index ) ) {
 			$result['indexed_rows'] = max( 0, (int) ( $index['count'] ?? 0 ) );
 		}
@@ -335,10 +335,10 @@ class Job_Service {
 		if ( is_wp_error( $state ) ) {
 			return $state;
 		}
-		return [
+		return array(
 			'job_id'      => (int) $job_id,
 			'is_favorite' => $state,
-		];
+		);
 	}
 
 	/**
@@ -347,15 +347,15 @@ class Job_Service {
 	 * @param array $input Filters and pagination (favorites_only: the current user's starred jobs).
 	 * @return array|\WP_Error
 	 */
-		public function listing( array $input = [] ) {
+	public function listing( array $input = array() ) {
 		$permission = Access_Policy::check_management();
 		if ( is_wp_error( $permission ) ) {
 			return $permission;
 		}
 		$limit  = max( 1, min( 100, (int) ( $input['limit'] ?? 20 ) ) );
 		$offset = max( 0, (int) ( $input['offset'] ?? 0 ) );
-		$where  = [];
-		foreach ( [ 'status', 'type' ] as $key ) {
+		$where  = array();
+		foreach ( array( 'status', 'type' ) as $key ) {
 			if ( ! empty( $input[ $key ] ) && is_string( $input[ $key ] ) ) {
 				$where[ $key ] = $input[ $key ];
 			}
@@ -365,7 +365,7 @@ class Job_Service {
 			$where['ids'] = $favorites;
 		}
 		$jobs  = rsl_ie()->Model->job->get_all( $where, $limit, $offset, 'id DESC' );
-		$items = [];
+		$items = array();
 		foreach ( $jobs as $job ) {
 			$item = $this->get( $job->id );
 			if ( ! is_wp_error( $item ) ) {
@@ -373,12 +373,12 @@ class Job_Service {
 				$items[]             = $item;
 			}
 		}
-		return [
+		return array(
 			'jobs'   => $items,
 			'limit'  => $limit,
 			'offset' => $offset,
 			'total'  => (int) rsl_ie()->Model->job->count( $where ),
-		];
+		);
 	}
 
 	/**
@@ -407,14 +407,14 @@ class Job_Service {
 			$result = ( new Media_Folder_Service() )->transition( $id, $action );
 			return is_wp_error( $result ) ? $result : $this->get( $id );
 		}
-		if ( ! self::supports( $job ) || ! in_array( $action, [ 'pause', 'cancel' ], true ) ) {
+		if ( ! self::supports( $job ) || ! in_array( $action, array( 'pause', 'cancel' ), true ) ) {
 			return self::error( 'job_action_unavailable', 400 );
 		}
 		$status = 'pause' === $action ? 'paused' : 'cancelled';
 		if ( $status === $job->status ) {
 			return $this->snapshot( $job );
 		}
-		$allowed = 'pause' === $action ? [ 'pending', 'processing' ] : [ 'pending', 'processing', 'paused' ];
+		$allowed = 'pause' === $action ? array( 'pending', 'processing' ) : array( 'pending', 'processing', 'paused' );
 		if ( ! in_array( $job->status, $allowed, true ) ) {
 			return self::error( 'job_state_conflict', 409 );
 		}
@@ -428,7 +428,7 @@ class Job_Service {
 			return self::error( 'job_state_conflict', 409 );
 		}
 		Job_Log::write( $id, 'info', 'Job ' . $status . '.' );
-		wp_clear_scheduled_hook( 'rsl_ie_run_job', [ (int) $id ] );
+		wp_clear_scheduled_hook( 'rsl_ie_run_job', array( (int) $id ) );
 		return $this->snapshot( $fresh );
 	}
 
@@ -472,10 +472,10 @@ class Job_Service {
 				if ( is_wp_error( $job ) ) {
 					return $job;
 				}
-				if ( ! in_array( $action, [ 'resume', 'retry' ], true ) ) {
+				if ( ! in_array( $action, array( 'resume', 'retry' ), true ) ) {
 					return self::error( 'job_action_unavailable', 400 );
 				}
-				if ( in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
+				if ( in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
 					Job_Runner::schedule( $id );
 					return $this->snapshot( $job );
 				}
@@ -494,7 +494,7 @@ class Job_Service {
 				// Revalidate as the original initiator, but do not parse/transform any rows.
 				$valid = $context->run(
 					function () use ( $job, $params ) {
-						return 'export' === $job->type ? Export_Request::normalize( $params ) : ( new Import_Service() )->check_request( array_merge( $params, [ 'file_path' => $job->file_path ] ) );
+						return 'export' === $job->type ? Export_Request::normalize( $params ) : ( new Import_Service() )->check_request( array_merge( $params, array( 'file_path' => $job->file_path ) ) );
 					}
 				);
 				if ( is_wp_error( $valid ) ) {
@@ -534,7 +534,7 @@ class Job_Service {
 					return $source;
 				}
 				if ( ! Sync_Job_Service::supports( $source ) && self::domain_deletable( $source ) ) {
-					if ( ! in_array( $source->status, [ 'completed', 'failed', 'cancelled' ], true ) ) {
+					if ( ! in_array( $source->status, array( 'completed', 'failed', 'cancelled' ), true ) ) {
 						return self::error( 'job_state_conflict', 409 );
 					}
 					$params = json_decode( (string) $source->parameters, true );
@@ -547,7 +547,7 @@ class Job_Service {
 						? ( new AI_URL_Service() )->execute( 'ai-url-import-start', $input, $params['edition'] ?? 'free' )
 						: apply_filters( 'rsl_ie_job_domain_restart', self::error( 'job_runner_unavailable', 400 ), $source, $input );
 					if ( ! is_wp_error( $result ) ) {
-						rsl_ie()->Model->job->update( $result['job_id'], [ 'job_name' => $source->job_name ] );
+						rsl_ie()->Model->job->update( $result['job_id'], array( 'job_name' => $source->job_name ) );
 					}
 					return $result;
 				}
@@ -555,7 +555,7 @@ class Job_Service {
 				if ( is_wp_error( $job ) ) {
 					return $job;
 				}
-				if ( ! in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true ) ) {
+				if ( ! in_array( $job->status, array( 'completed', 'failed', 'cancelled' ), true ) ) {
 					return self::error( 'job_state_conflict', 409 );
 				}
 				$input = json_decode( (string) ( $job->request_payload ?? '' ), true );
@@ -573,7 +573,7 @@ class Job_Service {
 				if ( is_wp_error( $result ) ) {
 					return $result;
 				}
-				rsl_ie()->Model->job->update( $result['job_id'], [ 'job_name' => $job->job_name ] );
+				rsl_ie()->Model->job->update( $result['job_id'], array( 'job_name' => $job->job_name ) );
 				return $result;
 			}
 		);
@@ -598,11 +598,11 @@ class Job_Service {
 		if ( strlen( $name ) > 255 ) {
 			return self::error( 'invalid_job_name', 400 );
 		}
-		$saved = rsl_ie()->Model->job->update( $id, [ 'job_name' => $name ] );
-		return is_wp_error( $saved ) ? $saved : [
+		$saved = rsl_ie()->Model->job->update( $id, array( 'job_name' => $name ) );
+		return is_wp_error( $saved ) ? $saved : array(
 			'job_id'   => (int) $id,
 			'job_name' => $name,
-		];
+		);
 	}
 
 	/**
@@ -619,7 +619,7 @@ class Job_Service {
 		if ( is_wp_error( $job ) ) {
 			return $job;
 		}
-		if ( ! in_array( $level, [ 'all', 'debug', 'info', 'warning', 'error' ], true ) ) {
+		if ( ! in_array( $level, array( 'all', 'debug', 'info', 'warning', 'error' ), true ) ) {
 			return self::error( 'invalid_log_level', 400 );
 		}
 		$limit  = max( 1, min( 100, (int) $limit ) );
@@ -632,12 +632,12 @@ class Job_Service {
 		}
 		$logs  = $wpdb->get_results( $wpdb->prepare( "SELECT id, level, message, created_at FROM %i WHERE $where ORDER BY id ASC LIMIT %d OFFSET %d", $table, $limit, $offset ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Where fragments use prepare above.
 		$total = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM %i WHERE $where", $table ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Where fragments use prepare above.
-		return [
+		return array(
 			'logs'   => $logs,
 			'total'  => $total,
 			'limit'  => $limit,
 			'offset' => $offset,
-		];
+		);
 	}
 
 	/**
@@ -657,15 +657,15 @@ class Job_Service {
 				if ( Migration_History_Service::supports( $job ) ) {
 					return ( new Migration_History_Service() )->delete( $job );
 				}
-				if ( ( ! self::supports( $job ) && ! Media_Folder_Service::supports( $job ) && ! self::domain_deletable( $job ) ) || ! in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true ) ) {
+				if ( ( ! self::supports( $job ) && ! Media_Folder_Service::supports( $job ) && ! self::domain_deletable( $job ) ) || ! in_array( $job->status, array( 'completed', 'failed', 'cancelled' ), true ) ) {
 					return self::error( 'job_state_conflict', 409 );
 				}
 				$schedule_model = rsl_ie()->Model->job_schedule;
 				if ( $schedule_model && $schedule_model->find_by(
-					[
+					array(
 						'source_job_id' => $id,
 						'status'        => 'active',
-					]
+					)
 				) ) {
 					return self::error( 'job_has_active_schedule', 409 );
 				}
@@ -673,10 +673,10 @@ class Job_Service {
 				if ( ! empty( $job->request_key ) ) {
 					$saved = add_option(
 						'rsl_ie_job_request_' . $job->request_key,
-						[
+						array(
 							'job_id' => (int) $id,
 							'hash'   => $job->request_hash,
-						],
+						),
 						'',
 						false
 					);
@@ -685,19 +685,19 @@ class Job_Service {
 					}
 				}
 				global $wpdb;
-				$result = $wpdb->delete( $wpdb->prefix . 'rsl_ie_jobs', [ 'id' => (int) $id ], [ '%d' ] );
+				$result = $wpdb->delete( $wpdb->prefix . 'rsl_ie_jobs', array( 'id' => (int) $id ), array( '%d' ) );
 				if ( 1 !== $result ) {
 					return self::error( 'job_write_failed', 500 );
 				}
-				$wpdb->delete( $wpdb->prefix . 'rsl_ie_job_logs', [ 'job_id' => (int) $id ], [ '%d' ] );
-				wp_clear_scheduled_hook( 'rsl_ie_run_job', [ (int) $id ] );
+				$wpdb->delete( $wpdb->prefix . 'rsl_ie_job_logs', array( 'job_id' => (int) $id ), array( '%d' ) );
+				wp_clear_scheduled_hook( 'rsl_ie_run_job', array( (int) $id ) );
 				if ( 'export' === $job->type ) {
 					File_Store::remove( 'file_' . md5( 'export:' . get_current_blog_id() . ':' . $id ) );
 				}
-				return [
+				return array(
 					'job_id'  => (int) $id,
 					'deleted' => true,
-				];
+				);
 			}
 		);
 	}
@@ -718,13 +718,13 @@ class Job_Service {
 			return self::error( 'job_not_found', 404 );
 		}
 		$result = json_decode( (string) $job->result, true );
-		return $this->snapshot( $job ) + [
+		return $this->snapshot( $job ) + array(
 			'percentage' => (float) $job->progress,
-			'result'     => is_array( $result ) ? $result : [],
+			'result'     => is_array( $result ) ? $result : array(),
 			'file_path'  => $job->file_path,
 			'file_size'  => (int) $job->file_size,
 			'estimates'  => $this->estimates( $job ),
-		];
+		);
 	}
 
 	/**
@@ -734,11 +734,11 @@ class Job_Service {
 	 * @return array
 	 */
 	private function estimates( $job ) {
-		$estimates = [
+		$estimates = array(
 			'elapsed_formatted'   => '-',
 			'remaining_formatted' => '-',
 			'items_per_second'    => 0,
-		];
+		);
 		$started   = ! empty( $job->started_at ) ? $job->started_at : $job->created_at;
 		if ( empty( $started ) ) {
 			return $estimates;
@@ -797,24 +797,24 @@ class Job_Service {
 			$checked = $this->record( $id, true );
 			// Reading a result needs no runner: Jobs Log entries without one (Content Sync push and pull
 			// started in the admin) still have a stored result.
-			if ( is_wp_error( $checked ) && ! in_array( $checked->get_error_code(), [ 'job_runner_unavailable', 'rsl_ie_job_runner_unavailable' ], true ) ) {
+			if ( is_wp_error( $checked ) && ! in_array( $checked->get_error_code(), array( 'job_runner_unavailable', 'rsl_ie_job_runner_unavailable' ), true ) ) {
 				return $checked;
 			}
 			$job  = is_wp_error( $checked ) ? $job : $checked;
 			$data = json_decode( (string) $job->result, true );
 		}
-		$data   = is_array( $data ) ? $data : [];
-		$errors = isset( $data['errors'] ) && is_array( $data['errors'] ) ? $data['errors'] : [];
+		$data   = is_array( $data ) ? $data : array();
+		$errors = isset( $data['errors'] ) && is_array( $data['errors'] ) ? $data['errors'] : array();
 		$limit  = max( 1, min( 100, (int) $limit ) );
 		$offset = max( 0, (int) $offset );
-		return $this->snapshot( $job ) + [
+		return $this->snapshot( $job ) + array(
 			'error'          => $data['error'] ?? null,
 			'errors'         => array_slice( $errors, $offset, $limit ),
 			'errors_total'   => count( $errors ),
 			'limit'          => $limit,
 			'offset'         => $offset,
 			'file_available' => 'completed' === $job->status && 'export' === $job->type && ! empty( $job->file_path ) && is_file( $job->file_path ),
-		];
+		);
 	}
 
 	/**
@@ -835,23 +835,23 @@ class Job_Service {
 		global $wpdb;
 		$jobs    = $wpdb->get_results( $wpdb->prepare( "SELECT id FROM %i WHERE status IN ('completed','failed','cancelled') AND type IN ('import','export','sync_background','migration_export','migration_import','migration_sync_push','migration_sync_pull') AND data_type NOT IN ('media_sync') AND created_at < %s ORDER BY id ASC LIMIT 100", $wpdb->prefix . 'rsl_ie_jobs', wp_date( 'Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS ) ) );
 		$deleted = 0;
-		$skipped = [];
+		$skipped = array();
 		foreach ( $jobs as $job ) {
 			$result = $this->delete( $job->id );
 			if ( is_wp_error( $result ) ) {
-				$skipped[] = [
+				$skipped[] = array(
 					'job_id' => (int) $job->id,
 					'reason' => $result->get_error_code(),
-				];
+				);
 			} else {
 				++$deleted;
 			}
 		}
-		return [
+		return array(
 			'deleted'     => $deleted,
 			'skipped'     => $skipped,
 			'batch_limit' => 100,
-		];
+		);
 	}
 
 	/**
@@ -891,7 +891,7 @@ class Job_Service {
 	 * @return \WP_Error
 	 */
 	private static function error( $code, $status ) {
-		$readable = [
+		$readable = array(
 			'job_not_found'           => __( 'Job not found. It may have been deleted or cleaned up.', 'import-export-by-rockstarlab' ),
 			'job_busy'                => __( 'This job is being changed by another request. Try again in a moment.', 'import-export-by-rockstarlab' ),
 			'job_has_active_schedule' => __( 'This job is the source of an active schedule. Delete or pause the schedule first.', 'import-export-by-rockstarlab' ),
@@ -901,10 +901,10 @@ class Job_Service {
 			'request_conflict'        => __( 'This request_id was already used for a different request. Use a new request_id for a new job.', 'import-export-by-rockstarlab' ),
 			'request_busy'            => __( 'A request with this request_id is still being started. Try again in a moment.', 'import-export-by-rockstarlab' ),
 			'request_job_deleted'     => __( 'The job created for this request_id was deleted. Use a new request_id.', 'import-export-by-rockstarlab' ),
-		];
+		);
 		if ( isset( $readable[ $code ] ) ) {
-			return new \WP_Error( 'rsl_ie_' . $code, $readable[ $code ], [ 'status' => $status ] );
+			return new \WP_Error( 'rsl_ie_' . $code, $readable[ $code ], array( 'status' => $status ) );
 		}
-		return new \WP_Error( 'rsl_ie_' . $code, sprintf( /* translators: %s: Job failure code. */ __( 'Job operation failed: %s.', 'import-export-by-rockstarlab' ), $code ), [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_' . $code, sprintf( /* translators: %s: Job failure code. */ __( 'Job operation failed: %s.', 'import-export-by-rockstarlab' ), $code ), array( 'status' => $status ) );
 	}
 }

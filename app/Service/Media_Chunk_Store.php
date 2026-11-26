@@ -21,7 +21,7 @@ class Media_Chunk_Store {
 			return $access; }
 		if ( ! is_string( $request_id ) || ! preg_match( '/^[A-Za-z0-9_-]{16,128}$/D', $request_id ) ) {
 			return File_Store::error( 'invalid_request_id' ); }
-		$identity = wp_json_encode( [ get_current_blog_id(), get_current_user_id(), $credential_scope, $request_id ] );
+		$identity = wp_json_encode( array( get_current_blog_id(), get_current_user_id(), $credential_scope, $request_id ) );
 		$id       = 'file_' . substr( hash_hmac( 'sha256', $identity, wp_salt( 'auth' ) ), 0, 32 );
 		$lock     = Job_Lock::acquire_resource( 'media-chunk', $id );
 		if ( ! $lock || is_wp_error( $lock ) ) {
@@ -42,29 +42,44 @@ class Media_Chunk_Store {
 	/** Seed private staging from a verified local duplicate instead of retransmitting bytes. */
 	public static function reuse_attachment( $id, $md5, $scope = 'local' ) {
 		$r = self::record( $id, $scope );
-		if ( is_wp_error( $r ) ) { return $r; }
-		$attachment = ( new Media_Library_Sync_Service() )->check_file( [ 'file_hash' => $md5, 'source_attachment_id' => 0, 'file_size' => (int) $r['size'] ] );
-		if ( is_wp_error( $attachment ) ) { return $attachment; }
-		if ( ! $attachment || $r['offset'] || $r['ready'] ) { return self::describe( $r ); }
+		if ( is_wp_error( $r ) ) {
+			return $r; }
+		$attachment = ( new Media_Library_Sync_Service() )->check_file(
+			array(
+				'file_hash'            => $md5,
+				'source_attachment_id' => 0,
+				'file_size'            => (int) $r['size'],
+			)
+		);
+		if ( is_wp_error( $attachment ) ) {
+			return $attachment; }
+		if ( ! $attachment || $r['offset'] || $r['ready'] ) {
+			return self::describe( $r ); }
 		$proof = ( new Media_Library_Sync_Service() )->reference_proof( $attachment, true );
-		if ( is_wp_error( $proof ) || $proof['sha256'] !== $r['sha256'] || $proof['size'] !== $r['size'] ) { return self::describe( $r ); }
+		if ( is_wp_error( $proof ) || $proof['sha256'] !== $r['sha256'] || $proof['size'] !== $r['size'] ) {
+			return self::describe( $r ); }
 		$stream = fopen( get_attached_file( $attachment ), 'rb' );
-		if ( ! $stream ) { return self::describe( $r ); }
+		if ( ! $stream ) {
+			return self::describe( $r ); }
 		try {
-			$result = self::describe( $r );
+			$result   = self::describe( $r );
 			$deadline = microtime( true ) + 4;
 			while ( ! $result['ready'] ) {
 				$bytes = fread( $stream, self::CHUNK_BYTES );
-				if ( false === $bytes || '' === $bytes ) { return File_Store::error( 'chunk_integrity', 409 ); }
+				if ( false === $bytes || '' === $bytes ) {
+					return File_Store::error( 'chunk_integrity', 409 ); }
 				$result = self::append( $id, $result['offset'], $bytes, $scope );
-				if ( is_wp_error( $result ) ) { return $result; }
-				if ( microtime( true ) >= $deadline ) { break; }
+				if ( is_wp_error( $result ) ) {
+					return $result; }
+				if ( microtime( true ) >= $deadline ) {
+					break; }
 			}
 			return $result;
-		} finally { fclose( $stream ); }
+		} finally {
+			fclose( $stream ); }
 	}
 
-	private static function create_transfer( $name, $size, $sha256, $credential_scope, $id = null, array $source = [] ) {
+	private static function create_transfer( $name, $size, $sha256, $credential_scope, $id = null, array $source = array() ) {
 		$access = self::access();
 		if ( is_wp_error( $access ) ) {
 			return $access; }
@@ -74,7 +89,7 @@ class Media_Chunk_Store {
 		$dir = File_Store::directory( $id );
 		if ( is_wp_error( $dir ) ) {
 			return $dir; }
-		$record = [
+		$record = array(
 			'id'               => $id,
 			'owner'            => get_current_user_id(),
 			'blog'             => get_current_blog_id(),
@@ -85,7 +100,7 @@ class Media_Chunk_Store {
 			'ready'            => false,
 			'updated_at'       => time(),
 			'credential_scope' => hash( 'sha256', $credential_scope ),
-		] + $source;
+		) + $source;
 		if ( ! add_option( 'rsl_ie_media_chunk_' . $id, $record, '', false ) ) {
 			File_Store::remove( $id );
 			return File_Store::error( 'file_write', 500 ); }
@@ -103,12 +118,12 @@ class Media_Chunk_Store {
 	}
 
 	private static function describe( array $r ) {
-		return [
+		return array(
 			'transfer_id' => $r['id'],
 			'offset'      => $r['offset'],
 			'size'        => $r['size'],
 			'ready'       => $r['ready'],
-		];
+		);
 	}
 
 	public static function status( $id, $credential_scope = 'local' ) {
@@ -133,7 +148,7 @@ class Media_Chunk_Store {
 		if ( is_wp_error( $access ) ) {
 			return $access; }
 		$scope    = 'source:' . $credential_scope;
-		$identity = wp_json_encode( [ get_current_blog_id(), get_current_user_id(), $scope, 'discover', $request_id ] );
+		$identity = wp_json_encode( array( get_current_blog_id(), get_current_user_id(), $scope, 'discover', $request_id ) );
 		$id       = 'file_' . substr( hash_hmac( 'sha256', $identity, wp_salt( 'auth' ) ), 0, 32 );
 		$lock     = Job_Lock::acquire_resource( 'media-chunk', $id );
 		if ( ! $lock || is_wp_error( $lock ) ) {
@@ -153,11 +168,11 @@ class Media_Chunk_Store {
 					str_repeat( '0', 64 ),
 					$scope,
 					$id,
-					[
+					array(
 						'source_attachment_id' => $attachment_id,
 						'discover_digest'      => true,
 						'source_stat'          => self::source_stat( $stat ),
-					]
+					)
 				);
 				if ( is_wp_error( $created ) ) {
 					return $created; }
@@ -174,7 +189,7 @@ class Media_Chunk_Store {
 	}
 
 	private static function source_stat( array $stat ) {
-		return array_intersect_key( $stat, array_flip( [ 'dev', 'ino', 'size', 'mtime', 'ctime' ] ) );
+		return array_intersect_key( $stat, array_flip( array( 'dev', 'ino', 'size', 'mtime', 'ctime' ) ) );
 	}
 
 	/** Private checkpoint lookup; returns no path or serialized hash state. */
@@ -311,14 +326,14 @@ class Media_Chunk_Store {
 		try {
 			$serialized = base64_decode( $r['snapshot_hash_state'], true );
 			// Only locally authenticated hash state is decoded; no peer-controlled classes.
-			$hash = false === $serialized ? false : @unserialize( $serialized, [ 'allowed_classes' => [ 'HashContext' ] ] );
+			$hash = false === $serialized ? false : @unserialize( $serialized, array( 'allowed_classes' => array( 'HashContext' ) ) );
 			return $hash instanceof \HashContext ? $hash : File_Store::error( 'chunk_integrity', 409 );
 		} catch ( \Throwable $exception ) {
 			return File_Store::error( 'chunk_integrity', 409 ); }
 	}
 
 	private static function snapshot_description( array $r ) {
-		return [
+		return array(
 			'snapshot_id'   => $r['id'],
 			'generation'    => $r['snapshot_generation'] ?? 0,
 			'attachment_id' => $r['source_attachment_id'],
@@ -327,7 +342,7 @@ class Media_Chunk_Store {
 			'sha256'        => ! empty( $r['discover_digest'] ) && ! $r['ready'] ? null : $r['sha256'],
 			'offset'        => $r['offset'],
 			'ready'         => $r['ready'],
-		];
+		);
 	}
 
 	/** Authenticate each fixed-size block independently; never rehash the entire snapshot per read. */
@@ -379,11 +394,11 @@ class Media_Chunk_Store {
 					if ( ! update_option( 'rsl_ie_media_chunk_' . $id, $r, false ) ) {
 						return File_Store::error( 'file_write', 500 ); }
 				}
-				return [
+				return array(
 					'offset'      => $offset,
 					'next_offset' => $offset + $length,
 					'data'        => base64_encode( $bytes ),
-				];
+				);
 			} finally {
 				if ( is_resource( $file ) ) {
 					fclose( $file ); }
@@ -466,12 +481,12 @@ class Media_Chunk_Store {
 		clearstatcache( true, $path );
 		if ( is_link( $path ) || ! is_file( $path ) || filesize( $path ) !== $r['size'] || ! hash_equals( $r['sha256'], (string) hash_file( 'sha256', $path ) ) ) {
 			return File_Store::error( 'chunk_integrity', 409 ); }
-		return [
+		return array(
 			'path'      => $path,
 			'file_name' => $r['name'],
 			'size'      => $r['size'],
 			'sha256'    => $r['sha256'],
-		];
+		);
 	}
 
 	/** Copy verified bytes to a WordPress temporary file while holding the transfer lock. */
@@ -551,7 +566,7 @@ class Media_Chunk_Store {
 				return $r['finalization_result']; }
 			if ( null === $result ) {
 				return null; }
-			if ( ! isset( $r['finalization_hash'] ) || ! is_array( $result ) || 0 !== ( $result['failed'] ?? -1 ) || count( $result['items'] ?? [] ) !== 1 || empty( $result['items'][0]['attachment_id'] ) ) {
+			if ( ! isset( $r['finalization_hash'] ) || ! is_array( $result ) || 0 !== ( $result['failed'] ?? -1 ) || count( $result['items'] ?? array() ) !== 1 || empty( $result['items'][0]['attachment_id'] ) ) {
 				return File_Store::error( 'invalid_finalization_result' );
 			}
 			$r['finalization_result'] = $result;
@@ -564,7 +579,7 @@ class Media_Chunk_Store {
 	private static function canonical_metadata( $value ) {
 		if ( ! is_array( $value ) ) {
 			return $value; }
-		if ( [] !== $value && array_keys( $value ) !== range( 0, count( $value ) - 1 ) ) {
+		if ( array() !== $value && array_keys( $value ) !== range( 0, count( $value ) - 1 ) ) {
 			ksort( $value ); }
 		foreach ( $value as &$entry ) {
 			$entry = self::canonical_metadata( $entry ); }

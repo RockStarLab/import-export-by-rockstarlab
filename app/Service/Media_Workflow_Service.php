@@ -21,14 +21,14 @@ class Media_Workflow_Service {
 	 * @param array|object|null $input Request input.
 	 * @return array|\WP_Error
 	 */
-	public function execute( $name, $input = [] ) {
+	public function execute( $name, $input = array() ) {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access;
 		}
 		$definition = Media_Catalog::definitions()[ $name ] ?? null;
 		if ( ! $definition ) {
-			return new \WP_Error( 'rsl_ie_unknown_media_ability', __( 'Unknown media operation.', 'import-export-by-rockstarlab' ), [ 'status' => 404 ] );
+			return new \WP_Error( 'rsl_ie_unknown_media_ability', __( 'Unknown media operation.', 'import-export-by-rockstarlab' ), array( 'status' => 404 ) );
 		}
 		$input = (array) $input;
 		$valid = rest_validate_value_from_schema( $input, $definition['input'], 'input' );
@@ -51,7 +51,7 @@ class Media_Workflow_Service {
 			return $folder->start( $input ); }
 		if ( 'media-sync-status' === $name ) {
 			return $folder->status( $input['job_id'] ); }
-		if ( in_array( $name, [ 'media-sync-pause', 'media-sync-resume', 'media-sync-cancel' ], true ) ) {
+		if ( in_array( $name, array( 'media-sync-pause', 'media-sync-resume', 'media-sync-cancel' ), true ) ) {
 			return $folder->transition( $input['job_id'], substr( $name, 11 ) ); }
 		$service = new Media_Hash_Service();
 		switch ( $name ) {

@@ -23,11 +23,11 @@ class Sync_ACF_Media {
 	 * @return array
 	 */
 	public static function definitions( array $definitions ) {
-		foreach ( [ 'sync-push', 'sync-pull' ] as $operation ) {
-			$definitions[ $operation ]['input']['properties']['acf_media_references'] = [
+		foreach ( array( 'sync-push', 'sync-pull' ) as $operation ) {
+			$definitions[ $operation ]['input']['properties']['acf_media_references'] = array(
 				'type'    => 'boolean',
 				'default' => false,
-			];
+			);
 			$definitions[ $operation ]['description']                                .= ' Optional acf_media_references verifies ACF Image/File/Gallery through actual transferred attachment IDs and SHA-256 file evidence. Both peers require ACF and matching field keys/types. Raw flattened nested fields and empty values are supported; gallery order is preserved. Missing mappings, changed bytes, incompatible definitions or unacknowledged writes fail. At most 50 distinct ACF attachments and files use the chunk transport without inline byte limits. This does not finalize fields on attachment/user/term records or nested Woo entities.';
 		}
 		return $definitions;
@@ -60,17 +60,17 @@ class Sync_ACF_Media {
 		if ( is_wp_error( $access ) ) {
 			return $access;
 		}
-		$proofs = [];
+		$proofs = array();
 		$bytes  = 0;
 		$media  = new Media_Library_Sync_Service();
 		foreach ( $posts as &$post ) {
-			$fields = self::fields( (array) ( $post['meta'] ?? [] ) );
+			$fields = self::fields( (array) ( $post['meta'] ?? array() ) );
 			if ( is_wp_error( $fields ) || is_wp_error( Sync_Peer_Policy::destination( (int) $post['ID'], $post['post_type'] ) ) ) {
 				return Migration_Sync_Maps::error();
 			}
 			$post['acf_media_version'] = 1;
 			$post['acf_media_fields']  = $fields;
-			$post['acf_media_values']  = [];
+			$post['acf_media_values']  = array();
 			foreach ( $fields as $name => $field ) {
 				$ids = self::ids( $post['meta'][ $name ], $field['multiple'] );
 				if ( is_wp_error( $ids ) ) {
@@ -103,7 +103,7 @@ class Sync_ACF_Media {
 		}
 		unset( $post );
 		foreach ( $posts as &$post ) {
-			$post['acf_media_proofs'] = [];
+			$post['acf_media_proofs'] = array();
 			foreach ( $post['acf_media_values'] as $ids ) {
 				foreach ( $ids as $id ) {
 					$post['acf_media_proofs'][ $id ] = $proofs[ $id ];
@@ -119,16 +119,16 @@ class Sync_ACF_Media {
 			$response = Remote_API::post(
 				$site['remote_url'],
 				'validate',
-				[
+				array(
 					'timeout' => 30,
-					'headers' => [
+					'headers' => array(
 						'Authorization' => 'Bearer ' . $site['api_key'],
 						'Content-Type'  => 'application/json',
-					],
+					),
 					'body'    => '{}',
-				]
+				)
 			);
-			$probe    = is_wp_error( $response ) ? [] : json_decode( wp_remote_retrieve_body( $response ), true );
+			$probe    = is_wp_error( $response ) ? array() : json_decode( wp_remote_retrieve_body( $response ), true );
 			if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) || 1 !== ( $probe['data']['extensions']['acf_media_version'] ?? null ) ) {
 				return Migration_Sync_Maps::error();
 			}
@@ -143,18 +143,18 @@ class Sync_ACF_Media {
 	 * @return array|\WP_Error
 	 */
 	public static function snapshot( array $posts ) {
-		$images = [];
+		$images = array();
 		$result = self::export( $posts, $images, null, false );
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
 		foreach ( $result as &$post ) {
-			$meta = [];
+			$meta = array();
 			foreach ( $post['acf_media_fields'] as $name => $field ) {
 				$meta[ $name ]       = \RockStarLab\ImportExport\Helper\Serialized::maybe( $post['meta'][ $name ] );
 				$meta[ '_' . $name ] = $field['key'];
 			}
-			$post         = array_intersect_key( $post, array_flip( [ 'ID', 'post_type', 'acf_media_version', 'acf_media_fields', 'acf_media_values', 'acf_media_proofs' ] ) );
+			$post         = array_intersect_key( $post, array_flip( array( 'ID', 'post_type', 'acf_media_version', 'acf_media_fields', 'acf_media_values', 'acf_media_proofs' ) ) );
 			$post['meta'] = $meta;
 		}
 		unset( $post );
@@ -176,32 +176,32 @@ class Sync_ACF_Media {
 		if ( ! $posts || count( $posts ) > 50 || ( null !== $mapping && ! is_array( $mapping ) ) ) {
 			return Migration_Sync_Maps::error();
 		}
-		$assignments = [];
-		$proofs      = [];
+		$assignments = array();
+		$proofs      = array();
 		$bytes       = 0;
-		$verified    = [];
+		$verified    = array();
 		$media       = new Media_Library_Sync_Service();
 		foreach ( $posts as $post ) {
-			$fields   = self::fields( (array) ( $post['meta'] ?? [] ) );
+			$fields   = self::fields( (array) ( $post['meta'] ?? array() ) );
 			$values   = $post['acf_media_values'] ?? null;
 			$evidence = $post['acf_media_proofs'] ?? null;
 			if ( is_wp_error( $fields ) || 1 !== ( $post['acf_media_version'] ?? null ) || ( $post['acf_media_fields'] ?? null ) !== $fields || ! is_array( $values ) || array_keys( $fields ) !== array_keys( $values ) || ! is_array( $evidence ) || ( ! $chunked && count( $evidence ) > 50 ) || ! is_int( $post['ID'] ?? null ) || $post['ID'] < 1 || isset( $assignments[ $post['ID'] ] ) || is_wp_error( Sync_Peer_Policy::post( $post['post_type'] ?? '', 'sync_pull' ) ) ) {
 				return Migration_Sync_Maps::error();
 			}
-			$record = [
+			$record = array(
 				'type'   => $post['post_type'],
-				'fields' => [],
-			];
-			$used   = [];
+				'fields' => array(),
+			);
+			$used   = array();
 			foreach ( $fields as $name => $field ) {
 				$ids = self::ids( $values[ $name ], true );
 				if ( is_wp_error( $ids ) || $ids !== $values[ $name ] || ( ! $field['multiple'] && count( $ids ) > 1 ) ) {
 					return Migration_Sync_Maps::error();
 				}
-				$field['targets'] = [];
+				$field['targets'] = array();
 				foreach ( $ids as $id ) {
 					$proof = $evidence[ $id ] ?? null;
-					if ( ! is_array( $proof ) || array_keys( $proof ) !== [ 'sha256', 'size', 'mime' ] || ! is_string( $proof['sha256'] ) || ! preg_match( '/^[a-f0-9]{64}$/D', $proof['sha256'] ) || ! is_int( $proof['size'] ) || $proof['size'] < 1 || ( ! $chunked && $proof['size'] > Media_Library_Sync_Service::FILE_LIMIT ) || ! is_string( $proof['mime'] ) || ! preg_match( '#^[a-z0-9.+-]+/[a-z0-9.+-]+$#D', $proof['mime'] ) || ( 'file' !== $field['type'] && 0 !== strpos( $proof['mime'], 'image/' ) ) || ( isset( $proofs[ $id ] ) && $proofs[ $id ] !== $proof ) ) {
+					if ( ! is_array( $proof ) || array_keys( $proof ) !== array( 'sha256', 'size', 'mime' ) || ! is_string( $proof['sha256'] ) || ! preg_match( '/^[a-f0-9]{64}$/D', $proof['sha256'] ) || ! is_int( $proof['size'] ) || $proof['size'] < 1 || ( ! $chunked && $proof['size'] > Media_Library_Sync_Service::FILE_LIMIT ) || ! is_string( $proof['mime'] ) || ! preg_match( '#^[a-z0-9.+-]+/[a-z0-9.+-]+$#D', $proof['mime'] ) || ( 'file' !== $field['type'] && 0 !== strpos( $proof['mime'], 'image/' ) ) || ( isset( $proofs[ $id ] ) && $proofs[ $id ] !== $proof ) ) {
 						return Migration_Sync_Maps::error();
 					}
 					if ( ! isset( $proofs[ $id ] ) ) {
@@ -221,10 +221,10 @@ class Sync_ACF_Media {
 							}
 							$verified[ $id ] = true;
 						}
-						$field['targets'][] = [
+						$field['targets'][] = array(
 							'id'    => $target,
 							'proof' => $proof,
-						];
+						);
 					}
 				}
 				$record['fields'][ $name ] = $field;
@@ -268,7 +268,7 @@ class Sync_ACF_Media {
 			return $access;
 		}
 		$media    = new Media_Library_Sync_Service();
-		$verified = [];
+		$verified = array();
 		foreach ( $assignments as $source => $record ) {
 			$target = $posts[ $source ] ?? 0;
 			if ( ! $target || is_wp_error( Sync_Peer_Policy::destination( $target, $record['type'] ) ) ) {
@@ -278,14 +278,14 @@ class Sync_ACF_Media {
 				$definition = $field;
 				unset( $definition['targets'] );
 				if ( self::fields(
-					[
+					array(
 						$name       => 0,
 						'_' . $name => $field['key'],
-					]
-				) !== [ $name => $definition ] ) {
+					)
+				) !== array( $name => $definition ) ) {
 					return Migration_Sync_Maps::error();
 				}
-				$ids = [];
+				$ids = array();
 				foreach ( $field['targets'] as $file ) {
 					if ( ( $verified[ $file['id'] ] ?? $media->reference_proof( $file['id'], $chunked ) ) !== $file['proof'] ) {
 						return Migration_Sync_Maps::error();
@@ -329,7 +329,7 @@ class Sync_ACF_Media {
 	 * @return array|\WP_Error
 	 */
 	public static function fields( array $meta ) {
-		$fields = [];
+		$fields = array();
 		foreach ( $meta as $name => $value ) {
 			$key = $meta[ '_' . $name ] ?? null;
 			if ( 0 === strpos( $name, '_' ) || ! is_string( $key ) || 0 !== strpos( $key, 'field_' ) ) {
@@ -339,17 +339,17 @@ class Sync_ACF_Media {
 			if ( ! $field ) {
 				return Migration_Sync_Maps::error();
 			}
-			if ( ! in_array( $field['type'] ?? '', [ 'image', 'file', 'gallery' ], true ) ) {
+			if ( ! in_array( $field['type'] ?? '', array( 'image', 'file', 'gallery' ), true ) ) {
 				continue;
 			}
 			if ( empty( $field['name'] ) || ! ( $name === $field['name'] || substr( $name, -strlen( '_' . $field['name'] ) ) === '_' . $field['name'] ) || ! empty( $field['bidirectional'] ) ) {
 				return Migration_Sync_Maps::error();
 			}
-			$fields[ $name ] = [
+			$fields[ $name ] = array(
 				'key'      => $key,
 				'type'     => $field['type'],
 				'multiple' => 'gallery' === $field['type'],
-			];
+			);
 		}
 		ksort( $fields );
 		return count( $fields ) > 500 ? Migration_Sync_Maps::error() : $fields;
@@ -364,14 +364,14 @@ class Sync_ACF_Media {
 	 */
 	public static function ids( $value, $multiple ) {
 		$value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $value );
-		if ( in_array( $value, [ null, false, '', 0, '0', [] ], true ) ) {
-			return [];
+		if ( in_array( $value, array( null, false, '', 0, '0', array() ), true ) ) {
+			return array();
 		}
 		if ( $multiple ? ! is_array( $value ) : is_array( $value ) ) {
 			return Migration_Sync_Maps::error();
 		}
-		$ids = [];
-		foreach ( $multiple ? $value : [ $value ] as $id ) {
+		$ids = array();
+		foreach ( $multiple ? $value : array( $value ) as $id ) {
 			if ( ( ! is_int( $id ) && ! is_string( $id ) ) || ! preg_match( '/^[1-9][0-9]*$/D', (string) $id ) || (string) (int) $id !== (string) $id ) {
 				return Migration_Sync_Maps::error();
 			}
