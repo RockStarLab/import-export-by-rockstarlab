@@ -58,7 +58,7 @@ function rsl_ie_uninstall_site() {
 	delete_option( 'rsl_ie_agent_pointer_dismissed' );
 	delete_option( 'rsl_ie_install_date' );
 	// Mapping templates, job notifications and event triggers.
-	foreach ( [ 'rsl_ie_mapping_templates', 'rsl_ie_notifications', 'rsl_ie_notifications_state', 'rsl_ie_notifications_log', 'rsl_ie_notifications_retries', 'rsl_ie_notifications_lock', 'rsl_ie_triggers', 'rsl_ie_triggers_log' ] as $rsl_ie_option ) {
+	foreach ( array( 'rsl_ie_mapping_templates', 'rsl_ie_notifications', 'rsl_ie_notifications_state', 'rsl_ie_notifications_log', 'rsl_ie_notifications_retries', 'rsl_ie_notifications_lock', 'rsl_ie_triggers', 'rsl_ie_triggers_log' ) as $rsl_ie_option ) {
 		delete_option( $rsl_ie_option );
 	}
 	wp_unschedule_hook( 'rsl_ie_send_notifications' );
@@ -73,8 +73,8 @@ function rsl_ie_uninstall_site() {
 
 	// Plugin bookkeeping on content (file hashes of media, sync and import links such as
 	// _rsl_ie_original_attachment_id). Owner decision 24 Nov 2026: uninstall removes it too.
-	foreach ( [ $wpdb->postmeta, $wpdb->termmeta, $wpdb->commentmeta, $wpdb->usermeta ] as $rsl_ie_meta_table ) {
-		foreach ( [ 'rsl_ie_', '_rsl_ie_' ] as $rsl_ie_meta_prefix ) {
+	foreach ( array( $wpdb->postmeta, $wpdb->termmeta, $wpdb->commentmeta, $wpdb->usermeta ) as $rsl_ie_meta_table ) {
+		foreach ( array( 'rsl_ie_', '_rsl_ie_' ) as $rsl_ie_meta_prefix ) {
 			$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE meta_key LIKE %s', $rsl_ie_meta_table, $wpdb->esc_like( $rsl_ie_meta_prefix ) . '%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Bulk removal on uninstall.
 		}
 	}
@@ -109,7 +109,7 @@ function rsl_ie_uninstall_site() {
 	if ( is_dir( $rsl_ie_upload_dir ) ) {
 		rsl_ie_delete_directory( $rsl_ie_upload_dir );
 	}
-	foreach ( [ 'rsl_ie_run_job_schedule', 'rsl_ie_process_queue', 'rsl_ie_updraft_worker' ] as $rsl_ie_hook ) {
+	foreach ( array( 'rsl_ie_run_job_schedule', 'rsl_ie_process_queue', 'rsl_ie_updraft_worker' ) as $rsl_ie_hook ) {
 		wp_unschedule_hook( $rsl_ie_hook );
 	}
 
@@ -123,7 +123,12 @@ function rsl_ie_uninstall_site() {
 
 // Every site of a network has its own tables, options and events.
 if ( is_multisite() ) {
-	foreach ( get_sites( [ 'fields' => 'ids', 'number' => 0 ] ) as $rsl_ie_blog_id ) {
+	foreach ( get_sites(
+		array(
+			'fields' => 'ids',
+			'number' => 0,
+		)
+	) as $rsl_ie_blog_id ) {
 		switch_to_blog( (int) $rsl_ie_blog_id );
 		rsl_ie_uninstall_site();
 		restore_current_blog();

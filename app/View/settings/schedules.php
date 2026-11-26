@@ -10,22 +10,22 @@ defined( 'ABSPATH' ) || exit;
 $rsl_ie_schedule_model = rsl_ie()->Model->job_schedule;
 $rsl_ie_schedules      = $rsl_ie_schedule_model->get_with_jobs();
 $rsl_ie_source_jobs    = rsl_ie()->Model->job->all(
-	[
+	array(
 		'limit'    => 1,
 		'order_by' => 'id',
 		'order'    => 'DESC',
-	]
+	)
 );
 
 $rsl_ie_schedule_screen_nonce = wp_create_nonce( 'rsl_ie_schedules_screen' );
 $rsl_ie_query_nonce           = filter_has_var( INPUT_GET, '_wpnonce' ) ? sanitize_text_field( (string) filter_input( INPUT_GET, '_wpnonce', FILTER_UNSAFE_RAW ) ) : '';
 $rsl_ie_query_is_verified     = wp_verify_nonce( $rsl_ie_query_nonce, 'rsl_ie_schedules_screen' );
-$rsl_ie_schedule_url          = static function ( $args = [] ) use ( $rsl_ie_schedule_screen_nonce ) {
+$rsl_ie_schedule_url          = static function ( $args = array() ) use ( $rsl_ie_schedule_screen_nonce ) {
 	$args = array_merge(
-		[
+		array(
 			'page'     => 'rsl-ie-schedules',
 			'_wpnonce' => $rsl_ie_schedule_screen_nonce,
-		],
+		),
 		$args
 	);
 
@@ -131,7 +131,7 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Changes only', 'import-export-by-rockstarlab' ); ?></th>
 						<td>
-							<?php $rsl_ie_changed_only = $rsl_ie_selected ? ! empty( get_option( 'rsl_ie_schedule_meta_' . $rsl_ie_selected->id, [] )['changed_only'] ) : false; ?>
+							<?php $rsl_ie_changed_only = $rsl_ie_selected ? ! empty( get_option( 'rsl_ie_schedule_meta_' . $rsl_ie_selected->id, array() )['changed_only'] ) : false; ?>
 							<label>
 								<input id="schedule-changed-only" name="changed_only" type="checkbox" value="1" <?php checked( $rsl_ie_changed_only ); ?> <?php disabled( $rsl_ie_readonly ); ?>>
 								<?php esc_html_e( 'Export only items changed since the previous run', 'import-export-by-rockstarlab' ); ?>
@@ -145,10 +145,10 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 					<?php
 					echo esc_url(
 						$rsl_ie_schedule_url(
-							[
+							array(
 								'schedule_id' => $rsl_ie_selected->id,
 								'mode'        => 'edit',
-							]
+							)
 						)
 					);
 					?>
@@ -210,7 +210,7 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 						);
 						echo esc_html( 'recurring' === $rsl_ie_schedule->schedule_type ? ( $rsl_ie_recurrence_labels[ $rsl_ie_schedule->recurrence ] ?? ucfirst( $rsl_ie_schedule->recurrence ) ) : __( 'One time', 'import-export-by-rockstarlab' ) );
 						?>
-						<?php if ( ! empty( get_option( 'rsl_ie_schedule_meta_' . $rsl_ie_schedule->id, [] )['changed_only'] ) ) : ?>
+						<?php if ( ! empty( get_option( 'rsl_ie_schedule_meta_' . $rsl_ie_schedule->id, array() )['changed_only'] ) ) : ?>
 							<br><span class="description"><?php esc_html_e( 'Changes only', 'import-export-by-rockstarlab' ); ?></span>
 						<?php endif; ?>
 					</td>
@@ -230,7 +230,7 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 						echo esc_html( $rsl_ie_status_labels[ $rsl_ie_schedule->status ] ?? ucfirst( $rsl_ie_schedule->status ) );
 						?>
 						<?php
-						$rsl_ie_schedule_meta = get_option( 'rsl_ie_schedule_meta_' . $rsl_ie_schedule->id, [] );
+						$rsl_ie_schedule_meta = get_option( 'rsl_ie_schedule_meta_' . $rsl_ie_schedule->id, array() );
 						if ( ! empty( $rsl_ie_schedule_meta['error_message'] ) ) :
 							if ( 'rsl_ie_url_download_failed' === ( $rsl_ie_schedule_meta['error_code'] ?? '' ) && '' !== (string) ( $rsl_ie_schedule_meta['error_reason'] ?? '' ) ) {
 								/* translators: %s: error message or HTTP status. */
@@ -259,10 +259,10 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 						<?php
 						echo esc_url(
 							$rsl_ie_schedule_url(
-								[
+								array(
 									'schedule_id' => $rsl_ie_schedule->id,
 									'mode'        => 'view',
-								]
+								)
 							)
 						);
 						?>
@@ -271,10 +271,10 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 						<?php
 						echo esc_url(
 							$rsl_ie_schedule_url(
-								[
+								array(
 									'schedule_id' => $rsl_ie_schedule->id,
 									'mode'        => 'edit',
-								]
+								)
 							)
 						);
 						?>

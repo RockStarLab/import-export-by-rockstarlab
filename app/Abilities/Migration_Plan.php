@@ -16,17 +16,19 @@ defined( 'ABSPATH' ) || exit;
 class Migration_Plan {
 	/** Missing plugin-defined content is excluded without blocking other archive entries. */
 	public static function unavailable_dependency( array $step ) {
-		$type = $step['type'] ?? '';
-		$taxonomy = $step['taxonomy'] ?? '';
+		$type      = $step['type'] ?? '';
+		$taxonomy  = $step['taxonomy'] ?? '';
 		$post_type = $step['post_type'] ?? '';
-		if ( 'taxonomy' === $type && is_string( $taxonomy ) && '' !== $taxonomy && ! taxonomy_exists( $taxonomy ) ) { return true; }
-		if ( 'custom_post_types' === $type && is_string( $post_type ) && '' !== $post_type && ! post_type_exists( $post_type ) ) { return true; }
+		if ( 'taxonomy' === $type && is_string( $taxonomy ) && '' !== $taxonomy && ! taxonomy_exists( $taxonomy ) ) {
+			return true; }
+		if ( 'custom_post_types' === $type && is_string( $post_type ) && '' !== $post_type && ! post_type_exists( $post_type ) ) {
+			return true; }
 		return ! class_exists( 'WooCommerce' ) && self::requires_woocommerce( $step );
 	}
 
 	/** Whether a manifest step belongs to WooCommerce. */
 	public static function requires_woocommerce( array $step ) {
-		$type = $step['type'] ?? '';
+		$type     = $step['type'] ?? '';
 		$taxonomy = $step['taxonomy'] ?? '';
 		return ( 0 === strpos( $type, 'woo_' ) ||
 			( 'taxonomy' === $type && ( 0 === strpos( $taxonomy, 'product_' ) || 0 === strpos( $taxonomy, 'pa_' ) ) ) );
@@ -41,13 +43,13 @@ class Migration_Plan {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access; }
-		$steps = [];
-		foreach ( [
+		$steps = array();
+		foreach ( array(
 			'media'   => 4,
 			'post'    => 5,
 			'page'    => 6,
 			'comment' => 14,
-		] as $type => $order ) {
+		) as $type => $order ) {
 			$step = self::step( $type, $order );
 			if ( $step ) {
 				$steps[] = $step; }
@@ -70,14 +72,15 @@ class Migration_Plan {
 	 * @param array  $options Provider-owned subtype.
 	 * @return array|null
 	 */
-	public static function step( $type, $order, array $options = [] ) {
-		if ( 'database_table' === $type ) { return null; }
-		if ( is_wp_error( Access_Policy::check_content_type( $type, 'export', [ 'options' => $options ] ) ) || ! Exporter_Factory::is_supported( $type ) ) {
+	public static function step( $type, $order, array $options = array() ) {
+		if ( 'database_table' === $type ) {
+			return null; }
+		if ( is_wp_error( Access_Policy::check_content_type( $type, 'export', array( 'options' => $options ) ) ) || ! Exporter_Factory::is_supported( $type ) ) {
 			return null; }
 		$exporter = Exporter_Factory::get_exporter( $type );
 		if ( is_wp_error( $exporter ) ) {
 			return null; }
-		$fields = [];
+		$fields = array();
 		foreach ( $exporter->get_available_fields() as $field ) {
 			if ( is_array( $field ) ) {
 				$field = $field['name'] ?? $field['key'] ?? $field['id'] ?? $field['value'] ?? ''; }
@@ -86,8 +89,8 @@ class Migration_Plan {
 		}
 		// The default export columns too: for products they carry the sale dates, downloadable
 		// files, download limits and purchase note, which the generic field list leaves out.
-		$defaults = is_callable( [ $exporter, 'get_default_fields' ] ) ? (array) $exporter->get_default_fields() : [];
-		if ( 'woo_product' === $type && is_callable( [ \RockStarLab\ImportExport\Model\Export\Post_Exporter::class, 'product_default_fields' ] ) ) {
+		$defaults = is_callable( array( $exporter, 'get_default_fields' ) ) ? (array) $exporter->get_default_fields() : array();
+		if ( 'woo_product' === $type && is_callable( array( \RockStarLab\ImportExport\Model\Export\Post_Exporter::class, 'product_default_fields' ) ) ) {
 			$defaults = array_merge( $defaults, \RockStarLab\ImportExport\Model\Export\Post_Exporter::product_default_fields() );
 		}
 		foreach ( $defaults as $field ) {
@@ -102,16 +105,16 @@ class Migration_Plan {
 		 * @param array    $options Provider-owned subtype.
 		 */
 		$fields = (array) apply_filters( 'rsl_ie_migration_step_fields', $fields, (string) $type, $options );
-		return [
+		return array(
 			'key'        => $type,
 			'type'       => $type,
 			'label'      => ucwords( str_replace( '_', ' ', $type ) ),
 			'filename'   => sprintf( '%02d-%s.json', $order, $type ),
 			'fields'     => array_values( array_unique( $fields ) ),
 			'importable' => Importer_Factory::is_supported( $type ),
-			'children'   => [],
+			'children'   => array(),
 			'order'      => $order,
-		];
+		);
 	}
 
 	/**
@@ -124,37 +127,37 @@ class Migration_Plan {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access; }
-		$free = [
+		$free = array(
 			'media'   => 4,
 			'post'    => 5,
 			'page'    => 6,
 			'comment' => 14,
-		];
+		);
 		$type = $step['type'];
 		if ( 'database_table' === $type ) {
-			return new \WP_Error( 'rsl_ie_migration_scope', __( 'Custom database tables are not supported by Content Migration.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_migration_scope', __( 'Custom database tables are not supported by Content Migration.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 		}
 		if ( isset( $free[ $type ] ) ) {
 			if ( ! empty( $step['table_suffix'] ) ) {
-				return new \WP_Error( 'rsl_ie_migration_scope', __( 'Unexpected migration table target.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
+				return new \WP_Error( 'rsl_ie_migration_scope', __( 'Unexpected migration table target.', 'import-export-by-rockstarlab' ), array( 'status' => 403 ) );
 			}
 			if ( ! empty( $step['taxonomy'] ) || ( ! empty( $step['post_type'] ) && ( 'media' === $type ? 'attachment' : $type ) !== $step['post_type'] ) ) {
-				return new \WP_Error( 'rsl_ie_migration_scope', __( 'Invalid migration content scope.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
+				return new \WP_Error( 'rsl_ie_migration_scope', __( 'Invalid migration content scope.', 'import-export-by-rockstarlab' ), array( 'status' => 403 ) );
 			}
-			$scope = [
+			$scope = array(
 				'key'     => $type,
 				'type'    => $type,
 				'order'   => $free[ $type ],
-				'options' => [],
-			];
+				'options' => array(),
+			);
 		} else {
 			$scope = apply_filters( 'rsl_ie_migration_import_scope', null, $step );
 		}
 		if ( is_wp_error( $scope ) ) {
 			return $scope; }
 		if ( ! is_array( $scope ) || ! Importer_Factory::is_supported( $type ) ) {
-			return new \WP_Error( 'rsl_ie_migration_provider', __( 'The migration content provider is unavailable.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] ); }
-		$access = Access_Policy::check_content_type( $type, 'import', [ 'options' => $scope['options'] ] );
+			return new \WP_Error( 'rsl_ie_migration_provider', __( 'The migration content provider is unavailable.', 'import-export-by-rockstarlab' ), array( 'status' => 403 ) ); }
+		$access = Access_Policy::check_content_type( $type, 'import', array( 'options' => $scope['options'] ) );
 		return is_wp_error( $access ) ? $access : $scope;
 	}
 
@@ -167,9 +170,9 @@ class Migration_Plan {
 		$steps = self::steps();
 		if ( is_wp_error( $steps ) ) {
 			return $steps; }
-		$result = [];
+		$result = array();
 		foreach ( $steps as $step ) {
-			foreach ( ( $step['children'] ? $step['children'] : [ $step ] ) as $leaf ) {
+			foreach ( ( $step['children'] ? $step['children'] : array( $step ) ) as $leaf ) {
 				$leaf['order'] = $step['order'];
 				unset( $leaf['children'] );
 				$result[ $leaf['key'] ] = $leaf;

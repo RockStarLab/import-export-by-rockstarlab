@@ -18,7 +18,7 @@ class View {
 	 *
 	 * @throws \Exception
 	 **/
-	function load( $path = '', $data = [], $return = false, $base = null ) {
+	function load( $path = '', $data = array(), $return = false, $base = null ) {
 
 		if ( is_null( $base ) ) {
 			$base = RSL_IE_PATH . '/app/View/';

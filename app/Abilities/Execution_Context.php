@@ -64,7 +64,7 @@ class Execution_Context {
 	 */
 	public static function from_storage( $user_id, $blog_id ) {
 		if ( ! is_int( $user_id ) || ! is_int( $blog_id ) || $user_id < 1 || $blog_id < 1 ) {
-			return new \WP_Error( 'rsl_ie_invalid_context', __( 'The job execution context is invalid.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_invalid_context', __( 'The job execution context is invalid.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 		}
 		return new self( $user_id, $blog_id );
 	}
@@ -75,10 +75,10 @@ class Execution_Context {
 	 * @return array
 	 */
 	public function to_storage() {
-		return [
+		return array(
 			'user_id' => $this->user_id,
 			'blog_id' => $this->blog_id,
-		];
+		);
 	}
 
 	/**
@@ -95,7 +95,7 @@ class Execution_Context {
 		$switched      = false;
 		if ( get_current_blog_id() !== $this->blog_id ) {
 			if ( ! is_multisite() || ! get_site( $this->blog_id ) ) {
-				return new \WP_Error( 'rsl_ie_site_unavailable', __( 'The job site is unavailable.', 'import-export-by-rockstarlab' ), [ 'status' => 404 ] );
+				return new \WP_Error( 'rsl_ie_site_unavailable', __( 'The job site is unavailable.', 'import-export-by-rockstarlab' ), array( 'status' => 404 ) );
 			}
 			switch_to_blog( $this->blog_id );
 			$switched = true;

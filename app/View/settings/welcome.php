@@ -29,7 +29,7 @@ $rsl_ie_pro_active     = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_acti
 					<g fill="none" stroke="url(#rsl-ie-orbit-gradient)" stroke-width="1"><ellipse cx="930" cy="240" rx="340" ry="190" opacity=".18"/><ellipse cx="930" cy="240" rx="410" ry="260" opacity=".12"/><path class="rsl-ie-agent-signal" d="M480 390C660 390 580 70 860 70S1030 390 1200 200" stroke-dasharray="4 12" opacity=".35"/></g>
 				</svg>
 				<div class="rsl-ie-agent-hero-copy">
-					<span class="rsl-ie-agent-hero-eyebrow"><?php esc_html_e( 'YOUR WORDPRESS. YOUR AI AGENT.', 'import-export-by-rockstarlab' ); ?></span>
+					<span class="rsl-ie-agent-hero-eyebrow"><?php esc_html_e( 'YOUR WORDPRESS. YOUR AI AGENT.', 'import-export-by-rockstarlab' ); // phpcs:ignore WordPress.WP.CapitalPDangit.MisspelledInText -- Intentional all-caps tagline; changing it would also change the translation key. ?></span>
 					<h2 id="rsl-ie-agent-hero-title"><?php esc_html_e( 'Powerful data workflows.', 'import-export-by-rockstarlab' ); ?><br><span><?php esc_html_e( 'Just ask.', 'import-export-by-rockstarlab' ); ?></span></h2>
 					<p><?php esc_html_e( 'Bring your AI agent to WordPress. Connect Codex, Claude, Cursor, GitHub Copilot or Gemini CLI to import, export and sync content just by asking.', 'import-export-by-rockstarlab' ); ?></p>
 					<a class="rsl-ie-agent-hero-cta" href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-agent-connection' ) ); ?>"><?php esc_html_e( 'Connect your AI agent', 'import-export-by-rockstarlab' ); ?><span aria-hidden="true">↗</span></a>

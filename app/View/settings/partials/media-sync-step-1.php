@@ -15,32 +15,32 @@ $rsl_ie_base_dir   = $rsl_ie_upload_dir['basedir'];
 // This respects any customizations via the `upload_mimes` filter.
 $rsl_ie_allowed_mimes    = function_exists( 'get_allowed_mime_types' ) ? (array) get_allowed_mime_types() : array();
 $rsl_ie_allowed_exts     = array();
-$rsl_ie_extension_groups = [
-	'image'    => [
+$rsl_ie_extension_groups = array(
+	'image'    => array(
 		'label'      => __( 'Images', 'import-export-by-rockstarlab' ),
-		'extensions' => [],
-	],
-	'video'    => [
+		'extensions' => array(),
+	),
+	'video'    => array(
 		'label'      => __( 'Video', 'import-export-by-rockstarlab' ),
-		'extensions' => [],
-	],
-	'audio'    => [
+		'extensions' => array(),
+	),
+	'audio'    => array(
 		'label'      => __( 'Audio', 'import-export-by-rockstarlab' ),
-		'extensions' => [],
-	],
-	'document' => [
+		'extensions' => array(),
+	),
+	'document' => array(
 		'label'      => __( 'Documents', 'import-export-by-rockstarlab' ),
-		'extensions' => [],
-	],
-	'archive'  => [
+		'extensions' => array(),
+	),
+	'archive'  => array(
 		'label'      => __( 'Archives', 'import-export-by-rockstarlab' ),
-		'extensions' => [],
-	],
-	'other'    => [
+		'extensions' => array(),
+	),
+	'other'    => array(
 		'label'      => __( 'Other files', 'import-export-by-rockstarlab' ),
-		'extensions' => [],
-	],
-];
+		'extensions' => array(),
+	),
+);
 foreach ( $rsl_ie_allowed_mimes as $rsl_ie_ext_group => $rsl_ie_mime_type ) {
 	$rsl_ie_ext_group = (string) $rsl_ie_ext_group;
 	foreach ( explode( '|', $rsl_ie_ext_group ) as $rsl_ie_ext ) {
@@ -52,7 +52,7 @@ foreach ( $rsl_ie_allowed_mimes as $rsl_ie_ext_group => $rsl_ie_mime_type ) {
 			continue;
 		}
 		$rsl_ie_group = strtok( (string) $rsl_ie_mime_type, '/' );
-		if ( ! in_array( $rsl_ie_group, [ 'image', 'video', 'audio' ], true ) ) {
+		if ( ! in_array( $rsl_ie_group, array( 'image', 'video', 'audio' ), true ) ) {
 			if ( preg_match( '/(?:zip|compressed|archive|tar|gzip|rar|7z)/i', $rsl_ie_mime_type ) ) {
 				$rsl_ie_group = 'archive';
 			} elseif ( 'text' === $rsl_ie_group || preg_match( '/(?:pdf|word|excel|powerpoint|officedocument|opendocument|mswrite|onenote|ms-project|oxps|xps|vnd.apple)/i', $rsl_ie_mime_type ) ) {

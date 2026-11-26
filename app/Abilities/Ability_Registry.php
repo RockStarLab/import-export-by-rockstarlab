@@ -50,13 +50,13 @@ class Ability_Registry {
 		}
 		return wp_register_ability(
 			$name,
-			[
+			array(
 				'label'               => $definition['label'],
 				'description'         => $definition['description'],
 				'category'            => 'rsl-ie',
 				'input_schema'        => $input,
 				'output_schema'       => $definition['output'],
-				'execute_callback'    => static function ( $input = [] ) use ( $execute ) {
+				'execute_callback'    => static function ( $input = array() ) use ( $execute ) {
 					// Core validates objects but preserves stdClass defaults used by MCP.
 					// Service adapters consume an array at the top-level input boundary.
 					return $execute( $input instanceof \stdClass ? (array) $input : $input );
@@ -64,19 +64,19 @@ class Ability_Registry {
 				'permission_callback' => static function () {
 					return self::is_enabled() ? Access_Policy::check_management() : false;
 				},
-				'meta'                => [
+				'meta'                => array(
 					'show_in_rest' => true,
-					'mcp'          => [
+					'mcp'          => array(
 						'public' => true,
 						'type'   => 'tool',
-					],
-					'annotations'  => [
+					),
+					'annotations'  => array(
 						'readonly'    => $definition['readonly'],
 						'destructive' => $definition['destructive'],
 						'idempotent'  => $definition['idempotent'],
-					],
-				],
-			]
+					),
+				),
+			)
 		);
 	}
 
@@ -109,7 +109,7 @@ class Ability_Registry {
 
 		return wp_register_ability(
 			$name,
-			[
+			array(
 				'label'               => $label,
 				'description'         => $description,
 				'category'            => 'rsl-ie',
@@ -119,19 +119,19 @@ class Ability_Registry {
 				'permission_callback' => static function ( ...$args ) use ( $permission ) {
 					return self::is_enabled() ? call_user_func_array( $permission, $args ) : false;
 				},
-				'meta'                => [
+				'meta'                => array(
 					'show_in_rest' => true,
-					'mcp'          => [
+					'mcp'          => array(
 						'public' => true,
 						'type'   => 'tool',
-					],
-					'annotations'  => [
+					),
+					'annotations'  => array(
 						'readonly'    => true,
 						'destructive' => false,
 						'idempotent'  => true,
-					],
-				],
-			]
+					),
+				),
+			)
 		);
 	}
 }

@@ -16,19 +16,19 @@ $rsl_ie_notice = get_transient( 'rsl_ie_trigger_notice_' . $rsl_ie_uid );
 $rsl_ie_token  = get_transient( 'rsl_ie_trigger_token_' . $rsl_ie_uid );
 delete_transient( 'rsl_ie_trigger_notice_' . $rsl_ie_uid );
 delete_transient( 'rsl_ie_trigger_token_' . $rsl_ie_uid );
-$rsl_ie_events = [
+$rsl_ie_events  = array(
 	'webhook'           => __( 'Webhook URL is called', 'import-export-by-rockstarlab' ),
 	'post_published'    => __( 'A post is published', 'import-export-by-rockstarlab' ),
 	'woo_order_created' => __( 'A WooCommerce order is created', 'import-export-by-rockstarlab' ),
 	'file_changed'      => __( 'The import file at its URL changes', 'import-export-by-rockstarlab' ),
-];
-$rsl_ie_reasons = [
+);
+$rsl_ie_reasons = array(
 	'webhook'      => __( 'Webhook', 'import-export-by-rockstarlab' ),
 	'webhook_file' => __( 'Webhook with a file URL', 'import-export-by-rockstarlab' ),
-	'event'   => __( 'Event', 'import-export-by-rockstarlab' ),
-	'file'    => __( 'File changed', 'import-export-by-rockstarlab' ),
-	'manual'  => __( 'Run now', 'import-export-by-rockstarlab' ),
-];
+	'event'        => __( 'Event', 'import-export-by-rockstarlab' ),
+	'file'         => __( 'File changed', 'import-export-by-rockstarlab' ),
+	'manual'       => __( 'Run now', 'import-export-by-rockstarlab' ),
+);
 $rsl_ie_has_url = (bool) array_filter( $rsl_ie_srcs, static fn( $s ) => $s['from_url'] );
 ?>
 <div id="rsl-ie-triggers" class="import-export-by-rockstarlab wrap">
@@ -83,7 +83,7 @@ $rsl_ie_has_url = (bool) array_filter( $rsl_ie_srcs, static fn( $s ) => $s['from
 						<?php if ( 'post_published' === $rsl_ie_t['event'] ) : ?>
 							<br><span class="description"><?php echo esc_html( implode( ', ', array_map( static fn( $pt ) => isset( $rsl_ie_ptypes[ $pt ] ) ? $rsl_ie_ptypes[ $pt ]->labels->name : $pt, $rsl_ie_t['post_types'] ) ) ); ?></span>
 						<?php endif; ?>
-						<?php if ( in_array( $rsl_ie_t['event'], [ 'post_published', 'woo_order_created' ], true ) && $rsl_ie_t['delay'] ) : ?>
+						<?php if ( in_array( $rsl_ie_t['event'], array( 'post_published', 'woo_order_created' ), true ) && $rsl_ie_t['delay'] ) : ?>
 							<br><span class="description">
 							<?php
 							$rsl_ie_wait = $rsl_ie_t['delay'] >= 60 && 0 === $rsl_ie_t['delay'] % 60
@@ -128,10 +128,10 @@ $rsl_ie_has_url = (bool) array_filter( $rsl_ie_srcs, static fn( $s ) => $s['from
 					</td>
 					<td class="rsl-ie-trigger-actions">
 						<?php
-						$rsl_ie_buttons = [
-							'run'                                              => __( 'Run Now', 'import-export-by-rockstarlab' ),
+						$rsl_ie_buttons = array(
+							'run' => __( 'Run Now', 'import-export-by-rockstarlab' ),
 							( 'active' === $rsl_ie_t['status'] ? 'pause' : 'resume' ) => 'active' === $rsl_ie_t['status'] ? __( 'Pause', 'import-export-by-rockstarlab' ) : __( 'Resume', 'import-export-by-rockstarlab' ),
-						];
+						);
 						if ( 'webhook' === $rsl_ie_t['event'] ) {
 							$rsl_ie_buttons['rotate'] = __( 'New Token', 'import-export-by-rockstarlab' );
 							if ( 'import' === $rsl_ie_t['source_type'] ) {
@@ -257,16 +257,16 @@ $rsl_ie_has_url = (bool) array_filter( $rsl_ie_srcs, static fn( $s ) => $s['from
 						<?php else : ?>
 							<?php
 							$rsl_ie_skip_labels = array(
-								'rsl_ie_trigger_too_soon'         => __( 'Skipped: less than a minute after the previous run', 'import-export-by-rockstarlab' ),
-								'rsl_ie_trigger_overlap'          => __( 'Skipped: the previous job is still running', 'import-export-by-rockstarlab' ),
-								'rsl_ie_trigger_paused'           => __( 'Skipped: the trigger is paused', 'import-export-by-rockstarlab' ),
-								'rsl_ie_trigger_busy'             => __( 'Skipped: the trigger was busy', 'import-export-by-rockstarlab' ),
-								'rsl_ie_trigger_source'           => __( 'The source job could not be started', 'import-export-by-rockstarlab' ),
+								'rsl_ie_trigger_too_soon'  => __( 'Skipped: less than a minute after the previous run', 'import-export-by-rockstarlab' ),
+								'rsl_ie_trigger_overlap'   => __( 'Skipped: the previous job is still running', 'import-export-by-rockstarlab' ),
+								'rsl_ie_trigger_paused'    => __( 'Skipped: the trigger is paused', 'import-export-by-rockstarlab' ),
+								'rsl_ie_trigger_busy'      => __( 'Skipped: the trigger was busy', 'import-export-by-rockstarlab' ),
+								'rsl_ie_trigger_source'    => __( 'The source job could not be started', 'import-export-by-rockstarlab' ),
 								'rsl_ie_trigger_file_unreachable' => __( 'The file could not be downloaded', 'import-export-by-rockstarlab' ),
-								'rsl_ie_trigger_file_http'        => __( 'The file could not be downloaded', 'import-export-by-rockstarlab' ),
+								'rsl_ie_trigger_file_http' => __( 'The file could not be downloaded', 'import-export-by-rockstarlab' ),
 							);
 							?>
-							<span class="rsl-ie-trigger-skip"><?php echo esc_html( $rsl_ie_skip_labels[ $rsl_ie_e['detail'] ] ?? str_replace( [ 'rsl_ie_trigger_', 'rsl_ie_', '_' ], [ '', '', ' ' ], $rsl_ie_e['detail'] ) ); ?></span>
+							<span class="rsl-ie-trigger-skip"><?php echo esc_html( $rsl_ie_skip_labels[ $rsl_ie_e['detail'] ] ?? str_replace( array( 'rsl_ie_trigger_', 'rsl_ie_', '_' ), array( '', '', ' ' ), $rsl_ie_e['detail'] ) ); ?></span>
 						<?php endif; ?>
 					</td>
 				</tr>

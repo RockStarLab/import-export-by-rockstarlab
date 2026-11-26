@@ -20,14 +20,14 @@ class Free_Content_Provider {
 	 * @return array
 	 */
 	public function get_definitions() {
-		return [
-			'post'    => [ 'posts' ],
-			'page'    => [ 'pages' ],
-			'comment' => [ 'comments' ],
-			'media'   => [ 'attachment', 'attachments' ],
-			'urls'    => [],
-			'form_entries' => [ 'form_entry', 'forms', 'form' ],
-		];
+		return array(
+			'post'         => array( 'posts' ),
+			'page'         => array( 'pages' ),
+			'comment'      => array( 'comments' ),
+			'media'        => array( 'attachment', 'attachments' ),
+			'urls'         => array(),
+			'form_entries' => array( 'form_entry', 'forms', 'form' ),
+		);
 	}
 
 	/**
@@ -54,17 +54,17 @@ class Free_Content_Provider {
 	 * @return true|\WP_Error
 	 */
 	public function check( $type, $operation, array $context ) {
-		foreach ( [ 'options', 'records', 'selected_ids' ] as $key ) {
+		foreach ( array( 'options', 'records', 'selected_ids' ) as $key ) {
 			if ( isset( $context[ $key ] ) && ! is_array( $context[ $key ] ) ) {
 				return $this->error( 'rsl_ie_invalid_context' );
 			}
 		}
-		$operations = [ 'import', 'export', 'sync_push', 'sync_pull' ];
-		if ( in_array( $type, [ 'post', 'page' ], true ) ) {
+		$operations = array( 'import', 'export', 'sync_push', 'sync_pull' );
+		if ( in_array( $type, array( 'post', 'page' ), true ) ) {
 			$operations[] = 'ai_url_import';
 		}
-		if ( in_array( $type, [ 'urls', 'form_entries' ], true ) ) {
-			$operations = [ 'export' ];
+		if ( in_array( $type, array( 'urls', 'form_entries' ), true ) ) {
+			$operations = array( 'export' );
 		}
 		if ( ! in_array( $operation, $operations, true ) ) {
 			return $this->error( 'rsl_ie_unsupported_operation' );
@@ -73,12 +73,12 @@ class Free_Content_Provider {
 			// Entries are not posts; the exporter checks the form plugin and the form itself.
 			return true;
 		}
-		$options    = isset( $context['options'] ) && is_array( $context['options'] ) ? $context['options'] : [];
-		$records    = isset( $context['records'] ) && is_array( $context['records'] ) ? $context['records'] : [];
+		$options    = isset( $context['options'] ) && is_array( $context['options'] ) ? $context['options'] : array();
+		$records    = isset( $context['records'] ) && is_array( $context['records'] ) ? $context['records'] : array();
 		$records[]  = $options;
-		$post_types = 'media' === $type ? [ 'attachment' ] : [ $type ];
-		if ( in_array( $type, [ 'comment', 'urls' ], true ) ) {
-			$post_types = [ 'post', 'page' ];
+		$post_types = 'media' === $type ? array( 'attachment' ) : array( $type );
+		if ( in_array( $type, array( 'comment', 'urls' ), true ) ) {
+			$post_types = array( 'post', 'page' );
 		}
 
 		foreach ( $records as $record ) {
@@ -87,14 +87,14 @@ class Free_Content_Provider {
 			}
 			// The legacy ID duplicate strategy resolves a destination post directly.
 			// A source ID must not widen a Free import to an existing premium object.
-			if ( 'import' === $operation && in_array( $type, [ 'post', 'page' ], true ) && 'ID' === ( $options['duplicate_check'] ?? $options['unique_field'] ?? '' ) && ! empty( $record['ID'] ) ) {
+			if ( 'import' === $operation && in_array( $type, array( 'post', 'page' ), true ) && 'ID' === ( $options['duplicate_check'] ?? $options['unique_field'] ?? '' ) && ! empty( $record['ID'] ) ) {
 				$existing = get_post( (int) $record['ID'] );
 				if ( $existing && ( $type !== $existing->post_type || ! current_user_can( 'edit_post', $existing->ID ) ) ) {
 					return $this->error( 'rsl_ie_content_type_forbidden', __( 'An ID in the file belongs to another content type. When matching by ID, every ID must be an item of the content type you are importing. Nothing was imported.', 'import-export-by-rockstarlab' ) );
 				}
 			}
-			foreach ( [ 'post_type', 'custom_post_type' ] as $key ) {
-				if ( isset( $record[ $key ] ) && ! is_scalar( $record[ $key ] ) && [] !== $record[ $key ] ) {
+			foreach ( array( 'post_type', 'custom_post_type' ) as $key ) {
+				if ( isset( $record[ $key ] ) && ! is_scalar( $record[ $key ] ) && array() !== $record[ $key ] ) {
 					return $this->error( 'rsl_ie_content_type_forbidden' );
 				}
 				if ( isset( $record[ $key ] ) && is_scalar( $record[ $key ] ) && '' !== trim( (string) $record[ $key ] ) && ! in_array( strtolower( trim( (string) $record[ $key ] ) ), $post_types, true ) ) {
@@ -111,7 +111,7 @@ class Free_Content_Provider {
 			}
 			if ( 'comment' === $type ) {
 				$comment_type = $record['comment_type'] ?? $record['default_type'] ?? '';
-				if ( ! in_array( $comment_type, [ '', 'comment', 'pingback', 'trackback' ], true ) ) {
+				if ( ! in_array( $comment_type, array( '', 'comment', 'pingback', 'trackback' ), true ) ) {
 					return $this->error(
 						'rsl_ie_content_type_forbidden',
 						sprintf(
@@ -127,10 +127,10 @@ class Free_Content_Provider {
 			}
 		}
 
-		foreach ( (array) ( $context['selected_ids'] ?? [] ) as $object_id ) {
+		foreach ( (array) ( $context['selected_ids'] ?? array() ) as $object_id ) {
 			if ( 'comment' === $type ) {
 				$comment = get_comment( (int) $object_id );
-				if ( ! $comment || ! in_array( $comment->comment_type, [ '', 'comment', 'pingback', 'trackback' ], true ) ) {
+				if ( ! $comment || ! in_array( $comment->comment_type, array( '', 'comment', 'pingback', 'trackback' ), true ) ) {
 					return $this->error( 'rsl_ie_content_type_forbidden' );
 				}
 				$object_id = $comment->comment_post_ID;
@@ -150,6 +150,6 @@ class Free_Content_Provider {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $message = '' ) {
-		return new \WP_Error( $code, '' !== $message ? $message : __( 'The requested operation contains a content type outside its allowed scope.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
+		return new \WP_Error( $code, '' !== $message ? $message : __( 'The requested operation contains a content type outside its allowed scope.', 'import-export-by-rockstarlab' ), array( 'status' => 403 ) );
 	}
 }

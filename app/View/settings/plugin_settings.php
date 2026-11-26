@@ -56,7 +56,7 @@ $rsl_ie_notice_verified     = wp_verify_nonce( $rsl_ie_notice_nonce, 'rsl_ie_plu
 								<fieldset>
 										<legend class="screen-reader-text"><span><?php esc_html_e( 'Visible submenu items', 'import-export-by-rockstarlab' ); ?></span></legend>
 										<?php foreach ( $rsl_ie_admin_menu_items as $rsl_ie_item_key => $rsl_ie_item_label ) : ?>
-											<?php if ( in_array( $rsl_ie_item_key, [ 'functions', 'content_updater' ], true ) && ! Pro_Addon::is_pro_active() ) : ?>
+											<?php if ( in_array( $rsl_ie_item_key, array( 'functions', 'content_updater' ), true ) && ! Pro_Addon::is_pro_active() ) : ?>
 												<?php continue; ?>
 											<?php endif; ?>
 										<label class="rsl-ie-menu-visibility-option">

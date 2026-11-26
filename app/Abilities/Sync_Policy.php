@@ -33,7 +33,7 @@ class Sync_Policy {
 	 * @return true|\WP_Error
 	 */
 	public static function input( $action, array $input ) {
-		if ( ! in_array( $action, [ 'get_remote_posts', 'search_remote_posts', 'search_local_posts', 'get_children_posts', 'get_local_posts_info', 'auto_map_by_title', 'push_content', 'pull_content' ], true ) ) {
+		if ( ! in_array( $action, array( 'get_remote_posts', 'search_remote_posts', 'search_local_posts', 'get_children_posts', 'get_local_posts_info', 'auto_map_by_title', 'push_content', 'pull_content' ), true ) ) {
 			return static::denied();
 		}
 		$type = $input['post_type'] ?? '';
@@ -44,15 +44,15 @@ class Sync_Policy {
 		if ( ! current_user_can( $definition->cap->edit_posts ) || ( 'pull_content' === $action && ( ! current_user_can( $definition->cap->create_posts ) || ! current_user_can( 'upload_files' ) ) ) ) {
 			return static::denied();
 		}
-		$ids     = in_array( $action, [ 'push_content', 'auto_map_by_title', 'get_local_posts_info' ], true ) ? ( $input['post_ids'] ?? [] ) : [];
-		$mapping = (array) ( $input['post_mapping'] ?? [] );
+		$ids     = in_array( $action, array( 'push_content', 'auto_map_by_title', 'get_local_posts_info' ), true ) ? ( $input['post_ids'] ?? array() ) : array();
+		$mapping = (array) ( $input['post_mapping'] ?? array() );
 		$targets = array_filter( $mapping );
 		if ( count( $targets ) !== count( array_unique( $targets ) ) ) {
 			return static::denied();
 		}
 		if ( 'pull_content' === $action ) {
 			$ids = array_keys( $mapping );
-			if ( $mapping && ( array_diff( (array) ( $input['post_ids'] ?? [] ), array_values( $mapping ) ) || array_diff( array_values( $mapping ), (array) ( $input['post_ids'] ?? [] ) ) ) ) {
+			if ( $mapping && ( array_diff( (array) ( $input['post_ids'] ?? array() ), array_values( $mapping ) ) || array_diff( array_values( $mapping ), (array) ( $input['post_ids'] ?? array() ) ) ) ) {
 				return static::denied();
 			}
 		} elseif ( 'push_content' === $action && array_diff( array_keys( $mapping ), $ids ) ) {
@@ -86,30 +86,30 @@ class Sync_Policy {
 		if ( ! is_array( $posts ) || count( array_unique( $ids ) ) !== count( $posts ) ) {
 			return static::denied();
 		}
-		$seen = [];
+		$seen = array();
 		foreach ( $posts as $post ) {
 			if ( ! is_array( $post ) || ( $post['post_type'] ?? '' ) !== $type || ! in_array( (int) ( $post['ID'] ?? 0 ), $ids, true ) || isset( $seen[ $post['ID'] ] ) || ! static::allows_nested( $post ) ) {
 				return static::denied();
 			}
 			$seen[ $post['ID'] ] = true;
-			foreach ( [ 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date' ] as $field ) {
+			foreach ( array( 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date' ) as $field ) {
 				if ( ! isset( $post[ $field ] ) || ! is_string( $post[ $field ] ) ) {
 					return static::denied();
 				}
 			}
-			if ( ! in_array( $post['post_status'], [ 'publish', 'future', 'private', 'draft', 'pending' ], true ) ) {
+			if ( ! in_array( $post['post_status'], array( 'publish', 'future', 'private', 'draft', 'pending' ), true ) ) {
 				return static::denied();
 			}
 			$definition = get_post_type_object( $type );
-			if ( in_array( $post['post_status'], [ 'publish', 'future', 'private' ], true ) && ! current_user_can( $definition->cap->publish_posts ) ) {
+			if ( in_array( $post['post_status'], array( 'publish', 'future', 'private' ), true ) && ! current_user_can( $definition->cap->publish_posts ) ) {
 				return static::denied();
 			}
-			foreach ( [ 'meta', 'terms', 'acf', 'comments' ] as $field ) {
+			foreach ( array( 'meta', 'terms', 'acf', 'comments' ) as $field ) {
 				if ( isset( $post[ $field ] ) && ! is_array( $post[ $field ] ) ) {
 					return static::denied();
 				}
 			}
-			foreach ( $post['comments'] ?? [] as $comment ) {
+			foreach ( $post['comments'] ?? array() as $comment ) {
 				if ( ! is_array( $comment ) || ! static::allows_comment( $comment['comment_type'] ?? '', $type ) ) {
 					return static::denied();
 				}
@@ -126,7 +126,7 @@ class Sync_Policy {
 	 * @return bool
 	 */
 	public static function allows_comment( $comment_type, $post_type ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Pro policy uses the parent domain.
-		return in_array( $comment_type, [ '', 'comment', 'pingback', 'trackback' ], true ); }
+		return in_array( $comment_type, array( '', 'comment', 'pingback', 'trackback' ), true ); }
 
 	/**
 	 * Declare this provider's post types.
@@ -135,7 +135,7 @@ class Sync_Policy {
 	 * @return bool
 	 */
 	public static function allows_type( $type ) {
-		return in_array( $type, [ 'post', 'page' ], true ); }
+		return in_array( $type, array( 'post', 'page' ), true ); }
 
 	/**
 	 * Free posts do not include premium nested entities.
@@ -160,6 +160,6 @@ class Sync_Policy {
 	 * @return \WP_Error
 	 */
 	public static function denied() {
-		return new \WP_Error( 'rsl_ie_sync_scope', __( 'The sync selection or destination is outside the allowed content scope.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
+		return new \WP_Error( 'rsl_ie_sync_scope', __( 'The sync selection or destination is outside the allowed content scope.', 'import-export-by-rockstarlab' ), array( 'status' => 403 ) );
 	}
 }
