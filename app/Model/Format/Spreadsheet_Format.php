@@ -69,7 +69,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 	public function rows( $file_path, $options = array(), &$raw_headers = null ) {
 		$validation = $this->basic_file_validation( $file_path );
 		if ( is_wp_error( $validation ) ) {
-			throw new \RuntimeException( $validation->get_error_code() ); }
+			throw new \RuntimeException( esc_html( $validation->get_error_code() ) ); }
 		// Identify by content, preserving the legacy reader's extension-independent selection.
 		$reader = IOFactory::createReaderForFile( $file_path );
 		if ( $reader instanceof \PhpOffice\PhpSpreadsheet\Reader\Xlsx ) {
@@ -82,7 +82,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 		}
 		$spreadsheet = $this->load_spreadsheet( $file_path );
 		if ( is_wp_error( $spreadsheet ) ) {
-			throw new \RuntimeException( $spreadsheet->get_error_code() ); }
+			throw new \RuntimeException( esc_html( $spreadsheet->get_error_code() ) ); }
 		try {
 			yield from $this->worksheet_rows( $spreadsheet->getActiveSheet(), $options, $raw_headers );
 		} finally {

@@ -358,7 +358,7 @@ class Background_Processor {
 			return $result;
 		}
 
-		throw new \RuntimeException( __( 'No Content Updater processor is registered.', 'import-export-by-rockstarlab' ) );
+		throw new \RuntimeException( esc_html__( 'No Content Updater processor is registered.', 'import-export-by-rockstarlab' ) );
 	}
 
 	/**

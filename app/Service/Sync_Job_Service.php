@@ -706,7 +706,7 @@ class Sync_Job_Service {
 				[]
 			);
 			if ( is_wp_error( $saved ) ) {
-				throw new \RuntimeException( __( 'Sync checkpoint failed.', 'import-export-by-rockstarlab' ) );
+				throw new \RuntimeException( esc_html__( 'Sync checkpoint failed.', 'import-export-by-rockstarlab' ) );
 			}
 		};
 		$guard = function ( $access, $site ) use ( $params ) {

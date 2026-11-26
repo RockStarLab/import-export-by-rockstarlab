@@ -21,12 +21,12 @@ class Migration_Entry_Index {
 	public function __construct() {
 		$this->directory = rtrim( get_temp_dir(), '/\\' ) . '/rsl-archive-index-' . bin2hex( random_bytes( 16 ) );
 		if ( ! mkdir( $this->directory, 0700 ) ) {
-			throw new \RuntimeException( __( 'Cannot create archive index.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Cannot create archive index.', 'import-export-by-rockstarlab' ) );
 		}
 		$this->owner = fopen( $this->directory . '/.owner', 'x+b' );
 		if ( ! $this->owner || ! flock( $this->owner, LOCK_EX | LOCK_NB ) ) {
 			$this->close();
-			throw new \RuntimeException( __( 'Cannot lock archive index.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Cannot lock archive index.', 'import-export-by-rockstarlab' ) );
 		}
 	}
 
@@ -44,10 +44,10 @@ class Migration_Entry_Index {
 		}
 		$bucket = dirname( $path );
 		if ( ! is_dir( $bucket ) && ! mkdir( $bucket, 0700 ) ) {
-			throw new \RuntimeException( __( 'Cannot create archive bucket.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Cannot create archive bucket.', 'import-export-by-rockstarlab' ) );
 		}
 		if ( strlen( $name ) !== file_put_contents( $path, $name ) ) {
-			throw new \RuntimeException( __( 'Cannot write archive index.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Cannot write archive index.', 'import-export-by-rockstarlab' ) );
 		}
 		++$this->remaining;
 		return true;
@@ -61,13 +61,13 @@ class Migration_Entry_Index {
 		}
 		$value = file_get_contents( $path );
 		if ( false === $value ) {
-			throw new \RuntimeException( __( 'Cannot read archive index.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Cannot read archive index.', 'import-export-by-rockstarlab' ) );
 		}
 		if ( $value !== $name ) {
 			return false;
 		}
 		if ( ! unlink( $path ) ) {
-			throw new \RuntimeException( __( 'Cannot consume archive index.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Cannot consume archive index.', 'import-export-by-rockstarlab' ) );
 		}
 		--$this->remaining;
 		return true;

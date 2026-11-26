@@ -12,18 +12,18 @@ class XLSX_Part_Map {
 	/** Data-only XLSX imports use the first sheet, independently of activeTab. */
 	public static function resolve( Spreadsheet_XML_Parts $parts, $sheet_index = 0 ) {
 		if ( ! is_int( $sheet_index ) || $sheet_index < 0 ) {
-			throw new \RuntimeException( __( 'Invalid worksheet index.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Invalid worksheet index.', 'import-export-by-rockstarlab' ) ); }
 		$sheet_count = 0;
 		$workbook    = null;
 		foreach ( self::relationships( $parts, '_rels/.rels' ) as $rel ) {
 			if ( self::type( $rel['type'], 'officeDocument' ) ) {
 				if ( null !== $workbook ) {
-					throw new \RuntimeException( __( 'Ambiguous spreadsheet workbook.', 'import-export-by-rockstarlab' ) ); }
+					throw new \RuntimeException( esc_html__( 'Ambiguous spreadsheet workbook.', 'import-export-by-rockstarlab' ) ); }
 				$workbook = self::target( '', $rel );
 			}
 		}
 		if ( null === $workbook ) {
-			throw new \RuntimeException( __( 'Missing spreadsheet workbook.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Missing spreadsheet workbook.', 'import-export-by-rockstarlab' ) ); }
 		$calendar       = 1900;
 		$id             = null;
 		$root           = false;
@@ -37,7 +37,7 @@ class XLSX_Part_Map {
 			if ( 0 === $node->depth ) {
 				$root = 'workbook' === $node->localName && in_array( $node->namespaceURI, self::MAIN, true );
 				if ( ! $root ) {
-					throw new \RuntimeException( __( 'Invalid spreadsheet workbook.', 'import-export-by-rockstarlab' ) ); }
+					throw new \RuntimeException( esc_html__( 'Invalid spreadsheet workbook.', 'import-export-by-rockstarlab' ) ); }
 				$main_namespace = $node->namespaceURI;
 			}
 			if ( 1 === $node->depth && 'workbookPr' === $node->localName && $main_namespace === $node->namespaceURI ) {
@@ -56,11 +56,11 @@ class XLSX_Part_Map {
 						break; }
 				}
 				if ( null === $id ) {
-					throw new \RuntimeException( __( 'Missing spreadsheet sheet relationship.', 'import-export-by-rockstarlab' ) ); }
+					throw new \RuntimeException( esc_html__( 'Missing spreadsheet sheet relationship.', 'import-export-by-rockstarlab' ) ); }
 			}
 		}
 		if ( ! $root || null === $id ) {
-			throw new \RuntimeException( __( 'Missing spreadsheet sheet.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Missing spreadsheet sheet.', 'import-export-by-rockstarlab' ) ); }
 		$directory = dirname( $workbook );
 		$rels      = ( '.' === $directory ? '' : $directory . '/' ) . '_rels/' . basename( $workbook ) . '.rels';
 		$result    = [
@@ -72,7 +72,7 @@ class XLSX_Part_Map {
 			$key = null;
 			if ( $id === $rel['id'] ) {
 				if ( ! self::type( $rel['type'], 'worksheet' ) ) {
-					throw new \RuntimeException( __( 'Unsupported spreadsheet sheet type.', 'import-export-by-rockstarlab' ) ); }
+					throw new \RuntimeException( esc_html__( 'Unsupported spreadsheet sheet type.', 'import-export-by-rockstarlab' ) ); }
 				$key = 'worksheet';
 			} elseif ( self::type( $rel['type'], 'sharedStrings' ) ) {
 				$key = 'strings';
@@ -81,11 +81,11 @@ class XLSX_Part_Map {
 			if ( null === $key ) {
 				continue; }
 			if ( null !== $result[ $key ] ) {
-				throw new \RuntimeException( __( 'Ambiguous spreadsheet relationship.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( esc_html__( 'Ambiguous spreadsheet relationship.', 'import-export-by-rockstarlab' ) ); }
 			$result[ $key ] = self::target( $workbook, $rel );
 		}
 		if ( null === $result['worksheet'] ) {
-			throw new \RuntimeException( __( 'Missing spreadsheet worksheet relationship.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Missing spreadsheet worksheet relationship.', 'import-export-by-rockstarlab' ) ); }
 		$result['calendar']    = $calendar;
 		$result['sheet_count'] = $sheet_count;
 		$result['decimals']    = null === $result['styles'] ? [] : self::fixed_decimals( $parts, $result['styles'] );
@@ -253,7 +253,7 @@ class XLSX_Part_Map {
 			if ( 0 === $node->depth ) {
 				$root = 'Relationships' === $node->localName && $namespace === $node->namespaceURI;
 				if ( ! $root ) {
-					throw new \RuntimeException( __( 'Invalid spreadsheet relationships.', 'import-export-by-rockstarlab' ) ); }
+					throw new \RuntimeException( esc_html__( 'Invalid spreadsheet relationships.', 'import-export-by-rockstarlab' ) ); }
 			}
 			if ( 1 === $node->depth && 'Relationship' === $node->localName && $namespace === $node->namespaceURI ) {
 				yield [
@@ -265,7 +265,7 @@ class XLSX_Part_Map {
 			}
 		}
 		if ( ! $root ) {
-			throw new \RuntimeException( __( 'Missing spreadsheet relationships.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Missing spreadsheet relationships.', 'import-export-by-rockstarlab' ) ); }
 	}
 
 	private static function type( $type, $suffix ) {
@@ -279,7 +279,7 @@ class XLSX_Part_Map {
 	private static function target( $source, array $rel ) {
 		$target = $rel['target'];
 		if ( ! in_array( $rel['mode'], [ null, '', 'Internal' ], true ) || ! is_string( $target ) || '' === $target || preg_match( '/[\\\\\\x00-\\x20?#:]|^\/\//', $target ) ) {
-			throw new \RuntimeException( __( 'Invalid spreadsheet part target.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Invalid spreadsheet part target.', 'import-export-by-rockstarlab' ) ); }
 		$directory = dirname( $source );
 		$path      = '/' === $target[0] || '.' === $directory ? $target : $directory . '/' . $target;
 		$segments  = [];
@@ -288,13 +288,13 @@ class XLSX_Part_Map {
 				continue; }
 			if ( '..' === $segment ) {
 				if ( ! $segments ) {
-					throw new \RuntimeException( __( 'Spreadsheet target escapes package.', 'import-export-by-rockstarlab' ) ); }
+					throw new \RuntimeException( esc_html__( 'Spreadsheet target escapes package.', 'import-export-by-rockstarlab' ) ); }
 				array_pop( $segments );
 			} else {
 				$segments[] = $segment; }
 		}
 		if ( ! $segments ) {
-			throw new \RuntimeException( __( 'Empty spreadsheet part target.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Empty spreadsheet part target.', 'import-export-by-rockstarlab' ) ); }
 		return implode( '/', $segments );
 	}
 }

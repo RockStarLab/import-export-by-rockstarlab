@@ -11,14 +11,14 @@ class XML_Row_Spool {
 	public static function rows( $source, $identity, $settings, &$cursor, callable $records ) {
 		$root = File_Store::root();
 		if ( is_wp_error( $root ) ) {
-			throw new \RuntimeException( __( 'Cannot open XML snapshot storage.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot open XML snapshot storage.', 'import-export-by-rockstarlab' ) ); }
 		$key  = hash( 'sha256', $source . serialize( $identity ) . $settings );
 		$path = $root . '/xml-rows-' . $key;
 		if ( is_link( $path ) ) {
-			throw new \RuntimeException( __( 'Invalid XML snapshot.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Invalid XML snapshot.', 'import-export-by-rockstarlab' ) ); }
 		$handle = fopen( $path, 'c+b' );
 		if ( ! $handle ) {
-			throw new \RuntimeException( __( 'Cannot open XML snapshot.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot open XML snapshot.', 'import-export-by-rockstarlab' ) ); }
 		try {
 			if ( ! flock( $handle, LOCK_EX ) ) {
 				throw new \RuntimeException( __( 'Cannot lock XML snapshot.', 'import-export-by-rockstarlab' ) ); }
@@ -104,7 +104,7 @@ class XML_Row_Spool {
 		while ( $offset < strlen( $bytes ) ) {
 			$n = fwrite( $handle, substr( $bytes, $offset ) );
 			if ( ! $n ) {
-				throw new \RuntimeException( __( 'Cannot write XML snapshot.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( esc_html__( 'Cannot write XML snapshot.', 'import-export-by-rockstarlab' ) ); }
 			$offset += $n;
 		}
 	}

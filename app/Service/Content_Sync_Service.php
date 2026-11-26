@@ -985,7 +985,7 @@ class Content_Sync_Service {
 
 		$this->job_id = is_wp_error( $job_id ) ? 0 : (int) $job_id;
 		if ( ! $this->job_id ) {
-			throw new \RuntimeException( __( 'Content sync history could not be created.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Content sync history could not be created.', 'import-export-by-rockstarlab' ) );
 		}
 		do_action( 'rsl_ie_content_sync_job_created', $this->job_id );
 		return $this->job_id;
@@ -2002,10 +2002,10 @@ class Content_Sync_Service {
 			throw new \RuntimeException(
 				sprintf(
 					/* translators: %s: file name. */
-					__( 'The file %s could not be copied to the other site, so the content was not sent. The other site may not accept this file type (for example SVG) or its size. Allow the file there or remove it from the content, then try again.', 'import-export-by-rockstarlab' ),
-					sanitize_file_name( $file )
+					esc_html__( 'The file %s could not be copied to the other site, so the content was not sent. The other site may not accept this file type (for example SVG) or its size. Allow the file there or remove it from the content, then try again.', 'import-export-by-rockstarlab' ),
+					esc_html( sanitize_file_name( $file ) )
 				),
-				self::USER_ERROR
+				(int) self::USER_ERROR
 			);
 		}
 		return $result;
@@ -3181,7 +3181,7 @@ class Content_Sync_Service {
 	private function download_image_from_remote( $image, $site, $image_map = array(), $image_sources = array() ) {
 		$result = ( new Media_Transport_Service() )->pull_image( $image, $site );
 		if ( is_wp_error( $result ) ) {
-			throw new \RuntimeException( __( 'Content Sync media pull failed.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Content Sync media pull failed.', 'import-export-by-rockstarlab' ) );
 		}
 		return $result;
 	}
@@ -3203,7 +3203,7 @@ class Content_Sync_Service {
 			}
 			$result = $service->apply_pull_fields( $id, $image, $map, $images );
 			if ( is_wp_error( $result ) ) {
-				throw new \RuntimeException( __( 'Content Sync media fields failed.', 'import-export-by-rockstarlab' ) );
+				throw new \RuntimeException( esc_html__( 'Content Sync media fields failed.', 'import-export-by-rockstarlab' ) );
 			}
 		}
 	}

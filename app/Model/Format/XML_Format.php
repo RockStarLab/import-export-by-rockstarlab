@@ -68,7 +68,7 @@ class XML_Format implements File_Format_Interface {
 		$identity = array_intersect_key( $stat ?: array(), array_flip( array( 'dev', 'ino', 'size', 'mtime', 'ctime' ) ) );
 		$settings = hash( 'sha256', serialize( $requested ) );
 		if ( null !== $cursor && ( ! is_array( $cursor ) || ( $cursor['identity'] ?? null ) !== $identity || ( $cursor['settings'] ?? null ) !== $settings || ! isset( $cursor['count'] ) || ! is_int( $cursor['count'] ) || $cursor['count'] < 0 ) ) {
-			throw new \RuntimeException( __( 'Invalid XML cursor.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Invalid XML cursor.', 'import-export-by-rockstarlab' ) );
 		}
 		$encoding = isset( $cursor['spool'] ) ? false : ( $cursor['stream_encoding'] ?? $this->seekable_encoding( $file_path ) );
 		if ( isset( $cursor['fragment'] ) || $encoding ) {
@@ -86,14 +86,14 @@ class XML_Format implements File_Format_Interface {
 					hash_update( $prefix, serialize( $row ) );
 					$digest = hash_final( hash_copy( $prefix ) );
 					if ( $count === $skip && null !== $expected && ( ! is_string( $expected ) || ! hash_equals( $expected, $digest ) ) ) {
-						throw new \RuntimeException( __( 'Changed XML prefix.', 'import-export-by-rockstarlab' ) ); }
+						throw new \RuntimeException( esc_html__( 'Changed XML prefix.', 'import-export-by-rockstarlab' ) ); }
 					if ( $count <= $skip ) {
 						continue; }
 					$cursor = $next + array( 'prefix_sha256' => $digest );
 					yield $row;
 				}
 				if ( $count < $skip ) {
-					throw new \RuntimeException( __( 'Invalid XML cursor count.', 'import-export-by-rockstarlab' ) ); }
+					throw new \RuntimeException( esc_html__( 'Invalid XML cursor count.', 'import-export-by-rockstarlab' ) ); }
 			}
 			return;
 		}
@@ -167,11 +167,11 @@ class XML_Format implements File_Format_Interface {
 		$count   = $cursor['count'] ?? 0;
 		$digest  = $cursor['source_sha256'] ?? hash_file( 'sha256', $path );
 		if ( ! is_array( $encoding ) || ! is_string( $encoding['name'] ?? null ) || ! in_array( $encoding['width'] ?? null, array( 1, 2, 4 ), true ) || ! is_bool( $encoding['little'] ?? null ) || ! is_array( $state ) || ! is_int( $state['offset'] ?? null ) || $state['offset'] < 0 || $state['offset'] > $identity['size'] || ! is_array( $state['stack'] ?? null ) || ! is_int( $state['roots'] ?? null ) || ! is_string( $state['declaration'] ?? null ) || ! is_int( $skip ) || $skip < 0 || ! is_string( $digest ) || ( isset( $cursor['fragment_count'] ) && $cursor['fragment_count'] !== $count ) ) {
-			throw new \RuntimeException( __( 'Invalid XML cursor.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Invalid XML cursor.', 'import-export-by-rockstarlab' ) );
 		}
 		foreach ( $state['stack'] as $ancestor ) {
 			if ( ! is_array( $ancestor ) || ! is_string( $ancestor['name'] ?? null ) || ! is_string( $ancestor['open'] ?? null ) ) {
-				throw new \RuntimeException( __( 'Invalid XML context.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( esc_html__( 'Invalid XML context.', 'import-export-by-rockstarlab' ) ); }
 		}
 		$input = new XML_Fragment_Stream( $path, $state['offset'], $encoding );
 		foreach ( $input->segments( $options['item_tag'] ?? self::DEFAULT_ITEM, $state ) as $segment ) {
@@ -181,12 +181,12 @@ class XML_Format implements File_Format_Interface {
 					$xml = "\xef\xbb\xbf" . $xml; }
 				$xml = @iconv( 'UTF-8', $encoding['name'], $xml );
 				if ( false === $xml ) {
-					throw new \RuntimeException( __( 'Invalid XML encoding.', 'import-export-by-rockstarlab' ) ); }
+					throw new \RuntimeException( esc_html__( 'Invalid XML encoding.', 'import-export-by-rockstarlab' ) ); }
 			}
 			$rows  = iterator_to_array( $this->document_rows( $xml, $options, true ), false );
 			$total = count( $rows );
 			if ( $skip > $total ) {
-				throw new \RuntimeException( __( 'Invalid XML cursor count.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( esc_html__( 'Invalid XML cursor count.', 'import-export-by-rockstarlab' ) ); }
 			for ( $i = $skip; $i < $total; ++$i ) {
 				++$count;
 				$cursor = array(
@@ -206,7 +206,7 @@ class XML_Format implements File_Format_Interface {
 		}
 		// Publication still requires the complete source to match the initial fingerprint.
 		if ( ! hash_equals( $digest, (string) hash_file( 'sha256', $path ) ) ) {
-			throw new \RuntimeException( __( 'Changed XML prefix.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Changed XML prefix.', 'import-export-by-rockstarlab' ) ); }
 	}
 	/** XMLReader validates source documents or isolated fragments with ancestor context. */
 	private function document_rows( $file_path, $options, $memory = false ) {

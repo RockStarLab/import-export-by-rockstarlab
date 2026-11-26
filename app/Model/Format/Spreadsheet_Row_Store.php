@@ -14,7 +14,7 @@ class Spreadsheet_Row_Store {
 		$this->width      = $width;
 		$this->directory  = $directory ?? rtrim( get_temp_dir(), '/\\' ) . '/rsl-sheet-rows-' . bin2hex( random_bytes( 16 ) );
 		if ( is_link( $this->directory ) || ( ! is_dir( $this->directory ) && ! mkdir( $this->directory, 0700 ) ) ) {
-			throw new \RuntimeException( __( 'Cannot create spreadsheet row store.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot create spreadsheet row store.', 'import-export-by-rockstarlab' ) ); }
 	}
 
 	public function append( array $cell ) {
@@ -22,15 +22,15 @@ class Spreadsheet_Row_Store {
 		$column = $cell['column'];
 		$value  = $cell['value'];
 		if ( ! is_int( $row ) || ! is_int( $column ) || $row < 1 || $column < 1 || ! is_string( $value ) ) {
-			throw new \RuntimeException( __( 'Invalid spreadsheet cell record.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Invalid spreadsheet cell record.', 'import-export-by-rockstarlab' ) ); }
 		$path      = $this->path( $row );
 		$directory = dirname( $path );
 		if ( ! is_dir( $directory ) && ! mkdir( $directory, 0700, true ) ) {
-			throw new \RuntimeException( __( 'Cannot create row shard.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot create row shard.', 'import-export-by-rockstarlab' ) ); }
 		$data   = serialize( [ $column, $value, ! empty( $cell['preserve_existing'] ) ] );
 		$record = sprintf( '%020d', strlen( $data ) ) . $data;
 		if ( strlen( $record ) !== file_put_contents( $path, $record, FILE_APPEND ) ) {
-			throw new \RuntimeException( __( 'Cannot store spreadsheet cell.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot store spreadsheet cell.', 'import-export-by-rockstarlab' ) ); }
 		$this->width = max( $this->width, $column );
 	}
 
@@ -61,7 +61,7 @@ class Spreadsheet_Row_Store {
 			return $values; }
 		$input = fopen( $path, 'rb' );
 		if ( ! $input ) {
-			throw new \RuntimeException( __( 'Cannot read spreadsheet row.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot read spreadsheet row.', 'import-export-by-rockstarlab' ) ); }
 		try {
 			while ( ! feof( $input ) ) {
 				$header = fread( $input, 20 );

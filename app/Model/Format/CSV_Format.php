@@ -142,7 +142,7 @@ class CSV_Format implements File_Format_Interface {
 
 		$handle = fopen( $file_path, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 		if ( ! $handle ) {
-			throw new \RuntimeException( __( 'Cannot open CSV file.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Cannot open CSV file.', 'import-export-by-rockstarlab' ) );
 		}
 
 		$headers = [];

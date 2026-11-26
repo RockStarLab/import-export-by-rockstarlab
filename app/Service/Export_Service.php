@@ -366,7 +366,7 @@ class Export_Service {
 		return ( static function () use ( $path ) {
 			$handle = fopen( $path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Local generated spool.
 			if ( ! $handle ) {
-				throw new \RuntimeException( __( 'Export spool unreadable.', 'import-export-by-rockstarlab' ) );
+				throw new \RuntimeException( esc_html__( 'Export spool unreadable.', 'import-export-by-rockstarlab' ) );
 			}
 			try {
 				while ( false !== ( $line = fgets( $handle ) ) ) { // phpcs:ignore WordPress.CodeAnalysis.AssignmentInCondition
@@ -400,7 +400,7 @@ class Export_Service {
 			return $legacy; }
 		$info = File_Service::export_target( $job_id, 'spool.jsonl' );
 		if ( is_wp_error( $info ) ) {
-			throw new \RuntimeException( __( 'Private export storage is unavailable.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Private export storage is unavailable.', 'import-export-by-rockstarlab' ) ); }
 		return $info['path'];
 	}
 

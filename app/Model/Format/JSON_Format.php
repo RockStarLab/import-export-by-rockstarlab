@@ -96,7 +96,7 @@ class JSON_Format implements File_Format_Interface {
 	public function rows( $path, array $options = [] ) {
 		$handle = @fopen( $path, 'rb' );
 		if ( ! $handle ) {
-			throw new \RuntimeException( __( 'Cannot read JSON file.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot read JSON file.', 'import-export-by-rockstarlab' ) ); }
 		try {
 			do {
 				$first = fgetc( $handle );

@@ -9,7 +9,7 @@ class JSON_Object_Stream {
 	public static function rows( $path, array $options = [] ) {
 		$directory = rtrim( get_temp_dir(), '/\\' ) . '/rsl-json-' . bin2hex( random_bytes( 16 ) );
 		if ( ! mkdir( $directory, 0700 ) ) {
-			throw new \RuntimeException( __( 'Cannot create JSON index.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot create JSON index.', 'import-export-by-rockstarlab' ) ); }
 		$order = null;
 		try {
 			$order = fopen( $directory . '/order', 'x+b' );

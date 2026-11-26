@@ -14,7 +14,7 @@ class JSON_Row_Stream {
 	public static function rows( $path, array $options = [], &$cursor = null ) {
 		$stream = fopen( $path, 'rb' );
 		if ( ! $stream ) {
-			throw new \RuntimeException( __( 'Cannot read JSON file.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Cannot read JSON file.', 'import-export-by-rockstarlab' ) );
 		}
 		$phase   = 'start';
 		$value   = '';

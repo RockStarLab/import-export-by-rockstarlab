@@ -31,26 +31,26 @@ class Migration_Step_Sort {
 	private function write( $stream, array $step ) {
 		$line = base64_encode( serialize( $step ) ) . "\n";
 		if ( strlen( $line ) !== fwrite( $stream, $line ) ) {
-			throw new \RuntimeException( __( 'Cannot write step sort.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot write step sort.', 'import-export-by-rockstarlab' ) ); }
 	}
 
 	private function read( $stream ) {
 		$line = fgets( $stream );
 		if ( false === $line ) {
 			if ( ! feof( $stream ) ) {
-				throw new \RuntimeException( __( 'Cannot read step sort.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( esc_html__( 'Cannot read step sort.', 'import-export-by-rockstarlab' ) ); }
 			return null;
 		}
 		$value = unserialize( base64_decode( rtrim( $line, "\n" ), true ), array( 'allowed_classes' => false ) );
 		if ( ! is_array( $value ) ) {
-			throw new \RuntimeException( __( 'Invalid step sort.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Invalid step sort.', 'import-export-by-rockstarlab' ) ); }
 		return $value;
 	}
 
 	private function stream() {
 		$stream = tmpfile();
 		if ( ! $stream ) {
-			throw new \RuntimeException( __( 'Cannot create step sort.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot create step sort.', 'import-export-by-rockstarlab' ) ); }
 		return $stream;
 	}
 
@@ -103,7 +103,7 @@ class Migration_Step_Sort {
 	/** Select one dependency-ordered step without retaining the full result. */
 	public function select( $index ) {
 		if ( ! is_int( $index ) || $index < 0 || $index >= $this->count ) {
-			throw new \InvalidArgumentException( __( 'Invalid step ordinal.', 'import-export-by-rockstarlab' ) );
+			throw new \InvalidArgumentException( esc_html__( 'Invalid step ordinal.', 'import-export-by-rockstarlab' ) );
 		}
 		$this->flush();
 		$run = null;

@@ -1448,7 +1448,7 @@ class Post_Importer extends Abstract_Importer {
 				$roles = array_values( array_filter( array_map( 'sanitize_key', $roles ) ) );
 				$editable = function_exists( 'get_editable_roles' ) ? get_editable_roles() : wp_roles()->roles;
 				if ( ! current_user_can( 'promote_users' ) || array_diff( $roles, array_keys( $editable ) ) ) {
-					throw new \RuntimeException( __( 'Cannot assign the imported author roles.', 'import-export-by-rockstarlab' ) );
+					throw new \RuntimeException( esc_html__( 'Cannot assign the imported author roles.', 'import-export-by-rockstarlab' ) );
 				}
 				$base_login = sanitize_user( current( explode( '@', $email ) ), true );
 				$new_login  = '' !== $login ? sanitize_user( $login, true ) : ( $base_login ? $base_login : 'imported_user' );
