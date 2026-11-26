@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.64 =
+* Fix: an export filter with an unknown condition is now refused for every content type, not only posts and pages; before, a PRO export such as customers ignored it and exported every record. Conditions written as greater_than_or_equal or less_than_or_equal are understood.
+
 = 2.2.63 =
 * Fix: without Import Export PRO, an import file with Polylang or WPML language and translation columns no longer creates an extra language (for example "de-2"). The columns are skipped and the Jobs Log says that languages and translations need PRO.
 

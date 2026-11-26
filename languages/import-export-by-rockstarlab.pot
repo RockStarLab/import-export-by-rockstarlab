@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Content Sync, Media Sync, Import, Export with AI Agents Support 2.2.63\n"
+"Project-Id-Version: Content Sync, Media Sync, Import, Export with AI Agents Support 2.2.64\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/import-export-by-rockstarlab\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-25T18:19:44+00:00\n"
+"POT-Creation-Date: 2026-11-26T06:43:24+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: import-export-by-rockstarlab\n"
@@ -8275,28 +8275,28 @@ msgid "Credential operation failed: %s"
 msgstr ""
 
 #. translators: 1: rejected filter condition, 2: comma-separated list of supported conditions.
-#: app/Service/Export_Request.php:221
+#: app/Service/Export_Request.php:228
 #, php-format
 msgid "Unsupported filter condition \"%1$s\". Use one of: %2$s."
 msgstr ""
 
-#: app/Service/Export_Request.php:246
+#: app/Service/Export_Request.php:253
 msgid "This comment type requires its own content provider."
 msgstr ""
 
-#: app/Service/Export_Request.php:375
+#: app/Service/Export_Request.php:382
 msgid "This URL source requires an available content provider."
 msgstr ""
 
-#: app/Service/Export_Request.php:390
+#: app/Service/Export_Request.php:397
 msgid "Invalid export parameters, filters or selected IDs."
 msgstr ""
 
-#: app/Service/Export_Request.php:413
+#: app/Service/Export_Request.php:420
 msgid "A taxonomy filter needs \"taxonomy\" (for example category or product_cat) and \"value\" with one or more term slugs, names or IDs."
 msgstr ""
 
-#: app/Service/Export_Request.php:430
+#: app/Service/Export_Request.php:437
 msgid "A taxonomy filter supports the conditions in, not_in and and."
 msgstr ""
 

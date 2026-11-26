@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.63
+Stable tag: 2.2.64
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,9 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.64 =
+* Fix: an export filter with an unknown condition is now refused for every content type, not only posts and pages; before, a PRO export such as customers ignored it and exported every record. Conditions written as greater_than_or_equal or less_than_or_equal are understood.
+
 = 2.2.63 =
 * Fix: without Import Export PRO, an import file with Polylang or WPML language and translation columns no longer creates an extra language (for example "de-2"). The columns are skipped and the Jobs Log says that languages and translations need PRO.
 
@@ -299,8 +302,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 * Fix: WP-CLI and AI agent imports did not map the Rank Math and Yoast SEO columns of the plugin's own export by name ("No column matches a field by name" for a file with ID and rank_math_title); the SEO fields of the active SEO plugin are now matched automatically.
 * Fix: `wp rsl-ie import --unique-field=ID` with an "ID" column skipped every row; the ID column is now used as the key.
 * Fix: `wp rsl-ie job get` and the ability job-get-result failed with "job runner unavailable" for Content Sync jobs started in the admin; their stored result is now shown.
-
-= 2.2.59 =
-* New: Content Sync brings the settings of a category, tag or product category with the post when the other site has to create that term (its term meta, including the WooCommerce category image, display type and order). Terms the other site already has are not changed. Developers can choose the keys with the `rsl_ie_sync_post_term_meta` filter.
 
 Older versions: see changelog.txt in the plugin folder.
