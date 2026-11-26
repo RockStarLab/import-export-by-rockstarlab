@@ -178,10 +178,10 @@ class Settings_Controller extends Base_Controller {
 		check_admin_referer( 'rsl_ie_save_button_location_settings' );
 
 		$export_locations = isset( $_POST['export_button_locations'] ) && is_array( $_POST['export_button_locations'] )
-			? wp_unslash( $_POST['export_button_locations'] )
+			? array_map( 'sanitize_text_field', wp_unslash( $_POST['export_button_locations'] ) )
 			: [];
 		$sync_locations   = isset( $_POST['sync_button_locations'] ) && is_array( $_POST['sync_button_locations'] )
-			? wp_unslash( $_POST['sync_button_locations'] )
+			? array_map( 'sanitize_text_field', wp_unslash( $_POST['sync_button_locations'] ) )
 			: [];
 
 		$this->save_patch(

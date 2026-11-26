@@ -146,7 +146,7 @@ class Migration_Map_Store {
 				$result[ $row['identity_key'] ] = (int) $row['target_id']; }
 		}
 		// Post/term providers use presence of earlier taxonomy maps to opt into uniqueness.
-		$row = $wpdb->get_row( $wpdb->prepare( "SELECT identity_key,target_id FROM %i WHERE job_id=%d AND ordinal<%d AND identity_key LIKE 'taxonomy:%%' ORDER BY ordinal LIMIT 1", $table, $job_id, $state['map_count'] ), ARRAY_A );
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT identity_key,target_id FROM %i WHERE job_id=%d AND ordinal<%d AND identity_key LIKE %s ORDER BY ordinal LIMIT 1", $table, $job_id, $state['map_count'], $wpdb->esc_like( 'taxonomy:' ) . '%' ), ARRAY_A );
 		if ( $wpdb->last_error ) {
 			return Migration_Sync_Maps::error(); }
 		if ( $row ) {

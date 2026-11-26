@@ -219,7 +219,7 @@ class Trigger_Controller extends Base_Controller {
 	 * @param string $action Nonce action.
 	 */
 	private function guard( $action ) {
-		if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) || ! current_user_can( 'manage_options' ) ) {
+		if ( 'POST' !== ( isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '' ) || ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You cannot manage triggers on this site.', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] );
 		}
 		check_admin_referer( $action );

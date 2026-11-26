@@ -70,7 +70,7 @@ class Agent_Controller {
 
 	/** Save the explicit site-level opt-in before showing connection setup. */
 	public function toggle_abilities() {
-		if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) || ! current_user_can( 'manage_options' ) ) {
+		if ( 'POST' !== ( isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '' ) || ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You cannot change agent access on this site.', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] );
 		}
 		check_admin_referer( 'rsl_ie_toggle_abilities' );
@@ -82,7 +82,7 @@ class Agent_Controller {
 
 	/** Save the backup opt-in only when both dependencies are enabled. */
 	public function toggle_updraftplus_abilities() {
-		if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) || ! current_user_can( 'manage_options' ) ) {
+		if ( 'POST' !== ( isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '' ) || ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You cannot change agent access on this site.', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] );
 		}
 		check_admin_referer( 'rsl_ie_toggle_updraftplus_abilities' );
@@ -104,7 +104,7 @@ class Agent_Controller {
 
 	/** Install the official directory package and activate it after an explicit POST. */
 	public function setup_adapter() {
-		if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) || ! current_user_can( 'manage_options' ) || ! current_user_can( 'activate_plugins' ) ) {
+		if ( 'POST' !== ( isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '' ) || ! current_user_can( 'manage_options' ) || ! current_user_can( 'activate_plugins' ) ) {
 			wp_die( esc_html__( 'You cannot set up this plugin.', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] );
 		}
 		check_admin_referer( 'rsl_ie_setup_adapter' );

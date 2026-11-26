@@ -255,7 +255,7 @@ class Export_Controller extends Base_Controller {
 		if ( ! wp_verify_nonce( $nonce, 'rsl_ie_download_' . $job_id ) ) {
 			wp_die( esc_html__( 'Security check failed', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] ); }
 		// phpcs:ignore WordPress.Security.NonceVerification -- Authorized by the job-specific nonce above.
-		$zip     = isset( $_GET['download_zip'] ) && '1' === $_GET['download_zip'];
+		$zip     = isset( $_GET['download_zip'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['download_zip'] ) );
 		$service = new \RockStarLab\ImportExport\Service\File_Service();
 		$file    = $service->from_job( $job_id );
 		$result  = is_wp_error( $file ) ? $file : $service->download( $file['file_id'], $zip );

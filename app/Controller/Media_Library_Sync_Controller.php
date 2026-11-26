@@ -165,7 +165,7 @@ class Media_Library_Sync_Controller {
 		if ( ! $this->verify_ajax( 'rsl_ie_pro_sync_media_step' ) ) {
 			return;
 		}
-		$id = absint( $_POST['job_id'] ?? 0 );
+		$id = absint( $_POST['job_id'] ?? 0 ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified by verify_ajax() above.
 		$service = new \RockStarLab\ImportExport\Service\Sync_Job_Service();
 		$status = $service->status( $id );
 		if ( is_wp_error( $status ) || ! in_array( $status['operation'] ?? '', [ 'sync-media-push', 'sync-media-pull' ], true ) ) {

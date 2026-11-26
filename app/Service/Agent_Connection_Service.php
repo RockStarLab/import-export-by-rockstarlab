@@ -101,7 +101,7 @@ class Agent_Connection_Service {
 				$cookies[] = new \WP_Http_Cookie(
 					[
 						'name'  => $name,
-						'value' => wp_unslash( $_COOKIE[ $name ] ),
+						'value' => wp_unslash( $_COOKIE[ $name ] ), // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Auth cookie must be forwarded unmodified for the loopback check.
 					]
 				);
 			}
