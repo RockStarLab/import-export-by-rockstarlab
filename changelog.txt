@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.65 =
+* Fix: a schedule made from a Media Sync job now scans the folder again on every run, so files added to the folder after the first import are imported; files imported before are handled by the job's duplicate check. Before, every run repeated the files of the first job.
+
 = 2.2.64 =
 * Fix: an export filter with an unknown condition is now refused for every content type, not only posts and pages; before, a PRO export such as customers ignored it and exported every record. Conditions written as greater_than_or_equal or less_than_or_equal are understood.
 
