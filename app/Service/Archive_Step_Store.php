@@ -2,6 +2,8 @@
 /** One private record per archive step; counts are published by the owning checkpoint. */
 namespace RockStarLab\ImportExport\Service;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents,WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents,WordPress.WP.AlternativeFunctions.rename_rename -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+
 defined( 'ABSPATH' ) || exit;
 class Archive_Step_Store {
 	private static function path( array $reference, $index ) {

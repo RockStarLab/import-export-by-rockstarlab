@@ -2,6 +2,8 @@
 /** Disk-backed legacy object iteration with native duplicate-key semantics. */
 namespace RockStarLab\ImportExport\Model\Format;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents,WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite,WordPress.WP.AlternativeFunctions.file_system_operations_mkdir,WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+
 defined( 'ABSPATH' ) || exit;
 
 class JSON_Object_Stream {
@@ -54,7 +56,7 @@ class JSON_Object_Stream {
 				if ( $file->isDir() ) {
 					rmdir( $file->getPathname() );
 				} else {
-					unlink( $file->getPathname() ); }
+					wp_delete_file( $file->getPathname() ); }
 			}
 			rmdir( $directory );
 		}

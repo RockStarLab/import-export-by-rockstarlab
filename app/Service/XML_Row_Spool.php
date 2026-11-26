@@ -2,6 +2,8 @@
 /** Private, expiring row snapshots for XML encodings without seekable byte boundaries. */
 namespace RockStarLab\ImportExport\Service;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fread,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite,WordPress.WP.AlternativeFunctions.file_system_operations_touch -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+
 defined( 'ABSPATH' ) || exit;
 
 class XML_Row_Spool {
@@ -125,8 +127,11 @@ class XML_Row_Spool {
 			if ( ! $handle ) {
 				continue; }
 			if ( flock( $handle, LOCK_EX | LOCK_NB ) ) {
-				if ( fstat( $handle )['mtime'] < time() - self::TTL && unlink( $path ) ) {
-					++$removed; }
+				if ( fstat( $handle )['mtime'] < time() - self::TTL ) {
+					wp_delete_file( $path );
+					if ( ! file_exists( $path ) ) {
+						++$removed; }
+				}
 				flock( $handle, LOCK_UN );
 			}
 			fclose( $handle );

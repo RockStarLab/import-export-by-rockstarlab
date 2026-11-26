@@ -7,6 +7,8 @@
 
 namespace RockStarLab\ImportExport\Service;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fread -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+
 use RockStarLab\ImportExport\Abilities\Access_Policy;
 use RockStarLab\ImportExport\Abilities\Workflow_Schemas;
 use RockStarLab\ImportExport\Helper\Remote_API;

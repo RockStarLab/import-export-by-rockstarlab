@@ -2,6 +2,8 @@
 /** Bounded ZIP-to-XML staging for spreadsheet readers. */
 namespace RockStarLab\ImportExport\Model\Format;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents,WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fread,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite,WordPress.WP.AlternativeFunctions.file_system_operations_mkdir,WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+
 defined( 'ABSPATH' ) || exit;
 
 class Spreadsheet_XML_Parts {
@@ -70,7 +72,7 @@ class Spreadsheet_XML_Parts {
 			if ( is_resource( $output ) ) {
 				fclose( $output ); }
 			if ( ! isset( $this->paths[ $name ] ) && is_file( $path ) ) {
-				unlink( $path ); }
+				wp_delete_file( $path ); }
 		}
 	}
 
@@ -185,7 +187,10 @@ class Spreadsheet_XML_Parts {
 		if ( ! isset( $this->paths[ $name ] ) ) {
 			return; }
 		$path = $this->paths[ $name ];
-		if ( is_file( $path ) && ! unlink( $path ) ) {
+		if ( is_file( $path ) ) {
+			wp_delete_file( $path );
+		}
+		if ( is_file( $path ) ) {
 			throw new \RuntimeException( esc_html__( 'Cannot release spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 		unset( $this->paths[ $name ] );
 	}
@@ -197,7 +202,7 @@ class Spreadsheet_XML_Parts {
 		if ( ! $this->persistent && $this->directory && is_dir( $this->directory ) ) {
 			foreach ( new \DirectoryIterator( $this->directory ) as $file ) {
 				if ( ! $file->isDot() ) {
-					unlink( $file->getPathname() ); }
+					wp_delete_file( $file->getPathname() ); }
 			}
 			rmdir( $this->directory );
 		}

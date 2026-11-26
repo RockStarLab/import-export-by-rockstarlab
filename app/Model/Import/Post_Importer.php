@@ -9,6 +9,8 @@
 
 namespace RockStarLab\ImportExport\Model\Import;
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Plugin-owned tables: no WordPress API exists for them, and these are transient job rows that must not be cached.
+
 use RockStarLab\ImportExport\Helper\ACF_Fields;
 use RockStarLab\ImportExport\Helper\Content_Sync_Media;
 

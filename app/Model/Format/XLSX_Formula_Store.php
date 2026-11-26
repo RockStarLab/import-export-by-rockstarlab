@@ -2,6 +2,8 @@
 /** Disk-backed shared formula masters, scoped to one worksheet scan. */
 namespace RockStarLab\ImportExport\Model\Format;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents,WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents,WordPress.WP.AlternativeFunctions.file_system_operations_mkdir,WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\ReferenceHelper;
 
@@ -51,7 +53,7 @@ class XLSX_Formula_Store {
 					continue; }
 				foreach ( new \DirectoryIterator( $shard->getPathname() ) as $file ) {
 					if ( ! $file->isDot() ) {
-						unlink( $file->getPathname() ); }
+						wp_delete_file( $file->getPathname() ); }
 				}
 				rmdir( $shard->getPathname() );
 			}

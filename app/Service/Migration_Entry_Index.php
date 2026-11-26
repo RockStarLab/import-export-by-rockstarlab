@@ -6,6 +6,8 @@
  */
 namespace RockStarLab\ImportExport\Service;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents,WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_mkdir,WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+
 defined( 'ABSPATH' ) || exit;
 
 /** Retain archive membership on disk instead of in one unbounded PHP array. */
@@ -66,7 +68,8 @@ class Migration_Entry_Index {
 		if ( $value !== $name ) {
 			return false;
 		}
-		if ( ! unlink( $path ) ) {
+		wp_delete_file( $path );
+		if ( file_exists( $path ) ) {
 			throw new \RuntimeException( esc_html__( 'Cannot consume archive index.', 'import-export-by-rockstarlab' ) );
 		}
 		--$this->remaining;
@@ -89,7 +92,7 @@ class Migration_Entry_Index {
 			if ( $file->isDir() ) {
 				rmdir( $file->getPathname() );
 			} else {
-				unlink( $file->getPathname() );
+				wp_delete_file( $file->getPathname() );
 			}
 		}
 		rmdir( $this->directory );
@@ -133,7 +136,8 @@ class Migration_Entry_Index {
 					foreach ( new \DirectoryIterator( $bucket->getPathname() ) as $file ) {
 						if ( $file->isLink() || ! $file->isFile() || ! preg_match( '/^' . $bucket->getFilename() . '[a-f0-9]{62}$/D', $file->getFilename() ) ) {
 							continue; }
-						if ( unlink( $file->getPathname() ) ) {
+						wp_delete_file( $file->getPathname() );
+						if ( ! file_exists( $file->getPathname() ) ) {
 							++$removed; }
 						if ( $removed >= 998 ) {
 							return $removed; }
@@ -144,7 +148,11 @@ class Migration_Entry_Index {
 						return $removed; }
 				}
 				// Unknown entries are left untouched, including symlinks and foreign files.
-				if ( 3 === iterator_count( new \DirectoryIterator( $path ) ) && unlink( $marker ) ) {
+				$marker_only = 3 === iterator_count( new \DirectoryIterator( $path ) );
+				if ( $marker_only ) {
+					wp_delete_file( $marker );
+				}
+				if ( $marker_only && ! file_exists( $marker ) ) {
 					++$removed;
 					if ( rmdir( $path ) ) {
 						++$removed; }

@@ -2,6 +2,8 @@
 /** Prepared import rows, published by a compact job descriptor. */
 namespace RockStarLab\ImportExport\Service;
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Plugin-owned tables: no WordPress API exists for them, and these are transient job rows that must not be cached.
+
 defined( 'ABSPATH' ) || exit;
 class Import_Row_Store {
 	/** Replace unpublished rows while the import job lock is held. */

@@ -7,6 +7,8 @@
 
 namespace RockStarLab\ImportExport\Helper;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+
 defined( 'ABSPATH' ) || exit;
 
 class Elementor_Fields {

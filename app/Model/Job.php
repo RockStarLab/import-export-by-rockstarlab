@@ -12,6 +12,8 @@
 
 namespace RockStarLab\ImportExport\Model;
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Plugin-owned tables: no WordPress API exists for them, and these are transient job rows that must not be cached.
+
 defined( 'ABSPATH' ) || exit;
 
 class Job extends Model {
