@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<ruleset name="Content Sync, Media Sync, Import, Export with AI Agents Support" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/squizlabs/PHP_CodeSniffer/master/phpcs.xsd">
+	<description>WordPress Coding Standards for the plugin code.</description>
+
+	<!-- Scan the plugin's own PHP only. -->
+	<file>.</file>
+	<arg name="extensions" value="php"/>
+	<arg name="basepath" value="."/>
+	<arg name="parallel" value="8"/>
+	<arg value="ps"/>
+
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/assets/*</exclude-pattern>
+	<exclude-pattern>*/languages/*</exclude-pattern>
+
+	<rule ref="WordPress">
+		<!--
+			Classes are loaded by a PSR-4 style autoloader (RockStarLab\ImportExport\ -> app/),
+			so file names must match class names and cannot follow the class-*.php convention.
+		-->
+		<exclude name="WordPress.Files.FileName"/>
+	</rule>
+
+	<rule ref="PHPCompatibilityWP"/>
+	<config name="testVersion" value="7.4-"/>
+	<config name="minimum_wp_version" value="6.2"/>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="import-export-by-rockstarlab"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="rsl_ie"/>
+				<element value="RSL_IE"/>
+				<element value="RockStarLab"/>
+			</property>
+		</properties>
+	</rule>
+</ruleset>
