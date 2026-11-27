@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.67 =
+* Fix: an import that updates posts by ID (Check for Existing Items by Field: ID) now updates the post with that ID on this site. Before, when a post imported earlier from another site had the same number as its source ID (for example after a Content Migration), a file with only ID and a few columns, such as categories or excerpts, updated that imported post instead.
+
 = 2.2.66 =
 * Fix: a Media import from WP-CLI or an AI agent that only updates existing attachments (for example a file with ID and alt_text, set to update) no longer stops with "Missing required fields: file"; as in the import wizard, the matched attachments get the new details and keep their files.
 
