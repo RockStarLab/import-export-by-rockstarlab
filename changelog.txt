@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.66 =
+* Fix: a Media import from WP-CLI or an AI agent that only updates existing attachments (for example a file with ID and alt_text, set to update) no longer stops with "Missing required fields: file"; as in the import wizard, the matched attachments get the new details and keep their files.
+
 = 2.2.65 =
 * Fix: a schedule made from a Media Sync job now scans the folder again on every run, so files added to the folder after the first import are imported; files imported before are handled by the job's duplicate check. Before, every run repeated the files of the first job.
 
