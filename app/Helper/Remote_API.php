@@ -68,7 +68,7 @@ class Remote_API {
 	 */
 	public static function post( $remote_url, $route, $args ) {
 		$parts = wp_parse_url( $remote_url );
-		if ( ! is_array( $parts ) || empty( $parts['host'] ) || ! in_array( $parts['scheme'] ?? '', [ 'http', 'https' ], true ) || isset( $parts['user'] ) || isset( $parts['pass'] ) || isset( $parts['query'] ) || isset( $parts['fragment'] ) ) {
+		if ( ! is_array( $parts ) || empty( $parts['host'] ) || ! in_array( $parts['scheme'] ?? '', array( 'http', 'https' ), true ) || isset( $parts['user'] ) || isset( $parts['pass'] ) || isset( $parts['query'] ) || isset( $parts['fragment'] ) ) {
 			return new \WP_Error( 'rsl_ie_invalid_remote_url', __( 'Use an HTTP or HTTPS site URL without credentials, query or fragment.', 'import-export-by-rockstarlab' ) );
 		}
 		// A connected site's bearer credential must never follow a redirect.
@@ -79,7 +79,7 @@ class Remote_API {
 		}
 		$response = wp_remote_post( self::build_url( $remote_url, $route ), $args );
 		// Sites with plain permalinks have no /wp-json/ path; WordPress answers the same route at ?rest_route=.
-		if ( ! is_wp_error( $response ) && in_array( (int) wp_remote_retrieve_response_code( $response ), [ 200, 404 ], true ) && ! self::is_json( wp_remote_retrieve_body( $response ) ) ) {
+		if ( ! is_wp_error( $response ) && in_array( (int) wp_remote_retrieve_response_code( $response ), array( 200, 404 ), true ) && ! self::is_json( wp_remote_retrieve_body( $response ) ) ) {
 			$fallback = wp_remote_post( self::build_query_url( $remote_url, $route ), $args );
 			if ( ! is_wp_error( $fallback ) && self::is_json( wp_remote_retrieve_body( $fallback ) ) ) {
 				set_transient( $cache_key, 'query', DAY_IN_SECONDS );

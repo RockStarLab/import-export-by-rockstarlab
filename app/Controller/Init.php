@@ -450,40 +450,40 @@ class Init {
 					'createFunctionsInLibrary'          => __( 'Transformation management is handled by the PRO addon.', 'import-export-by-rockstarlab' ),
 					'errorLoadingFunctions'             => __( 'Error loading transformations', 'import-export-by-rockstarlab' ),
 					'importStartedSuccessfully'         => __( 'Import started successfully', 'import-export-by-rockstarlab' ),
-					'loadingTemplate' => __( 'Loading…', 'import-export-by-rockstarlab' ),
-					'savingTemplate' => __( 'Saving…', 'import-export-by-rockstarlab' ),
-					'loadingMappingTemplates' => __( 'Loading templates…', 'import-export-by-rockstarlab' ),
-					'noMappingTemplates' => __( '— No saved templates —', 'import-export-by-rockstarlab' ),
-					'chooseMappingTemplate' => __( '— Choose a template —', 'import-export-by-rockstarlab' ),
+					'loadingTemplate'                   => __( 'Loading…', 'import-export-by-rockstarlab' ),
+					'savingTemplate'                    => __( 'Saving…', 'import-export-by-rockstarlab' ),
+					'loadingMappingTemplates'           => __( 'Loading templates…', 'import-export-by-rockstarlab' ),
+					'noMappingTemplates'                => __( '— No saved templates —', 'import-export-by-rockstarlab' ),
+					'chooseMappingTemplate'             => __( '— Choose a template —', 'import-export-by-rockstarlab' ),
 					/* translators: %s: template name or column name. */
-					'templateColumnMissing' => __( 'Column "%s" is not in this file', 'import-export-by-rockstarlab' ),
+					'templateColumnMissing'             => __( 'Column "%s" is not in this file', 'import-export-by-rockstarlab' ),
 					/* translators: 1: template name, 2: number of fields. */
-					'templateApplied' => __( 'Template "%1$s" loaded: %2$d fields mapped.', 'import-export-by-rockstarlab' ),
-					'templateOptionsNext' => __( 'Its import settings are filled in on the next step.', 'import-export-by-rockstarlab' ),
-					'templateMissingColumns' => __( 'These columns of the template are not in this file, so their fields stay empty:', 'import-export-by-rockstarlab' ),
-					'templateMissingFields' => __( 'These fields do not exist on this site and were skipped:', 'import-export-by-rockstarlab' ),
-					'templateNeedsMapping' => __( 'Map at least one column before saving a template.', 'import-export-by-rockstarlab' ),
-					'templateNamePrompt' => __( 'Template name (for example "Supplier price list"):', 'import-export-by-rockstarlab' ),
+					'templateApplied'                   => __( 'Template "%1$s" loaded: %2$d fields mapped.', 'import-export-by-rockstarlab' ),
+					'templateOptionsNext'               => __( 'Its import settings are filled in on the next step.', 'import-export-by-rockstarlab' ),
+					'templateMissingColumns'            => __( 'These columns of the template are not in this file, so their fields stay empty:', 'import-export-by-rockstarlab' ),
+					'templateMissingFields'             => __( 'These fields do not exist on this site and were skipped:', 'import-export-by-rockstarlab' ),
+					'templateNeedsMapping'              => __( 'Map at least one column before saving a template.', 'import-export-by-rockstarlab' ),
+					'templateNamePrompt'                => __( 'Template name (for example "Supplier price list"):', 'import-export-by-rockstarlab' ),
 					/* translators: %s: template name or column name. */
-					'templateReplaceConfirm' => __( 'A template named "%s" already exists. Replace it?', 'import-export-by-rockstarlab' ),
+					'templateReplaceConfirm'            => __( 'A template named "%s" already exists. Replace it?', 'import-export-by-rockstarlab' ),
 					/* translators: %s: template name or column name. */
-					'templateSavedWithSettings' => __( 'Template "%s" saved with the field mapping and import settings.', 'import-export-by-rockstarlab' ),
+					'templateSavedWithSettings'         => __( 'Template "%s" saved with the field mapping and import settings.', 'import-export-by-rockstarlab' ),
 					/* translators: %s: template name or column name. */
-					'templateSaved' => __( 'Template "%s" saved. Import settings from the next step are added when you save it there.', 'import-export-by-rockstarlab' ),
-					'templateRenamePrompt' => __( 'New template name:', 'import-export-by-rockstarlab' ),
+					'templateSaved'                     => __( 'Template "%s" saved. Import settings from the next step are added when you save it there.', 'import-export-by-rockstarlab' ),
+					'templateRenamePrompt'              => __( 'New template name:', 'import-export-by-rockstarlab' ),
 					/* translators: %s: template name or column name. */
-					'templateDeleteConfirm' => __( 'Delete the template "%s"? Imports made with it are not affected.', 'import-export-by-rockstarlab' ),
-					'downloadErrorRows' => __( 'Download rows with errors (CSV)', 'import-export-by-rockstarlab' ),
-					'rowErrorsTitle' => __( 'Rows with errors', 'import-export-by-rockstarlab' ),
-					'rowErrorsMore' => __( 'The first 50 rows are shown. The CSV has all of them.', 'import-export-by-rockstarlab' ),
-					'howToFix' => __( 'How to fix', 'import-export-by-rockstarlab' ),
-					'rowHeader' => __( 'Row', 'import-export-by-rockstarlab' ),
-					'rowLabel' => __( 'Row', 'import-export-by-rockstarlab' ),
-					'rowsLabel' => __( 'Rows', 'import-export-by-rockstarlab' ),
-					'importWithErrorsSubtitleOne' => __( 'One row could not be imported. Check the error below and the Jobs Log.', 'import-export-by-rockstarlab' ),
-					'saveAsMappingTemplate' => __( 'Save field mapping as template', 'import-export-by-rockstarlab' ),
+					'templateDeleteConfirm'             => __( 'Delete the template "%s"? Imports made with it are not affected.', 'import-export-by-rockstarlab' ),
+					'downloadErrorRows'                 => __( 'Download rows with errors (CSV)', 'import-export-by-rockstarlab' ),
+					'rowErrorsTitle'                    => __( 'Rows with errors', 'import-export-by-rockstarlab' ),
+					'rowErrorsMore'                     => __( 'The first 50 rows are shown. The CSV has all of them.', 'import-export-by-rockstarlab' ),
+					'howToFix'                          => __( 'How to fix', 'import-export-by-rockstarlab' ),
+					'rowHeader'                         => __( 'Row', 'import-export-by-rockstarlab' ),
+					'rowLabel'                          => __( 'Row', 'import-export-by-rockstarlab' ),
+					'rowsLabel'                         => __( 'Rows', 'import-export-by-rockstarlab' ),
+					'importWithErrorsSubtitleOne'       => __( 'One row could not be imported. Check the error below and the Jobs Log.', 'import-export-by-rockstarlab' ),
+					'saveAsMappingTemplate'             => __( 'Save field mapping as template', 'import-export-by-rockstarlab' ),
 					/* translators: %s: template name or column name. */
-					'templateSavedFromJob' => __( 'Template "%s" saved. Choose it in step 4 of the import wizard.', 'import-export-by-rockstarlab' ),
+					'templateSavedFromJob'              => __( 'Template "%s" saved. Choose it in step 4 of the import wizard.', 'import-export-by-rockstarlab' ),
 					'importCompletedSuccessfully'       => __( 'Import completed successfully!', 'import-export-by-rockstarlab' ),
 					'importCancelled'                   => __( 'Import cancelled', 'import-export-by-rockstarlab' ),
 					'importFailed'                      => __( 'Import failed', 'import-export-by-rockstarlab' ),
@@ -1287,10 +1287,10 @@ class Init {
 			return $redirect_url;
 		}
 		return add_query_arg(
-			[
+			array(
 				'rsl_ie_prefill' => 'media_library',
 				'media_ids'      => implode( ',', $ids ),
-			],
+			),
 			Site_URL::admin_url( 'admin.php?page=rsl-ie-export' )
 		);
 	}
@@ -1394,21 +1394,21 @@ class Init {
 			'rsl-ie-taxonomy-quick-actions',
 			'rslIeTaxonomyQuickActions',
 			array(
-				'nonces'         => Ajax_Security::get_nonces(),
-				'ajaxurl'        => Ajax_Security::ajax_url(),
-				'exportUrl'      => Site_URL::admin_url( 'admin.php?page=rsl-ie-export' ),
-				'contentSyncUrl' => Site_URL::admin_url( 'admin.php?page=rsl-ie-content-sync' ),
-				'taxonomy'       => $taxonomy,
-				'exportEnabled'  => $export_enabled,
-				'syncEnabled'    => $sync_enabled,
-				'connectedSites' => $sites_map,
+				'nonces'           => Ajax_Security::get_nonces(),
+				'ajaxurl'          => Ajax_Security::ajax_url(),
+				'exportUrl'        => Site_URL::admin_url( 'admin.php?page=rsl-ie-export' ),
+				'contentSyncUrl'   => Site_URL::admin_url( 'admin.php?page=rsl-ie-content-sync' ),
+				'taxonomy'         => $taxonomy,
+				'exportEnabled'    => $export_enabled,
+				'syncEnabled'      => $sync_enabled,
+				'connectedSites'   => $sites_map,
 				/** Whether the Sync Terms dialog offers "Send with translations" (PRO with Polylang or WPML turns it on). */
 				'withTranslations' => (bool) apply_filters( 'rsl_ie_terms_sync_translations_option', false, $taxonomy ),
 				'multilingualName' => (string) apply_filters( 'rsl_ie_multilingual_name', 'Polylang' ),
-				'exportLabel'    => __( 'Export', 'import-export-by-rockstarlab' ),
-				'syncLabel'      => __( 'Sync', 'import-export-by-rockstarlab' ),
-				'disabledTitle'  => __( 'Select one or more terms to enable export.', 'import-export-by-rockstarlab' ),
-				'i18n'           => array(
+				'exportLabel'      => __( 'Export', 'import-export-by-rockstarlab' ),
+				'syncLabel'        => __( 'Sync', 'import-export-by-rockstarlab' ),
+				'disabledTitle'    => __( 'Select one or more terms to enable export.', 'import-export-by-rockstarlab' ),
+				'i18n'             => array(
 					'selectSite'       => __( 'Please select a site.', 'import-export-by-rockstarlab' ),
 					'selectSiteLabel'  => __( 'Select Site', 'import-export-by-rockstarlab' ),
 					'selectTerms'      => __( 'Please select one or more terms.', 'import-export-by-rockstarlab' ),
@@ -1746,12 +1746,12 @@ class Init {
 			return;
 		}
 
-		$own_paths    = [
+		$own_paths    = array(
 			wp_normalize_path( realpath( RSL_IE_PATH ) ) . '/',
 			wp_normalize_path( realpath( WP_PLUGIN_DIR . '/import-export-pro-by-rockstarlab' ) ?: WP_PLUGIN_DIR . '/import-export-pro-by-rockstarlab' ) . '/',
-		];
-		$plugin_paths = [ wp_normalize_path( WP_PLUGIN_DIR ) . '/', wp_normalize_path( WPMU_PLUGIN_DIR ) . '/' ];
-		foreach ( [ 'admin_notices', 'all_admin_notices', 'network_admin_notices', 'user_admin_notices' ] as $hook ) {
+		);
+		$plugin_paths = array( wp_normalize_path( WP_PLUGIN_DIR ) . '/', wp_normalize_path( WPMU_PLUGIN_DIR ) . '/' );
+		foreach ( array( 'admin_notices', 'all_admin_notices', 'network_admin_notices', 'user_admin_notices' ) as $hook ) {
 			if ( empty( $wp_filter[ $hook ] ) ) {
 				continue;
 			}
@@ -2127,7 +2127,7 @@ class Init {
 	 * @return void
 	 */
 	public function redirect_import_tools() {
-		if ( ! is_admin() || ! isset( $_GET['page'] ) || ! in_array( $_GET['page'], [ 'rsl-ie-media-sync', 'rsl-ie-ai-url-importer' ], true ) || ! current_user_can( 'manage_options' ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only legacy navigation.
+		if ( ! is_admin() || ! isset( $_GET['page'] ) || ! in_array( $_GET['page'], array( 'rsl-ie-media-sync', 'rsl-ie-ai-url-importer' ), true ) || ! current_user_can( 'manage_options' ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only legacy navigation.
 			return;
 		}
 		$mode = 'rsl-ie-media-sync' === $_GET['page'] ? 'media-sync' : 'ai-url'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation.
@@ -2193,7 +2193,7 @@ class Init {
 			wp_die(
 				esc_html__( 'You do not have permission to perform this action.', 'import-export-by-rockstarlab' ),
 				'',
-				[ 'response' => 403 ]
+				array( 'response' => 403 )
 			);
 		}
 
@@ -2201,9 +2201,9 @@ class Init {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified immediately above.
 		$mode = isset( $_GET['mode'] ) ? sanitize_key( wp_unslash( $_GET['mode'] ) ) : '';
 
-		$result = ( new \RockStarLab\ImportExport\Service\Settings_Service() )->execute( 'preferences-update', [ 'media_hash_notice' => 'forever' === $mode ? 'dismiss' : $mode ] );
+		$result = ( new \RockStarLab\ImportExport\Service\Settings_Service() )->execute( 'preferences-update', array( 'media_hash_notice' => 'forever' === $mode ? 'dismiss' : $mode ) );
 		if ( is_wp_error( $result ) ) {
-			wp_die( esc_html( $result->get_error_message() ), '', [ 'response' => (int) ( $result->get_error_data()['status'] ?? 400 ) ] );
+			wp_die( esc_html( $result->get_error_message() ), '', array( 'response' => (int) ( $result->get_error_data()['status'] ?? 400 ) ) );
 		}
 
 		$redirect = wp_get_referer();

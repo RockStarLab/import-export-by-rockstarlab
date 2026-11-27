@@ -28,10 +28,10 @@ class Post_Tree_Filter {
 			return;
 		}
 
-		add_filter( 'page_row_actions', [ __CLASS__, 'add_row_action' ], 10, 2 );
-		add_filter( 'post_row_actions', [ __CLASS__, 'add_row_action' ], 10, 2 );
-		add_action( 'pre_get_posts', [ __CLASS__, 'filter_admin_query' ] );
-		add_action( 'admin_notices', [ __CLASS__, 'display_filter_notice' ] );
+		add_filter( 'page_row_actions', array( __CLASS__, 'add_row_action' ), 10, 2 );
+		add_filter( 'post_row_actions', array( __CLASS__, 'add_row_action' ), 10, 2 );
+		add_action( 'pre_get_posts', array( __CLASS__, 'filter_admin_query' ) );
+		add_action( 'admin_notices', array( __CLASS__, 'display_filter_notice' ) );
 	}
 
 	/**
@@ -48,10 +48,10 @@ class Post_Tree_Filter {
 		}
 
 		$url = add_query_arg(
-			[
+			array(
 				'post_type'     => $post->post_type,
 				self::QUERY_ARG => $post->ID,
-			],
+			),
 			admin_url( 'edit.php' )
 		);
 		$url = wp_nonce_url( $url, self::get_nonce_action( $post->ID ) );
@@ -147,13 +147,13 @@ class Post_Tree_Filter {
 	 * @return array
 	 */
 	private static function get_tree_ids( $root_id, $post_type ) {
-		$tree_ids = [ $root_id ];
-		$parents  = [ $root_id ];
-		$statuses = array_values( array_diff( get_post_stati(), [ 'auto-draft', 'inherit' ] ) );
+		$tree_ids = array( $root_id );
+		$parents  = array( $root_id );
+		$statuses = array_values( array_diff( get_post_stati(), array( 'auto-draft', 'inherit' ) ) );
 
 		while ( ! empty( $parents ) ) {
 			$children = get_posts(
-				[
+				array(
 					'post_type'              => $post_type,
 					'post_status'            => $statuses,
 					'post_parent__in'        => $parents,
@@ -164,7 +164,7 @@ class Post_Tree_Filter {
 					'no_found_rows'          => true,
 					'update_post_meta_cache' => false,
 					'update_post_term_cache' => false,
-				]
+				)
 			);
 
 			$children = array_values( array_diff( array_map( 'absint', $children ), $tree_ids ) );

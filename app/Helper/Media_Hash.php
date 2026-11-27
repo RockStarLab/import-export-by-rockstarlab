@@ -31,13 +31,13 @@ class Media_Hash {
 	 */
 	public static function init() {
 		// Hook into media upload process.
-		add_filter( 'wp_generate_attachment_metadata', [ __CLASS__, 'add_hash_to_attachment' ], 10, 2 );
+		add_filter( 'wp_generate_attachment_metadata', array( __CLASS__, 'add_hash_to_attachment' ), 10, 2 );
 
 		// Fallback hook for non-image files that don't generate metadata.
-		add_action( 'add_attachment', [ __CLASS__, 'add_hash_to_attachment_fallback' ] );
+		add_action( 'add_attachment', array( __CLASS__, 'add_hash_to_attachment_fallback' ) );
 
 		// Hook for when file is replaced/updated.
-		add_action( 'delete_attachment', [ __CLASS__, 'cleanup_hash_meta' ] );
+		add_action( 'delete_attachment', array( __CLASS__, 'cleanup_hash_meta' ) );
 	}
 
 	/**
@@ -184,7 +184,7 @@ class Media_Hash {
 					$hash
 				)
 			);
-			$exclude = $exclude_id ? array_map( 'intval', (array) $exclude_id ) : [];
+			$exclude = $exclude_id ? array_map( 'intval', (array) $exclude_id ) : array();
 			foreach ( $ids as $id ) {
 				if ( ! in_array( (int) $id, $exclude, true ) ) {
 					return (int) $id;
@@ -192,49 +192,49 @@ class Media_Hash {
 			}
 			return false;
 		}
-		$args = [
+		$args = array(
 			'post_type'      => 'attachment',
-			'post__not_in'   => $exclude_id ? array_map( 'intval', (array) $exclude_id ) : [],
+			'post__not_in'   => $exclude_id ? array_map( 'intval', (array) $exclude_id ) : array(),
 			'no_found_rows'  => true,
 			'post_status'    => 'inherit',
-			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				'relation' => 'OR',
-				[
+				array(
 					'key'   => self::META_KEY,
 					'value' => $hash,
-				],
-				[
+				),
+				array(
 					'relation' => 'AND',
-					[
+					array(
 						'relation' => 'OR',
-						[
+						array(
 							'key'     => self::META_KEY,
 							'compare' => 'NOT EXISTS',
-						],
-						[
+						),
+						array(
 							'key'     => self::META_KEY,
 							'value'   => '^[a-f0-9]{32}$',
 							'compare' => 'NOT REGEXP',
-						],
-					],
-					[
+						),
+					),
+					array(
 						'relation' => 'OR',
-						[
+						array(
 							'key'   => self::LEGACY_META_KEY,
 							'value' => $hash,
-						],
-						[
+						),
+						array(
 							'key'   => self::LEGACY_IMAGE_META_KEY,
 							'value' => $hash,
-						],
-					],
-				],
-			],
+						),
+					),
+				),
+			),
 			'fields'         => 'ids',
 			'posts_per_page' => 1,
 			'orderby'        => 'ID',
 			'order'          => 'ASC',
-		];
+		);
 
 		$query = new \WP_Query( $args );
 		return $query->posts ? (int) $query->posts[0] : false;
@@ -359,7 +359,7 @@ class Media_Hash {
 	 * @return array Results with processed count and total.
 	 */
 	public static function bulk_add_hashes( $batch_size = 50, $offset = 0 ) {
-		$args = [
+		$args = array(
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
 			'posts_per_page' => $batch_size,
@@ -367,7 +367,7 @@ class Media_Hash {
 			'fields'         => 'ids',
 			'orderby'        => 'ID',
 			'order'          => 'ASC',
-		];
+		);
 
 		$query = new \WP_Query( $args );
 
@@ -395,7 +395,7 @@ class Media_Hash {
 		$next_offset = $offset + $attempted;
 		$remaining   = max( 0, $total - $next_offset );
 
-		return [
+		return array(
 			'processed' => $processed,
 			'errors'    => $errors,
 			'remaining' => $remaining,
@@ -403,7 +403,7 @@ class Media_Hash {
 			'attempted' => $attempted,
 			'offset'    => $next_offset,
 			'complete'  => 0 === $remaining,
-		];
+		);
 	}
 
 	/**
@@ -413,41 +413,41 @@ class Media_Hash {
 	 */
 	public static function get_statistics() {
 		// Total attachments.
-		$total_args  = [
+		$total_args  = array(
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
 			'posts_per_page' => 1,
 			'fields'         => 'ids',
-		];
+		);
 		$total_query = new \WP_Query( $total_args );
 		$total       = $total_query->found_posts;
 
 		// Attachments with hash.
-		$hashed_args  = [
+		$hashed_args  = array(
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
-			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-				[
+			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+				array(
 					'key'     => self::META_KEY,
 					'value'   => '^[a-f0-9]{32}$',
 					'compare' => 'REGEXP',
-				],
-			],
+				),
+			),
 			'posts_per_page' => 1,
 			'fields'         => 'ids',
-		];
+		);
 		$hashed_query = new \WP_Query( $hashed_args );
 		$hashed       = $hashed_query->found_posts;
 
 		$unhashed   = $total - $hashed;
 		$percentage = $total > 0 ? round( ( $hashed / $total ) * 100, 2 ) : 0;
 
-		return [
+		return array(
 			'total'      => $total,
 			'hashed'     => $hashed,
 			'unhashed'   => $unhashed,
 			'percentage' => $percentage,
-		];
+		);
 	}
 
 	/**
@@ -457,25 +457,25 @@ class Media_Hash {
 	 */
 	public static function has_unindexed_attachments() {
 		$query = new \WP_Query(
-			[
+			array(
 				'post_type'      => 'attachment',
 				'post_status'    => 'inherit',
 				'posts_per_page' => 1,
 				'fields'         => 'ids',
 				'no_found_rows'  => true,
-				'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Required to identify files missing the index meta.
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Required to identify files missing the index meta.
 					'relation' => 'OR',
-					[
+					array(
 						'key'     => self::META_KEY,
 						'compare' => 'NOT EXISTS',
-					],
-					[
+					),
+					array(
 						'key'     => self::META_KEY,
 						'value'   => '^[a-f0-9]{32}$',
 						'compare' => 'NOT REGEXP',
-					],
-				],
-			]
+					),
+				),
+			)
 		);
 
 		return ! empty( $query->posts );

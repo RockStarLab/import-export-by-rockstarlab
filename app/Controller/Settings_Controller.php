@@ -23,9 +23,9 @@ class Settings_Controller extends Base_Controller {
 	 */
 	public function init() {
 		parent::init();
-		add_action( 'admin_post_rsl_ie_save_admin_menu_settings', [ $this, 'save_admin_menu_settings' ] );
-		add_action( 'admin_post_rsl_ie_save_content_list_settings', [ $this, 'save_content_list_settings' ] );
-		add_action( 'admin_post_rsl_ie_save_button_location_settings', [ $this, 'save_button_location_settings' ] );
+		add_action( 'admin_post_rsl_ie_save_admin_menu_settings', array( $this, 'save_admin_menu_settings' ) );
+		add_action( 'admin_post_rsl_ie_save_content_list_settings', array( $this, 'save_content_list_settings' ) );
+		add_action( 'admin_post_rsl_ie_save_button_location_settings', array( $this, 'save_button_location_settings' ) );
 	}
 
 	/**
@@ -34,11 +34,11 @@ class Settings_Controller extends Base_Controller {
 	 * @return array
 	 */
 	protected function get_ajax_actions() {
-		return [
-			'settings_save'          => [ 'callback' => 'save_settings' ],
-			'dismiss_pro_promo'      => [ 'callback' => 'dismiss_pro_promo' ],
-			'test_openai_connection' => [ 'callback' => 'test_openai_connection' ],
-		];
+		return array(
+			'settings_save'          => array( 'callback' => 'save_settings' ),
+			'dismiss_pro_promo'      => array( 'callback' => 'dismiss_pro_promo' ),
+			'test_openai_connection' => array( 'callback' => 'test_openai_connection' ),
+		);
 	}
 
 	/**
@@ -54,7 +54,7 @@ class Settings_Controller extends Base_Controller {
 		}
 
 		$key    = trim( (string) $this->get_request_param( 'api_key', '' ) );
-		$input  = '' !== $key && false === strpos( $key, '...' ) ? [ 'api_key' => $key ] : [];
+		$input  = '' !== $key && false === strpos( $key, '...' ) ? array( 'api_key' => $key ) : array();
 		$result = ( new \RockStarLab\ImportExport\Service\Settings_Service() )->execute( 'ai-key-test', $input );
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result, null, $result->get_error_data()['status'] ?? 400 );
@@ -73,19 +73,19 @@ class Settings_Controller extends Base_Controller {
 		}
 
 		if ( \RockStarLab\ImportExport\Helper\OpenAI_API_Key::is_wp7_plus() ) {
-			$result = ( new \RockStarLab\ImportExport\Service\Settings_Service() )->execute( 'ai-key-delete', [ 'legacy' => true ] );
+			$result = ( new \RockStarLab\ImportExport\Service\Settings_Service() )->execute( 'ai-key-delete', array( 'legacy' => true ) );
 			if ( is_wp_error( $result ) ) {
 				$this->send_error( $result, null, 500 );
 				return; }
-			$this->send_success( [ 'message' => __( 'WordPress AI Client is managed through Connectors on WordPress 7.0 and newer.', 'import-export-by-rockstarlab' ) ] );
+			$this->send_success( array( 'message' => __( 'WordPress AI Client is managed through Connectors on WordPress 7.0 and newer.', 'import-export-by-rockstarlab' ) ) );
 			return;
 		}
 		$key    = (string) $this->get_request_param( 'openai_api_key', '' );
-		$result = ( new \RockStarLab\ImportExport\Service\Settings_Service() )->execute( '' === $key ? 'ai-key-delete' : 'ai-key-set', '' === $key ? [] : [ 'api_key' => $key ] );
+		$result = ( new \RockStarLab\ImportExport\Service\Settings_Service() )->execute( '' === $key ? 'ai-key-delete' : 'ai-key-set', '' === $key ? array() : array( 'api_key' => $key ) );
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result, null, $result->get_error_data()['status'] ?? 400 );
 			return; }
-		$this->send_success( [ 'message' => __( 'Settings saved successfully', 'import-export-by-rockstarlab' ) ] );
+		$this->send_success( array( 'message' => __( 'Settings saved successfully', 'import-export-by-rockstarlab' ) ) );
 	}
 
 	/**
@@ -98,7 +98,7 @@ class Settings_Controller extends Base_Controller {
 			wp_die(
 				esc_html__( 'You do not have permission to manage settings.', 'import-export-by-rockstarlab' ),
 				'',
-				[ 'response' => 403 ]
+				array( 'response' => 403 )
 			);
 		}
 
@@ -109,21 +109,21 @@ class Settings_Controller extends Base_Controller {
 			: '';
 		$visible_items = isset( $_POST['visible_items'] ) && is_array( $_POST['visible_items'] )
 			? array_map( 'sanitize_key', wp_unslash( $_POST['visible_items'] ) )
-			: [];
+			: array();
 
 		$this->save_patch(
-			[
+			array(
 				'menu_title'    => $menu_title,
 				'visible_items' => $visible_items,
-			]
+			)
 		);
 
 		wp_safe_redirect(
 			add_query_arg(
-				[
+				array(
 					'settings-updated' => 'true',
 					'_wpnonce'         => wp_create_nonce( 'rsl_ie_plugin_settings_notice' ),
-				],
+				),
 				admin_url( 'admin.php?page=rsl-ie-plugin-settings' )
 			)
 		);
@@ -140,21 +140,21 @@ class Settings_Controller extends Base_Controller {
 			wp_die(
 				esc_html__( 'You do not have permission to manage settings.', 'import-export-by-rockstarlab' ),
 				'',
-				[ 'response' => 403 ]
+				array( 'response' => 403 )
 			);
 		}
 
 		check_admin_referer( 'rsl_ie_save_content_list_settings' );
 
 		$enabled = isset( $_POST['show_tree_action'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['show_tree_action'] ) );
-		$this->save_patch( [ 'show_tree_action' => $enabled ] );
+		$this->save_patch( array( 'show_tree_action' => $enabled ) );
 
 		wp_safe_redirect(
 			add_query_arg(
-				[
+				array(
 					'settings-updated' => 'true',
 					'_wpnonce'         => wp_create_nonce( 'rsl_ie_plugin_settings_notice' ),
-				],
+				),
 				admin_url( 'admin.php?page=rsl-ie-plugin-settings' )
 			)
 		);
@@ -171,7 +171,7 @@ class Settings_Controller extends Base_Controller {
 			wp_die(
 				esc_html__( 'You do not have permission to manage settings.', 'import-export-by-rockstarlab' ),
 				'',
-				[ 'response' => 403 ]
+				array( 'response' => 403 )
 			);
 		}
 
@@ -179,24 +179,24 @@ class Settings_Controller extends Base_Controller {
 
 		$export_locations = isset( $_POST['export_button_locations'] ) && is_array( $_POST['export_button_locations'] )
 			? wp_unslash( $_POST['export_button_locations'] )
-			: [];
+			: array();
 		$sync_locations   = isset( $_POST['sync_button_locations'] ) && is_array( $_POST['sync_button_locations'] )
 			? wp_unslash( $_POST['sync_button_locations'] )
-			: [];
+			: array();
 
 		$this->save_patch(
-			[
+			array(
 				'export_button_locations' => $export_locations,
 				'sync_button_locations'   => $sync_locations,
-			]
+			)
 		);
 
 		wp_safe_redirect(
 			add_query_arg(
-				[
+				array(
 					'settings-updated' => 'true',
 					'_wpnonce'         => wp_create_nonce( 'rsl_ie_plugin_settings_notice' ),
-				],
+				),
 				admin_url( 'admin.php?page=rsl-ie-button-settings' )
 			)
 		);
@@ -218,20 +218,20 @@ class Settings_Controller extends Base_Controller {
 		}
 
 		$context = strtolower( trim( (string) $this->get_request_param( 'context', '' ) ) );
-		$allowed = [ 'import', 'export', 'updater', 'migration' ];
+		$allowed = array( 'import', 'export', 'updater', 'migration' );
 		if ( ! in_array( $context, $allowed, true ) ) {
 			$this->send_error( __( 'Invalid context', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
-		$result = ( new \RockStarLab\ImportExport\Service\Settings_Service() )->execute( 'preferences-update', [ 'dismiss_pro_promo' => $context ] );
+		$result = ( new \RockStarLab\ImportExport\Service\Settings_Service() )->execute( 'preferences-update', array( 'dismiss_pro_promo' => $context ) );
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result, null, 400 );
 			return; }
 
 		$this->send_success(
-			[
+			array(
 				'dismissed' => true,
-			]
+			)
 		);
 	}
 
@@ -244,6 +244,6 @@ class Settings_Controller extends Base_Controller {
 	private function save_patch( array $input ) {
 		$result = ( new \RockStarLab\ImportExport\Service\Settings_Service() )->execute( 'settings-update', $input );
 		if ( is_wp_error( $result ) ) {
-			wp_die( esc_html( $result->get_error_message() ), '', [ 'response' => (int) ( $result->get_error_data()['status'] ?? 400 ) ] ); }
+			wp_die( esc_html( $result->get_error_message() ), '', array( 'response' => (int) ( $result->get_error_data()['status'] ?? 400 ) ) ); }
 	}
 }

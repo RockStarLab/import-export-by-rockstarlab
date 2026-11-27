@@ -659,7 +659,7 @@ class Content_Sync_Media {
 	private static function remote_media_url_exists( $url ) {
 		// Canonicalization also runs during duplicate lookup and source hashing.
 		// Probe each candidate only once per request, including missing originals.
-		static $results = [];
+		static $results = array();
 		if ( array_key_exists( $url, $results ) ) {
 			return $results[ $url ];
 		}
@@ -667,9 +667,9 @@ class Content_Sync_Media {
 		// during an import waits for a free PHP worker and can time out.
 		$uploads = wp_upload_dir();
 		if ( 0 === strpos( (string) $url, (string) $uploads['baseurl'] ) ) {
-			$path     = (string) self::url_path( (string) $url );
-			$base     = (string) self::url_path( (string) $uploads['baseurl'] );
-			$relative = ltrim( rawurldecode( (string) substr( $path, strlen( $base ) ) ), '/' );
+			$path                   = (string) self::url_path( (string) $url );
+			$base                   = (string) self::url_path( (string) $uploads['baseurl'] );
+			$relative               = ltrim( rawurldecode( (string) substr( $path, strlen( $base ) ) ), '/' );
 			return $results[ $url ] = ( '' !== $relative && false === strpos( $relative, '..' ) && is_file( trailingslashit( $uploads['basedir'] ) . $relative ) );
 		}
 		$response = wp_remote_head(
@@ -705,7 +705,7 @@ class Content_Sync_Media {
 			return $results[ $url ] = false;
 		}
 
-		$code = (int) wp_remote_retrieve_response_code( $response );
+		$code                   = (int) wp_remote_retrieve_response_code( $response );
 		return $results[ $url ] = ( $code >= 200 && $code < 300 );
 	}
 
@@ -1460,7 +1460,7 @@ class Content_Sync_Media {
 					// Elementor SVG controls wrap the media pair in selected_icon.value.
 					// Export it from the source library for both Push and Pull.
 					if ( is_array( $value ) && 'svg' === ( $value['library'] ?? '' ) && isset( $value['value']['id'] ) ) {
-						$icon = $value['value'];
+						$icon       = $value['value'];
 						$image_data = self::prepare_image_data( (int) $icon['id'], 'elementor_svg' );
 						if ( ! $image_data && ! empty( $icon['url'] ) ) {
 							$image_data = self::prepare_external_media_data( (string) $icon['url'], (int) $icon['id'], 'elementor_svg' );
@@ -1549,7 +1549,7 @@ class Content_Sync_Media {
 					continue;
 				}
 				$seen[ (int) $icon['id'] ] = true;
-				$image_data = self::prepare_image_data( (int) $icon['id'], 'elementor_svg' );
+				$image_data                = self::prepare_image_data( (int) $icon['id'], 'elementor_svg' );
 				if ( ! $image_data && ! empty( $icon['url'] ) && is_string( $icon['url'] ) ) {
 					$image_data = self::prepare_external_media_data( $icon['url'], (int) $icon['id'], 'elementor_svg' );
 				}
@@ -1563,7 +1563,7 @@ class Content_Sync_Media {
 					continue;
 				}
 				$seen[ (int) $child['id'] ] = true;
-				$image_data = self::prepare_image_data( (int) $child['id'], 'elementor_' . $key );
+				$image_data                 = self::prepare_image_data( (int) $child['id'], 'elementor_' . $key );
 				if ( ! $image_data && '' !== $child['url'] ) {
 					$image_data = self::prepare_external_media_data( $child['url'], (int) $child['id'], 'elementor_' . $key );
 				}
@@ -1814,7 +1814,7 @@ class Content_Sync_Media {
 		// Let WordPress determine which sizes fit the original image. Retain
 		// original_image and valid sizes, including sizes registered by other plugins.
 		$changed = false;
-		foreach ( $meta['sizes'] ?? [] as $name => $size ) {
+		foreach ( $meta['sizes'] ?? array() as $name => $size ) {
 			if ( empty( $size['file'] ) || ! is_file( trailingslashit( dirname( $file_path ) ) . $size['file'] ) ) {
 				unset( $meta['sizes'][ $name ] );
 				$changed = true;

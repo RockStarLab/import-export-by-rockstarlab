@@ -56,13 +56,13 @@ class Media_Sync {
 	 * @param array  $options Options (recursive, file_types).
 	 * @return array|\WP_Error Array of files or WP_Error on failure.
 	 */
-	public static function scan_folder( $folder_path, $options = [] ) {
+	public static function scan_folder( $folder_path, $options = array() ) {
 		// Convert string 'false'/'true' to boolean
 		$recursive = filter_var( $options['recursive'] ?? false, FILTER_VALIDATE_BOOLEAN );
 
 		// Get file type filter
 		$file_type    = $options['file_types'] ?? 'all';
-		$custom_types = $options['custom_types'] ?? [];
+		$custom_types = $options['custom_types'] ?? array();
 
 		// Get allowed extensions array
 		$allowed = self::get_allowed_file_types( $file_type, $custom_types );
@@ -78,7 +78,7 @@ class Media_Sync {
 			);
 		}
 
-		$files = [];
+		$files           = array();
 		$generated_files = self::generated_image_files( $folder_path );
 
 		if ( $recursive ) {
@@ -101,13 +101,13 @@ class Media_Sync {
 				$ext = strtolower( pathinfo( $file->getFilename(), PATHINFO_EXTENSION ) );
 				if ( empty( $allowed ) || in_array( $ext, $allowed, true ) ) {
 					if ( isset( $options['max_files'] ) && count( $files ) >= $options['max_files'] ) {
-						return new \WP_Error( 'rsl_ie_media_scan_limit', __( 'Select a narrower folder; the scan limit was exceeded.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+						return new \WP_Error( 'rsl_ie_media_scan_limit', __( 'Select a narrower folder; the scan limit was exceeded.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 					}
-					$files[] = [
+					$files[] = array(
 						'path' => $file->getPathname(),
 						'name' => $file->getFilename(),
 						'size' => $file->getSize(),
-					];
+					);
 				}
 			}
 		}
@@ -123,36 +123,39 @@ class Media_Sync {
 	private static function generated_image_files( $folder_path ) {
 		global $wpdb;
 		$uploads = wp_upload_dir();
-		$base = trailingslashit( wp_normalize_path( $uploads['basedir'] ) );
-		$folder = trailingslashit( wp_normalize_path( $folder_path ) );
+		$base    = trailingslashit( wp_normalize_path( $uploads['basedir'] ) );
+		$folder  = trailingslashit( wp_normalize_path( $folder_path ) );
 		if ( 0 !== strpos( $folder, $base ) ) {
-			return [];
+			return array();
 		}
-		$prefix = substr( $folder, strlen( $base ) );
-		$generated = [];
-		$primary = [];
-		$after = 0;
+		$prefix    = substr( $folder, strlen( $base ) );
+		$generated = array();
+		$primary   = array();
+		$after     = 0;
 		do {
 			// Scope to this uploads folder and avoid loading the entire media library.
-			$rows = $wpdb->get_results( $wpdb->prepare(
-				"SELECT p.ID, f.meta_value AS attached_file, m.meta_value AS metadata, b.meta_value AS backups
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT p.ID, f.meta_value AS attached_file, m.meta_value AS metadata, b.meta_value AS backups
 				 FROM {$wpdb->posts} p
 				 INNER JOIN {$wpdb->postmeta} f ON f.post_id = p.ID AND f.meta_key = '_wp_attached_file'
 				 LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = '_wp_attachment_metadata'
 				 LEFT JOIN {$wpdb->postmeta} b ON b.post_id = p.ID AND b.meta_key = '_wp_attachment_backup_sizes'
 				 WHERE p.post_type = 'attachment' AND p.ID > %d AND f.meta_value LIKE %s
 				 ORDER BY p.ID ASC LIMIT 500",
-				$after, $wpdb->esc_like( $prefix ) . '%'
-			) );
+					$after,
+					$wpdb->esc_like( $prefix ) . '%'
+				)
+			);
 			foreach ( $rows as $row ) {
-				$after = (int) $row->ID;
-				$attached = wp_normalize_path( $row->attached_file );
+				$after                        = (int) $row->ID;
+				$attached                     = wp_normalize_path( $row->attached_file );
 				$primary[ $base . $attached ] = true;
-				$metadata = maybe_unserialize( $row->metadata );
-				$backups = maybe_unserialize( $row->backups );
-				$directory = trailingslashit( dirname( $base . $attached ) );
-				$sizes = is_array( $metadata ) && isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ? $metadata['sizes'] : [];
-				foreach ( array_merge( $sizes, is_array( $backups ) ? $backups : [] ) as $size ) {
+				$metadata                     = maybe_unserialize( $row->metadata );
+				$backups                      = maybe_unserialize( $row->backups );
+				$directory                    = trailingslashit( dirname( $base . $attached ) );
+				$sizes                        = is_array( $metadata ) && isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ? $metadata['sizes'] : array();
+				foreach ( array_merge( $sizes, is_array( $backups ) ? $backups : array() ) as $size ) {
 					if ( is_array( $size ) && ! empty( $size['file'] ) && is_string( $size['file'] ) ) {
 						$generated[ $directory . wp_basename( $size['file'] ) ] = true;
 					}
@@ -193,13 +196,13 @@ class Media_Sync {
 	 */
 	protected static function check_duplicate_by_filename( $file_path ) {
 		$filename = basename( $file_path );
-		$args     = [
+		$args     = array(
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
 			'fields'         => 'ids',
 			'posts_per_page' => 1,
 			's'              => $filename,
-		];
+		);
 
 		$query = new \WP_Query( $args );
 		return $query->have_posts() ? (int) $query->posts[0] : false;
@@ -216,19 +219,19 @@ class Media_Sync {
 		$size     = filesize( $file_path );
 
 		// First check our custom meta
-		$args = [
+		$args = array(
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
-			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-				[
+			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+				array(
 					'key'   => 'rsl_ie_file_size',
 					'value' => $size,
-				],
-			],
+				),
+			),
 			's'              => $filename,
 			'fields'         => 'ids',
 			'posts_per_page' => 1,
-		];
+		);
 
 		$query = new \WP_Query( $args );
 		if ( $query->have_posts() ) {
@@ -236,13 +239,13 @@ class Media_Sync {
 		}
 
 		// Fallback: check all attachments with same filename and compare sizes
-		$args = [
+		$args = array(
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
 			'fields'         => 'ids',
 			'posts_per_page' => 50,
 			's'              => pathinfo( $filename, PATHINFO_FILENAME ),
-		];
+		);
 
 		$query = new \WP_Query( $args );
 		if ( $query->have_posts() ) {
@@ -279,13 +282,13 @@ class Media_Sync {
 
 		// Fallback: check all attachments and compare their file hashes
 		$filename = basename( $file_path );
-		$args     = [
+		$args     = array(
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
 			'fields'         => 'ids',
 			'posts_per_page' => 100, // Check up to 100 files with same name
 			's'              => pathinfo( $filename, PATHINFO_FILENAME ),
-		];
+		);
 
 		$query = new \WP_Query( $args );
 		if ( $query->have_posts() ) {
@@ -309,7 +312,7 @@ class Media_Sync {
 	 * @param array  $options Import options.
 	 * @return int|\WP_Error Attachment ID on success, WP_Error on failure.
 	 */
-	public static function import_file( $file_path, $options = [] ) {
+	public static function import_file( $file_path, $options = array() ) {
 		if ( ! current_user_can( 'upload_files' ) ) {
 			return new \WP_Error( 'media_forbidden', __( 'Media upload permission is required.', 'import-export-by-rockstarlab' ) ); }
 		$base_folder = $options['base_folder'] ?? '';
@@ -343,7 +346,7 @@ class Media_Sync {
 			// Skip mode: check for duplicate and return error if found
 			$duplicate = self::check_duplicate( $file_path, $duplicate_check );
 			if ( $duplicate ) {
-				return new \WP_Error( 'duplicate_file', __( 'File already exists in media library', 'import-export-by-rockstarlab' ), [ 'attachment_id' => $duplicate ] );
+				return new \WP_Error( 'duplicate_file', __( 'File already exists in media library', 'import-export-by-rockstarlab' ), array( 'attachment_id' => $duplicate ) );
 			}
 		} elseif ( 'overwrite' === $duplicate_handling || 'override' === $duplicate_handling ) {
 			// Override/Overwrite mode: find existing attachment to update
@@ -460,11 +463,11 @@ class Media_Sync {
 		// Create new attachment if not overriding existing
 		if ( ! $existing_attach_id ) {
 			// Create attachment.
-			$attachment = [
+			$attachment = array(
 				'post_mime_type' => $filetype['type'],
 				'post_title'     => sanitize_file_name( basename( $dest_path ) ),
 				'post_status'    => 'inherit',
-			];
+			);
 
 			$attach_id = wp_insert_attachment( $attachment, $dest_path, 0, true );
 			if ( is_wp_error( $attach_id ) ) {
@@ -593,7 +596,7 @@ class Media_Sync {
 
 		// Move attachment to final folder.
 		if ( $parent_id > 0 ) {
-			wp_rml_move( $parent_id, [ $attach_id ] );
+			wp_rml_move( $parent_id, array( $attach_id ) );
 		}
 	}
 
@@ -625,8 +628,8 @@ class Media_Sync {
 	 * @param array  $custom_types Custom file extensions.
 	 * @return array Array of allowed extensions.
 	 */
-	public static function get_allowed_file_types( $type = 'all', $custom_types = [] ) {
-		$all = self::file_types_for( 'all', [] );
+	public static function get_allowed_file_types( $type = 'all', $custom_types = array() ) {
+		$all = self::file_types_for( 'all', array() );
 		if ( 'all' === $type ) {
 			return $all;
 		}
@@ -659,26 +662,26 @@ class Media_Sync {
 		}
 
 		if ( 'images' === $type ) {
-			return [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico', 'tiff', 'tif' ];
+			return array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico', 'tiff', 'tif' );
 		}
 
 		if ( 'videos' === $type ) {
-			return [ 'mp4', 'mov', 'avi', 'wmv', 'flv', 'mkv', 'webm', 'ogv', 'm4v', 'mpeg', 'mpg' ];
+			return array( 'mp4', 'mov', 'avi', 'wmv', 'flv', 'mkv', 'webm', 'ogv', 'm4v', 'mpeg', 'mpg' );
 		}
 
 		if ( 'audio' === $type ) {
-			return [ 'mp3', 'wav', 'ogg', 'oga', 'm4a', 'aac', 'flac', 'wma' ];
+			return array( 'mp3', 'wav', 'ogg', 'oga', 'm4a', 'aac', 'flac', 'wma' );
 		}
 
 		if ( 'documents' === $type ) {
-			return [ 'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'odt', 'txt', 'rtf' ];
+			return array( 'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'odt', 'txt', 'rtf' );
 		}
 
 		// For "all" use the WordPress media-library allowlist. This includes
 		// documents such as PDFs in addition to image/video/audio files, while
 		// still respecting site-level MIME restrictions.
 		$mime_types = get_allowed_mime_types();
-		$extensions = [];
+		$extensions = array();
 
 		foreach ( $mime_types as $ext => $mime ) {
 			$ext_array  = explode( '|', $ext );

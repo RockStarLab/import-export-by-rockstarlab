@@ -190,13 +190,13 @@ abstract class Base_Controller {
 	private function get_input_sources( $method ) {
 		switch ( strtolower( (string) $method ) ) {
 			case 'get':
-				return [ INPUT_GET ];
+				return array( INPUT_GET );
 
 			case 'post':
-				return [ INPUT_POST ];
+				return array( INPUT_POST );
 
 			default:
-				return [ INPUT_POST, INPUT_GET ];
+				return array( INPUT_POST, INPUT_GET );
 		}
 	}
 
@@ -207,7 +207,7 @@ abstract class Base_Controller {
 	 * @param array  $default_value Default value.
 	 * @return array Parameter value
 	 */
-	protected function get_request_array( $key, $default_value = [] ) {
+	protected function get_request_array( $key, $default_value = array() ) {
 		if ( '' === $this->current_ajax_action ) {
 			return $default_value;
 		}
@@ -236,7 +236,7 @@ abstract class Base_Controller {
 	 * @return array Sanitized array
 	 */
 	private function sanitize_array( $input_array ) {
-		$sanitized = [];
+		$sanitized = array();
 
 		foreach ( $input_array as $key => $value ) {
 			$sanitized_key = sanitize_text_field( $key );
@@ -259,10 +259,10 @@ abstract class Base_Controller {
 	 * @param int    $status  Optional. HTTP status code (default: 200).
 	 */
 	protected function send_success( $data = null, $message = '', $status = 200 ) {
-		$response = [
+		$response = array(
 			'success' => true,
 			'data'    => $data,
-		];
+		);
 
 		if ( ! empty( $message ) ) {
 			$response['message'] = $message;
@@ -279,9 +279,9 @@ abstract class Base_Controller {
 	 * @param int             $status Optional. HTTP status code (default: 400).
 	 */
 	protected function send_error( $error, $data = null, $status = 400 ) {
-		$response = [
+		$response = array(
 			'success' => false,
-		];
+		);
 
 		if ( is_wp_error( $error ) ) {
 			$response['message'] = $error->get_error_message();
@@ -314,7 +314,7 @@ abstract class Base_Controller {
 
 		check_ajax_referer( Ajax_Security::nonce_action( $this->current_ajax_action ), 'nonce' );
 
-		$missing = [];
+		$missing = array();
 
 		foreach ( $required as $param ) {
 			$value = $this->get_input_value( $param );
@@ -352,13 +352,13 @@ abstract class Base_Controller {
 			return new \WP_Error( 'upload_error', __( 'File upload failed', 'import-export-by-rockstarlab' ) );
 		}
 
-		return [
+		return array(
 			'name'     => sanitize_file_name( $file['name'] ),
 			'type'     => $file['type'],
 			'tmp_name' => $file['tmp_name'],
 			'error'    => (int) $file['error'],
 			'size'     => (int) $file['size'],
-		];
+		);
 	}
 
 	/**
@@ -377,14 +377,14 @@ abstract class Base_Controller {
 	 * @param mixed  $data    Optional. Additional data.
 	 * @param string $level   Optional. Log level (info, warning, error).
 	 */
-	protected function log( $action, $data = [], $level = 'info' ) {
-		$log_data = [
+	protected function log( $action, $data = array(), $level = 'info' ) {
+		$log_data = array(
 			'controller' => get_class( $this ),
 			'action'     => $action,
 			'user_id'    => $this->get_current_user_id(),
 			'timestamp'  => current_time( 'mysql' ),
 			'data'       => $data,
-		];
+		);
 
 		/**
 		 * Filter controller log data

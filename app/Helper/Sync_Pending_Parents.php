@@ -88,7 +88,14 @@ class Sync_Pending_Parents {
 				}
 				// Attaching is bookkeeping, not an edit of the child.
 				global $wpdb;
-				$wpdb->update( $wpdb->posts, array( 'post_modified' => $modified, 'post_modified_gmt' => $gmt ), array( 'ID' => $child_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Restore the dates wp_update_post() changed.
+				$wpdb->update(
+					$wpdb->posts,
+					array(
+						'post_modified'     => $modified,
+						'post_modified_gmt' => $gmt,
+					),
+					array( 'ID' => $child_id )
+				); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Restore the dates wp_update_post() changed.
 				clean_post_cache( $child_id );
 				$attached[] = $child_id;
 			}

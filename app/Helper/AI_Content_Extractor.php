@@ -447,9 +447,9 @@ class AI_Content_Extractor {
 	private function find_main_content_html( $html, $mode = 'auto' ) {
 		$candidates = array();
 		if ( class_exists( '\DOMDocument' ) ) {
-			$dom = new \DOMDocument();
+			$dom      = new \DOMDocument();
 			$previous = libxml_use_internal_errors( true );
-			$loaded = $dom->loadHTML( '<?xml encoding="UTF-8">' . $html, LIBXML_NONET );
+			$loaded   = $dom->loadHTML( '<?xml encoding="UTF-8">' . $html, LIBXML_NONET );
 			libxml_clear_errors();
 			libxml_use_internal_errors( $previous );
 			if ( $loaded ) {
@@ -464,12 +464,18 @@ class AI_Content_Extractor {
 					}
 				}
 				foreach ( $xpath->query( '//article|//main|//*[@class]' . ( 'alternate' === $mode ? '|//body' : '' ) ) as $node ) {
-					$class = $node->getAttribute( 'class' );
+					$class    = $node->getAttribute( 'class' );
 					$explicit = preg_match( '/(?:^|\s)(?:entry-content|post-content|article-content|article-body|main-content)(?:\s|$)/i', $class );
-					if ( ! $explicit && ! in_array( $node->nodeName, array( 'article', 'main', 'body' ), true ) ) { continue; }
+					if ( ! $explicit && ! in_array( $node->nodeName, array( 'article', 'main', 'body' ), true ) ) {
+						continue; }
 					$inner = '';
-					foreach ( $node->childNodes as $child ) { $inner .= $dom->saveHTML( $child ); }
-					$candidates[] = array( 'html' => $inner, 'attrs' => $class, 'source' => $explicit ? 'entry-content' : $node->nodeName );
+					foreach ( $node->childNodes as $child ) {
+						$inner .= $dom->saveHTML( $child ); }
+					$candidates[] = array(
+						'html'   => $inner,
+						'attrs'  => $class,
+						'source' => $explicit ? 'entry-content' : $node->nodeName,
+					);
 				}
 			}
 		}
@@ -477,7 +483,11 @@ class AI_Content_Extractor {
 		if ( empty( $candidates ) ) {
 			foreach ( array( 'article', 'main' ) as $tag ) {
 				if ( preg_match( '/<' . $tag . '\b[^>]*>(.*?)<\/' . $tag . '>/is', $html, $match ) ) {
-					$candidates[] = array( 'html' => $match[1], 'attrs' => '', 'source' => $tag );
+					$candidates[] = array(
+						'html'   => $match[1],
+						'attrs'  => '',
+						'source' => $tag,
+					);
 				}
 			}
 		}
@@ -543,8 +553,9 @@ class AI_Content_Extractor {
 		$headings     = preg_match_all( '/<h[1-6]\b/i', $html );
 		$images       = preg_match_all( '/<img\b/i', $html );
 
-		$score  = min( $text_length, 50000 ) / 20;
-		if ( 'entry-content' === $source ) { $score += 1500; }
+		$score = min( $text_length, 50000 ) / 20;
+		if ( 'entry-content' === $source ) {
+			$score += 1500; }
 		$score += min( $paragraphs, 80 ) * 35;
 		$score += min( $headings, 20 ) * 20;
 		$score += min( $images, 20 ) * 8;
@@ -603,27 +614,43 @@ class AI_Content_Extractor {
 		);
 
 		$allowed_html = array(
-			'table' => array(), 'thead' => array(), 'tbody' => array(), 'tfoot' => array(),
-			'tr' => array(), 'th' => array( 'scope' => true, 'colspan' => true, 'rowspan' => true ),
-			'td' => array( 'colspan' => true, 'rowspan' => true ), 'caption' => array(),
-			'pre' => array(), 'code' => array(), 'blockquote' => array(), 'figure' => array(), 'figcaption' => array(),
-			'p'      => array(),
-			'h1'     => array(),
-			'h2'     => array(),
-			'h3'     => array(),
-			'h4'     => array(),
-			'h5'     => array(),
-			'h6'     => array(),
-			'strong' => array(),
-			'em'     => array(),
-			'ul'     => array(),
-			'ol'     => array(),
-			'li'     => array(),
-			'br'     => array(),
-			'a'      => array(
+			'table'      => array(),
+			'thead'      => array(),
+			'tbody'      => array(),
+			'tfoot'      => array(),
+			'tr'         => array(),
+			'th'         => array(
+				'scope'   => true,
+				'colspan' => true,
+				'rowspan' => true,
+			),
+			'td'         => array(
+				'colspan' => true,
+				'rowspan' => true,
+			),
+			'caption'    => array(),
+			'pre'        => array(),
+			'code'       => array(),
+			'blockquote' => array(),
+			'figure'     => array(),
+			'figcaption' => array(),
+			'p'          => array(),
+			'h1'         => array(),
+			'h2'         => array(),
+			'h3'         => array(),
+			'h4'         => array(),
+			'h5'         => array(),
+			'h6'         => array(),
+			'strong'     => array(),
+			'em'         => array(),
+			'ul'         => array(),
+			'ol'         => array(),
+			'li'         => array(),
+			'br'         => array(),
+			'a'          => array(
 				'href' => true,
 			),
-			'img'    => array(
+			'img'        => array(
 				'src' => true,
 				'alt' => true,
 			),
@@ -872,27 +899,27 @@ class AI_Content_Extractor {
 
 		$builder = call_user_func( 'wp_ai_client_prompt', $prompt );
 
-		if ( '' !== $system_instruction && is_callable( [ $builder, 'using_system_instruction' ] ) ) {
+		if ( '' !== $system_instruction && is_callable( array( $builder, 'using_system_instruction' ) ) ) {
 			$builder = $builder->using_system_instruction( $system_instruction );
 		}
 
-		if ( null !== $temperature && is_callable( [ $builder, 'using_temperature' ] ) ) {
+		if ( null !== $temperature && is_callable( array( $builder, 'using_temperature' ) ) ) {
 			$builder = $builder->using_temperature( $temperature );
 		}
 
-		if ( null !== $max_tokens && is_callable( [ $builder, 'using_max_tokens' ] ) ) {
+		if ( null !== $max_tokens && is_callable( array( $builder, 'using_max_tokens' ) ) ) {
 			$builder = $builder->using_max_tokens( $max_tokens );
 		}
 
-		if ( is_array( $json_schema ) && is_callable( [ $builder, 'as_json_response' ] ) ) {
+		if ( is_array( $json_schema ) && is_callable( array( $builder, 'as_json_response' ) ) ) {
 			$builder = $builder->as_json_response( $json_schema );
 		}
 
-		if ( is_callable( [ $builder, 'using_model_preference' ] ) ) {
+		if ( is_callable( array( $builder, 'using_model_preference' ) ) ) {
 			$builder = $builder->using_model_preference( 'gpt-4.1-mini', 'gpt-4o-mini', 'gpt-4o' );
 		}
 
-		if ( ! is_callable( [ $builder, 'is_supported_for_text_generation' ] ) || ! $builder->is_supported_for_text_generation() ) {
+		if ( ! is_callable( array( $builder, 'is_supported_for_text_generation' ) ) || ! $builder->is_supported_for_text_generation() ) {
 			return new \WP_Error(
 				'ai_client_unsupported',
 				__( 'No configured WordPress AI provider supports text generation.', 'import-export-by-rockstarlab' )

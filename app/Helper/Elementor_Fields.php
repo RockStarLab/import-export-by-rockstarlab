@@ -23,7 +23,7 @@ class Elementor_Fields {
 	 *
 	 * @var array<int,string>
 	 */
-	private static $document_meta_keys = [
+	private static $document_meta_keys = array(
 		'_elementor_data',
 		'_elementor_edit_mode',
 		'_elementor_template_type',
@@ -33,7 +33,7 @@ class Elementor_Fields {
 		'_elementor_controls_usage',
 		'_elementor_page_assets',
 		'_wp_page_template',
-	];
+	);
 
 	/**
 	 * Check whether Elementor is active.
@@ -58,73 +58,73 @@ class Elementor_Fields {
 	 * @return array<int,array{name:string,label:string,type:string}>
 	 */
 	public static function get_fields() {
-		return [
-			[
+		return array(
+			array(
 				'name'  => self::DOCUMENT_FIELD,
 				'label' => __( 'Elementor Document Data', 'import-export-by-rockstarlab' ),
 				'type'  => 'json',
-			],
-			[
+			),
+			array(
 				'name'  => '_elementor_data',
 				'label' => __( 'Elementor Builder Data', 'import-export-by-rockstarlab' ),
 				'type'  => 'json',
-			],
-			[
+			),
+			array(
 				'name'  => '_elementor_page_settings',
 				'label' => __( 'Elementor Page Settings', 'import-export-by-rockstarlab' ),
 				'type'  => 'json',
-			],
-			[
+			),
+			array(
 				'name'  => '_elementor_template_type',
 				'label' => __( 'Elementor Template Type', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => '_elementor_edit_mode',
 				'label' => __( 'Elementor Edit Mode', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => '_elementor_version',
 				'label' => __( 'Elementor Version', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => '_elementor_pro_version',
 				'label' => __( 'Elementor Pro Version', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-			[
+			),
+			array(
 				'name'  => '_elementor_migrations_state_d2a1',
 				'label' => __( 'Elementor Migrations State', 'import-export-by-rockstarlab' ),
 				'type'  => 'json',
-			],
-			[
+			),
+			array(
 				'name'  => '_elementor_global_class_usage_indexed',
 				'label' => __( 'Elementor Global Class Usage Index', 'import-export-by-rockstarlab' ),
 				'type'  => 'json',
-			],
-			[
+			),
+			array(
 				'name'  => '_elementor_global_class_usage_indexed_preview',
 				'label' => __( 'Elementor Global Class Usage Preview Index', 'import-export-by-rockstarlab' ),
 				'type'  => 'json',
-			],
-			[
+			),
+			array(
 				'name'  => '_elementor_used_global_class',
 				'label' => __( 'Elementor Used Global Classes', 'import-export-by-rockstarlab' ),
 				'type'  => 'json',
-			],
-			[
+			),
+			array(
 				'name'  => '_elementor_used_global_class_preview',
 				'label' => __( 'Elementor Used Global Classes Preview', 'import-export-by-rockstarlab' ),
 				'type'  => 'json',
-			],
-			[
+			),
+			array(
 				'name'  => '_wp_page_template',
 				'label' => __( 'Page Template', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
-			],
-		];
+			),
+		);
 	}
 
 	/**
@@ -146,12 +146,12 @@ class Elementor_Fields {
 	public static function is_generated_cache_key( $key ) {
 		return in_array(
 			(string) $key,
-			[
+			array(
 				'_elementor_css',
 				'_elementor_element_cache',
 				'_elementor_page_assets',
 				'_elementor_controls_usage',
-			],
+			),
 			true
 		);
 	}
@@ -168,7 +168,7 @@ class Elementor_Fields {
 			return '';
 		}
 
-		$meta = [];
+		$meta = array();
 		foreach ( self::$document_meta_keys as $key ) {
 			$value = get_post_meta( $post_id, $key, true );
 			if ( '' === $value || null === $value || false === $value ) {
@@ -182,11 +182,11 @@ class Elementor_Fields {
 			return '';
 		}
 
-		$packet = [
+		$packet = array(
 			'version'           => 1,
 			'elementor_version' => defined( 'ELEMENTOR_VERSION' ) ? ELEMENTOR_VERSION : '',
 			'meta'              => $meta,
-		];
+		);
 		// Templates the page uses (Template widget, shortcode, global widgets) travel with it.
 		$templates = Elementor_Templates::records_for_post( $post_id );
 		if ( $templates ) {
@@ -217,7 +217,7 @@ class Elementor_Fields {
 			return false;
 		}
 
-		$meta = [];
+		$meta = array();
 		if ( isset( $packet['meta'] ) && is_array( $packet['meta'] ) ) {
 			$meta = $packet['meta'];
 		} elseif ( isset( $packet['_elementor_data'] ) || isset( $packet['_elementor_page_settings'] ) ) {
@@ -228,7 +228,7 @@ class Elementor_Fields {
 			return false;
 		}
 
-		$template_map = ! empty( $packet['templates'] ) ? self::import_templates( $packet['templates'], $download_media ) : [];
+		$template_map = ! empty( $packet['templates'] ) ? self::import_templates( $packet['templates'], $download_media ) : array();
 		if ( ! empty( $packet['refs'] ) ) {
 			Elementor_Refs::remember( $post_id, $packet['refs'], array_values( $template_map ) );
 		}
@@ -237,7 +237,7 @@ class Elementor_Fields {
 			if ( ! self::is_elementor_meta_key( $key ) || self::is_generated_cache_key( $key ) ) {
 				continue;
 			}
-			if ( $template_map && in_array( $key, [ '_elementor_data', '_elementor_page_settings' ], true ) ) {
+			if ( $template_map && in_array( $key, array( '_elementor_data', '_elementor_page_settings' ), true ) ) {
 				$meta_value = is_string( $meta_value ) ? Elementor_Templates::remap_json( $meta_value, $template_map ) : Elementor_Templates::remap( $meta_value, $template_map );
 			}
 
@@ -332,7 +332,7 @@ class Elementor_Fields {
 		if ( is_string( $value ) ) {
 			$value = trim( $value );
 			if ( '' === $value ) {
-				return [];
+				return array();
 			}
 
 			if ( is_serialized( $value ) ) {
@@ -345,7 +345,7 @@ class Elementor_Fields {
 			}
 		}
 
-		return is_array( $value ) ? $value : [];
+		return is_array( $value ) ? $value : array();
 	}
 
 	/**
@@ -537,17 +537,19 @@ class Elementor_Fields {
 			}
 		}
 
-		$file_array = [
+		$file_array = array(
 			'name'     => '' !== $filename ? $filename : wp_basename( $tmp ),
 			'tmp_name' => $tmp,
-		];
+		);
 
 		if ( ! \RockStarLab\ImportExport\Service\Sync_SVG::sanitize( $tmp, $file_array['name'] ) ) {
 			wp_delete_file( $tmp );
 			return 0;
 		}
-		$sync_mimes = \RockStarLab\ImportExport\Service\Sync_SVG::mimes();
-		$mime_filter = static function ( $mimes ) use ( $sync_mimes ) { return $mimes + $sync_mimes; };
+		$sync_mimes  = \RockStarLab\ImportExport\Service\Sync_SVG::mimes();
+		$mime_filter = static function ( $mimes ) use ( $sync_mimes ) {
+			return $mimes + $sync_mimes;
+		};
 		add_filter( 'upload_mimes', $mime_filter );
 		try {
 			$attachment_id = media_handle_sideload( $file_array, $post_id );
@@ -586,11 +588,11 @@ class Elementor_Fields {
 
 		$response = wp_remote_get(
 			$url,
-			[
+			array(
 				'timeout'            => 30,
 				'redirection'        => 5,
 				'reject_unsafe_urls' => false,
-			]
+			)
 		);
 		if ( is_wp_error( $response ) ) {
 			return $response;
@@ -702,7 +704,7 @@ class Elementor_Fields {
 		$ext  = strtolower( (string) pathinfo( $path, PATHINFO_EXTENSION ) );
 
 		// json: Lottie animations of Elementor Pro.
-		return in_array( $ext, [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'pdf', 'mp4', 'webm' ], true ) || ( 'json' === $ext && \RockStarLab\ImportExport\Service\Sync_SVG::json_available() );
+		return in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'pdf', 'mp4', 'webm' ), true ) || ( 'json' === $ext && \RockStarLab\ImportExport\Service\Sync_SVG::json_available() );
 	}
 
 	private static function is_local_wp_asset_url( $url ) {

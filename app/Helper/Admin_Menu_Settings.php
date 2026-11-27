@@ -26,7 +26,7 @@ class Admin_Menu_Settings {
 	 * @return array
 	 */
 	public static function get_menu_items() {
-		$items = [
+		$items = array(
 			'welcome'        => __( 'Welcome', 'import-export-by-rockstarlab' ),
 			'content_sync'   => __( 'Content Sync', 'import-export-by-rockstarlab' ),
 			'import'         => __( 'Import', 'import-export-by-rockstarlab' ),
@@ -40,18 +40,18 @@ class Admin_Menu_Settings {
 			'contact_us'     => __( 'Contact Us', 'import-export-by-rockstarlab' ),
 			'support_forum'  => __( 'Support Forum', 'import-export-by-rockstarlab' ),
 			'add_ons'        => __( 'Add-Ons', 'import-export-by-rockstarlab' ),
-		];
+		);
 
 		if ( Pro_Addon::is_pro_active() ) {
 			// Directly after Export, as in the admin menu.
 			$after = array_search( 'export', array_keys( $items ), true ) + 1;
 			$items = array_slice( $items, 0, $after, true )
-				+ [ 'content_updater' => __( 'Content Updater', 'import-export-by-rockstarlab' ) ]
+				+ array( 'content_updater' => __( 'Content Updater', 'import-export-by-rockstarlab' ) )
 				+ array_slice( $items, $after, null, true );
 			// Functions is a PRO screen: without PRO it has no page (the options screen hid it, the settings ability listed it).
 			$after = array_search( 'schedules', array_keys( $items ), true ) + 1;
 			$items = array_slice( $items, 0, $after, true )
-				+ [ 'functions' => __( 'Functions', 'import-export-by-rockstarlab' ) ]
+				+ array( 'functions' => __( 'Functions', 'import-export-by-rockstarlab' ) )
 				+ array_slice( $items, $after, null, true );
 		}
 
@@ -74,24 +74,24 @@ class Admin_Menu_Settings {
 	 */
 	public static function get_settings() {
 		$items    = self::get_menu_items();
-		$defaults = [
+		$defaults = array(
 			'menu_title'       => self::default_menu_title(),
 			'visible_items'    => array_fill_keys( array_keys( $items ), true ),
 			'show_tree_action' => false,
-		];
-		$saved    = get_option( self::OPTION_NAME, [] );
+		);
+		$saved    = get_option( self::OPTION_NAME, array() );
 
 		if ( ! is_array( $saved ) ) {
 			return $defaults;
 		}
 
 		// The old default name saved with other menu settings follows the plugin's new name.
-		if ( isset( $saved['menu_title'] ) && in_array( $saved['menu_title'], [ 'Import Export by RockStarLab', __( 'Import Export by RockStarLab', 'import-export-by-rockstarlab' ) ], true ) ) {
+		if ( isset( $saved['menu_title'] ) && in_array( $saved['menu_title'], array( 'Import Export by RockStarLab', __( 'Import Export by RockStarLab', 'import-export-by-rockstarlab' ) ), true ) ) {
 			unset( $saved['menu_title'] );
 		}
 		$settings                  = wp_parse_args( $saved, $defaults );
 		$settings['visible_items'] = wp_parse_args(
-			is_array( $settings['visible_items'] ) ? $settings['visible_items'] : [],
+			is_array( $settings['visible_items'] ) ? $settings['visible_items'] : array(),
 			$defaults['visible_items']
 		);
 
@@ -129,11 +129,11 @@ class Admin_Menu_Settings {
 
 		return update_option(
 			self::OPTION_NAME,
-			[
+			array(
 				'menu_title'       => $menu_title,
 				'visible_items'    => $visible,
 				'show_tree_action' => ! empty( self::get_settings()['show_tree_action'] ),
-			]
+			)
 		);
 	}
 
@@ -178,11 +178,11 @@ class Admin_Menu_Settings {
 		foreach ( $submenu[ self::PARENT_SLUG ] as $index => $submenu_item ) {
 			$slug    = isset( $submenu_item[2] ) ? (string) $submenu_item[2] : '';
 			$item_id = self::identify_item( $slug );
-			if ( '' !== $current && $slug === $current && ! in_array( $item_id, [ 'media_sync', 'ai_url_importer' ], true ) ) {
+			if ( '' !== $current && $slug === $current && ! in_array( $item_id, array( 'media_sync', 'ai_url_importer' ), true ) ) {
 				continue;
 			}
 
-			if ( in_array( $item_id, [ 'media_sync', 'ai_url_importer' ], true ) || ( $item_id && empty( $settings['visible_items'][ $item_id ] ) ) ) {
+			if ( in_array( $item_id, array( 'media_sync', 'ai_url_importer' ), true ) || ( $item_id && empty( $settings['visible_items'][ $item_id ] ) ) ) {
 				unset( $submenu[ self::PARENT_SLUG ][ $index ] );
 			}
 		}
@@ -195,7 +195,7 @@ class Admin_Menu_Settings {
 	 * @return string
 	 */
 	private static function identify_item( $slug ) {
-		$slug_map = [
+		$slug_map = array(
 			self::PARENT_SLUG                       => 'welcome',
 			'rsl-ie-import'                         => 'import',
 			'rsl-ie-export'                         => 'export',
@@ -212,7 +212,7 @@ class Admin_Menu_Settings {
 			self::PARENT_SLUG . '-contact'          => 'contact_us',
 			self::PARENT_SLUG . '-wp-support-forum' => 'support_forum',
 			self::PARENT_SLUG . '-addons'           => 'add_ons',
-		];
+		);
 
 		if ( isset( $slug_map[ $slug ] ) ) {
 			return $slug_map[ $slug ];

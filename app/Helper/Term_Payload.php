@@ -14,7 +14,7 @@ class Term_Payload {
 
 	/** Register the payload filter (every sender of post, product and taxonomy sync applies it). */
 	public static function hooks() {
-		add_filter( 'rsl_ie_sync_term_payload', [ __CLASS__, 'add_to_payload' ], 5, 3 );
+		add_filter( 'rsl_ie_sync_term_payload', array( __CLASS__, 'add_to_payload' ), 5, 3 );
 	}
 
 	/**
@@ -34,7 +34,7 @@ class Term_Payload {
 			$info['description'] = (string) $term->description;
 		}
 		if ( ! isset( $info['parent_names'] ) && $term->parent ) {
-			$names = [];
+			$names = array();
 			foreach ( array_reverse( get_ancestors( (int) $term->term_id, (string) $taxonomy, 'taxonomy' ) ) as $ancestor_id ) {
 				$ancestor = get_term( (int) $ancestor_id, (string) $taxonomy );
 				if ( $ancestor instanceof \WP_Term ) {
@@ -46,7 +46,7 @@ class Term_Payload {
 		// Plain term meta for a receiver that has to create the term (a term sync payload carries
 		// its own full "meta" and is left alone).
 		if ( ! isset( $info['term_meta'] ) && ! isset( $info['meta'] ) ) {
-			$meta = self::portable_meta( $term, $taxonomy, array_keys( (array) ( $info['acf'] ?? [] ) ) );
+			$meta = self::portable_meta( $term, $taxonomy, array_keys( (array) ( $info['acf'] ?? array() ) ) );
 			if ( $meta ) {
 				$info['term_meta'] = $meta;
 			}
@@ -58,7 +58,7 @@ class Term_Payload {
 	const MAX_META_BYTES = 65536;
 
 	/** Terms created while a resolve runs (term_id => true), per nesting level. */
-	private static $watch = [];
+	private static $watch = array();
 
 	/**
 	 * Term meta worth sending with a post: no private "_" keys, no SEO keys (sent as SEO settings),
@@ -69,14 +69,14 @@ class Term_Payload {
 	 * @param array    $acf_fields ACF field names already in the payload.
 	 * @return array key => list of values
 	 */
-	public static function portable_meta( $term, $taxonomy, array $acf_fields = [] ) {
-		$out = [];
+	public static function portable_meta( $term, $taxonomy, array $acf_fields = array() ) {
+		$out = array();
 		foreach ( (array) get_term_meta( (int) $term->term_id ) as $key => $values ) {
 			$key = (string) $key;
 			if ( '' === $key || '_' === $key[0] || in_array( $key, $acf_fields, true ) || preg_match( '/^(rank_math_|wpseo|pll_|icl_|product_count_)/', $key ) ) {
 				continue;
 			}
-			$list = [];
+			$list = array();
 			foreach ( (array) $values as $value ) {
 				if ( strlen( (string) $value ) > self::MAX_META_BYTES ) {
 					continue;
@@ -104,8 +104,8 @@ class Term_Payload {
 	 * @return int[]
 	 */
 	public static function meta_image_ids( array $info ) {
-		$ids = [];
-		foreach ( (array) ( $info['term_meta']['thumbnail_id'] ?? [] ) as $id ) {
+		$ids = array();
+		foreach ( (array) ( $info['term_meta']['thumbnail_id'] ?? array() ) as $id ) {
 			if ( is_scalar( $id ) && absint( $id ) && wp_attachment_is_image( absint( $id ) ) ) {
 				$ids[] = absint( $id );
 			}
@@ -122,8 +122,8 @@ class Term_Payload {
 	 * @param array    $image_map Source attachment ID => local attachment ID.
 	 * @return int
 	 */
-	public static function resolve_with_meta( $taxonomy, array $term_info, callable $resolve, array $image_map = [] ) {
-		self::$watch[] = [];
+	public static function resolve_with_meta( $taxonomy, array $term_info, callable $resolve, array $image_map = array() ) {
+		self::$watch[] = array();
 		$level         = count( self::$watch ) - 1;
 		$listener      = static function ( $term_id, $tt_id, $created_taxonomy ) use ( $level, $taxonomy ) {
 			if ( (string) $created_taxonomy === (string) $taxonomy && isset( self::$watch[ $level ] ) ) {
@@ -153,7 +153,7 @@ class Term_Payload {
 	 * @param array $image_map Source attachment ID => local attachment ID.
 	 * @return void
 	 */
-	public static function apply_new_term_meta( $term_id, array $meta, array $image_map = [] ) {
+	public static function apply_new_term_meta( $term_id, array $meta, array $image_map = array() ) {
 		foreach ( $meta as $key => $values ) {
 			$key = preg_match( '/^[A-Za-z0-9][A-Za-z0-9_\-:.]{0,190}$/', (string) $key ) ? (string) $key : '';
 			if ( '' === $key || '_' === $key[0] || metadata_exists( 'term', (int) $term_id, $key ) ) {
@@ -188,9 +188,9 @@ class Term_Payload {
 		// Older senders: a non-Latin slug is percent-encoded; show the decoded words.
 		$decoded = rawurldecode( $slug );
 		if ( $decoded !== $slug ) {
-			return sanitize_text_field( str_replace( [ '-', '_' ], ' ', $decoded ) );
+			return sanitize_text_field( str_replace( array( '-', '_' ), ' ', $decoded ) );
 		}
-		return ucwords( str_replace( [ '-', '_' ], ' ', $slug ) );
+		return ucwords( str_replace( array( '-', '_' ), ' ', $slug ) );
 	}
 
 	/**

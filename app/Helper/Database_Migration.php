@@ -673,7 +673,7 @@ class Database_Migration {
 	 * @return string[]
 	 */
 	public static function site_tables( $prefix ) {
-		return [
+		return array(
 			"{$prefix}rsl_ie_job_schedules",
 			"{$prefix}rsl_ie_job_logs",
 			"{$prefix}rsl_ie_migration_sources",
@@ -688,7 +688,7 @@ class Database_Migration {
 			"{$prefix}rsl_ie_api_keys",
 			"{$prefix}rsl_ie_field_maps",
 			"{$prefix}rsl_ie_jobs",
-		];
+		);
 	}
 
 	/**
@@ -700,7 +700,7 @@ class Database_Migration {
 		global $wpdb;
 
 		$prefix = $wpdb->prefix;
-		$tables = [
+		$tables = array(
 			"{$prefix}rsl_ie_jobs",
 			"{$prefix}rsl_ie_job_schedules",
 			"{$prefix}rsl_ie_job_logs",
@@ -715,7 +715,7 @@ class Database_Migration {
 			"{$prefix}rsl_ie_site_connections",
 			"{$prefix}rsl_ie_content_sync",
 			"{$prefix}rsl_ie_api_keys",
-		];
+		);
 
 		foreach ( $tables as $table ) {
 			$result = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.

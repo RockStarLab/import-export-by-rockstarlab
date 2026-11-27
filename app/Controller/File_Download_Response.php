@@ -31,13 +31,13 @@ class File_Download_Response extends \WP_REST_Response {
 		parent::__construct(
 			null,
 			200,
-			[
+			array(
 				'Content-Type'           => $download['content_type'],
 				'Content-Length'         => (string) $download['file_size'],
 				'Content-Disposition'    => 'attachment; filename="' . sanitize_file_name( $download['filename'] ) . '"',
 				'Cache-Control'          => 'private, no-store',
 				'X-Content-Type-Options' => 'nosniff',
-			]
+			)
 		);
 	}
 

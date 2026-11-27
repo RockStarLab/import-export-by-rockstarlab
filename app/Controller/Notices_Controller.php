@@ -21,10 +21,10 @@ class Notices_Controller extends Base_Controller {
 	/** Register admin hooks and the protected dismissal action. */
 	public function init() {
 		parent::init();
-		add_action( 'admin_notices', [ $this, 'render_notices' ] );
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ] );
+		add_action( 'admin_notices', array( $this, 'render_notices' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
 		// Init registers the menu customization callback before this controller.
-		add_action( 'admin_menu', [ $this, 'add_menu_count' ], PHP_INT_MAX );
+		add_action( 'admin_menu', array( $this, 'add_menu_count' ), PHP_INT_MAX );
 	}
 
 	/**
@@ -33,13 +33,13 @@ class Notices_Controller extends Base_Controller {
 	 * @return array
 	 */
 	protected function get_ajax_actions() {
-		return [ 'dismiss_agent_pointer' => [ 'callback' => 'dismiss_pointer' ] ];
+		return array( 'dismiss_agent_pointer' => array( 'callback' => 'dismiss_pointer' ) );
 	}
 
 	/** Persist dismissal for this site. */
 	public function dismiss_pointer() {
 		if ( ! update_option( self::POINTER_DISMISSED, true, false ) && ! get_option( self::POINTER_DISMISSED ) ) {
-			wp_send_json_error( [], 500 );
+			wp_send_json_error( array(), 500 );
 			return;
 		}
 		wp_send_json_success();
@@ -51,7 +51,7 @@ class Notices_Controller extends Base_Controller {
 	 * @return string[]
 	 */
 	public function multilingual_plugins() {
-		$plugins = [];
+		$plugins = array();
 		if ( defined( 'ICL_SITEPRESS_VERSION' ) || class_exists( 'SitePress' ) ) {
 			$plugins[] = 'WPML';
 		}
@@ -107,7 +107,7 @@ class Notices_Controller extends Base_Controller {
 			return;
 		}
 		$plugins = $this->multilingual_plugins();
-		$others  = array_values( array_diff( $plugins, [ 'Polylang', 'WPML' ] ) );
+		$others  = array_values( array_diff( $plugins, array( 'Polylang', 'WPML' ) ) );
 		if ( $others ) {
 			printf(
 				'<div class="notice notice-warning"><p><strong>%s</strong> %s</p></div>',
@@ -121,10 +121,10 @@ class Notices_Controller extends Base_Controller {
 				)
 			);
 		}
-		$supported = [
+		$supported = array(
 			'Polylang' => __( 'Polylang is active. The free version does not keep languages and translation links. Polylang and Polylang for WooCommerce are supported in the PRO version: languages, translation links, ACF fields and images are kept in Content Sync, import and export.', 'import-export-by-rockstarlab' ),
 			'WPML'     => __( 'WPML is active. The free version does not keep languages and translation links. WPML and WooCommerce Multilingual are supported in the PRO version: languages, translation links, ACF fields and images are kept in Content Sync, import and export.', 'import-export-by-rockstarlab' ),
-		];
+		);
 		foreach ( $supported as $name => $text ) {
 			if ( ! in_array( $name, $plugins, true ) ) {
 				continue;
@@ -147,7 +147,7 @@ class Notices_Controller extends Base_Controller {
 			return;
 		}
 		$pointer = ! get_option( self::POINTER_DISMISSED );
-		$deps    = [ 'jquery' ];
+		$deps    = array( 'jquery' );
 		if ( $pointer ) {
 			$deps[] = 'wp-pointer';
 			wp_enqueue_style( 'wp-pointer' );
@@ -156,7 +156,7 @@ class Notices_Controller extends Base_Controller {
 		wp_localize_script(
 			'rsl-ie-admin-notices',
 			'rslIeNotices',
-			[
+			array(
 				// Keep the browser check on the admin origin, including local proxy ports.
 				'restUrl'      => wp_make_link_relative( rest_url( 'rsl-ie/v1' ) ),
 				'restNonce'    => wp_create_nonce( 'wp_rest' ),
@@ -168,7 +168,7 @@ class Notices_Controller extends Base_Controller {
 				'content'      => '<h3>' . esc_html__( 'Connect your AI agent', 'import-export-by-rockstarlab' ) . '</h3><p>' . esc_html__( 'You can now use Claude, Codex / ChatGPT or another compatible AI agent with Content Sync, Media Sync, Import, Export. Open Plugin Options to set up the connection.', 'import-export-by-rockstarlab' ) . '</p><p><a href="' . esc_url( admin_url( 'admin.php?page=rsl-ie-agent-connection' ) ) . '">' . esc_html__( 'Open Plugin Options', 'import-export-by-rockstarlab' ) . '</a></p>',
 				'dismiss'      => __( 'Dismiss', 'import-export-by-rockstarlab' ),
 				'retry'        => __( 'Could not save. Try again.', 'import-export-by-rockstarlab' ),
-			]
+			)
 		);
 	}
 }

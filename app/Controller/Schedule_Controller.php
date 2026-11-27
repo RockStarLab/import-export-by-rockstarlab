@@ -24,9 +24,9 @@ class Schedule_Controller {
 	public function init() {
 		Ajax_Security::register_action( 'rsl_ie_schedule_search_source_jobs' );
 
-		add_action( 'admin_post_rsl_ie_save_schedule', [ $this, 'save_schedule' ] );
-		add_action( 'admin_post_rsl_ie_delete_schedule', [ $this, 'delete_schedule' ] );
-		add_action( 'wp_ajax_rsl_ie_schedule_search_source_jobs', [ $this, 'search_source_jobs' ] );
+		add_action( 'admin_post_rsl_ie_save_schedule', array( $this, 'save_schedule' ) );
+		add_action( 'admin_post_rsl_ie_delete_schedule', array( $this, 'delete_schedule' ) );
+		add_action( 'wp_ajax_rsl_ie_schedule_search_source_jobs', array( $this, 'search_source_jobs' ) );
 	}
 
 	/**
@@ -36,16 +36,16 @@ class Schedule_Controller {
 	 */
 	public function search_source_jobs() {
 		if ( ! check_ajax_referer( Ajax_Security::nonce_action( 'rsl_ie_schedule_search_source_jobs' ), 'nonce', false ) ) {
-			wp_send_json_error( [ 'message' => __( 'Security check failed.', 'import-export-by-rockstarlab' ) ], 403 );
+			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'import-export-by-rockstarlab' ) ), 403 );
 		}
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce checked above.
-		$input  = [
+		$input  = array(
 			'q'    => sanitize_text_field( wp_unslash( $_REQUEST['q'] ?? '' ) ),
 			'page' => max( 1, absint( $_REQUEST['page'] ?? 1 ) ),
-		];
+		);
 		$result = ( new \RockStarLab\ImportExport\Service\Schedule_Service() )->execute( 'schedule-list-source-jobs', $input );
 		if ( is_wp_error( $result ) ) {
-			wp_send_json_error( [ 'message' => $result->get_error_message() ], $result->get_error_data()['status'] ?? 400 );
+			wp_send_json_error( array( 'message' => $result->get_error_message() ), $result->get_error_data()['status'] ?? 400 );
 		}
 		foreach ( $result['results'] as &$item ) {
 			$item['disabled'] = ! $item['schedulable']; }
@@ -69,7 +69,7 @@ class Schedule_Controller {
 		$recurrence    = isset( $_POST['recurrence'] ) ? sanitize_key( wp_unslash( $_POST['recurrence'] ) ) : 'once';
 		$start_at      = isset( $_POST['start_at'] ) ? sanitize_text_field( wp_unslash( $_POST['start_at'] ) ) : '';
 
-		$input = [
+		$input = array(
 			'source_job_id' => $source_job_id,
 			'name'          => $name,
 			'schedule_type' => $schedule_type,
@@ -78,14 +78,14 @@ class Schedule_Controller {
 			'timezone'      => wp_timezone_string(),
 			'status'        => 'active',
 			'changed_only'  => ! empty( $_POST['changed_only'] ),
-		];
+		);
 		if ( $schedule_id ) {
 			$input['schedule_id'] = $schedule_id; }
 		$result = ( new \RockStarLab\ImportExport\Service\Schedule_Service() )->execute( $schedule_id ? 'schedule-update' : 'schedule-create', $input );
 		if ( is_wp_error( $result ) ) {
 			$this->redirect_with_error( $result->get_error_message() ); }
 
-		wp_safe_redirect( $this->get_schedules_url( [ 'schedule_saved' => '1' ] ) );
+		wp_safe_redirect( $this->get_schedules_url( array( 'schedule_saved' => '1' ) ) );
 		exit;
 	}
 
@@ -99,11 +99,11 @@ class Schedule_Controller {
 		check_admin_referer( 'rsl_ie_delete_schedule' );
 
 		$schedule_id = isset( $_POST['schedule_id'] ) ? absint( wp_unslash( $_POST['schedule_id'] ) ) : 0;
-		$result      = ( new \RockStarLab\ImportExport\Service\Schedule_Service() )->execute( 'schedule-delete', [ 'schedule_id' => $schedule_id ] );
+		$result      = ( new \RockStarLab\ImportExport\Service\Schedule_Service() )->execute( 'schedule-delete', array( 'schedule_id' => $schedule_id ) );
 		if ( is_wp_error( $result ) ) {
 			$this->redirect_with_error( $result->get_error_message() ); }
 
-		wp_safe_redirect( $this->get_schedules_url( [ 'schedule_deleted' => '1' ] ) );
+		wp_safe_redirect( $this->get_schedules_url( array( 'schedule_deleted' => '1' ) ) );
 		exit;
 	}
 
@@ -114,7 +114,7 @@ class Schedule_Controller {
 	 */
 	private function verify_capability() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage schedules.', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] );
+			wp_die( esc_html__( 'You do not have permission to manage schedules.', 'import-export-by-rockstarlab' ), '', array( 'response' => 403 ) );
 		}
 	}
 
@@ -124,12 +124,12 @@ class Schedule_Controller {
 	 * @param array $args Additional query args.
 	 * @return string
 	 */
-	private function get_schedules_url( $args = [] ) {
+	private function get_schedules_url( $args = array() ) {
 		$args = array_merge(
-			[
+			array(
 				'page'     => 'rsl-ie-schedules',
 				'_wpnonce' => wp_create_nonce( 'rsl_ie_schedules_screen' ),
-			],
+			),
 			$args
 		);
 
@@ -143,7 +143,7 @@ class Schedule_Controller {
 	 * @return void
 	 */
 	private function redirect_with_error( $message ) {
-		wp_safe_redirect( $this->get_schedules_url( [ 'schedule_error' => $message ] ) );
+		wp_safe_redirect( $this->get_schedules_url( array( 'schedule_error' => $message ) ) );
 		exit;
 	}
 }

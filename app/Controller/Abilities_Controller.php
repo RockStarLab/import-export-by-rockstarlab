@@ -38,14 +38,14 @@ class Abilities_Controller {
 		\RockStarLab\ImportExport\Helper\Elementor_Refs::watch_conditions();
 		\RockStarLab\ImportExport\Helper\Term_Payload::hooks();
 		\RockStarLab\ImportExport\Service\Mcp_Client_Compat::hooks();
-		add_filter( 'rsl_ie_sync_post_definitions', [ \RockStarLab\ImportExport\Service\Sync_ACF_Posts::class, 'definitions' ] );
-		add_filter( 'rsl_ie_sync_post_definitions', [ \RockStarLab\ImportExport\Service\Sync_ACF_Media::class, 'definitions' ] );
-		add_filter( 'rsl_ie_sync_peer_extensions', [ \RockStarLab\ImportExport\Service\Sync_ACF_Media::class, 'extensions' ] );
-		add_filter( 'rsl_ie_sync_peer_extensions', [ \RockStarLab\ImportExport\Service\Sync_ACF_Posts::class, 'extensions' ] );
-		add_action( 'wp_abilities_api_categories_init', [ $this, 'register_categories' ] );
-		add_action( 'wp_abilities_api_init', [ $this, 'register_abilities' ] );
-		add_action( 'rest_api_init', [ $this, 'register_hierarchy_transport' ] );
-		add_action( 'rest_api_init', [ $this, 'register_acf_graph_transport' ] );
+		add_filter( 'rsl_ie_sync_post_definitions', array( \RockStarLab\ImportExport\Service\Sync_ACF_Posts::class, 'definitions' ) );
+		add_filter( 'rsl_ie_sync_post_definitions', array( \RockStarLab\ImportExport\Service\Sync_ACF_Media::class, 'definitions' ) );
+		add_filter( 'rsl_ie_sync_peer_extensions', array( \RockStarLab\ImportExport\Service\Sync_ACF_Media::class, 'extensions' ) );
+		add_filter( 'rsl_ie_sync_peer_extensions', array( \RockStarLab\ImportExport\Service\Sync_ACF_Posts::class, 'extensions' ) );
+		add_action( 'wp_abilities_api_categories_init', array( $this, 'register_categories' ) );
+		add_action( 'wp_abilities_api_init', array( $this, 'register_abilities' ) );
+		add_action( 'rest_api_init', array( $this, 'register_hierarchy_transport' ) );
+		add_action( 'rest_api_init', array( $this, 'register_acf_graph_transport' ) );
 	}
 
 	/** Register reference-only graph transport under the existing peer identity. */
@@ -53,13 +53,13 @@ class Abilities_Controller {
 		register_rest_route(
 			'rsl-ie/v1',
 			'/migration-acf-posts',
-			[
+			array(
 				'methods'             => 'POST',
-				'permission_callback' => [ \RockStarLab\ImportExport\Service\Sync_Authentication::class, 'permission' ],
+				'permission_callback' => array( \RockStarLab\ImportExport\Service\Sync_Authentication::class, 'permission' ),
 				'callback'            => static function ( $request ) {
-					return \RockStarLab\ImportExport\Service\Sync_Authentication::run( $request, [ \RockStarLab\ImportExport\Service\Sync_ACF_Graph::class, 'peer' ] );
+					return \RockStarLab\ImportExport\Service\Sync_Authentication::run( $request, array( \RockStarLab\ImportExport\Service\Sync_ACF_Graph::class, 'peer' ) );
 				},
-			]
+			)
 		);
 	}
 
@@ -70,16 +70,16 @@ class Abilities_Controller {
 	 * @return void
 	 */
 	public function register_hierarchy_transport() {
-		foreach ( [
+		foreach ( array(
 			'migration-hierarchy-check'   => false,
 			'migration-hierarchy-receive' => true,
-		] as $route => $receive ) {
+		) as $route => $receive ) {
 			register_rest_route(
 				'rsl-ie/v1',
 				'/' . $route,
-				[
+				array(
 					'methods'             => 'POST',
-					'permission_callback' => [ \RockStarLab\ImportExport\Service\Sync_Authentication::class, 'permission' ],
+					'permission_callback' => array( \RockStarLab\ImportExport\Service\Sync_Authentication::class, 'permission' ),
 					'callback'            => static function ( $request ) use ( $receive ) {
 						return \RockStarLab\ImportExport\Service\Sync_Authentication::run(
 							$request,
@@ -88,7 +88,7 @@ class Abilities_Controller {
 							}
 						);
 					},
-				]
+				)
 			);
 		}
 	}
@@ -104,10 +104,10 @@ class Abilities_Controller {
 		}
 		wp_register_ability_category(
 			'rsl-ie',
-			[
+			array(
 				'label'       => __( 'Content Sync, Media Sync, Import, Export with AI Agents Support', 'import-export-by-rockstarlab' ),
 				'description' => __( 'Discover and run the available import and export workflows.', 'import-export-by-rockstarlab' ),
-			]
+			)
 		);
 	}
 
@@ -126,55 +126,55 @@ class Abilities_Controller {
 				Ability_Registry::register_workflow(
 					'rsl-ie/' . $name,
 					$definition,
-					static function ( $input = [] ) use ( $updraft, $name ) {
+					static function ( $input = array() ) use ( $updraft, $name ) {
 						return $updraft->execute( $name, $input );
 					}
 				);
 			}
 		}
 		$service     = new Discovery_Service();
-		$boolean     = [ 'type' => 'boolean' ];
-		$definitions = [
-			'get-capabilities'   => [
+		$boolean     = array( 'type' => 'boolean' );
+		$definitions = array(
+			'get-capabilities'   => array(
 				'label'       => __( 'Get plugin abilities', 'import-export-by-rockstarlab' ),
 				'description' => __( 'List the implemented RockStarLab abilities and plugin version. Only listed abilities are available; this does not promise future workflow endpoints.', 'import-export-by-rockstarlab' ),
 				'callback'    => 'get_capabilities',
 				'output'      => Schema_Registry::object(
-					[
-						'api_version'      => [ 'type' => 'integer' ],
-						'plugin_version'   => [ 'type' => 'string' ],
+					array(
+						'api_version'      => array( 'type' => 'integer' ),
+						'plugin_version'   => array( 'type' => 'string' ),
 						'abilities'        => Schema_Registry::strings(),
 						'pro_addon_active' => $boolean,
-					]
+					)
 				),
-			],
-			'list-content-types' => [
+			),
+			'list-content-types' => array(
 				'label'       => __( 'List free content types', 'import-export-by-rockstarlab' ),
 				'description' => __( 'Read the free plugin content catalogue. URL lists support export only. Consult get-capabilities for implemented workflow abilities.', 'import-export-by-rockstarlab' ),
 				'callback'    => 'list_content_types',
 				'output'      => Schema_Registry::object(
-					[
-						'edition' => [
+					array(
+						'edition' => array(
 							'type' => 'string',
-							'enum' => [ 'free' ],
-						],
+							'enum' => array( 'free' ),
+						),
 						'types'   => Schema_Registry::strings(),
-					]
+					)
 				),
-			],
-			'list-formats'       => [
+			),
+			'list-formats'       => array(
 				'label'       => __( 'List file formats', 'import-export-by-rockstarlab' ),
 				'description' => __( 'Read the file formats supported by the plugin. This operation does not read or create files.', 'import-export-by-rockstarlab' ),
 				'callback'    => 'list_formats',
-				'output'      => Schema_Registry::object( [ 'formats' => Schema_Registry::strings() ] ),
-			],
-			'get-integrations'   => [
+				'output'      => Schema_Registry::object( array( 'formats' => Schema_Registry::strings() ) ),
+			),
+			'get-integrations'   => array(
 				'label'       => __( 'Get integration availability', 'import-export-by-rockstarlab' ),
 				'description' => __( 'Check whether supported field and commerce integrations are present. Does not reveal credentials, test AI or grant access to Pro operations.', 'import-export-by-rockstarlab' ),
 				'callback'    => 'get_integrations',
-				'output'      => Schema_Registry::object( array_fill_keys( [ 'acf', 'yoast', 'rank_math', 'elementor', 'woocommerce' ], $boolean ) ),
-			],
-		];
+				'output'      => Schema_Registry::object( array_fill_keys( array( 'acf', 'yoast', 'rank_math', 'elementor', 'woocommerce' ), $boolean ) ),
+			),
+		);
 
 		foreach ( $definitions as $name => $definition ) {
 			Ability_Registry::register_discovery(
@@ -182,8 +182,8 @@ class Abilities_Controller {
 				$definition['label'],
 				$definition['description'],
 				$definition['output'],
-				[ $service, $definition['callback'] ],
-				[ $this, 'can_discover' ]
+				array( $service, $definition['callback'] ),
+				array( $this, 'can_discover' )
 			);
 		}
 		$settings = new \RockStarLab\ImportExport\Service\Settings_Service();
@@ -191,7 +191,7 @@ class Abilities_Controller {
 			Ability_Registry::register_workflow(
 				'rsl-ie/' . $name,
 				$definition,
-				static function ( $input = [] ) use ( $settings, $name ) {
+				static function ( $input = array() ) use ( $settings, $name ) {
 					return $settings->execute( $name, $input );
 				}
 			);
@@ -201,7 +201,7 @@ class Abilities_Controller {
 			Ability_Registry::register_workflow(
 				'rsl-ie/' . $name,
 				$definition,
-				static function ( $input = [] ) use ( $schedules, $name ) {
+				static function ( $input = array() ) use ( $schedules, $name ) {
 					return $schedules->execute( $name, $input );
 				}
 			);
@@ -211,7 +211,7 @@ class Abilities_Controller {
 			Ability_Registry::register_workflow(
 				'rsl-ie/' . $name,
 				$definition,
-				static function ( $input = [] ) use ( $templates, $name ) {
+				static function ( $input = array() ) use ( $templates, $name ) {
 					return $templates->execute( $name, $input );
 				}
 			);
@@ -221,7 +221,7 @@ class Abilities_Controller {
 			Ability_Registry::register_workflow(
 				'rsl-ie/' . $name,
 				$definition,
-				static function ( $input = [] ) use ( $notifications, $name ) {
+				static function ( $input = array() ) use ( $notifications, $name ) {
 					return $notifications->execute( $name, $input );
 				}
 			);
@@ -231,7 +231,7 @@ class Abilities_Controller {
 			Ability_Registry::register_workflow(
 				'rsl-ie/' . $name,
 				$definition,
-				static function ( $input = [] ) use ( $forms, $name ) {
+				static function ( $input = array() ) use ( $forms, $name ) {
 					return $forms->execute( $name, (array) $input );
 				}
 			);
@@ -241,7 +241,7 @@ class Abilities_Controller {
 			Ability_Registry::register_workflow(
 				'rsl-ie/' . $name,
 				$definition,
-				static function ( $input = [] ) use ( $triggers, $name ) {
+				static function ( $input = array() ) use ( $triggers, $name ) {
 					return $triggers->execute( $name, $input );
 				}
 			);
@@ -251,7 +251,7 @@ class Abilities_Controller {
 			Ability_Registry::register_workflow(
 				'rsl-ie/' . $name,
 				$definition,
-				static function ( $input = [] ) use ( $ai, $name ) {
+				static function ( $input = array() ) use ( $ai, $name ) {
 					return $ai->execute( $name, $input );
 				}
 			);
@@ -261,7 +261,7 @@ class Abilities_Controller {
 			Ability_Registry::register_workflow(
 				'rsl-ie/' . $name,
 				$definition,
-				static function ( $input = [] ) use ( $workflow, $name ) {
+				static function ( $input = array() ) use ( $workflow, $name ) {
 					return $workflow->execute( $name, $input ); }
 			);
 		}
@@ -270,7 +270,7 @@ class Abilities_Controller {
 			Ability_Registry::register_workflow(
 				'rsl-ie/' . $name,
 				$definition,
-				static function ( $input = [] ) use ( $sync, $name ) {
+				static function ( $input = array() ) use ( $sync, $name ) {
 					return $sync->execute( $name, $input );
 				}
 			);
@@ -281,7 +281,7 @@ class Abilities_Controller {
 			Ability_Registry::register_workflow(
 				'rsl-ie/' . $name,
 				$definition,
-				static function ( $input = [] ) use ( $sync_jobs, $name ) {
+				static function ( $input = array() ) use ( $sync_jobs, $name ) {
 					return $sync_jobs->execute( $name, $input );
 				}
 			);
@@ -291,7 +291,7 @@ class Abilities_Controller {
 			Ability_Registry::register_workflow(
 				'rsl-ie/' . $name,
 				$definition,
-				static function ( $input = [] ) use ( $migration, $name ) {
+				static function ( $input = array() ) use ( $migration, $name ) {
 					return $migration->execute( $name, $input );
 				}
 			);
@@ -301,7 +301,7 @@ class Abilities_Controller {
 			Ability_Registry::register_workflow(
 				'rsl-ie/' . $name,
 				$definition,
-				static function ( $input = [] ) use ( $media, $name ) {
+				static function ( $input = array() ) use ( $media, $name ) {
 					return $media->execute( $name, $input );
 				}
 			);

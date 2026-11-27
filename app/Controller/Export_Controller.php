@@ -23,13 +23,13 @@ class Export_Controller extends Base_Controller {
 	 * @return array
 	 */
 	private function get_export_request() {
-		$request = [
+		$request = array(
 			'request_id'  => $this->get_request_param( 'request_id', '' ),
 			'export_type' => $this->get_request_param( 'export_type' ),
 			'format'      => $this->get_request_param( 'format', 'csv' ),
 			'options'     => $this->get_request_array( 'options' ),
-		];
-		$arrays  = [
+		);
+		$arrays  = array(
 			'filters'         => $this->get_request_array( 'filters' ),
 			'dynamic_filters' => $this->get_request_array( 'dynamic_filters' ),
 			'fields'          => $this->get_request_array( 'fields' ),
@@ -37,7 +37,7 @@ class Export_Controller extends Base_Controller {
 			'custom_fields'   => $this->get_request_array( 'custom_fields' ),
 			'taxonomy'        => $this->get_request_array( 'taxonomy' ),
 			'field_functions' => $this->get_request_array( 'field_functions' ),
-		];
+		);
 		foreach ( $arrays as $key => $value ) {
 			if ( $value ) {
 				$request[ $key ] = $value;
@@ -56,29 +56,29 @@ class Export_Controller extends Base_Controller {
 	 * @return array
 	 */
 	protected function get_ajax_actions() {
-		return [
-			'export_get_count'     => [ 'callback' => 'get_count' ],
-			'export_get_preview'   => [ 'callback' => 'get_preview' ],
-			'export_start'         => [ 'callback' => 'start_export' ],
-			'export_get_progress'  => [ 'callback' => 'get_progress' ],
-			'export_download'      => [ 'callback' => 'download_file' ],
-			'secure_download'      => [ 'callback' => 'secure_download' ],
-			'export_cancel'        => [ 'callback' => 'cancel_export' ],
-			'export_process_batch' => [ 'callback' => 'process_export_batch' ],
-			'export_get_url_types' => [ 'callback' => 'get_url_types' ],
-			'form_entry_forms'     => [ 'callback' => 'form_entry_forms' ],
-			'form_entry_fields'    => [ 'callback' => 'form_entry_fields' ],
-			'get_post_types'       => [ 'callback' => 'get_post_types' ],
-			'get_database_tables'  => [ 'callback' => 'get_database_tables' ],
-			'get_table_columns'    => [ 'callback' => 'get_table_columns' ],
-			'get_taxonomies'       => [ 'callback' => 'get_taxonomies' ],
-			'get_all_taxonomies'   => [ 'callback' => 'get_all_taxonomies' ],
-			'get_custom_fields'    => [ 'callback' => 'get_custom_fields' ],
-			'get_acf_fields'       => [ 'callback' => 'get_acf_fields' ],
-			'get_yoast_fields'     => [ 'callback' => 'get_yoast_fields' ],
-			'get_rank_math_fields' => [ 'callback' => 'get_rank_math_fields' ],
-			'get_elementor_fields' => [ 'callback' => 'get_elementor_fields' ],
-		];
+		return array(
+			'export_get_count'     => array( 'callback' => 'get_count' ),
+			'export_get_preview'   => array( 'callback' => 'get_preview' ),
+			'export_start'         => array( 'callback' => 'start_export' ),
+			'export_get_progress'  => array( 'callback' => 'get_progress' ),
+			'export_download'      => array( 'callback' => 'download_file' ),
+			'secure_download'      => array( 'callback' => 'secure_download' ),
+			'export_cancel'        => array( 'callback' => 'cancel_export' ),
+			'export_process_batch' => array( 'callback' => 'process_export_batch' ),
+			'export_get_url_types' => array( 'callback' => 'get_url_types' ),
+			'form_entry_forms'     => array( 'callback' => 'form_entry_forms' ),
+			'form_entry_fields'    => array( 'callback' => 'form_entry_fields' ),
+			'get_post_types'       => array( 'callback' => 'get_post_types' ),
+			'get_database_tables'  => array( 'callback' => 'get_database_tables' ),
+			'get_table_columns'    => array( 'callback' => 'get_table_columns' ),
+			'get_taxonomies'       => array( 'callback' => 'get_taxonomies' ),
+			'get_all_taxonomies'   => array( 'callback' => 'get_all_taxonomies' ),
+			'get_custom_fields'    => array( 'callback' => 'get_custom_fields' ),
+			'get_acf_fields'       => array( 'callback' => 'get_acf_fields' ),
+			'get_yoast_fields'     => array( 'callback' => 'get_yoast_fields' ),
+			'get_rank_math_fields' => array( 'callback' => 'get_rank_math_fields' ),
+			'get_elementor_fields' => array( 'callback' => 'get_elementor_fields' ),
+		);
 	}
 
 	/**
@@ -157,11 +157,11 @@ class Export_Controller extends Base_Controller {
 	 * @return array Time estimates
 	 */
 	private function calculate_time_estimates( $job_data ) {
-		$estimates = [
+		$estimates = array(
 			'elapsed_formatted'   => '-',
 			'remaining_formatted' => '-',
 			'items_per_second'    => 0,
-		];
+		);
 
 		// Calculate elapsed time
 		$started_at = $job_data->started_at ?? $job_data->created_at;
@@ -227,22 +227,22 @@ class Export_Controller extends Base_Controller {
 			return; }
 		fclose( $download['stream'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- This endpoint returns metadata; secure_download streams the file.
 		$url = add_query_arg(
-			[
+			array(
 				'action'       => 'rsl_ie_secure_download',
 				'job_id'       => $job_id,
 				'_wpnonce'     => wp_create_nonce( 'rsl_ie_download_' . $job_id ),
 				'nonce'        => Ajax_Security::create_nonce( 'rsl_ie_secure_download' ),
 				'download_zip' => $zip ? 1 : 0,
-			],
+			),
 			admin_url( 'admin-ajax.php' )
 		);
 		$this->send_success(
-			[
+			array(
 				'file_id'      => $file['file_id'],
 				'download_url' => $url,
 				'filename'     => $download['filename'],
 				'file_size'    => $download['file_size'],
-			]
+			)
 		);
 	}
 
@@ -253,14 +253,14 @@ class Export_Controller extends Base_Controller {
 		// phpcs:ignore WordPress.Security.NonceVerification -- Nonce validation follows immediately.
 		$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
 		if ( ! wp_verify_nonce( $nonce, 'rsl_ie_download_' . $job_id ) ) {
-			wp_die( esc_html__( 'Security check failed', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] ); }
+			wp_die( esc_html__( 'Security check failed', 'import-export-by-rockstarlab' ), '', array( 'response' => 403 ) ); }
 		// phpcs:ignore WordPress.Security.NonceVerification -- Authorized by the job-specific nonce above.
 		$zip     = isset( $_GET['download_zip'] ) && '1' === $_GET['download_zip'];
 		$service = new \RockStarLab\ImportExport\Service\File_Service();
 		$file    = $service->from_job( $job_id );
 		$result  = is_wp_error( $file ) ? $file : $service->download( $file['file_id'], $zip );
 		if ( is_wp_error( $result ) ) {
-			wp_die( esc_html( $result->get_error_message() ), '', [ 'response' => $result->get_error_data()['status'] ?? 400 ] ); }
+			wp_die( esc_html( $result->get_error_message() ), '', array( 'response' => $result->get_error_data()['status'] ?? 400 ) ); }
 		$response = new File_Download_Response( $result );
 		foreach ( $response->get_headers() as $name => $value ) {
 			header( $name . ': ' . $value ); }
@@ -328,10 +328,10 @@ class Export_Controller extends Base_Controller {
 		}
 		$result = ( new \RockStarLab\ImportExport\Service\Form_Entries_Service() )->execute(
 			'form-entry-fields',
-			[
+			array(
 				'form_source' => sanitize_key( (string) $this->get_request_param( 'form_source', '' ) ),
 				'form_id'     => absint( $this->get_request_param( 'form_id', 0 ) ),
-			]
+			)
 		);
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result, null, (int) ( $result->get_error_data()['status'] ?? 400 ) );
@@ -352,8 +352,8 @@ class Export_Controller extends Base_Controller {
 		$exporter_class = \RockStarLab\ImportExport\Model\Export\Urls_Exporter::class;
 		$post_types     = $exporter_class::get_exportable_post_types();
 		$taxonomies     = $exporter_class::get_exportable_taxonomies();
-		$result         = [
-			[
+		$result         = array(
+			array(
 				'kind'        => 'standard',
 				'value'       => 'standard:homepage',
 				'name'        => 'homepage',
@@ -361,8 +361,8 @@ class Export_Controller extends Base_Controller {
 				'label'       => __( 'Homepage / Front page', 'import-export-by-rockstarlab' ),
 				'description' => __( 'The public site home URL.', 'import-export-by-rockstarlab' ),
 				'count'       => $exporter_class::count_for_generated_source( 'standard', 'homepage' ),
-			],
-			[
+			),
+			array(
 				'kind'        => 'standard',
 				'value'       => 'standard:authors',
 				'name'        => 'authors',
@@ -370,8 +370,8 @@ class Export_Controller extends Base_Controller {
 				'label'       => __( 'Author archives', 'import-export-by-rockstarlab' ),
 				'description' => __( 'Author archive URLs for users with published content.', 'import-export-by-rockstarlab' ),
 				'count'       => $exporter_class::count_for_generated_source( 'standard', 'authors' ),
-			],
-			[
+			),
+			array(
 				'kind'        => 'standard',
 				'value'       => 'standard:date_archives',
 				'name'        => 'date_archives',
@@ -379,8 +379,8 @@ class Export_Controller extends Base_Controller {
 				'label'       => __( 'Date archives', 'import-export-by-rockstarlab' ),
 				'description' => __( 'Yearly and monthly archive URLs based on published content.', 'import-export-by-rockstarlab' ),
 				'count'       => $exporter_class::count_for_generated_source( 'standard', 'date_archives' ),
-			],
-			[
+			),
+			array(
 				'kind'        => 'standard',
 				'value'       => 'standard:search_results',
 				'name'        => 'search_results',
@@ -388,8 +388,8 @@ class Export_Controller extends Base_Controller {
 				'label'       => __( 'Search results', 'import-export-by-rockstarlab' ),
 				'description' => __( 'The WordPress search results URL template.', 'import-export-by-rockstarlab' ),
 				'count'       => $exporter_class::count_for_generated_source( 'standard', 'search_results' ),
-			],
-			[
+			),
+			array(
 				'kind'        => 'feed',
 				'value'       => 'feed:main',
 				'name'        => 'main',
@@ -397,8 +397,8 @@ class Export_Controller extends Base_Controller {
 				'label'       => __( 'Main RSS feed', 'import-export-by-rockstarlab' ),
 				'description' => __( 'The main site RSS feed URL.', 'import-export-by-rockstarlab' ),
 				'count'       => $exporter_class::count_for_generated_source( 'feed', 'main' ),
-			],
-			[
+			),
+			array(
 				'kind'        => 'feed',
 				'value'       => 'feed:atom',
 				'name'        => 'atom',
@@ -406,8 +406,8 @@ class Export_Controller extends Base_Controller {
 				'label'       => __( 'Atom feed', 'import-export-by-rockstarlab' ),
 				'description' => __( 'The main site Atom feed URL.', 'import-export-by-rockstarlab' ),
 				'count'       => $exporter_class::count_for_generated_source( 'feed', 'atom' ),
-			],
-			[
+			),
+			array(
 				'kind'        => 'feed',
 				'value'       => 'feed:comments',
 				'name'        => 'comments',
@@ -415,8 +415,8 @@ class Export_Controller extends Base_Controller {
 				'label'       => __( 'Comments feed', 'import-export-by-rockstarlab' ),
 				'description' => __( 'The global comments feed URL.', 'import-export-by-rockstarlab' ),
 				'count'       => $exporter_class::count_for_generated_source( 'feed', 'comments' ),
-			],
-			[
+			),
+			array(
 				'kind'        => 'rest',
 				'value'       => 'rest:root',
 				'name'        => 'root',
@@ -424,8 +424,8 @@ class Export_Controller extends Base_Controller {
 				'label'       => __( 'REST API root', 'import-export-by-rockstarlab' ),
 				'description' => __( 'The WordPress REST API root URL.', 'import-export-by-rockstarlab' ),
 				'count'       => $exporter_class::count_for_generated_source( 'rest', 'root' ),
-			],
-		];
+			),
+		);
 
 		foreach ( $post_types as $type_name => $post_type ) {
 			$count = $exporter_class::count_for_post_type( $type_name );
@@ -434,7 +434,7 @@ class Export_Controller extends Base_Controller {
 				$slug = $post_type->rewrite['slug'];
 			}
 
-			$result[] = [
+			$result[] = array(
 				'kind'        => 'post_type',
 				'value'       => 'post_type:' . $type_name,
 				'name'        => $type_name,
@@ -442,11 +442,11 @@ class Export_Controller extends Base_Controller {
 				'label'       => $post_type->label,
 				'description' => $post_type->description,
 				'count'       => $count,
-			];
+			);
 
 			$archive_count = $exporter_class::count_for_generated_source( 'post_type_archive', $type_name );
 			if ( $archive_count > 0 ) {
-				$result[] = [
+				$result[] = array(
 					'kind'        => 'post_type_archive',
 					'value'       => 'post_type_archive:' . $type_name,
 					'name'        => $type_name . '_archive',
@@ -457,14 +457,14 @@ class Export_Controller extends Base_Controller {
 						$post_type->label
 					),
 					'description' => __( 'Public archive URL for this post type.', 'import-export-by-rockstarlab' ),
-					'objectTypes' => [ $type_name ],
+					'objectTypes' => array( $type_name ),
 					'count'       => $archive_count,
-				];
+				);
 			}
 
 			$feed_count = $exporter_class::count_for_generated_source( 'post_type_feed', $type_name );
 			if ( $feed_count > 0 ) {
-				$result[] = [
+				$result[] = array(
 					'kind'        => 'post_type_feed',
 					'value'       => 'post_type_feed:' . $type_name,
 					'name'        => $type_name . '_feed',
@@ -475,15 +475,15 @@ class Export_Controller extends Base_Controller {
 						$post_type->label
 					),
 					'description' => __( 'RSS feed for this post type archive.', 'import-export-by-rockstarlab' ),
-					'objectTypes' => [ $type_name ],
+					'objectTypes' => array( $type_name ),
 					'count'       => $feed_count,
-				];
+				);
 			}
 
 			$rest_count = $exporter_class::count_for_generated_source( 'rest_post_type', $type_name );
 			if ( $rest_count > 0 ) {
 				$rest_base = $post_type->rest_base ? $post_type->rest_base : $type_name;
-				$result[]  = [
+				$result[]  = array(
 					'kind'        => 'rest_post_type',
 					'value'       => 'rest_post_type:' . $type_name,
 					'name'        => $type_name . '_rest',
@@ -494,9 +494,9 @@ class Export_Controller extends Base_Controller {
 						$post_type->label
 					),
 					'description' => __( 'REST API collection endpoint for this post type.', 'import-export-by-rockstarlab' ),
-					'objectTypes' => [ $type_name ],
+					'objectTypes' => array( $type_name ),
 					'count'       => $rest_count,
-				];
+				);
 			}
 		}
 
@@ -507,7 +507,7 @@ class Export_Controller extends Base_Controller {
 				$slug = $taxonomy->rewrite['slug'];
 			}
 
-			$result[] = [
+			$result[] = array(
 				'kind'        => 'taxonomy',
 				'value'       => 'taxonomy:' . $taxonomy_name,
 				'name'        => $taxonomy_name,
@@ -516,14 +516,19 @@ class Export_Controller extends Base_Controller {
 				'description' => $taxonomy->description,
 				'objectTypes' => array_values( array_map( 'sanitize_key', (array) $taxonomy->object_type ) ),
 				'count'       => $count,
-			];
+			);
 		}
 
 		// Only offer sources accepted by the count and export request policy.
-		$result = array_values( array_filter( $result, static function ( $source ) {
-			return ! is_wp_error( \RockStarLab\ImportExport\Service\Export_Request::url_sources( [ $source['value'] ] ) );
-		} ) );
-		$this->send_success( [ 'types' => $result ] );
+		$result = array_values(
+			array_filter(
+				$result,
+				static function ( $source ) {
+					return ! is_wp_error( \RockStarLab\ImportExport\Service\Export_Request::url_sources( array( $source['value'] ) ) );
+				}
+			)
+		);
+		$this->send_success( array( 'types' => $result ) );
 	}
 
 	/**
@@ -540,9 +545,9 @@ class Export_Controller extends Base_Controller {
 		// Get all post types
 		// When include_hidden is true, we need to explicitly get all post types
 		// because get_post_types() with empty args doesn't return non-public types
-		$args = [
+		$args = array(
 			'show_ui' => true, // Get all post types that have UI (includes custom post types)
-		];
+		);
 
 		if ( ! $include_hidden ) {
 			$args['public'] = true;
@@ -550,18 +555,18 @@ class Export_Controller extends Base_Controller {
 
 		$post_types = get_post_types( $args, 'objects' );
 
-		$result = [];
+		$result = array();
 		foreach ( $post_types as $post_type ) {
 			// Skip attachments as they're handled separately as media
 			if ( 'attachment' === $post_type->name ) {
 				continue;
 			}
 
-			$result[] = [
+			$result[] = array(
 				'name'   => $post_type->name,
 				'label'  => $post_type->label,
 				'public' => $post_type->public,
-			];
+			);
 		}
 
 		// Sort by label
@@ -588,7 +593,7 @@ class Export_Controller extends Base_Controller {
 		$exporter = new \RockStarLab\ImportExport\Model\Export\Database_Table_Exporter();
 		$tables   = $exporter->get_available_tables();
 
-		$this->send_success( [ 'tables' => $tables ] );
+		$this->send_success( array( 'tables' => $tables ) );
 	}
 
 	/**
@@ -600,7 +605,7 @@ class Export_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		$validation = $this->validate_required_params( [ 'table_name' ] );
+		$validation = $this->validate_required_params( array( 'table_name' ) );
 		if ( is_wp_error( $validation ) ) {
 			$this->send_error( $validation, null, 400 );
 		}
@@ -619,10 +624,10 @@ class Export_Controller extends Base_Controller {
 		}
 
 		$this->send_success(
-			[
+			array(
 				'columns'   => $columns,
 				'row_count' => (int) $row_count,
-			]
+			)
 		);
 	}
 
@@ -638,7 +643,7 @@ class Export_Controller extends Base_Controller {
 		// Number types
 		if ( in_array(
 			$mysql_type,
-			[ 'int', 'tinyint', 'smallint', 'mediumint', 'bigint', 'decimal', 'float', 'double' ],
+			array( 'int', 'tinyint', 'smallint', 'mediumint', 'bigint', 'decimal', 'float', 'double' ),
 			true
 		) ) {
 			return 'number';
@@ -647,7 +652,7 @@ class Export_Controller extends Base_Controller {
 		// Date types
 		if ( in_array(
 			$mysql_type,
-			[ 'date', 'datetime', 'timestamp', 'time', 'year' ],
+			array( 'date', 'datetime', 'timestamp', 'time', 'year' ),
 			true
 		) ) {
 			return 'date';
@@ -671,15 +676,15 @@ class Export_Controller extends Base_Controller {
 		// Get all taxonomies registered for this post type
 		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
 
-		$taxonomy_list = [];
+		$taxonomy_list = array();
 		foreach ( $taxonomies as $taxonomy ) {
-			$taxonomy_list[] = [
+			$taxonomy_list[] = array(
 				'name'  => $taxonomy->name,
 				'label' => $taxonomy->label,
-			];
+			);
 		}
 
-		$this->send_success( [ 'taxonomies' => (array) apply_filters( 'rsl_ie_export_taxonomies', $taxonomy_list, $post_type ) ] );
+		$this->send_success( array( 'taxonomies' => (array) apply_filters( 'rsl_ie_export_taxonomies', $taxonomy_list, $post_type ) ) );
 	}
 
 	/**
@@ -694,9 +699,9 @@ class Export_Controller extends Base_Controller {
 		// Public taxonomies, plus WooCommerce product attributes (pa_*), which are not public unless
 		// their archives are enabled but are exported like any other term list.
 		$taxonomies = get_taxonomies(
-			[
+			array(
 				'public' => true,
-			],
+			),
 			'objects'
 		);
 		if ( function_exists( 'wc_get_attribute_taxonomy_names' ) ) {
@@ -708,17 +713,17 @@ class Export_Controller extends Base_Controller {
 			}
 		}
 
-		$taxonomy_list = [];
+		$taxonomy_list = array();
 		foreach ( $taxonomies as $taxonomy ) {
 			// Skip post_format as it's not a real taxonomy for export
 			if ( 'post_format' === $taxonomy->name ) {
 				continue;
 			}
 
-			$taxonomy_list[] = [
+			$taxonomy_list[] = array(
 				'name'  => $taxonomy->name,
 				'label' => $taxonomy->label,
-			];
+			);
 		}
 
 		$this->send_success( $taxonomy_list );
@@ -745,13 +750,13 @@ class Export_Controller extends Base_Controller {
 		}
 
 		// WooCommerce orders keep their meta in the orders tables (HPOS) or as shop_order posts.
-		if ( in_array( $post_type, [ 'woo_order', 'shop_order' ], true ) ) {
-			$this->send_success( [ 'fields' => self::order_meta_fields( $limit ) ] );
+		if ( in_array( $post_type, array( 'woo_order', 'shop_order' ), true ) ) {
+			$this->send_success( array( 'fields' => self::order_meta_fields( $limit ) ) );
 			return;
 		}
 
 		if ( 'user' === $post_type ) {
-			$this->send_success( [ 'fields' => self::user_meta_fields( $limit ) ] );
+			$this->send_success( array( 'fields' => self::user_meta_fields( $limit ) ) );
 			return;
 		}
 
@@ -773,17 +778,17 @@ class Export_Controller extends Base_Controller {
 		);
 		// phpcs:enable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery
 
-		$fields  = [];
-		$visible = [];
+		$fields  = array();
+		$visible = array();
 		foreach ( $meta_keys as $meta ) {
 			$visible[ (string) $meta->meta_key ] = true;
-			$fields[] = [
+			$fields[]                            = array(
 				'name'  => $meta->meta_key,
 				'label' => $meta->meta_key,
-			];
+			);
 		}
 
-		$this->send_success( [ 'fields' => array_merge( $fields, self::hidden_post_meta_fields( (string) $post_type, $visible, $limit ) ) ] );
+		$this->send_success( array( 'fields' => array_merge( $fields, self::hidden_post_meta_fields( (string) $post_type, $visible, $limit ) ) ) );
 	}
 
 	/**
@@ -810,23 +815,82 @@ class Export_Controller extends Base_Controller {
 			)
 		);
 		// phpcs:enable
-		$internal = [
-			'_edit_lock', '_edit_last', '_thumbnail_id', '_wp_page_template', '_wp_old_slug', '_wp_old_date', '_wp_trash_meta_status', '_wp_trash_meta_time', '_wp_desired_post_slug', '_wp_attached_file', '_wp_attachment_metadata', '_wp_attachment_image_alt', '_encloseme', '_pingme', '_customize_changeset_uuid', '_menu_item_type', '_menu_item_object', '_menu_item_object_id', '_menu_item_menu_item_parent', '_menu_item_target', '_menu_item_classes', '_menu_item_xfn', '_menu_item_url',
-			'_sku', '_global_unique_id', '_price', '_regular_price', '_sale_price', '_sale_price_dates_from', '_sale_price_dates_to', '_tax_status', '_tax_class', '_manage_stock', '_stock', '_stock_status', '_backorders', '_low_stock_amount', '_sold_individually', '_weight', '_length', '_width', '_height', '_upsell_ids', '_crosssell_ids', '_purchase_note', '_default_attributes', '_virtual', '_downloadable', '_product_image_gallery', '_download_limit', '_download_expiry', '_downloadable_files', '_product_attributes', '_product_version', '_children', '_product_url', '_button_text', '_variation_description', '_wc_average_rating', '_wc_review_count', '_wc_rating_count',
-		];
-		$out = [];
+		$internal = array(
+			'_edit_lock',
+			'_edit_last',
+			'_thumbnail_id',
+			'_wp_page_template',
+			'_wp_old_slug',
+			'_wp_old_date',
+			'_wp_trash_meta_status',
+			'_wp_trash_meta_time',
+			'_wp_desired_post_slug',
+			'_wp_attached_file',
+			'_wp_attachment_metadata',
+			'_wp_attachment_image_alt',
+			'_encloseme',
+			'_pingme',
+			'_customize_changeset_uuid',
+			'_menu_item_type',
+			'_menu_item_object',
+			'_menu_item_object_id',
+			'_menu_item_menu_item_parent',
+			'_menu_item_target',
+			'_menu_item_classes',
+			'_menu_item_xfn',
+			'_menu_item_url',
+			'_sku',
+			'_global_unique_id',
+			'_price',
+			'_regular_price',
+			'_sale_price',
+			'_sale_price_dates_from',
+			'_sale_price_dates_to',
+			'_tax_status',
+			'_tax_class',
+			'_manage_stock',
+			'_stock',
+			'_stock_status',
+			'_backorders',
+			'_low_stock_amount',
+			'_sold_individually',
+			'_weight',
+			'_length',
+			'_width',
+			'_height',
+			'_upsell_ids',
+			'_crosssell_ids',
+			'_purchase_note',
+			'_default_attributes',
+			'_virtual',
+			'_downloadable',
+			'_product_image_gallery',
+			'_download_limit',
+			'_download_expiry',
+			'_downloadable_files',
+			'_product_attributes',
+			'_product_version',
+			'_children',
+			'_product_url',
+			'_button_text',
+			'_variation_description',
+			'_wc_average_rating',
+			'_wc_review_count',
+			'_wc_rating_count',
+		);
+		$out      = array();
 		foreach ( (array) $keys as $key ) {
 			$key = (string) $key;
 			if ( in_array( $key, $internal, true ) || isset( $visible[ substr( $key, 1 ) ] )
 				|| preg_match( '/^_(?:_|wp_|oembed_|elementor|yoast_|rank_math|rsl_ie_|wc_|wpml_|icl_|pll_|transient|edit_|menu_item_|acf|aioseo|et_|fl_builder|brizy|vc_|wpb_|kadence|uag_|astra|blocksy|ct_|generate|spectra|gform|jetpack)/i', $key ) ) {
 				continue;
 			}
-			$out[] = [
+			$out[] = array(
 				'name'        => $key,
 				'label'       => $key,
 				'hidden'      => true,
 				'description' => __( 'Hidden field (its name starts with "_"). Not added by "Add all"; add it on its own if you need it.', 'import-export-by-rockstarlab' ),
-			];
+			);
 		}
 		return $out;
 	}
@@ -853,15 +917,40 @@ class Export_Controller extends Base_Controller {
 			)
 		);
 		// phpcs:enable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-		$skip = [
-			'first_name', 'last_name', 'nickname', 'description', 'locale', 'admin_color', 'rich_editing', 'avatar_url',
-			'facebook', 'instagram', 'linkedin', 'myspace', 'pinterest', 'soundcloud', 'tumblr', 'wikipedia', 'twitter', 'youtube',
-			'syntax_highlighting', 'comment_shortcuts', 'use_ssl', 'show_admin_bar_front', 'show_welcome_panel', 'dismissed_wp_pointers',
-			'session_tokens', 'community-events-location', 'default_password_nag', 'wp_persisted_preferences', 'last_update',
-		];
-		$acf = [];
+		$skip = array(
+			'first_name',
+			'last_name',
+			'nickname',
+			'description',
+			'locale',
+			'admin_color',
+			'rich_editing',
+			'avatar_url',
+			'facebook',
+			'instagram',
+			'linkedin',
+			'myspace',
+			'pinterest',
+			'soundcloud',
+			'tumblr',
+			'wikipedia',
+			'twitter',
+			'youtube',
+			'syntax_highlighting',
+			'comment_shortcuts',
+			'use_ssl',
+			'show_admin_bar_front',
+			'show_welcome_panel',
+			'dismissed_wp_pointers',
+			'session_tokens',
+			'community-events-location',
+			'default_password_nag',
+			'wp_persisted_preferences',
+			'last_update',
+		);
+		$acf  = array();
 		if ( function_exists( 'acf_get_field_groups' ) ) {
-			foreach ( (array) acf_get_field_groups( [ 'user_form' => 'all' ] ) as $group ) {
+			foreach ( (array) acf_get_field_groups( array( 'user_form' => 'all' ) ) as $group ) {
 				foreach ( (array) acf_get_fields( $group ) as $acf_field ) {
 					if ( ! empty( $acf_field['name'] ) ) {
 						$acf[] = (string) $acf_field['name'];
@@ -869,7 +958,7 @@ class Export_Controller extends Base_Controller {
 				}
 			}
 		}
-		$fields = [];
+		$fields = array();
 		foreach ( (array) $keys as $key ) {
 			$key = (string) $key;
 			// Admin screen settings, plugin notices, sessions and per-site WooCommerce counters.
@@ -877,10 +966,10 @@ class Export_Controller extends Base_Controller {
 				|| preg_match( '/^(?:closedpostboxes_|metaboxhidden_|meta-box-order_|screen_layout_|manage.*columnshidden|.*_per_page$|elementor_|mcp_adapter_|rsl_ie_|nav_menu_recently_edited$|infinite_scrolling$|wc_last_active$|wc_.*_' . preg_quote( rtrim( $prefix, '_' ), '/' ) . '$)/', $key ) ) {
 				continue;
 			}
-			$fields[] = [
+			$fields[] = array(
 				'name'  => $key,
 				'label' => $key,
-			];
+			);
 		}
 		return $fields;
 	}
@@ -919,12 +1008,12 @@ class Export_Controller extends Base_Controller {
 		// phpcs:enable
 		return array_map(
 			static function ( $key ) {
-				return [
+				return array(
 					'name'  => (string) $key,
 					'label' => (string) $key,
-				];
+				);
 			},
-			is_array( $keys ) ? $keys : []
+			is_array( $keys ) ? $keys : array()
 		);
 	}
 
@@ -939,7 +1028,7 @@ class Export_Controller extends Base_Controller {
 
 		// Check if ACF is active
 		if ( ! function_exists( 'acf_get_field_groups' ) ) {
-			$this->send_success( [ 'fields' => [] ] );
+			$this->send_success( array( 'fields' => array() ) );
 			return;
 		}
 
@@ -950,7 +1039,7 @@ class Export_Controller extends Base_Controller {
 		}
 		$fields = ACF_Fields::get_fields_for_content_type( $post_type, $taxonomy );
 
-		$this->send_success( [ 'fields' => $fields ] );
+		$this->send_success( array( 'fields' => $fields ) );
 	}
 
 	/**
@@ -964,14 +1053,14 @@ class Export_Controller extends Base_Controller {
 
 		// Check if Yoast SEO is active
 		if ( ! defined( 'WPSEO_VERSION' ) ) {
-			$this->send_success( [ 'fields' => [] ] );
+			$this->send_success( array( 'fields' => array() ) );
 			return;
 		}
 
 		$post_type = sanitize_key( (string) $this->get_request_param( 'post_type', '', 'post' ) );
 		$fields    = \RockStarLab\ImportExport\Helper\Seo_Fields::get_yoast_fields( $post_type );
 
-		$this->send_success( [ 'fields' => $fields ] );
+		$this->send_success( array( 'fields' => $fields ) );
 	}
 
 	/**
@@ -984,16 +1073,16 @@ class Export_Controller extends Base_Controller {
 		}
 
 		if ( ! \RockStarLab\ImportExport\Helper\Seo_Fields::is_rank_math_active() ) {
-			$this->send_success( [ 'fields' => [] ] );
+			$this->send_success( array( 'fields' => array() ) );
 			return;
 		}
 
 		$post_type = sanitize_key( (string) $this->get_request_param( 'post_type', '', 'post' ) );
 
 		$this->send_success(
-			[
+			array(
 				'fields' => \RockStarLab\ImportExport\Helper\Seo_Fields::get_rank_math_fields( $post_type ),
-			]
+			)
 		);
 	}
 
@@ -1007,14 +1096,14 @@ class Export_Controller extends Base_Controller {
 		}
 
 		if ( ! \RockStarLab\ImportExport\Helper\Elementor_Fields::is_active() ) {
-			$this->send_success( [ 'fields' => [] ] );
+			$this->send_success( array( 'fields' => array() ) );
 			return;
 		}
 
 		$this->send_success(
-			[
+			array(
 				'fields' => \RockStarLab\ImportExport\Helper\Elementor_Fields::get_fields(),
-			]
+			)
 		);
 	}
 }

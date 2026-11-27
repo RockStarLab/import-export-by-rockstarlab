@@ -34,7 +34,7 @@ class Review_Notice {
 	 *
 	 * @var string[]
 	 */
-	private static array $plugin_pages = [
+	private static array $plugin_pages = array(
 		'import-export-by-rockstarlab',
 		'rsl-ie-import',
 		'rsl-ie-export',
@@ -43,14 +43,14 @@ class Review_Notice {
 		'rsl-ie-media-sync',
 		'rsl-ie-ai-url-importer',
 		'rsl-ie-plugin-options',
-	];
+	);
 
 	/**
 	 * Register all hooks.
 	 */
 	public static function init(): void {
-		add_action( 'admin_notices', [ __CLASS__, 'maybe_show_notice' ] );
-		add_action( 'wp_ajax_rsl_ie_dismiss_review_notice', [ __CLASS__, 'handle_dismiss' ] );
+		add_action( 'admin_notices', array( __CLASS__, 'maybe_show_notice' ) );
+		add_action( 'wp_ajax_rsl_ie_dismiss_review_notice', array( __CLASS__, 'handle_dismiss' ) );
 	}
 
 	/**
@@ -126,13 +126,13 @@ class Review_Notice {
 		check_ajax_referer( 'rsl_ie_dismiss_review', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => 'Unauthorized' ], 403 );
+			wp_send_json_error( array( 'message' => 'Unauthorized' ), 403 );
 			return;
 		}
 
-		$result = ( new \RockStarLab\ImportExport\Service\Settings_Service() )->execute( 'preferences-update', [ 'review_notice_dismissed' => true ] );
+		$result = ( new \RockStarLab\ImportExport\Service\Settings_Service() )->execute( 'preferences-update', array( 'review_notice_dismissed' => true ) );
 		if ( is_wp_error( $result ) ) {
-			wp_send_json_error( [ 'message' => $result->get_error_message() ], 400 );
+			wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 );
 			return;
 		}
 		wp_send_json_success();

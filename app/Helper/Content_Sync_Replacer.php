@@ -166,10 +166,10 @@ class Content_Sync_Replacer {
 					continue;
 				}
 				$meta                      = self::replace_in_meta(
-					[
+					array(
 						'_elementor_data'          => (string) ( $template['data'] ?? '' ),
-						'_elementor_page_settings' => (array) ( $template['page_settings'] ?? [] ),
-					],
+						'_elementor_page_settings' => (array) ( $template['page_settings'] ?? array() ),
+					),
 					$source_domain,
 					$target_domain,
 					$image_map,
@@ -187,7 +187,7 @@ class Content_Sync_Replacer {
 				return self::replace_in_text( (string) $value, $source_domain, $target_domain );
 			};
 			foreach ( $post_data['terms'] as &$taxonomy_terms ) {
-				foreach ( is_array( $taxonomy_terms ) ? $taxonomy_terms : [] as $index => $term_info ) {
+				foreach ( is_array( $taxonomy_terms ) ? $taxonomy_terms : array() as $index => $term_info ) {
 					if ( is_array( $term_info ) && ( ! empty( $term_info['yoast_seo'] ) || ! empty( $term_info['seo_meta'] ) ) ) {
 						$taxonomy_terms[ $index ] = \RockStarLab\ImportExport\Helper\Seo_Fields::map_term_seo_urls( $term_info, $map_url );
 					}
@@ -661,7 +661,7 @@ class Content_Sync_Replacer {
 				$paths
 			)
 		);
-		$result = preg_replace_callback(
+		$result      = preg_replace_callback(
 			'#(?:https?:)?\\\\?/\\\\?/([a-z0-9.-]+(?::\d+)?)((?:\\\\?/[\w.~-]+)*?)(' . $alternation . ')(?![\w.-])#i',
 			static function ( $m ) use ( $moved, $local ) {
 				$path = str_replace( '\\/', '/', $m[3] );
@@ -1216,11 +1216,11 @@ class Content_Sync_Replacer {
 		$mapped_pair = false;
 		if ( isset( $array['id'], $array['url'] ) && is_numeric( $array['id'] ) && isset( $image_map[ (int) $array['id'] ] ) ) {
 			$new_attachment_id = (int) $image_map[ (int) $array['id'] ];
-			$new_url = self::get_local_attachment_url( $new_attachment_id );
+			$new_url           = self::get_local_attachment_url( $new_attachment_id );
 			if ( $new_url ) {
-				$array['id'] = $new_attachment_id;
+				$array['id']  = $new_attachment_id;
 				$array['url'] = $new_url;
-				$mapped_pair = true;
+				$mapped_pair  = true;
 			}
 		}
 
@@ -1294,7 +1294,6 @@ class Content_Sync_Replacer {
 							$value = $image_map[ $value ];
 							continue;
 						}
-
 					}
 
 					// Replace URLs
@@ -1613,7 +1612,7 @@ class Content_Sync_Replacer {
 			}
 			return 0;
 		};
-		$meta = get_comment_meta( $comment_id );
+		$meta  = get_comment_meta( $comment_id );
 		foreach ( (array) $meta as $key => $values ) {
 			$ref = $meta[ '_' . $key ][0] ?? '';
 			if ( '_' === substr( (string) $key, 0, 1 ) || ! is_string( $ref ) || 0 !== strpos( $ref, 'field_' ) ) {

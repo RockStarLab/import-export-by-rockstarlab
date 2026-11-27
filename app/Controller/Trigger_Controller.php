@@ -19,12 +19,12 @@ class Trigger_Controller extends Base_Controller {
 	public function init() {
 		parent::init();
 		Trigger_Service::init();
-		add_action( 'admin_menu', [ $this, 'register_page' ], 20 );
-		add_filter( 'parent_file', [ $this, 'parent_file' ] );
-		add_filter( 'submenu_file', [ $this, 'submenu_file' ] );
-		add_action( 'admin_post_rsl_ie_create_trigger', [ $this, 'create' ] );
-		add_action( 'admin_post_rsl_ie_trigger_action', [ $this, 'action' ] );
-		add_action( 'admin_post_rsl_ie_trigger_n8n', [ $this, 'n8n' ] );
+		add_action( 'admin_menu', array( $this, 'register_page' ), 20 );
+		add_filter( 'parent_file', array( $this, 'parent_file' ) );
+		add_filter( 'submenu_file', array( $this, 'submenu_file' ) );
+		add_action( 'admin_post_rsl_ie_create_trigger', array( $this, 'create' ) );
+		add_action( 'admin_post_rsl_ie_trigger_action', array( $this, 'action' ) );
+		add_action( 'admin_post_rsl_ie_trigger_n8n', array( $this, 'n8n' ) );
 	}
 
 	/**
@@ -33,12 +33,12 @@ class Trigger_Controller extends Base_Controller {
 	 * @return array
 	 */
 	protected function get_ajax_actions() {
-		return [];
+		return array();
 	}
 
 	/** Hidden page reached from the Jobs Log tabs. */
 	public function register_page() {
-		add_submenu_page( null, __( 'Triggers', 'import-export-by-rockstarlab' ), __( 'Triggers', 'import-export-by-rockstarlab' ), 'manage_options', self::PAGE, [ $this, 'display' ] );
+		add_submenu_page( null, __( 'Triggers', 'import-export-by-rockstarlab' ), __( 'Triggers', 'import-export-by-rockstarlab' ), 'manage_options', self::PAGE, array( $this, 'display' ) );
 		remove_submenu_page( '', self::PAGE );
 	}
 
@@ -67,19 +67,19 @@ class Trigger_Controller extends Base_Controller {
 	/** Render the screen. */
 	public function display() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You cannot manage triggers on this site.', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] );
+			wp_die( esc_html__( 'You cannot manage triggers on this site.', 'import-export-by-rockstarlab' ), '', array( 'response' => 403 ) );
 		}
 		$service = new Trigger_Service();
 		$list    = $service->execute( 'trigger-list' );
 		rsl_ie()->View->load(
 			'settings/triggers',
-			[
-				'rsl_ie_triggers'    => is_wp_error( $list ) ? [] : $list['triggers'],
+			array(
+				'rsl_ie_triggers'    => is_wp_error( $list ) ? array() : $list['triggers'],
 				'rsl_ie_sources'     => $service->sources(),
 				'rsl_ie_trigger_log' => array_slice( $service->log_entries(), 0, 20 ),
-				'rsl_ie_post_types'  => array_diff_key( get_post_types( [ 'public' => true ], 'objects' ), [ 'attachment' => 1 ] ),
+				'rsl_ie_post_types'  => array_diff_key( get_post_types( array( 'public' => true ), 'objects' ), array( 'attachment' => 1 ) ),
 				'rsl_ie_woo'         => class_exists( 'WooCommerce' ),
-			]
+			)
 		);
 	}
 
@@ -88,13 +88,13 @@ class Trigger_Controller extends Base_Controller {
 		$this->guard( 'rsl_ie_create_trigger' );
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Verified in guard().
 		$post  = wp_unslash( $_POST );
-		$input = [
+		$input = array(
 			'name'          => isset( $post['name'] ) && is_scalar( $post['name'] ) ? sanitize_text_field( (string) $post['name'] ) : '',
 			'source_job_id' => isset( $post['source_job_id'] ) ? max( 1, (int) $post['source_job_id'] ) : 1,
 			'event'         => isset( $post['event'] ) && is_scalar( $post['event'] ) ? sanitize_key( (string) $post['event'] ) : '',
-			'post_types'    => isset( $post['post_types'] ) && is_array( $post['post_types'] ) ? array_values( array_map( 'sanitize_key', $post['post_types'] ) ) : [],
+			'post_types'    => isset( $post['post_types'] ) && is_array( $post['post_types'] ) ? array_values( array_map( 'sanitize_key', $post['post_types'] ) ) : array(),
 			'delay'         => isset( $post['delay'] ) ? max( 0, min( 3600, (int) $post['delay'] ) ) : 60,
-		];
+		);
 		if ( 'webhook' === $input['event'] && ! empty( $post['allow_file_url'] ) ) {
 			$input['allow_file_url'] = true;
 		}
@@ -120,11 +120,11 @@ class Trigger_Controller extends Base_Controller {
 		$what = isset( $_POST['do'] ) ? sanitize_key( wp_unslash( $_POST['do'] ) ) : '';
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		$service = new Trigger_Service();
-		$input   = [ 'trigger_id' => $id ];
+		$input   = array( 'trigger_id' => $id );
 		switch ( $what ) {
 			case 'pause':
 			case 'resume':
-				$result = $service->execute( 'trigger-update', $input + [ 'status' => 'pause' === $what ? 'paused' : 'active' ] );
+				$result = $service->execute( 'trigger-update', $input + array( 'status' => 'pause' === $what ? 'paused' : 'active' ) );
 				$done   = 'pause' === $what ? __( 'Trigger paused.', 'import-export-by-rockstarlab' ) : __( 'Trigger resumed.', 'import-export-by-rockstarlab' );
 				break;
 			case 'run':
@@ -138,7 +138,7 @@ class Trigger_Controller extends Base_Controller {
 				break;
 			case 'fileurl_on':
 			case 'fileurl_off':
-				$result = $service->execute( 'trigger-update', $input + [ 'allow_file_url' => 'fileurl_on' === $what ] );
+				$result = $service->execute( 'trigger-update', $input + array( 'allow_file_url' => 'fileurl_on' === $what ) );
 				$done   = 'fileurl_on' === $what ? __( 'The trigger now accepts a file URL in the request.', 'import-export-by-rockstarlab' ) : __( 'The trigger no longer accepts a file URL.', 'import-export-by-rockstarlab' );
 				break;
 			case 'delete':
@@ -161,7 +161,7 @@ class Trigger_Controller extends Base_Controller {
 	/** Download the n8n workflow of a webhook trigger (no token inside). */
 	public function n8n() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You cannot manage triggers on this site.', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] );
+			wp_die( esc_html__( 'You cannot manage triggers on this site.', 'import-export-by-rockstarlab' ), '', array( 'response' => 403 ) );
 		}
 		check_admin_referer( 'rsl_ie_trigger_n8n' );
 		$id       = isset( $_GET['trigger_id'] ) ? sanitize_key( wp_unslash( $_GET['trigger_id'] ) ) : '';
@@ -186,12 +186,12 @@ class Trigger_Controller extends Base_Controller {
 		if ( is_array( $result ) && ! empty( $result['token'] ) ) {
 			set_transient(
 				'rsl_ie_trigger_token_' . get_current_user_id(),
-				[
+				array(
 					'trigger_id' => $result['trigger_id'],
 					'url'        => $result['webhook_url'],
 					'token'      => $result['token'],
 					'file_url'   => ! empty( $result['allow_file_url'] ),
-				],
+				),
 				300
 			);
 		}
@@ -204,12 +204,12 @@ class Trigger_Controller extends Base_Controller {
 	 * @param string $message Message.
 	 */
 	private function notice( $type, $message ) {
-		set_transient( 'rsl_ie_trigger_notice_' . get_current_user_id(), [ $type, $message ], 120 );
+		set_transient( 'rsl_ie_trigger_notice_' . get_current_user_id(), array( $type, $message ), 120 );
 	}
 
 	/** Back to the screen. */
 	private function back() {
-		wp_safe_redirect( add_query_arg( [ 'page' => self::PAGE ], admin_url( 'admin.php' ) ) );
+		wp_safe_redirect( add_query_arg( array( 'page' => self::PAGE ), admin_url( 'admin.php' ) ) );
 		exit;
 	}
 
@@ -220,7 +220,7 @@ class Trigger_Controller extends Base_Controller {
 	 */
 	private function guard( $action ) {
 		if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) || ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You cannot manage triggers on this site.', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] );
+			wp_die( esc_html__( 'You cannot manage triggers on this site.', 'import-export-by-rockstarlab' ), '', array( 'response' => 403 ) );
 		}
 		check_admin_referer( $action );
 	}
