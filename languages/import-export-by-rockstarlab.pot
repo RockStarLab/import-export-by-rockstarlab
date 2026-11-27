@@ -8451,7 +8451,7 @@ msgid "From email"
 msgstr ""
 
 #: app/Service/Form_Entries_Service.php:251
-msgid "Choose Gravity Forms or Contact Form 7 (Flamingo); the plugin must be active."
+msgid "Choose Gravity Forms, Contact Form 7 (Flamingo) or Fluent Forms; the plugin must be active."
 msgstr ""
 
 #: app/Service/Form_Entries_Service.php:255

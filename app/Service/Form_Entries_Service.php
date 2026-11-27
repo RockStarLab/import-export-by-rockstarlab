@@ -1,6 +1,6 @@
 <?php
 /**
- * Form entries from Gravity Forms and Contact Form 7 (Flamingo) as an export source.
+ * Form entries from Gravity Forms, Contact Form 7 (Flamingo) and Fluent Forms as an export source.
  *
  * @package RockStarLab\ImportExport\Service
  */
@@ -17,7 +17,14 @@ defined( 'ABSPATH' ) || exit;
  * ip, user_agent and user. Only entries are read; nothing is written.
  */
 class Form_Entries_Service {
-	const SOURCES        = [ 'gravityforms', 'flamingo' ];
+	const SOURCES        = [ 'gravityforms', 'flamingo', 'fluentform' ];
+	const SKIP_FF_TYPES  = [ 'custom_html', 'section_break', 'recaptcha', 'hcaptcha', 'turnstile', 'shortcode', 'action_hook', 'form_step', 'custom_submit_button', 'cpt_selection' ];
+	/** Fluent Forms submission status => export status (read and unread entries are both active). */
+	const FF_STATE       = [
+		'active' => [ 'unread', 'read' ],
+		'spam'   => [ 'spam' ],
+		'trash'  => [ 'trashed' ],
+	];
 	const STATUSES       = [ 'active', 'spam', 'trash' ];
 	const BASE_START     = [ 'entry_id', 'date_created', 'status' ];
 	const BASE_END       = [ 'source_url', 'ip', 'user_agent', 'user' ];
@@ -83,6 +90,9 @@ class Form_Entries_Service {
 		if ( class_exists( 'Flamingo_Inbound_Message' ) && taxonomy_exists( self::FLAMINGO_TAX ) ) {
 			$out['flamingo'] = 'Contact Form 7 (Flamingo)';
 		}
+		if ( defined( 'FLUENTFORM_VERSION' ) && self::ff_table_exists() ) {
+			$out['fluentform'] = 'Fluent Forms';
+		}
 		return $out;
 	}
 
@@ -125,6 +135,19 @@ class Form_Entries_Service {
 				];
 			}
 		}
+		if ( isset( self::available_sources()['fluentform'] ) ) {
+			global $wpdb;
+			$forms = $wpdb->get_results( "SELECT id, title, status FROM {$wpdb->prefix}fluentform_forms ORDER BY title ASC", ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Fluent Forms table, no input.
+			foreach ( (array) $forms as $form ) {
+				$out[] = [
+					'source'  => 'fluentform',
+					'form_id' => (int) $form['id'],
+					'title'   => (string) $form['title'],
+					'active'  => 'published' === (string) $form['status'],
+					'entries' => $this->ff_count( (int) $form['id'], [ 'status' => 'active' ] ),
+				];
+			}
+		}
 		return $out;
 	}
 
@@ -132,7 +155,7 @@ class Form_Entries_Service {
 	 * Columns of a form: key => label. Form field keys are their labels, so the
 	 * file reads like the form.
 	 *
-	 * @param string $source  gravityforms|flamingo.
+	 * @param string $source  gravityforms|flamingo|fluentform.
 	 * @param int    $form_id Form ID or Flamingo channel term ID.
 	 * @return array|\WP_Error
 	 */
@@ -209,6 +232,9 @@ class Form_Entries_Service {
 		if ( 'gravityforms' === $source ) {
 			return (int) \GFAPI::count_entries( (int) $form_id, $query );
 		}
+		if ( 'fluentform' === $source ) {
+			return $this->ff_count( (int) $form_id, $query );
+		}
 		return $this->flamingo_count( (int) $form_id, $query );
 	}
 
@@ -232,6 +258,9 @@ class Form_Entries_Service {
 		if ( is_wp_error( $map ) ) {
 			return $map;
 		}
+		if ( 'fluentform' === $source ) {
+			return $this->ff_rows( (int) $form_id, $query, $map, max( 0, (int) $offset ), $limit );
+		}
 		return 'gravityforms' === $source ? $this->gf_rows( (int) $form_id, $query, $map, max( 0, (int) $offset ), $limit ) : $this->flamingo_rows( (int) $form_id, $query, $map, max( 0, (int) $offset ), $limit );
 	}
 
@@ -248,11 +277,14 @@ class Form_Entries_Service {
 			return $access;
 		}
 		if ( ! isset( self::available_sources()[ $source ] ) ) {
-			return $this->error( 'form_source_unavailable', __( 'Choose Gravity Forms or Contact Form 7 (Flamingo); the plugin must be active.', 'import-export-by-rockstarlab' ) );
+			return $this->error( 'form_source_unavailable', __( 'Choose Gravity Forms, Contact Form 7 (Flamingo) or Fluent Forms; the plugin must be active.', 'import-export-by-rockstarlab' ) );
 		}
 		if ( 'gravityforms' === $source ) {
 			$form = \GFAPI::get_form( (int) $form_id );
 			return $form ? true : $this->error( 'form_not_found', __( 'Form not found.', 'import-export-by-rockstarlab' ), 404 );
+		}
+		if ( 'fluentform' === $source ) {
+			return null !== self::ff_form( (int) $form_id ) ? true : $this->error( 'form_not_found', __( 'Form not found.', 'import-export-by-rockstarlab' ), 404 );
 		}
 		$term = get_term( (int) $form_id, self::FLAMINGO_TAX );
 		return $term && ! is_wp_error( $term ) ? true : $this->error( 'form_not_found', __( 'Form not found.', 'import-export-by-rockstarlab' ), 404 );
@@ -273,7 +305,8 @@ class Form_Entries_Service {
 		// Column headers of the entry columns are taken too: a form field labelled "Date" must not
 		// share the header of the entry date.
 		$lower = static function ( $s ) { return function_exists( 'mb_strtolower' ) ? mb_strtolower( $s ) : strtolower( $s ); };
-		$taken = array_map( $lower, array_merge( self::BASE_START, self::BASE_END, [ 'subject', 'from_name', 'from_email' ], array_values( self::base_labels( $source ) ) ) );
+		// Subject and From are entry columns of Flamingo only; a Fluent Forms field named Subject keeps its name.
+		$taken = array_map( $lower, array_merge( self::BASE_START, self::BASE_END, 'fluentform' === $source ? [] : [ 'subject', 'from_name', 'from_email' ], array_values( self::base_labels( $source ) ) ) );
 		$out   = [];
 		$add   = static function ( $label, $ref ) use ( &$out, $taken, $lower ) {
 			$label = trim( wp_strip_all_tags( (string) $label ) );
@@ -292,6 +325,14 @@ class Form_Entries_Service {
 					continue;
 				}
 				$add( ! empty( $field->adminLabel ) ? $field->adminLabel : $field->label, (string) $field->id ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName -- Gravity Forms property.
+			}
+			return $out;
+		}
+		if ( 'fluentform' === $source ) {
+			$form   = self::ff_form( (int) $form_id );
+			$fields = json_decode( (string) ( $form['form_fields'] ?? '' ), true );
+			foreach ( self::ff_inputs( is_array( $fields ) ? (array) ( $fields['fields'] ?? [] ) : [] ) as $name => $label ) {
+				$add( $label, $name );
 			}
 			return $out;
 		}
@@ -383,7 +424,7 @@ class Form_Entries_Service {
 				return $this->error( 'form_filter_field', sprintf( __( 'This form cannot be filtered by "%s".', 'import-export-by-rockstarlab' ), $field ) );
 			}
 		}
-		if ( 'flamingo' === $source ) {
+		if ( 'flamingo' === $source || 'fluentform' === $source ) {
 			return $q;
 		}
 		$search = [ 'status' => $q['status'] ];
@@ -636,6 +677,141 @@ class Form_Entries_Service {
 			$args['meta_query'] = $meta; // phpcs:ignore WordPress.DB.SlowDBQuery -- Optional filter.
 		}
 		return $args;
+	}
+
+	/** Whether the Fluent Forms submissions table exists. */
+	private static function ff_table_exists() {
+		global $wpdb;
+		$table = $wpdb->prefix . 'fluentform_submissions';
+		return $table === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	}
+
+	/** One Fluent Forms form row, or null. */
+	private static function ff_form( $form_id ) {
+		global $wpdb;
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT id, title, form_fields FROM {$wpdb->prefix}fluentform_forms WHERE id = %d", $form_id ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return $row ? $row : null;
+	}
+
+	/**
+	 * Input fields of a Fluent Forms form in form order: name => label (columns and steps opened up).
+	 *
+	 * @param array $fields Form elements.
+	 * @return array
+	 */
+	private static function ff_inputs( array $fields ) {
+		$out = [];
+		foreach ( $fields as $field ) {
+			if ( ! is_array( $field ) ) {
+				continue;
+			}
+			foreach ( (array) ( $field['columns'] ?? [] ) as $column ) {
+				$out += self::ff_inputs( (array) ( $column['fields'] ?? [] ) );
+			}
+			$name = (string) ( $field['attributes']['name'] ?? '' );
+			if ( '' === $name || in_array( (string) ( $field['element'] ?? '' ), self::SKIP_FF_TYPES, true ) ) {
+				continue;
+			}
+			$settings     = (array) ( $field['settings'] ?? [] );
+			$label        = (string) ( ! empty( $settings['admin_field_label'] ) ? $settings['admin_field_label'] : ( $settings['label'] ?? '' ) );
+			$out[ $name ] = '' !== trim( wp_strip_all_tags( $label ) ) ? $label : $name;
+		}
+		return $out;
+	}
+
+	/**
+	 * SQL WHERE (with values) for Fluent Forms submissions of one form.
+	 *
+	 * @param int   $form_id Form.
+	 * @param array $q       Query description (status, from, to, ids, fields).
+	 * @return array [ sql, values ]
+	 */
+	private function ff_where( $form_id, array $q ) {
+		global $wpdb;
+		$q     += [ 'status' => 'active', 'from' => '', 'to' => '', 'ids' => [], 'fields' => [] ];
+		$states = self::FF_STATE[ $q['status'] ] ?? self::FF_STATE['active'];
+		$sql    = 's.form_id = %d AND s.status IN (' . implode( ',', array_fill( 0, count( $states ), '%s' ) ) . ')';
+		$vals   = array_merge( [ (int) $form_id ], $states );
+		// created_at is stored in site time.
+		if ( '' !== $q['from'] ) {
+			$sql   .= ' AND s.created_at >= %s';
+			$vals[] = $q['from'];
+		}
+		if ( '' !== $q['to'] ) {
+			$sql   .= ' AND s.created_at <= %s';
+			$vals[] = $q['to'];
+		}
+		if ( $q['ids'] ) {
+			$sql .= ' AND s.id IN (' . implode( ',', array_map( 'absint', $q['ids'] ) ) . ')';
+		}
+		$ops = [ 'equals' => '= %s', 'not_equals' => '= %s', 'contains' => 'LIKE %s', 'not_contains' => 'LIKE %s' ];
+		foreach ( $q['fields'] as $f ) {
+			$value  = in_array( $f['condition'], [ 'contains', 'not_contains' ], true ) ? '%' . $wpdb->esc_like( $f['value'] ) . '%' : $f['value'];
+			$not    = in_array( $f['condition'], [ 'not_equals', 'not_contains' ], true ) ? 'NOT ' : '';
+			$sql   .= " AND {$not}EXISTS (SELECT 1 FROM {$wpdb->prefix}fluentform_entry_details d WHERE d.submission_id = s.id AND d.field_name = %s AND d.field_value " . $ops[ $f['condition'] ] . ')';
+			$vals[] = (string) $f['ref'];
+			$vals[] = $value;
+		}
+		return [ $sql, $vals ];
+	}
+
+	/** Number of Fluent Forms entries matching a query description. */
+	private function ff_count( $form_id, array $q ) {
+		global $wpdb;
+		list( $where, $vals ) = $this->ff_where( $form_id, $q );
+		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}fluentform_submissions s WHERE $where", $vals ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	}
+
+	/**
+	 * Fluent Forms entries as rows.
+	 *
+	 * @param int   $form_id Form.
+	 * @param array $q       Query description.
+	 * @param array $map     Column => field name.
+	 * @param int   $offset  Offset.
+	 * @param int   $limit   Limit.
+	 * @return array
+	 */
+	private function ff_rows( $form_id, array $q, array $map, $offset, $limit ) {
+		global $wpdb;
+		list( $where, $vals ) = $this->ff_where( $form_id, $q );
+		$vals[]  = (int) $limit;
+		$vals[]  = (int) $offset;
+		$entries = $wpdb->get_results( $wpdb->prepare( "SELECT s.* FROM {$wpdb->prefix}fluentform_submissions s WHERE $where ORDER BY s.id ASC LIMIT %d OFFSET %d", $vals ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$state   = [];
+		foreach ( self::FF_STATE as $export => $list ) {
+			foreach ( $list as $one ) {
+				$state[ $one ] = $export;
+			}
+		}
+		$rows = [];
+		foreach ( (array) $entries as $entry ) {
+			$response = json_decode( (string) $entry['response'], true );
+			$response = is_array( $response ) ? $response : [];
+			$row      = [
+				'entry_id'     => (int) $entry['id'],
+				'date_created' => (string) $entry['created_at'],
+				'status'       => $state[ (string) $entry['status'] ] ?? (string) $entry['status'],
+			];
+			foreach ( $map as $column => $name ) {
+				$value = $response[ $name ] ?? '';
+				// A name field keeps first, middle and last name apart: one cell reads "Nino Beridze".
+				if ( is_array( $value ) && array_intersect( array_keys( $value ), [ 'first_name', 'middle_name', 'last_name' ] ) ) {
+					$value = implode( ' ', array_filter( array_map( 'strval', array_filter( $value, 'is_scalar' ) ), 'strlen' ) );
+				}
+				$row[ $column ] = $this->text( $value );
+			}
+			$user   = ! empty( $entry['user_id'] ) ? get_userdata( (int) $entry['user_id'] ) : false;
+			$row   += [
+				'source_url' => (string) ( $entry['source_url'] ?? '' ),
+				'ip'         => (string) ( $entry['ip'] ?? '' ),
+				// Fluent Forms keeps the browser and device names, not the full user agent.
+				'user_agent' => implode( ', ', array_diff( array_filter( [ (string) ( $entry['browser'] ?? '' ), (string) ( $entry['device'] ?? '' ) ], 'strlen' ), [ 'unknown' ] ) ),
+				'user'       => $user ? $user->user_login : '',
+			];
+			$rows[] = $row;
+		}
+		return $rows;
 	}
 
 	/**
