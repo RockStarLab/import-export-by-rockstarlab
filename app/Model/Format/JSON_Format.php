@@ -9,6 +9,8 @@
 
 namespace RockStarLab\ImportExport\Model\Format;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents,WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.json_encode_json_encode -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+
 defined( 'ABSPATH' ) || exit;
 
 class JSON_Format implements File_Format_Interface {
@@ -96,7 +98,7 @@ class JSON_Format implements File_Format_Interface {
 	public function rows( $path, array $options = [] ) {
 		$handle = @fopen( $path, 'rb' );
 		if ( ! $handle ) {
-			throw new \RuntimeException( __( 'Cannot read JSON file.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot read JSON file.', 'import-export-by-rockstarlab' ) ); }
 		try {
 			do {
 				$first = fgetc( $handle );

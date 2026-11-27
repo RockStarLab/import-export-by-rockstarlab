@@ -2,6 +2,9 @@
 /** Private, owner-scoped binary staging for resumable media transport. */
 namespace RockStarLab\ImportExport\Service;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fread,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Plugin-owned tables: no WordPress API exists for them, and these are transient job rows that must not be cached.
+
 use RockStarLab\ImportExport\Abilities\Access_Policy;
 defined( 'ABSPATH' ) || exit;
 

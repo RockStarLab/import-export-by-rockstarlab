@@ -51,7 +51,7 @@ class Migration_Manifest_Reader {
 		$this->buffer = '';
 		$this->offset = 0;
 		if ( ! $this->stream ) {
-			throw new \RuntimeException( __( 'Cannot read manifest.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Cannot read manifest.', 'import-export-by-rockstarlab' ) );
 		}
 		try {
 			$this->expect( '{' );
@@ -122,15 +122,15 @@ class Migration_Manifest_Reader {
 			return;
 		}
 		if ( ! rewind( $this->steps_stream ) ) {
-			throw new \RuntimeException( __( 'Cannot rewind manifest spool.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot rewind manifest spool.', 'import-export-by-rockstarlab' ) ); }
 		while ( false !== ( $line = fgets( $this->steps_stream ) ) ) {
 			$decoded = base64_decode( rtrim( $line, "\n" ), true );
 			if ( false === $decoded ) {
-				throw new \RuntimeException( __( 'Invalid manifest spool.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( esc_html__( 'Invalid manifest spool.', 'import-export-by-rockstarlab' ) ); }
 			yield unserialize( $decoded, [ 'allowed_classes' => false ] );
 		}
 		if ( ! feof( $this->steps_stream ) ) {
-			throw new \RuntimeException( __( 'Cannot read manifest spool.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot read manifest spool.', 'import-export-by-rockstarlab' ) ); }
 	}
 
 	/** Count without materializing the final steps array. */
@@ -187,11 +187,11 @@ class Migration_Manifest_Reader {
 			} elseif ( '[' === $char || '{' === $char ) {
 				$stack[] = $char;
 				if ( count( $stack ) >= $depth ) {
-					throw new \RuntimeException( __( 'Manifest depth exceeded.', 'import-export-by-rockstarlab' ) );
+					throw new \RuntimeException( esc_html__( 'Manifest depth exceeded.', 'import-export-by-rockstarlab' ) );
 				}
 			} elseif ( ']' === $char || '}' === $char ) {
 				if ( array_pop( $stack ) !== ( ']' === $char ? '[' : '{' ) ) {
-					throw new \RuntimeException( __( 'Unbalanced manifest value.', 'import-export-by-rockstarlab' ) );
+					throw new \RuntimeException( esc_html__( 'Unbalanced manifest value.', 'import-export-by-rockstarlab' ) );
 				}
 			}
 		}
@@ -206,7 +206,7 @@ class Migration_Manifest_Reader {
 	 */
 	private function expect( $char ) {
 		if ( $this->peek() !== $char ) {
-			throw new \RuntimeException( __( 'Invalid manifest delimiter.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Invalid manifest delimiter.', 'import-export-by-rockstarlab' ) );
 		}
 		++$this->offset;
 	}
@@ -230,7 +230,7 @@ class Migration_Manifest_Reader {
 			$this->buffer = fread( $this->stream, 65536 );
 			$this->offset = 0;
 			if ( false === $this->buffer || ( '' === $this->buffer && ! feof( $this->stream ) ) ) {
-				throw new \RuntimeException( __( 'Cannot read manifest.', 'import-export-by-rockstarlab' ) );
+				throw new \RuntimeException( esc_html__( 'Cannot read manifest.', 'import-export-by-rockstarlab' ) );
 			}
 			if ( '' === $this->buffer ) {
 				return null;

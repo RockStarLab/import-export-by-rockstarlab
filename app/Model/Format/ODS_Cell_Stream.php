@@ -75,7 +75,7 @@ class ODS_Cell_Stream {
 				throw new \RuntimeException( 'ODS coordinate overflow.' ); }
 			$document = new \DOMDocument();
 			if ( ! $document->loadXML( $node->readOuterXml(), LIBXML_NONET | LIBXML_COMPACT | LIBXML_PARSEHUGE ) ) {
-				throw new \RuntimeException( __( 'Invalid ODS cell.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( esc_html__( 'Invalid ODS cell.', 'import-export-by-rockstarlab' ) ); }
 			$cell      = $document->documentElement;
 			$value     = $decoder->decode( $cell );
 			$populated = $cell->hasAttributeNS( self::TABLE, 'formula' );
@@ -115,7 +115,7 @@ class ODS_Cell_Stream {
 			return 1; }
 		$count = filter_var( $value, FILTER_VALIDATE_INT, [ 'options' => [ 'min_range' => 1 ] ] );
 		if ( false === $count ) {
-			throw new \RuntimeException( __( 'Invalid ODS repetition count.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Invalid ODS repetition count.', 'import-export-by-rockstarlab' ) ); }
 		return $count;
 	}
 }

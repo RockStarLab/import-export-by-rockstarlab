@@ -1,6 +1,8 @@
 <?php
 /** Sanitized SVG support (and Elementor Pro Lottie JSON files) scoped to media synchronization. */
 namespace RockStarLab\ImportExport\Service;
+
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
 defined( 'ABSPATH' ) || exit;
 class Sync_SVG {
     public static function available() {

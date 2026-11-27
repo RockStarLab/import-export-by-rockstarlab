@@ -2,6 +2,8 @@
 /** Disk-backed shared formula masters, scoped to one worksheet scan. */
 namespace RockStarLab\ImportExport\Model\Format;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents,WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents,WordPress.WP.AlternativeFunctions.file_system_operations_mkdir,WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\ReferenceHelper;
 
@@ -15,29 +17,29 @@ class XLSX_Formula_Store {
 		$this->persistent = null !== $directory;
 		$this->directory  = $directory ?? rtrim( get_temp_dir(), '/\\' ) . '/rsl-formula-' . bin2hex( random_bytes( 16 ) );
 		if ( is_link( $this->directory ) || ( ! is_dir( $this->directory ) && ! mkdir( $this->directory, 0700 ) ) ) {
-			throw new \RuntimeException( __( 'Cannot create shared-formula store.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot create shared-formula store.', 'import-export-by-rockstarlab' ) ); }
 	}
 
 	/** Match Xlsx's first-encounter master semantics, including empty masters. */
 	public function resolve( $id, $coordinate, $formula ) {
 		if ( ! is_string( $id ) || ! is_string( $coordinate ) || ! is_string( $formula ) ) {
-			throw new \RuntimeException( __( 'Invalid shared formula.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Invalid shared formula.', 'import-export-by-rockstarlab' ) ); }
 		$hash    = hash( 'sha256', $id );
 		$shard   = $this->directory . '/' . substr( $hash, 0, 2 );
 		$path    = $shard . '/' . $hash;
 		$current = Coordinate::indexesFromString( $coordinate );
 		if ( ! is_file( $path ) ) {
 			if ( ! is_dir( $shard ) && ! mkdir( $shard, 0700 ) ) {
-				throw new \RuntimeException( __( 'Cannot create formula shard.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( esc_html__( 'Cannot create formula shard.', 'import-export-by-rockstarlab' ) ); }
 			$data = serialize( [ $id, $coordinate, $formula ] );
 			if ( strlen( $data ) !== file_put_contents( $path, $data ) ) {
-				throw new \RuntimeException( __( 'Cannot store shared formula.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( esc_html__( 'Cannot store shared formula.', 'import-export-by-rockstarlab' ) ); }
 			return $formula;
 		}
 		$data   = file_get_contents( $path );
 		$master = false === $data ? false : unserialize( $data, [ 'allowed_classes' => false ] );
 		if ( ! is_array( $master ) || count( $master ) !== 3 || $master[0] !== $id || ! is_string( $master[1] ) || ! is_string( $master[2] ) ) {
-			throw new \RuntimeException( __( 'Invalid shared-formula record.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Invalid shared-formula record.', 'import-export-by-rockstarlab' ) ); }
 		$origin = Coordinate::indexesFromString( $master[1] );
 		return ReferenceHelper::getInstance()->updateFormulaReferences( $master[2], 'A1', $current[0] - $origin[0], $current[1] - $origin[1] );
 	}
@@ -51,7 +53,7 @@ class XLSX_Formula_Store {
 					continue; }
 				foreach ( new \DirectoryIterator( $shard->getPathname() ) as $file ) {
 					if ( ! $file->isDot() ) {
-						unlink( $file->getPathname() ); }
+						wp_delete_file( $file->getPathname() ); }
 				}
 				rmdir( $shard->getPathname() );
 			}

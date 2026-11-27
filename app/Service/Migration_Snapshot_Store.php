@@ -2,6 +2,8 @@
 /** Graph batches become visible to a job when their reference is checkpointed. */
 namespace RockStarLab\ImportExport\Service;
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Plugin-owned tables: no WordPress API exists for them, and these are transient job rows that must not be cached.
+
 defined( 'ABSPATH' ) || exit;
 class Migration_Snapshot_Store {
 

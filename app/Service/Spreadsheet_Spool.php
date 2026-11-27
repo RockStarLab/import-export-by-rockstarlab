@@ -22,11 +22,11 @@ class Spreadsheet_Spool {
 	public static function path( $id ) {
 		$root = File_Store::root();
 		if ( is_wp_error( $root ) || (int) $id < 1 ) {
-			throw new \RuntimeException( __( 'Spreadsheet storage unavailable.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Spreadsheet storage unavailable.', 'import-export-by-rockstarlab' ) );
 		}
 		$path = $root . '/sheet-' . (int) $id . '.json';
 		if ( is_link( $path ) || is_link( $path . '.tmp' ) ) {
-			throw new \RuntimeException( __( 'Invalid spreadsheet snapshot.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Invalid spreadsheet snapshot.', 'import-export-by-rockstarlab' ) );
 		}
 		return $path;
 	}
@@ -61,11 +61,11 @@ class Spreadsheet_Spool {
 		$path = $snapshot ?? self::path( $id );
 		$dir  = $path . '.work';
 		if ( is_link( $dir ) || ( ! is_dir( $dir ) && ! mkdir( $dir, 0700 ) ) ) {
-			throw new \RuntimeException( __( 'Cannot create spreadsheet workspace.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot create spreadsheet workspace.', 'import-export-by-rockstarlab' ) ); }
 		$build = &$state['build'];
 		clearstatcache( true, $request['file_path'] );
 		if ( $build['identity'] !== array_intersect_key( stat( $request['file_path'] ), array_flip( array( 'dev', 'ino', 'size', 'mtime', 'ctime' ) ) ) ) {
-			throw new \RuntimeException( __( 'Changed spreadsheet source.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Changed spreadsheet source.', 'import-export-by-rockstarlab' ) ); }
 		$parts   = null;
 		$strings = null;
 		$store   = null;
@@ -220,10 +220,10 @@ class Spreadsheet_Spool {
 	private static function output( $path, $offset ) {
 		$stream = fopen( $path, 'c+b' );
 		if ( ! $stream ) {
-			throw new \RuntimeException( __( 'Cannot open spreadsheet staging file.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot open spreadsheet staging file.', 'import-export-by-rockstarlab' ) ); }
 		if ( fstat( $stream )['size'] < $offset || ! ftruncate( $stream, $offset ) || fseek( $stream, $offset ) !== 0 ) {
 			fclose( $stream );
-			throw new \RuntimeException( __( 'Invalid spreadsheet staging offset.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Invalid spreadsheet staging offset.', 'import-export-by-rockstarlab' ) ); }
 		return $stream;
 	}
 
@@ -237,7 +237,7 @@ class Spreadsheet_Spool {
 	 */
 	private static function write( $stream, $value ) {
 		if ( strlen( $value ) !== fwrite( $stream, $value ) ) {
-			throw new \RuntimeException( __( 'Cannot write spreadsheet snapshot.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Cannot write spreadsheet snapshot.', 'import-export-by-rockstarlab' ) );
 		}
 	}
 

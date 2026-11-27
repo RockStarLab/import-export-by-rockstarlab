@@ -335,16 +335,16 @@ class Import_Object_Store {
 		global $wpdb;
 		$offset = $cursor ?? 0;
 		if ( ! is_int( $offset ) || $offset < 0 || $offset > $count ) {
-			throw new \RuntimeException( __( 'Invalid object cursor.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Invalid object cursor.', 'import-export-by-rockstarlab' ) );
 		}
 		for ( ;$offset < $count;++$offset ) {
 			$row = $wpdb->get_row( $wpdb->prepare( 'SELECT key_hash,digest,payload FROM %i WHERE job_id=%d AND ordinal=%d', $wpdb->prefix . 'rsl_ie_import_objects', $job_id, $offset ) );
 			if ( ! $row ) {
-				throw new \RuntimeException( __( 'Missing indexed object member.', 'import-export-by-rockstarlab' ) );
+				throw new \RuntimeException( esc_html__( 'Missing indexed object member.', 'import-export-by-rockstarlab' ) );
 			}
 			$value = self::decode( $row );
 			if ( is_wp_error( $value ) || ! hash_equals( $row->key_hash, hash( 'sha256', serialize( $value['key'] ) ) ) ) {
-				throw new \RuntimeException( __( 'Changed indexed object member.', 'import-export-by-rockstarlab' ) );
+				throw new \RuntimeException( esc_html__( 'Changed indexed object member.', 'import-export-by-rockstarlab' ) );
 			}
 			$cursor = $offset + 1;
 			yield $value['value'];

@@ -59,7 +59,7 @@ class ODS_Sheet_Selector {
 				return null; }
 		}
 		if ( ! $index ) {
-			throw new \RuntimeException( __( 'Missing ODS worksheet.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Missing ODS worksheet.', 'import-export-by-rockstarlab' ) ); }
 		return $selected;
 	}
 }

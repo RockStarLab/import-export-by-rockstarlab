@@ -2,6 +2,8 @@
 /** Disk-backed shared-string lookup with constant-size index entries. */
 namespace RockStarLab\ImportExport\Model\Format;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fread,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+
 defined( 'ABSPATH' ) || exit;
 
 class Spreadsheet_String_Store {
@@ -14,19 +16,19 @@ class Spreadsheet_String_Store {
 		$this->values = null === $path ? tmpfile() : fopen( $path . '.values', 'c+b' );
 		if ( ! $this->index || ! $this->values ) {
 			$this->close();
-			throw new \RuntimeException( __( 'Cannot create spreadsheet string index.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot create spreadsheet string index.', 'import-export-by-rockstarlab' ) ); }
 		if ( null !== $path ) {
 			$length = 0;
 			if ( $count ) {
 				if ( fseek( $this->index, ( $count - 1 ) * 40 ) !== 0 ) {
-					throw new \RuntimeException( __( 'Invalid string checkpoint.', 'import-export-by-rockstarlab' ) ); }
+					throw new \RuntimeException( esc_html__( 'Invalid string checkpoint.', 'import-export-by-rockstarlab' ) ); }
 				$last = fread( $this->index, 40 );
 				if ( strlen( $last ) !== 40 || ! ctype_digit( $last ) ) {
-					throw new \RuntimeException( __( 'Invalid string checkpoint.', 'import-export-by-rockstarlab' ) ); }
+					throw new \RuntimeException( esc_html__( 'Invalid string checkpoint.', 'import-export-by-rockstarlab' ) ); }
 				$length = (int) substr( $last, 0, 20 ) + (int) substr( $last, 20 );
 			}
 			if ( fstat( $this->values )['size'] < $length || ! ftruncate( $this->index, $count * 40 ) || ! ftruncate( $this->values, $length ) ) {
-				throw new \RuntimeException( __( 'Invalid string checkpoint.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( esc_html__( 'Invalid string checkpoint.', 'import-export-by-rockstarlab' ) ); }
 			$this->count = $count;
 		}
 	}
@@ -81,30 +83,30 @@ class Spreadsheet_String_Store {
 
 	public function append( $value ) {
 		if ( ! is_string( $value ) || 0 !== fseek( $this->values, 0, SEEK_END ) || 0 !== fseek( $this->index, 0, SEEK_END ) ) {
-			throw new \RuntimeException( __( 'Invalid spreadsheet string.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Invalid spreadsheet string.', 'import-export-by-rockstarlab' ) ); }
 		$offset = ftell( $this->values );
 		$length = strlen( $value );
 		$entry  = sprintf( '%020d%020d', $offset, $length );
 		if ( 40 !== strlen( $entry ) || $length !== fwrite( $this->values, $value ) || 40 !== fwrite( $this->index, $entry ) ) {
-			throw new \RuntimeException( __( 'Cannot store spreadsheet string.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot store spreadsheet string.', 'import-export-by-rockstarlab' ) ); }
 		return $this->count++;
 	}
 
 	public function get( $id ) {
 		if ( ! is_int( $id ) || $id < 0 || $id >= $this->count || 0 !== fseek( $this->index, $id * 40 ) ) {
-			throw new \RuntimeException( __( 'Invalid shared-string reference.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Invalid shared-string reference.', 'import-export-by-rockstarlab' ) ); }
 		$entry = fread( $this->index, 40 );
 		if ( strlen( $entry ) !== 40 || ! ctype_digit( $entry ) ) {
-			throw new \RuntimeException( __( 'Invalid spreadsheet string index.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Invalid spreadsheet string index.', 'import-export-by-rockstarlab' ) ); }
 		$offset    = (int) substr( $entry, 0, 20 );
 		$remaining = (int) substr( $entry, 20 );
 		if ( 0 !== fseek( $this->values, $offset ) ) {
-			throw new \RuntimeException( __( 'Cannot seek spreadsheet string.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot seek spreadsheet string.', 'import-export-by-rockstarlab' ) ); }
 		$value = '';
 		while ( $remaining ) {
 			$chunk = fread( $this->values, min( 65536, $remaining ) );
 			if ( false === $chunk || '' === $chunk ) {
-				throw new \RuntimeException( __( 'Incomplete spreadsheet string.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( esc_html__( 'Incomplete spreadsheet string.', 'import-export-by-rockstarlab' ) ); }
 			$value     .= $chunk;
 			$remaining -= strlen( $chunk );
 		}

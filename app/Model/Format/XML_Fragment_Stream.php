@@ -2,6 +2,8 @@
 /** Seekable XML record boundaries; libxml remains the syntax and namespace validator. */
 namespace RockStarLab\ImportExport\Model\Format;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fread -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+
 defined( 'ABSPATH' ) || exit;
 class XML_Fragment_Stream {
 	private $stream;
@@ -21,7 +23,7 @@ class XML_Fragment_Stream {
 		$this->little   = $encoding['little'];
 		$this->stream   = fopen( $path, 'rb' );
 		if ( ! $this->stream || fseek( $this->stream, $offset ) !== 0 ) {
-			throw new \RuntimeException( __( 'Cannot seek XML source.', 'import-export-by-rockstarlab' ) );}
+			throw new \RuntimeException( esc_html__( 'Cannot seek XML source.', 'import-export-by-rockstarlab' ) );}
 		$this->base = $offset;
 	}
 	private function fill() {
@@ -31,7 +33,7 @@ class XML_Fragment_Stream {
 		$this->position = 0;
 		$this->buffer   = fread( $this->stream, 65536 );
 		if ( false === $this->buffer ) {
-			throw new \RuntimeException( __( 'Cannot read XML source.', 'import-export-by-rockstarlab' ) );}
+			throw new \RuntimeException( esc_html__( 'Cannot read XML source.', 'import-export-by-rockstarlab' ) );}
 		return '' !== $this->buffer;
 	}
 	private function byte() {
@@ -41,7 +43,7 @@ class XML_Fragment_Stream {
 			$byte = $this->byte();
 			if ( null === $byte ) {
 				if ( $raw !== '' ) {
-					throw new \RuntimeException( __( 'Incomplete XML encoding unit.', 'import-export-by-rockstarlab' ) );
+					throw new \RuntimeException( esc_html__( 'Incomplete XML encoding unit.', 'import-export-by-rockstarlab' ) );
 				}return null;
 			}$raw .= $byte;}
 		return $raw;
@@ -57,7 +59,7 @@ class XML_Fragment_Stream {
 			return $raw;}
 		$value = @iconv( $this->encoding, 'UTF-8', $raw );
 		if ( false === $value ) {
-			throw new \RuntimeException( __( 'Invalid XML encoding.', 'import-export-by-rockstarlab' ) );}
+			throw new \RuntimeException( esc_html__( 'Invalid XML encoding.', 'import-export-by-rockstarlab' ) );}
 		return $value;
 	}
 	private function token() {
@@ -103,7 +105,7 @@ class XML_Fragment_Stream {
 			if ( '>' === $char ) {
 				return $this->decoded( $raw );}
 		}
-		throw new \RuntimeException( __( 'Incomplete XML token.', 'import-export-by-rockstarlab' ) );
+		throw new \RuntimeException( esc_html__( 'Incomplete XML token.', 'import-export-by-rockstarlab' ) );
 	}
 	/** Each checkpoint starts after a complete outermost matching record. */
 	public function segments( $item, array $state, $max_bytes = 0 ) {
@@ -121,10 +123,10 @@ class XML_Fragment_Stream {
 				throw new \RuntimeException( 'XML document types are unsupported.' );} elseif ( preg_match( '/^<\/([^\s>]+)\s*>$/D', $token, $match ) ) {
 				$last = array_pop( $stack );
 				if ( ! $last || $last['name'] !== $match[1] ) {
-					throw new \RuntimeException( __( 'Unbalanced XML element.', 'import-export-by-rockstarlab' ) );}
+					throw new \RuntimeException( esc_html__( 'Unbalanced XML element.', 'import-export-by-rockstarlab' ) );}
 				} elseif ( preg_match( '/^<([^!?\/\s>]+)(?:\s|\/?>)/', $token, $match ) ) {
 					if ( ! $stack && ++$roots > 1 ) {
-						throw new \RuntimeException( __( 'Multiple XML roots.', 'import-export-by-rockstarlab' ) );}
+						throw new \RuntimeException( esc_html__( 'Multiple XML roots.', 'import-export-by-rockstarlab' ) );}
 					$empty = substr( $token, -2 ) === '/>';
 					if ( ( is_array( $item ) ? in_array( substr( strrchr( ':' . $match[1], ':' ), 1 ), $item, true ) : $match[1] === $item ) && null === $record ) {
 						$record = count( $stack );}
@@ -157,7 +159,7 @@ class XML_Fragment_Stream {
 				}
 		}
 		if ( $stack || 0 === $roots ) {
-			throw new \RuntimeException( __( 'Incomplete XML document.', 'import-export-by-rockstarlab' ) );}
+			throw new \RuntimeException( esc_html__( 'Incomplete XML document.', 'import-export-by-rockstarlab' ) );}
 		// Validate closing tags, trailing text and the empty-document case as well.
 		yield array(
 			'xml'    => $prefix . $fragment,

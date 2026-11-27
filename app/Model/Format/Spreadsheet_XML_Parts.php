@@ -2,6 +2,8 @@
 /** Bounded ZIP-to-XML staging for spreadsheet readers. */
 namespace RockStarLab\ImportExport\Model\Format;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents,WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fread,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite,WordPress.WP.AlternativeFunctions.file_system_operations_mkdir,WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+
 defined( 'ABSPATH' ) || exit;
 
 class Spreadsheet_XML_Parts {
@@ -13,12 +15,12 @@ class Spreadsheet_XML_Parts {
 	public function __construct( $path, $directory = null ) {
 		$this->zip = new \ZipArchive();
 		if ( true !== $this->zip->open( $path ) ) {
-			throw new \RuntimeException( __( 'Invalid spreadsheet archive.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Invalid spreadsheet archive.', 'import-export-by-rockstarlab' ) ); }
 		$this->persistent = null !== $directory;
 		$this->directory  = $directory ?? rtrim( get_temp_dir(), '/\\' ) . '/rsl-sheet-' . bin2hex( random_bytes( 16 ) );
 		if ( is_link( $this->directory ) || ( ! is_dir( $this->directory ) && ! mkdir( $this->directory, 0700 ) ) ) {
 			$this->zip->close();
-			throw new \RuntimeException( __( 'Cannot stage spreadsheet XML.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot stage spreadsheet XML.', 'import-export-by-rockstarlab' ) ); }
 	}
 
 	public function has( $name ) {
@@ -38,10 +40,10 @@ class Spreadsheet_XML_Parts {
 			$index = $this->zip->locateName( str_replace( '/', '\\', $name ), \ZipArchive::FL_NOCASE ); }
 		$stat = false === $index ? false : $this->zip->statIndex( $index );
 		if ( ! $stat ) {
-			throw new \RuntimeException( __( 'Missing spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Missing spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 		$input = $this->zip->getStream( $stat['name'] );
 		if ( ! $input ) {
-			throw new \RuntimeException( __( 'Cannot read spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot read spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 		$path   = $this->directory . '/' . hash( 'sha256', $name );
 		$output = null;
 		try {
@@ -70,7 +72,7 @@ class Spreadsheet_XML_Parts {
 			if ( is_resource( $output ) ) {
 				fclose( $output ); }
 			if ( ! isset( $this->paths[ $name ] ) && is_file( $path ) ) {
-				unlink( $path ); }
+				wp_delete_file( $path ); }
 		}
 	}
 
@@ -78,20 +80,20 @@ class Spreadsheet_XML_Parts {
 	public function stage( $name, array &$cursor ) {
 		$path = $this->directory . '/' . hash( 'sha256', $name );
 		if ( is_link( $path ) || is_link( $path . '.ready' ) ) {
-			throw new \RuntimeException( __( 'Unsafe spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Unsafe spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 		$index = $this->zip->locateName( $name, \ZipArchive::FL_NOCASE );
 		if ( false === $index ) {
 			$index = $this->zip->locateName( str_replace( '/', '\\', $name ), \ZipArchive::FL_NOCASE ); }
 		$stat = false === $index ? false : $this->zip->statIndex( $index );
 		if ( ! $stat ) {
-			throw new \RuntimeException( __( 'Missing spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Missing spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 		$result = ( new \RockStarLab\ImportExport\Service\Migration_Package_Service() )->copy_entry( $this->zip, $stat['name'], $path, $cursor );
 		if ( is_wp_error( $result ) ) {
-			throw new \RuntimeException( __( 'Invalid spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Invalid spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 		if ( is_array( $result ) ) {
 			return false; }
 		if ( false === file_put_contents( $path . '.ready', '1' ) ) {
-			throw new \RuntimeException( __( 'Cannot commit spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot commit spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 		return true;
 	}
 
@@ -185,8 +187,11 @@ class Spreadsheet_XML_Parts {
 		if ( ! isset( $this->paths[ $name ] ) ) {
 			return; }
 		$path = $this->paths[ $name ];
-		if ( is_file( $path ) && ! unlink( $path ) ) {
-			throw new \RuntimeException( __( 'Cannot release spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
+		if ( is_file( $path ) ) {
+			wp_delete_file( $path );
+		}
+		if ( is_file( $path ) ) {
+			throw new \RuntimeException( esc_html__( 'Cannot release spreadsheet part.', 'import-export-by-rockstarlab' ) ); }
 		unset( $this->paths[ $name ] );
 	}
 
@@ -197,7 +202,7 @@ class Spreadsheet_XML_Parts {
 		if ( ! $this->persistent && $this->directory && is_dir( $this->directory ) ) {
 			foreach ( new \DirectoryIterator( $this->directory ) as $file ) {
 				if ( ! $file->isDot() ) {
-					unlink( $file->getPathname() ); }
+					wp_delete_file( $file->getPathname() ); }
 			}
 			rmdir( $this->directory );
 		}

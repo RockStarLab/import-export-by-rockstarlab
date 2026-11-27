@@ -7,6 +7,8 @@
  */
 namespace RockStarLab\ImportExport\Model\Format;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fread -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+
 defined( 'ABSPATH' ) || exit;
 
 /** Keeps only one encoded row in memory; json_decode validates each value. */
@@ -14,7 +16,7 @@ class JSON_Row_Stream {
 	public static function rows( $path, array $options = [], &$cursor = null ) {
 		$stream = fopen( $path, 'rb' );
 		if ( ! $stream ) {
-			throw new \RuntimeException( __( 'Cannot read JSON file.', 'import-export-by-rockstarlab' ) );
+			throw new \RuntimeException( esc_html__( 'Cannot read JSON file.', 'import-export-by-rockstarlab' ) );
 		}
 		$phase   = 'start';
 		$value   = '';

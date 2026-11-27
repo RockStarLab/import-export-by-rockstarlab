@@ -2,6 +2,8 @@
 /** Private, expiring row snapshots for XML encodings without seekable byte boundaries. */
 namespace RockStarLab\ImportExport\Service;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fread,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite,WordPress.WP.AlternativeFunctions.file_system_operations_touch -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+
 defined( 'ABSPATH' ) || exit;
 
 class XML_Row_Spool {
@@ -11,14 +13,14 @@ class XML_Row_Spool {
 	public static function rows( $source, $identity, $settings, &$cursor, callable $records ) {
 		$root = File_Store::root();
 		if ( is_wp_error( $root ) ) {
-			throw new \RuntimeException( __( 'Cannot open XML snapshot storage.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot open XML snapshot storage.', 'import-export-by-rockstarlab' ) ); }
 		$key  = hash( 'sha256', $source . serialize( $identity ) . $settings );
 		$path = $root . '/xml-rows-' . $key;
 		if ( is_link( $path ) ) {
-			throw new \RuntimeException( __( 'Invalid XML snapshot.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Invalid XML snapshot.', 'import-export-by-rockstarlab' ) ); }
 		$handle = fopen( $path, 'c+b' );
 		if ( ! $handle ) {
-			throw new \RuntimeException( __( 'Cannot open XML snapshot.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot open XML snapshot.', 'import-export-by-rockstarlab' ) ); }
 		try {
 			if ( ! flock( $handle, LOCK_EX ) ) {
 				throw new \RuntimeException( __( 'Cannot lock XML snapshot.', 'import-export-by-rockstarlab' ) ); }
@@ -104,7 +106,7 @@ class XML_Row_Spool {
 		while ( $offset < strlen( $bytes ) ) {
 			$n = fwrite( $handle, substr( $bytes, $offset ) );
 			if ( ! $n ) {
-				throw new \RuntimeException( __( 'Cannot write XML snapshot.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( esc_html__( 'Cannot write XML snapshot.', 'import-export-by-rockstarlab' ) ); }
 			$offset += $n;
 		}
 	}
@@ -125,8 +127,11 @@ class XML_Row_Spool {
 			if ( ! $handle ) {
 				continue; }
 			if ( flock( $handle, LOCK_EX | LOCK_NB ) ) {
-				if ( fstat( $handle )['mtime'] < time() - self::TTL && unlink( $path ) ) {
-					++$removed; }
+				if ( fstat( $handle )['mtime'] < time() - self::TTL ) {
+					wp_delete_file( $path );
+					if ( ! file_exists( $path ) ) {
+						++$removed; }
+				}
 				flock( $handle, LOCK_UN );
 			}
 			fclose( $handle );

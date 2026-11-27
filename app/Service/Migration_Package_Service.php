@@ -430,7 +430,7 @@ class Migration_Package_Service {
 	private function object_snapshot_slice( $path, $snapshot, array $state ) {
 		$dir = $snapshot . '.work';
 		if ( is_link( $dir ) || ( ! is_dir( $dir ) && ! mkdir( $dir, 0700 ) ) ) {
-			throw new \RuntimeException( __( 'Cannot stage object.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot stage object.', 'import-export-by-rockstarlab' ) ); }
 		$state += array(
 			'build'   => 'index',
 			'cursor'  => null,
@@ -446,13 +446,13 @@ class Migration_Package_Service {
 			foreach ( \RockStarLab\ImportExport\Model\Format\JSON_Row_Stream::rows( $path, array( 'object_members' => true ), $state['cursor'] ) as $member ) {
 				$key = array_key_first( $member );
 				if ( ! is_int( $key ) || $key < 0 || $key > $state['total'] ) {
-					throw new \RuntimeException( __( 'Invalid list key.', 'import-export-by-rockstarlab' ) ); }
+					throw new \RuntimeException( esc_html__( 'Invalid list key.', 'import-export-by-rockstarlab' ) ); }
 				if ( $key === $state['total'] ) {
 					++$state['total']; }
 				$json = wp_json_encode( $member[ $key ] );
 				$file = $dir . '/' . $key;
 				if ( false === $json || is_link( $file ) || strlen( $json ) !== file_put_contents( $file, $json ) ) {
-					throw new \RuntimeException( __( 'Cannot store member.', 'import-export-by-rockstarlab' ) ); }
+					throw new \RuntimeException( esc_html__( 'Cannot store member.', 'import-export-by-rockstarlab' ) ); }
 				$bytes += strlen( $json );
 				if ( ++$count >= 100 || $bytes >= 1048576 ) {
 					$done = false;
@@ -463,12 +463,12 @@ class Migration_Package_Service {
 			return $state;
 		}
 		if ( ! is_file( $snapshot . '.tmp' ) && is_file( $snapshot ) && ! rename( $snapshot, $snapshot . '.tmp' ) ) {
-			throw new \RuntimeException( __( 'Cannot recover snapshot.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot recover snapshot.', 'import-export-by-rockstarlab' ) ); }
 		if ( 1 === $state['bytes'] ) {
 			file_put_contents( $snapshot . '.tmp', '[' ); }
 		$out = fopen( $snapshot . '.tmp', 'c+b' );
 		if ( ! $out ) {
-			throw new \RuntimeException( __( 'Cannot open snapshot.', 'import-export-by-rockstarlab' ) ); }
+			throw new \RuntimeException( esc_html__( 'Cannot open snapshot.', 'import-export-by-rockstarlab' ) ); }
 		try {
 			if ( fstat( $out )['size'] < $state['bytes'] || ! ftruncate( $out, $state['bytes'] ) || fseek( $out, $state['bytes'] ) !== 0 ) {
 				throw new \RuntimeException( __( 'Invalid snapshot offset.', 'import-export-by-rockstarlab' ) ); }
@@ -497,7 +497,7 @@ class Migration_Package_Service {
 			fclose( $out ); }
 		if ( $done ) {
 			if ( ! rename( $snapshot . '.tmp', $snapshot ) ) {
-				throw new \RuntimeException( __( 'Cannot publish snapshot.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( esc_html__( 'Cannot publish snapshot.', 'import-export-by-rockstarlab' ) ); }
 			unset( $state['build'] );
 		}
 		return $state;

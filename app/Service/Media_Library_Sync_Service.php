@@ -7,6 +7,9 @@
 
 namespace RockStarLab\ImportExport\Service;
 
+// phpcs:disable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fread,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- Streamed, chunked file handling for large imports, exports and media transfers: PHP stream handles, locks, private 0700 directories and atomic renames that WP_Filesystem does not provide (it also needs credentials, which cron and background requests lack).
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Plugin-owned tables: no WordPress API exists for them, and these are transient job rows that must not be cached.
+
 use RockStarLab\ImportExport\Abilities\Access_Policy;
 use RockStarLab\ImportExport\Abilities\Media_Library_Catalog;
 use RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy;
@@ -1243,12 +1246,12 @@ class Media_Library_Sync_Service {
 				return $move; }
 			$dir = File_Store::directory( $transfer_id );
 			if ( is_wp_error( $dir ) ) {
-				throw new \RuntimeException( __( 'Cannot persist media move.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( esc_html__( 'Cannot persist media move.', 'import-export-by-rockstarlab' ) ); }
 			$journal = $dir . '/media-move.json';
 			$json    = wp_json_encode( [ 'path' => $destination ] );
 			// phpcs:ignore WordPress.WP.AlternativeFunctions -- Atomic local journal publication must precede WordPress moving the file.
 			if ( is_link( $journal ) || is_link( $journal . '.tmp' ) || false === $json || file_put_contents( $journal . '.tmp', $json, LOCK_EX ) !== strlen( $json ) || ! rename( $journal . '.tmp', $journal ) ) {
-				throw new \RuntimeException( __( 'Cannot persist media move.', 'import-export-by-rockstarlab' ) ); }
+				throw new \RuntimeException( esc_html__( 'Cannot persist media move.', 'import-export-by-rockstarlab' ) ); }
 			return $move;
 		};
 		$sync_mimes = Sync_SVG::mimes();

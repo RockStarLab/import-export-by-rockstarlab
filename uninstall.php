@@ -13,6 +13,8 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Plugin-owned tables: no WordPress API exists for them, and these are transient job rows that must not be cached.
+
 // Load the database migration helper
 require_once plugin_dir_path( __FILE__ ) . 'app/Helper/Database_Migration.php';
 

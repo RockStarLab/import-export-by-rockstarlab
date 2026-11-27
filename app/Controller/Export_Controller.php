@@ -260,7 +260,7 @@ class Export_Controller extends Base_Controller {
 		$file    = $service->from_job( $job_id );
 		$result  = is_wp_error( $file ) ? $file : $service->download( $file['file_id'], $zip );
 		if ( is_wp_error( $result ) ) {
-			wp_die( esc_html( $result->get_error_message() ), '', [ 'response' => $result->get_error_data()['status'] ?? 400 ] ); }
+			wp_die( esc_html( $result->get_error_message() ), '', [ 'response' => (int) ( $result->get_error_data()['status'] ?? 400 ) ] ); }
 		$response = new File_Download_Response( $result );
 		foreach ( $response->get_headers() as $name => $value ) {
 			header( $name . ': ' . $value ); }
