@@ -328,6 +328,7 @@ class Content_Sync_API_Controller {
 		}
 		$pattern_map = \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::import( $synced_patterns );
 		$block_terms = \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::import_terms( $request->get_param( 'block_terms' ) );
+		\RockStarLab\ImportExport\Service\Sync_WP_Recipe_Maker::set_image_map( $image_map ?? array() );
 
 		foreach ( $posts_data as $post_data ) {
 			$source_post_id = $post_data['ID'];

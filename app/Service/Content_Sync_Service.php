@@ -2610,6 +2610,7 @@ class Content_Sync_Service {
 		}
 		$pattern_map = Sync_Synced_Patterns::import( $synced_patterns );
 		$block_terms = Sync_Synced_Patterns::import_terms( $data['data']['block_terms'] ?? null );
+		Sync_WP_Recipe_Maker::set_image_map( $image_map );
 		if ( $pattern_map || $block_terms ) {
 			foreach ( $posts_data as &$pattern_post ) {
 				if ( is_array( $pattern_post ) && isset( $pattern_post['post_content'] ) ) {

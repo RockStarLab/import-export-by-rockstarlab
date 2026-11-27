@@ -80,6 +80,8 @@ class App {
 		// Initialize Chunk Upload handler for large file uploads
 		new \RockStarLab\ImportExport\Helper\Chunk_Upload();
 		\RockStarLab\ImportExport\Service\Job_Runner::register();
+		// WP Recipe Maker recipes travel with the posts that show them.
+		\RockStarLab\ImportExport\Service\Sync_WP_Recipe_Maker::register();
 
 		// Load core classes
 		$this->_dispatch();

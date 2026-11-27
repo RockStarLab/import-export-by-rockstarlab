@@ -8826,6 +8826,10 @@ msgstr ""
 msgid "Folder not found in the uploads directory. Enter a folder name relative to uploads (for example ftp-import) or pick one with Browse."
 msgstr ""
 
+#: app/Service/Media_Folder_Service.php
+msgid "The folder has no files that match the scan options of this job."
+msgstr ""
+
 #: app/Service/Media_Folder_Service.php:803
 msgid "Real Media Library is unavailable. Activate the plugin or turn off Real Media Library integration and start sync again."
 msgstr ""

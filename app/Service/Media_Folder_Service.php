@@ -26,11 +26,16 @@ class Media_Folder_Service {
 	/**
 	 * Start a new run from the original explicit selection, never from its cursor.
 	 *
+	 * Scheduled runs pass $rescan: they scan the folder again with the job's scan options,
+	 * so files added since the source job are picked up; files imported before are left to
+	 * the job's duplicate check.
+	 *
 	 * @param int    $id Terminal source job.
 	 * @param string $request_id Optional restart identity.
+	 * @param bool   $rescan Import the files the folder holds now instead of the original selection.
 	 * @return array|\WP_Error
 	 */
-	public function restart( $id, $request_id = '' ) {
+	public function restart( $id, $request_id = '', $rescan = false ) {
 		$job = $this->record( $id );
 		if ( is_wp_error( $job ) ) {
 			return $job; }
@@ -39,12 +44,30 @@ class Media_Folder_Service {
 		$params = $this->decode( $job->parameters );
 		if ( empty( $params['all_files'] ) ) {
 			$params = $this->decode( $job->settings ); }
+		$files = $params['all_files'] ?? [];
+		if ( $rescan ) {
+			$found = $this->scan(
+				[
+					'folder_path' => $params['folder_path'] ?? '',
+					'options'     => $params['scan_options'] ?? [],
+				],
+				false
+			);
+			if ( is_wp_error( $found ) ) {
+				return $found;
+			}
+			// start() accepts up to 1000 sources per run; scan() returns them sorted by path.
+			$files = array_slice( array_column( $found['files'], 'path' ), 0, 1000 );
+			if ( ! $files ) {
+				return $this->error( 'empty_folder', 409 );
+			}
+		}
 		return $this->start(
 			array(
 				'folder_path'    => $params['folder_path'] ?? '',
-				'selected_files' => $params['all_files'] ?? array(),
-				'sync_options'   => $params['sync_options'] ?? array(),
-				'scan_options'   => $params['scan_options'] ?? array(),
+				'selected_files' => $files,
+				'sync_options'   => $params['sync_options'] ?? [],
+				'scan_options'   => $params['scan_options'] ?? [],
 				'request_id'     => '' === $request_id ? '' : 'restart:' . $id . ':' . $request_id,
 			)
 		);
@@ -808,6 +831,9 @@ class Media_Folder_Service {
 	private function error( $code, $status ) {
 		if ( 'invalid_path' === $code ) {
 			return new \WP_Error( 'rsl_ie_media_' . $code, __( 'Folder not found in the uploads directory. Enter a folder name relative to uploads (for example ftp-import) or pick one with Browse.', 'import-export-by-rockstarlab' ), array( 'status' => $status ) );
+		}
+		if ( 'empty_folder' === $code ) {
+			return new \WP_Error( 'rsl_ie_media_' . $code, __( 'The folder has no files that match the scan options of this job.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
 		}
 		if ( 'rml_unavailable' === $code ) {
 			return new \WP_Error( 'rsl_ie_media_' . $code, __( 'Real Media Library is unavailable. Activate the plugin or turn off Real Media Library integration and start sync again.', 'import-export-by-rockstarlab' ), array( 'status' => $status ) );

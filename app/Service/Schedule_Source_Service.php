@@ -87,8 +87,9 @@ class Schedule_Source_Service {
 		if ( Media_Folder_Service::supports( $job ) ) {
 			$folder    = new Media_Folder_Service();
 			$selection = ! empty( $params['all_files'] ) ? $params : json_decode( (string) $job->settings, true );
-			return $start ? $folder->restart( $id, $request_id ) : $folder->scan(
-				array(
+			// Each scheduled run scans the folder again, so files added after the source job are imported.
+			return $start ? $folder->restart( $id, $request_id, true ) : $folder->scan(
+				[
 					'folder_path' => $selection['folder_path'] ?? '',
 					'options'     => $selection['scan_options'] ?? array(),
 					'limit'       => 1,
