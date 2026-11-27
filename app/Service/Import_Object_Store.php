@@ -149,7 +149,7 @@ class Import_Object_Store {
 	 */
 	public static function stage_spreadsheet( $job, array $request, array &$parameters ) {
 		global $wpdb;
-		if ( ! self::supported() || ! in_array( $request['format'], [ 'xlsx', 'ods' ], true ) ) {
+		if ( ! self::supported() || ! in_array( $request['format'], array( 'xlsx', 'ods' ), true ) ) {
 			return self::error();
 		}
 		$table     = $wpdb->prefix . 'rsl_ie_import_objects';
@@ -161,7 +161,7 @@ class Import_Object_Store {
 			$state = $parameters['spreadsheet_index'] ?? Spreadsheet_Spool::create( $job->id, $request );
 			if ( isset( $state['build'] ) ) {
 				$state = Spreadsheet_Spool::advance( $job->id, $request, $state ); }
-			$batch  = [];
+			$batch  = array();
 			$bytes  = 0;
 			$done   = false;
 			$cursor = $state['cursor'];
@@ -170,7 +170,7 @@ class Import_Object_Store {
 				$path = Spreadsheet_Spool::path( $job->id );
 				if ( ! is_file( $path ) ) {
 					return self::error(); }
-				$reader = \RockStarLab\ImportExport\Model\Format\JSON_Row_Stream::rows( $path, [], $cursor );
+				$reader = \RockStarLab\ImportExport\Model\Format\JSON_Row_Stream::rows( $path, array(), $cursor );
 				$done   = true;
 				foreach ( $reader as $row ) {
 					$digest  = hash( 'sha256', $digest . wp_json_encode( $row ) );
@@ -190,7 +190,7 @@ class Import_Object_Store {
 			}
 			$started = true;
 			$fresh   = $wpdb->get_row( $wpdb->prepare( 'SELECT parameters,status FROM %i WHERE id=%d FOR UPDATE', $jobs, $job->id ) );
-			if ( ! $fresh || $fresh->parameters !== $job->parameters || ! in_array( $fresh->status, [ 'pending', 'processing' ], true ) ) {
+			if ( ! $fresh || $fresh->parameters !== $job->parameters || ! in_array( $fresh->status, array( 'pending', 'processing' ), true ) ) {
 				return self::error();
 			}
 			$count  = $state['count'];
@@ -200,21 +200,21 @@ class Import_Object_Store {
 			}
 			foreach ( $batch as $row ) {
 				$payload = wp_json_encode(
-					[
+					array(
 						'key'   => $count,
 						'value' => $row,
-					]
+					)
 				);
 				if ( ! is_array( $row ) || false === $payload || false === $wpdb->insert(
 					$table,
-					[
+					array(
 						'job_id'   => $job->id,
 						'ordinal'  => $count,
 						'key_hash' => hash( 'sha256', serialize( $count ) ),
 						'digest'   => hash( 'sha256', $payload ),
 						'payload'  => $payload,
-					],
-					[ '%d', '%d', '%s', '%s', '%s' ]
+					),
+					array( '%d', '%d', '%s', '%s', '%s' )
 				) ) {
 					return self::error();
 				}
@@ -227,7 +227,7 @@ class Import_Object_Store {
 			$next                      = $parameters;
 			$next['spreadsheet_index'] = $state;
 			$json                      = wp_json_encode( $next );
-			if ( false === $json || false === $wpdb->update( $jobs, [ 'parameters' => $json ], [ 'id' => $job->id ], [ '%s' ], [ '%d' ] ) || false === $wpdb->query( 'COMMIT' ) ) {
+			if ( false === $json || false === $wpdb->update( $jobs, array( 'parameters' => $json ), array( 'id' => $job->id ), array( '%s' ), array( '%d' ) ) || false === $wpdb->query( 'COMMIT' ) ) {
 				return self::error();
 			}
 			$committed  = true;
@@ -277,7 +277,7 @@ class Import_Object_Store {
 			}
 			// Recheck status in the mutation; active/paused/failed checkpoints must survive.
 			$deleted = 0;
-			foreach ( [ $table, $wpdb->prefix . 'rsl_ie_import_rows' ] as $storage ) {
+			foreach ( array( $table, $wpdb->prefix . 'rsl_ie_import_rows' ) as $storage ) {
 				$removed = $wpdb->query( $wpdb->prepare( "DELETE FROM %i WHERE job_id=%d AND EXISTS (SELECT 1 FROM %i j WHERE j.id=%d AND j.type='import' AND j.status='cancelled') LIMIT %d", $storage, $job_id, $jobs, $job_id, 100 - $deleted ) );
 				if ( false === $removed ) {
 					return false;
@@ -294,11 +294,11 @@ class Import_Object_Store {
 					unset( $params['spreadsheet_index']['build'] );
 					if ( false === $wpdb->update(
 						$jobs,
-						[ 'parameters' => wp_json_encode( $params ) ],
-						[
+						array( 'parameters' => wp_json_encode( $params ) ),
+						array(
 							'id'     => $job_id,
 							'status' => 'cancelled',
-						]
+						)
 					) ) {
 						return false; }
 				}

@@ -26,16 +26,16 @@ class Sync_ACF_Media_Fields {
 			$field,
 			static function ( $value, $field ) use ( $media_values ) {
 				$type = $field['type'] ?? '';
-				if ( $media_values && in_array( $type, [ 'image', 'file', 'gallery' ], true ) ) {
-					return 'gallery' === $type ? [] : 0;
+				if ( $media_values && in_array( $type, array( 'image', 'file', 'gallery' ), true ) ) {
+					return 'gallery' === $type ? array() : 0;
 				}
-				if ( in_array( $type, [ 'post_object', 'relationship', 'page_link' ], true ) ) {
+				if ( in_array( $type, array( 'post_object', 'relationship', 'page_link' ), true ) ) {
 					return wp_json_encode(
-						[
+						array(
 							'acf_type' => 'relation',
-							'values'   => [],
+							'values'   => array(),
 							'single'   => 'relationship' !== $type && empty( $field['multiple'] ),
-						]
+						)
 					);
 				}
 				return $value;
@@ -58,7 +58,7 @@ class Sync_ACF_Media_Fields {
 			return Migration_Sync_Maps::error();
 		}
 		$type = $field['type'] ?? '';
-		if ( ! in_array( $type, [ 'group', 'repeater', 'flexible_content' ], true ) ) {
+		if ( ! in_array( $type, array( 'group', 'repeater', 'flexible_content' ), true ) ) {
 			return call_user_func( $visitor, $value, $field );
 		}
 		$encoded = is_string( $value );
@@ -70,7 +70,7 @@ class Sync_ACF_Media_Fields {
 			if ( ! is_array( $parsed['value'] ?? null ) ) {
 				return Migration_Sync_Maps::error();
 			}
-			$parsed['value'] = self::row( $parsed['value'] ?? [], $field['sub_fields'] ?? [], $depth, $visitor );
+			$parsed['value'] = self::row( $parsed['value'] ?? array(), $field['sub_fields'] ?? array(), $depth, $visitor );
 			if ( is_wp_error( $parsed['value'] ) ) {
 				return $parsed['value'];
 			}
@@ -78,7 +78,7 @@ class Sync_ACF_Media_Fields {
 			if ( ! is_array( $parsed['rows'] ?? null ) ) {
 				return Migration_Sync_Maps::error();
 			}
-			$layouts = array_column( $field['layouts'] ?? [], null, 'name' );
+			$layouts = array_column( $field['layouts'] ?? array(), null, 'name' );
 			foreach ( $parsed['rows'] as &$row ) {
 				if ( ! is_array( $row ) || ( 'flexible_content' === $type && ( ! is_string( $row['layout'] ?? null ) || ! is_array( $row['value'] ?? null ) ) ) ) {
 					return Migration_Sync_Maps::error();
@@ -88,12 +88,12 @@ class Sync_ACF_Media_Fields {
 					if ( ! $layout ) {
 						return Migration_Sync_Maps::error();
 					}
-					$row['value'] = self::row( $row['value'], $layout['sub_fields'] ?? [], $depth, $visitor );
+					$row['value'] = self::row( $row['value'], $layout['sub_fields'] ?? array(), $depth, $visitor );
 					if ( is_wp_error( $row['value'] ) ) {
 						return $row['value'];
 					}
 				} else {
-					$row = self::row( $row, $field['sub_fields'] ?? [], $depth, $visitor );
+					$row = self::row( $row, $field['sub_fields'] ?? array(), $depth, $visitor );
 					if ( is_wp_error( $row ) ) {
 						return $row;
 					}
@@ -135,13 +135,13 @@ class Sync_ACF_Media_Fields {
 	 * @return true|\WP_Error
 	 */
 	public static function files( array $posts, $maps = null, $chunked = false ) {
-		$files = [];
+		$files = array();
 		foreach ( $posts as $post ) {
 			if ( 'attachment' === $post['post_type'] ) {
-				$files[] = [
-					'acf_post_types'        => [ $post['ID'] => 'attachment' ],
-					'acf_attachment_proofs' => [ $post['ID'] => $post['acf_object_file_proof'] ?? null ],
-				];
+				$files[] = array(
+					'acf_post_types'        => array( $post['ID'] => 'attachment' ),
+					'acf_attachment_proofs' => array( $post['ID'] => $post['acf_object_file_proof'] ?? null ),
+				);
 			}
 		}
 		return Sync_ACF_Attachments::verify( $files, $maps, $chunked );
@@ -154,11 +154,11 @@ class Sync_ACF_Media_Fields {
 	 * @return array|\WP_Error
 	 */
 	public static function definition( $name ) {
-		$found   = [];
-		$matched = array_column( acf_get_field_groups( [ 'attachment' => 'all' ] ), 'key' );
+		$found   = array();
+		$matched = array_column( acf_get_field_groups( array( 'attachment' => 'all' ) ), 'key' );
 		foreach ( acf_get_field_groups() as $group ) {
 			$eligible = in_array( $group['key'], $matched, true );
-			foreach ( (array) ( $group['location'] ?? [] ) as $rules ) {
+			foreach ( (array) ( $group['location'] ?? array() ) as $rules ) {
 				foreach ( $rules as $rule ) {
 					$eligible = $eligible || ( 'attachment' === ( $rule['param'] ?? '' ) && '==' === ( $rule['operator'] ?? '==' ) );
 				}
@@ -179,10 +179,10 @@ class Sync_ACF_Media_Fields {
 	public static function chunk_request( $id ) {
 		$request = Sync_ACF_Graph::request();
 		if ( ! $request ) {
-			return []; }
-		if ( array_diff( array_keys( $request ), [ 'acf_graph_hashes', 'acf_attachment_media_version' ] ) || ! is_string( $request['acf_graph_hashes'][ $id ] ?? null ) || ! preg_match( '/^[a-f0-9]{64}$/D', $request['acf_graph_hashes'][ $id ] ) ) {
+			return array(); }
+		if ( array_diff( array_keys( $request ), array( 'acf_graph_hashes', 'acf_attachment_media_version' ) ) || ! is_string( $request['acf_graph_hashes'][ $id ] ?? null ) || ! preg_match( '/^[a-f0-9]{64}$/D', $request['acf_graph_hashes'][ $id ] ) ) {
 			return Migration_Sync_Maps::error(); }
-		$request['acf_graph_hashes'] = [ $id => $request['acf_graph_hashes'][ $id ] ];
+		$request['acf_graph_hashes'] = array( $id => $request['acf_graph_hashes'][ $id ] );
 		return $request;
 	}
 
@@ -194,17 +194,17 @@ class Sync_ACF_Media_Fields {
 	 * @return true|\WP_Error
 	 */
 	public static function source( array $ids, $hashes ) {
-		$posts = [];
+		$posts = array();
 		foreach ( $ids as $id ) {
-			$meta = [];
+			$meta = array();
 			foreach ( get_post_meta( $id ) as $key => $values ) {
 				$meta[ $key ] = maybe_unserialize( $values[0] );
 			}
-			$posts[] = [
+			$posts[] = array(
 				'ID'        => (int) $id,
 				'post_type' => 'attachment',
 				'meta'      => $meta,
-			];
+			);
 		}
 		$result = Sync_ACF_Graph::strip( $posts, $hashes );
 		return is_wp_error( $result ) ? $result : true;
@@ -226,11 +226,11 @@ class Sync_ACF_Media_Fields {
 			return Migration_Sync_Maps::error();
 		}
 		foreach ( $items as $item ) {
-			if ( ! is_array( $item ) || ! is_array( $item['acf'] ?? [] ) ) {
+			if ( ! is_array( $item ) || ! is_array( $item['acf'] ?? array() ) ) {
 				return Migration_Sync_Maps::error();
 			}
 		}
-		$seen = [];
+		$seen = array();
 		foreach ( $items as $item ) {
 			$id = $item['attachment_id'] ?? 0;
 			if ( ! is_int( $id ) || $id < 1 || isset( $seen[ $id ] ) || ! is_string( $hashes[ $id ] ?? null ) || ! preg_match( '/^[a-f0-9]{64}$/D', $hashes[ $id ] ) ) {
@@ -249,7 +249,7 @@ class Sync_ACF_Media_Fields {
 	 * @return true|\WP_Error
 	 */
 	public static function unique_targets( array $snapshots, array $maps ) {
-		$seen = [];
+		$seen = array();
 		foreach ( Migration_Snapshot_Store::iterate( $snapshots ) as $posts ) {
 			if ( is_wp_error( $posts ) ) {
 				return $posts; }

@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
 
 /** Preflight whole selections and never accept file paths from a peer. */
 class Media_Library_Sync_Service {
-	private static $active_svg_transfers = [];
+	private static $active_svg_transfers = array();
 	/** Whether this request generates at most one missing image size. */
 	private $bounded_metadata = false;
 	private $metadata_pending = false;
@@ -46,27 +46,27 @@ class Media_Library_Sync_Service {
 	 * @param array  $confirmed_ids Server-owned completed sources; never caller input.
 	 * @return true|\WP_Error
 	 */
-	public function preflight( $action, array $input, $chunked = false, array $confirmed_ids = [] ) {
+	public function preflight( $action, array $input, $chunked = false, array $confirmed_ids = array() ) {
 		$access = $this->authorize();
 		if ( is_wp_error( $access ) ) {
 			return $access;
 		}
 		$definition = Media_Library_Catalog::definitions()[ 'sync-media-' . $action ] ?? null;
-		if ( ! $definition || ! in_array( $action, [ 'push', 'pull' ], true ) ) {
+		if ( ! $definition || ! in_array( $action, array( 'push', 'pull' ), true ) ) {
 			return $this->error( 'invalid_action', 400 );
 		}
 		$valid = rest_validate_value_from_schema( $input, $definition['input'], 'input' );
 		if ( is_wp_error( $valid ) ) {
-			$valid->add_data( [ 'status' => 400 ] );
+			$valid->add_data( array( 'status' => 400 ) );
 			return $valid;
 		}
-		if ( isset( $input['author_mapping'] ) && is_wp_error( Sync_Media_Authors::run( 'authorize', [] ) ) ) {
+		if ( isset( $input['author_mapping'] ) && is_wp_error( Sync_Media_Authors::run( 'authorize', array() ) ) ) {
 			return Migration_Sync_Maps::error();
 		}
-		if ( isset( $input['acf_user_mapping'] ) && is_wp_error( Sync_ACF_Media_Users::run( 'authorize', [] ) ) ) {
+		if ( isset( $input['acf_user_mapping'] ) && is_wp_error( Sync_ACF_Media_Users::run( 'authorize', array() ) ) ) {
 			return Migration_Sync_Maps::error();
 		}
-		if ( isset( $input['acf_term_mapping'] ) && is_wp_error( Sync_ACF_Media_Terms::run( 'authorize', [] ) ) ) {
+		if ( isset( $input['acf_term_mapping'] ) && is_wp_error( Sync_ACF_Media_Terms::run( 'authorize', array() ) ) ) {
 			return Migration_Sync_Maps::error();
 		}
 		$files = 'push' === $action ? $this->selected_files( $chunked ? array_values( array_diff( $input['media_ids'], $confirmed_ids ) ) : $input['media_ids'], ! $chunked ) : true;
@@ -80,7 +80,7 @@ class Media_Library_Sync_Service {
 	 * @return array|\WP_Error
 	 */
 	private function selected_files( array $ids, $inline = true ) {
-		$files = [];
+		$files = array();
 		$total = 0;
 		foreach ( $ids as $id ) {
 			if ( 'attachment' !== get_post_type( $id ) || ! current_user_can( 'read_post', $id ) || ! current_user_can( 'edit_post', $id ) ) {
@@ -121,12 +121,12 @@ class Media_Library_Sync_Service {
 			$after  = fstat( $stream );
 			if ( $before['size'] < 1 || $read !== $before['size'] || $before['size'] !== $after['size'] || $before['mtime'] !== $after['mtime'] || $before['ctime'] !== $after['ctime'] ) {
 				return $this->error( 'source_changed', 409 ); }
-			return [
+			return array(
 				'attachment_id' => $attachment_id,
 				'file_name'     => $name,
 				'size'          => $read,
 				'sha256'        => hash_final( $hash ),
-			];
+			);
 		} finally {
 			fclose( $stream ); }
 	}
@@ -189,11 +189,11 @@ class Media_Library_Sync_Service {
 			$bytes  = fread( $stream, $length );
 			if ( false === $bytes || strlen( $bytes ) !== $length ) {
 				return $this->error( 'source_changed', 409 ); }
-			return [
+			return array(
 				'offset'      => $offset,
 				'next_offset' => $offset + $length,
 				'data'        => base64_encode( $bytes ),
-			];
+			);
 		} finally {
 			fclose( $stream ); }
 	}
@@ -210,17 +210,17 @@ class Media_Library_Sync_Service {
 			return $access; }
 		if ( ! $ids ) {
 			return $this->error( 'size_limit', 413 ); }
-		$batches = [];
-		$batch   = [];
+		$batches = array();
+		$batch   = array();
 		$total   = 0;
 		foreach ( $ids as $id ) {
-			$files = $this->selected_files( [ $id ], ! $chunked );
+			$files = $this->selected_files( array( $id ), ! $chunked );
 			if ( is_wp_error( $files ) ) {
 				return $files; }
 			$size = filesize( $files[ $id ] );
 			if ( $batch && ( count( $batch ) >= 50 || ( ! $chunked && $total + $size > self::BATCH_LIMIT ) ) ) {
 				$batches[] = $batch;
-				$batch     = [];
+				$batch     = array();
 				$total     = 0;
 			}
 			$batch[] = $id;
@@ -246,7 +246,7 @@ class Media_Library_Sync_Service {
 			return $this->error( 'invalid_action', 400 ); }
 		$valid = rest_validate_value_from_schema( $input, $definition['input'], 'input' );
 		if ( is_wp_error( $valid ) ) {
-			$valid->add_data( [ 'status' => 400 ] );
+			$valid->add_data( array( 'status' => 400 ) );
 			return $valid; }
 		$input = rest_sanitize_value_from_schema( $input, $definition['input'] );
 		$lock  = Job_Lock::acquire_resource( 'connection', $input['site_id'] );
@@ -254,14 +254,14 @@ class Media_Library_Sync_Service {
 			return $this->error( 'connection_busy', 409 ); }
 		try {
 			$site = Connected_Site::get_by_id( $input['site_id'] );
-			if ( ! $site || 'active' !== $site['status'] || ( 'browse' !== $action && ! in_array( $site['direction'], [ $action, 'bidirectional' ], true ) ) ) {
+			if ( ! $site || 'active' !== $site['status'] || ( 'browse' !== $action && ! in_array( $site['direction'], array( $action, 'bidirectional' ), true ) ) ) {
 				return $this->error( 'connection_unavailable', 409 ); }
 			$guard = apply_filters( 'rsl_ie_sync_connection_guard', true, $site );
 			if ( is_wp_error( $guard ) ) {
 				return $guard;
 			}
 			unset( $input['site_id'] );
-			if ( in_array( $action, [ 'push', 'pull' ], true ) ) {
+			if ( in_array( $action, array( 'push', 'pull' ), true ) ) {
 				return ( new Media_Chunk_Transfer() )->execute( $action, $site, $input );
 			}
 			if ( 'browse' === $action ) {
@@ -295,33 +295,33 @@ class Media_Library_Sync_Service {
 			return $access; }
 		$schema = Media_Library_Catalog::definitions()['sync-media-browse']['input'];
 		unset( $schema['properties']['site_id'] );
-		$schema['required'] = [];
+		$schema['required'] = array();
 		$valid              = rest_validate_value_from_schema( $input, $schema, 'input' );
 		if ( is_wp_error( $valid ) ) {
-			$valid->add_data( [ 'status' => 400 ] );
+			$valid->add_data( array( 'status' => 400 ) );
 			return $valid; }
 		$input = rest_sanitize_value_from_schema( $input, $schema );
 		$page  = (int) ( $input['page'] ?? 1 );
 		$query = new \WP_Query(
-			[
-				'post_type'      => 'attachment',
-				'post_status'    => 'inherit',
-				'posts_per_page' => $input['per_page'] ?? 60,
-				'paged'          => $page,
-				's'              => $input['search'] ?? '',
-				'orderby'        => [
+			array(
+				'post_type'              => 'attachment',
+				'post_status'            => 'inherit',
+				'posts_per_page'         => $input['per_page'] ?? 60,
+				'paged'                  => $page,
+				's'                      => $input['search'] ?? '',
+				'orderby'                => array(
 					'date' => 'DESC',
 					'ID'   => 'DESC',
-				],
+				),
 				// Lets a multilingual add-on leave out the language copies of a file.
 				'rsl_ie_media_originals' => true,
-			]
+			)
 		);
-		$media = [];
+		$media = array();
 		foreach ( $query->posts as $post ) {
 			if ( ! current_user_can( 'read_post', $post->ID ) ) {
 				return $this->error( 'attachment_forbidden', 403 ); }
-			$media[] = [
+			$media[] = array(
 				'ID'            => (int) $post->ID,
 				'title'         => (string) $post->post_title,
 				'url'           => (string) wp_get_attachment_url( $post->ID ),
@@ -330,14 +330,14 @@ class Media_Library_Sync_Service {
 				'mime_type'     => (string) $post->post_mime_type,
 				'file_name'     => basename( (string) get_attached_file( $post->ID ) ),
 				'date'          => (string) $post->post_date,
-			];
+			);
 		}
-		return [
+		return array(
 			'media'        => $media,
 			'total'        => (int) $query->found_posts,
 			'pages'        => (int) $query->max_num_pages,
 			'current_page' => $page,
-		];
+		);
 	}
 
 	/**
@@ -362,7 +362,7 @@ class Media_Library_Sync_Service {
 			return $snapshot; }
 		if ( ! $snapshot['ready'] ) {
 			return $this->error( 'snapshot_incomplete', 409 ); }
-		if ( ( $input['media_ids'] ?? null ) !== [ $snapshot['attachment_id'] ] ) {
+		if ( ( $input['media_ids'] ?? null ) !== array( $snapshot['attachment_id'] ) ) {
 			return $this->error( 'invalid_payload', 400 ); }
 		$payload = $this->prepare_chunk_media( $input );
 		if ( is_wp_error( $payload ) ) {
@@ -371,18 +371,18 @@ class Media_Library_Sync_Service {
 		if ( $item['file_size'] !== $snapshot['size'] || $item['file_sha256'] !== $snapshot['sha256'] || $item['file_name'] !== $snapshot['file_name'] ) {
 			return $this->error( 'source_changed', 409 ); }
 		// Providers run before the main manifest; reject proofs from different source bytes.
-		foreach ( [
-			'media_authors'        => [ 'records', 'attachment_id', 'file' ],
-			'acf_attachment_users' => [ 'posts', 'ID', 'acf_object_file_proof' ],
-			'acf_attachment_terms' => [ 'posts', 'ID', 'acf_object_file_proof' ],
-		] as $key => $fields ) {
+		foreach ( array(
+			'media_authors'        => array( 'records', 'attachment_id', 'file' ),
+			'acf_attachment_users' => array( 'posts', 'ID', 'acf_object_file_proof' ),
+			'acf_attachment_terms' => array( 'posts', 'ID', 'acf_object_file_proof' ),
+		) as $key => $fields ) {
 			if ( ! isset( $payload[ $key ] ) ) {
 				continue; }
 			$records = $payload[ $key ][ $fields[0] ] ?? null;
 			if ( ! is_array( $records ) || 1 !== count( $records ) ) {
 				return $this->error( 'source_changed', 409 ); }
 			$record = reset( $records );
-			$proof  = $record[ $fields[2] ] ?? [];
+			$proof  = $record[ $fields[2] ] ?? array();
 			if ( ( $record[ $fields[1] ] ?? null ) !== $snapshot['attachment_id'] || ( $proof['size'] ?? null ) !== $snapshot['size'] || ( $proof['sha256'] ?? null ) !== $snapshot['sha256'] ) {
 				return $this->error( 'source_changed', 409 ); }
 		}
@@ -404,21 +404,21 @@ class Media_Library_Sync_Service {
 			return $access; }
 		$schema = Media_Library_Catalog::definitions()['sync-media-push']['input'];
 		unset( $schema['properties']['site_id'] );
-		$schema['required'] = [ 'media_ids' ];
+		$schema['required'] = array( 'media_ids' );
 		$valid              = rest_validate_value_from_schema( $input, $schema, 'input' );
 		if ( is_wp_error( $valid ) ) {
-			$valid->add_data( [ 'status' => 400 ] );
+			$valid->add_data( array( 'status' => 400 ) );
 			return $valid; }
 		$input   = rest_sanitize_value_from_schema( $input, $schema );
-		$authors = isset( $input['author_mapping'] ) ? Sync_Media_Authors::run( $chunked ? 'export_staged' : 'export', $input ) : [];
+		$authors = isset( $input['author_mapping'] ) ? Sync_Media_Authors::run( $chunked ? 'export_staged' : 'export', $input ) : array();
 		if ( is_wp_error( $authors ) ) {
 			return $authors;
 		}
-		$users = isset( $input['acf_user_mapping'] ) ? Sync_ACF_Media_Users::run( $chunked ? 'export_staged' : 'export', $input ) : [];
+		$users = isset( $input['acf_user_mapping'] ) ? Sync_ACF_Media_Users::run( $chunked ? 'export_staged' : 'export', $input ) : array();
 		if ( is_wp_error( $users ) ) {
 			return $users;
 		}
-		$terms = isset( $input['acf_term_mapping'] ) ? Sync_ACF_Media_Terms::run( $chunked ? 'export_staged' : 'export', $input ) : [];
+		$terms = isset( $input['acf_term_mapping'] ) ? Sync_ACF_Media_Terms::run( $chunked ? 'export_staged' : 'export', $input ) : array();
 		if ( is_wp_error( $terms ) ) {
 			return $terms;
 		}
@@ -426,30 +426,30 @@ class Media_Library_Sync_Service {
 		if ( is_wp_error( $files ) ) {
 			return $files;
 		}
-		$media = [];
+		$media = array();
 		$total = 0;
 		foreach ( $files as $id => $path ) {
 			if ( $chunked ) {
 				$manifest = $this->source_manifest( (int) $id );
 				if ( is_wp_error( $manifest ) ) {
 					return $manifest; }
-				$binary = [
+				$binary = array(
 					'file_size'   => $manifest['size'],
 					'file_sha256' => $manifest['sha256'],
-				];
+				);
 			} else {
 				$bytes  = file_get_contents( $path, false, null, 0, self::FILE_LIMIT + 1 ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Bounded local uploads file.
 				$total += strlen( (string) $bytes );
 				if ( false === $bytes || '' === $bytes || strlen( $bytes ) > self::FILE_LIMIT || $total > self::BATCH_LIMIT ) {
 					return $this->error( 'size_limit', 413 ); }
-				$binary = [
+				$binary = array(
 					'file_data' => base64_encode( $bytes ),
 					'file_hash' => md5( $bytes ),
-				];
+				);
 			}
 
 			$post = get_post( $id );
-			$acf  = [];
+			$acf  = array();
 			foreach ( ACF_Fields::get_fields_for_content_type( 'media' ) as $field ) {
 				$acf[ $field['name'] ] = ACF_Fields::export_value( 'media', $id, $field['name'] ); }
 			/**
@@ -458,29 +458,33 @@ class Media_Library_Sync_Service {
 			 * @param array $item          Payload item.
 			 * @param int   $attachment_id Attachment.
 			 */
-			$media[] = (array) apply_filters( 'rsl_ie_media_sync_item', [
-				'attachment_id'               => (int) $id,
-				'file_name'                   => basename( $path ),
-				'source_origin_attachment_id' => absint( get_post_meta( $id, '_rsl_ie_original_attachment_id', true ) ),
-				'title'                       => $post->post_title,
-				'alt_text'                    => (string) get_post_meta( $id, '_wp_attachment_image_alt', true ),
-				'caption'                     => $post->post_excerpt,
-				'description'                 => ACF_Fields::export_string_with_media_shortcode_tokens( $post->post_content ),
-				'acf'                         => $acf,
-			] + $binary, (int) $id );
+			$media[] = (array) apply_filters(
+				'rsl_ie_media_sync_item',
+				array(
+					'attachment_id'               => (int) $id,
+					'file_name'                   => basename( $path ),
+					'source_origin_attachment_id' => absint( get_post_meta( $id, '_rsl_ie_original_attachment_id', true ) ),
+					'title'                       => $post->post_title,
+					'alt_text'                    => (string) get_post_meta( $id, '_wp_attachment_image_alt', true ),
+					'caption'                     => $post->post_excerpt,
+					'description'                 => ACF_Fields::export_string_with_media_shortcode_tokens( $post->post_content ),
+					'acf'                         => $acf,
+				) + $binary,
+				(int) $id
+			);
 		}
 		if ( null !== $graph_hashes ) {
 			$check = Sync_ACF_Media_Fields::source( $input['media_ids'], $graph_hashes );
 			if ( is_wp_error( $check ) ) {
 				return $check;
 			}
-			return [
+			return array(
 				'media'                    => $media,
 				'acf_media_fields_version' => 1,
 				'acf_graph_hashes'         => $graph_hashes,
-			] + ( 1 === $media_version ? [ 'acf_attachment_media_version' => 1 ] : [] ) + $users + $terms + $authors;
+			) + ( 1 === $media_version ? array( 'acf_attachment_media_version' => 1 ) : array() ) + $users + $terms + $authors;
 		}
-		return [ 'media' => $media ] + $users + $terms + $authors;
+		return array( 'media' => $media ) + $users + $terms + $authors;
 	}
 
 	/**
@@ -495,18 +499,18 @@ class Media_Library_Sync_Service {
 
 	/** Shared relationship preparation/finalization; staged bytes remain server-resolved. */
 	private function receive_media_payload( array $input, $verified_file = null, $defer_fields = false ) {
-		$authors = array_key_exists( 'media_authors', $input ) ? Sync_Media_Authors::run( null !== $verified_file ? 'prepare_staged' : 'prepare', $input, $verified_file ?? [] ) : null;
+		$authors = array_key_exists( 'media_authors', $input ) ? Sync_Media_Authors::run( null !== $verified_file ? 'prepare_staged' : 'prepare', $input, $verified_file ?? array() ) : null;
 		if ( is_wp_error( $authors ) ) {
 			return $authors;
 		}
-		$users = isset( $input['acf_attachment_users'] ) ? Sync_ACF_Media_Users::run( null !== $verified_file ? 'prepare_staged' : 'prepare', $input, $verified_file ?? [] ) : null;
+		$users = isset( $input['acf_attachment_users'] ) ? Sync_ACF_Media_Users::run( null !== $verified_file ? 'prepare_staged' : 'prepare', $input, $verified_file ?? array() ) : null;
 		if ( is_wp_error( $users ) ) {
 			return $users;
 		}
 		if ( null !== $users ) {
 			$input = $users['input'];
 		}
-		$terms = isset( $input['acf_attachment_terms'] ) ? Sync_ACF_Media_Terms::run( null !== $verified_file ? 'prepare_staged' : 'prepare', $input, $verified_file ?? [] ) : null;
+		$terms = isset( $input['acf_attachment_terms'] ) ? Sync_ACF_Media_Terms::run( null !== $verified_file ? 'prepare_staged' : 'prepare', $input, $verified_file ?? array() ) : null;
 		if ( is_wp_error( $terms ) ) {
 			return $terms;
 		}
@@ -524,9 +528,9 @@ class Media_Library_Sync_Service {
 			if ( is_wp_error( $check ) ) {
 				return $check;
 			}
-			$resolved = [];
+			$resolved = array();
 			foreach ( $input['media'] as &$item ) {
-				foreach ( (array) ( $item['acf'] ?? [] ) as $name => $value ) {
+				foreach ( (array) ( $item['acf'] ?? array() ) as $name => $value ) {
 					$field = $resolved[ $name ] ?? ( isset( $definitions[ $name ] ) ? Sync_ACF_Media_Fields::definition( $name ) : Migration_Sync_Maps::error() );
 					if ( is_wp_error( $field ) ) {
 						return $field;
@@ -542,7 +546,7 @@ class Media_Library_Sync_Service {
 		}
 		$result = $this->receive_items( $input, null !== $verified_file, $defer_fields, $verified_file );
 		if ( is_array( $result ) && ! empty( $verified_file['transfer_id'] ) ) {
-			foreach ( $result['items'] ?? [] as $item ) {
+			foreach ( $result['items'] ?? array() as $item ) {
 				self::$active_svg_transfers[ $item['attachment_id'] ] = $verified_file['transfer_id'];
 			}
 		}
@@ -594,20 +598,20 @@ class Media_Library_Sync_Service {
 	 */
 	public function receive_file( array $input, $defer_fields = false ) {
 		$input['attachment_id'] = $input['source_attachment_id'] ?? 0;
-		return $this->receive_items( [ 'media' => [ $input ] ], true, $defer_fields );
+		return $this->receive_items( array( 'media' => array( $input ) ), true, $defer_fields );
 	}
 
 	/** Receive an owner-scoped staged file; filesystem paths never come from input. */
-	public function receive_staged_file( $transfer_id, array $input, $credential_scope = 'local', $defer_fields = false, array $envelope = [], $bounded_metadata = false ) {
+	public function receive_staged_file( $transfer_id, array $input, $credential_scope = 'local', $defer_fields = false, array $envelope = array(), $bounded_metadata = false ) {
 		$access = $this->authorize();
 		if ( is_wp_error( $access ) ) {
 			return $access; }
 		$this->bounded_metadata = (bool) $bounded_metadata;
 		$this->metadata_pending = false;
-		$envelope_fields        = [ 'media_authors', 'acf_attachment_users', 'acf_attachment_terms', 'acf_media_fields_version', 'acf_graph_hashes', 'acf_attachment_media_version' ];
+		$envelope_fields        = array( 'media_authors', 'acf_attachment_users', 'acf_attachment_terms', 'acf_media_fields_version', 'acf_graph_hashes', 'acf_attachment_media_version' );
 		if ( array_diff( array_keys( $envelope ), $envelope_fields ) || ( $defer_fields && $envelope ) ) {
 			return $this->error( 'invalid_payload', 400 ); }
-		$allowed = [ 'source_attachment_id', 'source_origin_attachment_id', 'title', 'alt_text', 'caption', 'description', 'acf', 'force_unique', 'pll', 'upload_subdir' ];
+		$allowed = array( 'source_attachment_id', 'source_origin_attachment_id', 'title', 'alt_text', 'caption', 'description', 'acf', 'force_unique', 'pll', 'upload_subdir' );
 		if ( array_diff( array_keys( $input ), $allowed ) ) {
 			return $this->error( 'invalid_payload', 400 ); }
 		if ( ! File_Store::valid_id( $transfer_id ) ) {
@@ -637,11 +641,11 @@ class Media_Library_Sync_Service {
 					return $valid; }
 				$bound = Media_Chunk_Store::bind_finalization(
 					$transfer_id,
-					[
+					array(
 						'item'         => $input,
 						'defer_fields' => (bool) $defer_fields,
 						'envelope'     => $envelope,
-					],
+					),
 					$credential_scope
 				);
 				if ( is_wp_error( $bound ) ) {
@@ -656,13 +660,13 @@ class Media_Library_Sync_Service {
 					if ( ! current_user_can( 'read_post', $attachment_id ) || ! current_user_can( 'edit_post', $attachment_id ) ) {
 						return $this->error( 'attachment_forbidden', 403 ); }
 					// A saved success does not preserve a revoked provider entitlement or mapping permission.
-					foreach ( [
+					foreach ( array(
 						'media_authors'        => Sync_Media_Authors::class,
 						'acf_attachment_users' => Sync_ACF_Media_Users::class,
 						'acf_attachment_terms' => Sync_ACF_Media_Terms::class,
-					] as $key => $provider ) {
+					) as $key => $provider ) {
 						if ( array_key_exists( $key, $envelope ) ) {
-							$authorized = $provider::run( 'prepare_staged', [ 'media' => [ $input ] ] + $envelope, $file );
+							$authorized = $provider::run( 'prepare_staged', array( 'media' => array( $input ) ) + $envelope, $file );
 							if ( is_wp_error( $authorized ) ) {
 								return $authorized; }
 						}
@@ -670,7 +674,7 @@ class Media_Library_Sync_Service {
 					return $completed;
 				}
 				$file['transfer_id'] = $transfer_id;
-				$result              = $this->receive_media_payload( [ 'media' => [ $input ] ] + $envelope, $file, $defer_fields );
+				$result              = $this->receive_media_payload( array( 'media' => array( $input ) ) + $envelope, $file, $defer_fields );
 				if ( is_wp_error( $result ) || ! empty( $result['pending'] ) || $result['failed'] ) {
 					return $result; }
 				return Media_Chunk_Store::finalization_result( $transfer_id, $credential_scope, $result );
@@ -679,7 +683,7 @@ class Media_Library_Sync_Service {
 					wp_delete_file( $file['path'] ); }
 			}
 		} finally {
-			self::$active_svg_transfers = [];
+			self::$active_svg_transfers = array();
 			Job_Lock::release( $finalize_lock ); }
 	}
 
@@ -712,7 +716,7 @@ class Media_Library_Sync_Service {
 		$items = $input['media'] ?? null;
 		if ( ! is_array( $items ) || ! $items || count( $items ) > 50 ) {
 			return $this->error( 'invalid_selection', 400 ); }
-		$seen   = [];
+		$seen   = array();
 		$total  = 0;
 		$fields = array_column( ACF_Fields::get_fields_for_content_type( 'media' ), 'name' );
 		foreach ( $items as &$item ) {
@@ -743,19 +747,19 @@ class Media_Library_Sync_Service {
 			if ( is_wp_error( $recovered ) ) {
 				return $recovered; }
 			if ( $this->metadata_pending ) {
-				return [ 'pending' => true ];
+				return array( 'pending' => true );
 			}
 			foreach ( $items as $item ) {
 				$existing = $recovered ?: $this->duplicate( $item, $content_sync, $verified_file );
 				if ( is_wp_error( $existing ) ) {
 					return $existing; }
 			}
-			$result = [
+			$result = array(
 				'created' => 0,
 				'skipped' => 0,
 				'failed'  => 0,
-				'items'   => [],
-			];
+				'items'   => array(),
+			);
 			foreach ( $items as $item ) {
 				$id     = 0;
 				$status = 'failed';
@@ -769,7 +773,7 @@ class Media_Library_Sync_Service {
 							$id   = 0;
 							$code = 'import_failed'; } else {
 							if ( $this->metadata_pending ) {
-								return [ 'pending' => true ];
+								return array( 'pending' => true );
 							}
 							// The copy made by an earlier sync of this same file follows the source's
 							// title, alt text, caption and description. Other attachments that only
@@ -791,46 +795,46 @@ class Media_Library_Sync_Service {
 							$on_made  = static function () use ( &$made_new ) {
 								$made_new = true;
 							};
-							add_action( 'rsl_ie_media_sync_attachment_created', $on_made );
-							try {
-								$id = (int) apply_filters( 'rsl_ie_media_sync_received', (int) $id, $item, (bool) $content_sync );
-							} finally {
-								remove_action( 'rsl_ie_media_sync_attachment_created', $on_made );
-							}
-							if ( $existing && $content_sync && ! $recovered ) {
-								$before_metadata = wp_get_attachment_metadata( $id );
-								$size_filter     = $this->image_size_filter();
-								add_filter( 'intermediate_image_sizes_advanced', $size_filter, PHP_INT_MAX, 2 );
-								add_filter( 'wp_get_missing_image_subsizes', $size_filter, PHP_INT_MAX, 2 );
+								add_action( 'rsl_ie_media_sync_attachment_created', $on_made );
 								try {
-									\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $id );
+									$id = (int) apply_filters( 'rsl_ie_media_sync_received', (int) $id, $item, (bool) $content_sync );
 								} finally {
-									remove_filter( 'intermediate_image_sizes_advanced', $size_filter, PHP_INT_MAX );
-									remove_filter( 'wp_get_missing_image_subsizes', $size_filter, PHP_INT_MAX );
+									remove_action( 'rsl_ie_media_sync_attachment_created', $on_made );
 								}
-								if ( $this->pending_image_sizes( $id ) ) {
-									if ( $before_metadata === wp_get_attachment_metadata( $id ) ) {
-										return $this->error( 'image_size_failed', 500 );
+								if ( $existing && $content_sync && ! $recovered ) {
+									$before_metadata = wp_get_attachment_metadata( $id );
+									$size_filter     = $this->image_size_filter();
+									add_filter( 'intermediate_image_sizes_advanced', $size_filter, PHP_INT_MAX, 2 );
+									add_filter( 'wp_get_missing_image_subsizes', $size_filter, PHP_INT_MAX, 2 );
+									try {
+										\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $id );
+									} finally {
+										remove_filter( 'intermediate_image_sizes_advanced', $size_filter, PHP_INT_MAX );
+										remove_filter( 'wp_get_missing_image_subsizes', $size_filter, PHP_INT_MAX );
 									}
-									return [ 'pending' => true ];
+									if ( $this->pending_image_sizes( $id ) ) {
+										if ( $before_metadata === wp_get_attachment_metadata( $id ) ) {
+											return $this->error( 'image_size_failed', 500 );
+										}
+										return array( 'pending' => true );
+									}
 								}
-							}
-							foreach ( $defer_fields ? [] : ( $item['acf'] ?? [] ) as $name => $value ) {
-								ACF_Fields::import_value( 'media', $id, $name, $value ); }
-							// Continuing this transfer's own attachment is still a creation, not a duplicate.
-							// A new attachment made for the same file (Polylang media translation) is a creation too.
-							$status = $existing && ! $recovered && ! $made_new ? 'skipped' : 'created';
+								foreach ( $defer_fields ? array() : ( $item['acf'] ?? array() ) as $name => $value ) {
+									ACF_Fields::import_value( 'media', $id, $name, $value ); }
+								// Continuing this transfer's own attachment is still a creation, not a duplicate.
+								// A new attachment made for the same file (Polylang media translation) is a creation too.
+								$status = $existing && ! $recovered && ! $made_new ? 'skipped' : 'created';
 							}
 						}
 				} catch ( \Throwable $exception ) {
 					$code = 'import_interrupted'; }
 				++$result[ $status ];
-				$result['items'][] = [
+				$result['items'][] = array(
 					'source_id'     => (int) $item['attachment_id'],
 					'attachment_id' => (int) $id,
 					'status'        => $status,
 					'error_code'    => $code,
-				];
+				);
 			}
 			return $result;
 		} finally {
@@ -842,15 +846,15 @@ class Media_Library_Sync_Service {
 		$name = sanitize_file_name( $item['file_name'] );
 		if ( '' === $name || $name !== $item['file_name'] || ! wp_check_filetype( $name, Sync_SVG::mimes() )['type'] ) {
 			return $this->error( 'invalid_file_type', 400 ); }
-		foreach ( [ 'title', 'alt_text', 'caption', 'description' ] as $key ) {
+		foreach ( array( 'title', 'alt_text', 'caption', 'description' ) as $key ) {
 			if ( isset( $item[ $key ] ) && ! is_string( $item[ $key ] ) ) {
 				return $this->error( 'invalid_payload', 400 ); }
 		}
 		if ( isset( $item['source_origin_attachment_id'] ) && ( ! is_scalar( $item['source_origin_attachment_id'] ) || ! ctype_digit( (string) $item['source_origin_attachment_id'] ) ) ) {
 			return $this->error( 'invalid_payload', 400 ); }
-		if ( isset( $item['pll'] ) && ( ! is_array( $item['pll'] ) || ! is_string( $item['pll']['lang'] ?? null ) || ! is_array( $item['pll']['translations'] ?? [] ) ) ) {
+		if ( isset( $item['pll'] ) && ( ! is_array( $item['pll'] ) || ! is_string( $item['pll']['lang'] ?? null ) || ! is_array( $item['pll']['translations'] ?? array() ) ) ) {
 			return $this->error( 'invalid_payload', 400 ); }
-		$acf = $item['acf'] ?? [];
+		$acf = $item['acf'] ?? array();
 		if ( ! is_array( $acf ) || preg_grep( '/^_|[^A-Za-z0-9_-]/', array_map( 'strval', array_keys( $acf ) ) ) ) {
 			return $this->error( 'unknown_acf_fields', 400 ); }
 		// ACF fields that this site does not have for media are left out. Rejecting the
@@ -869,7 +873,7 @@ class Media_Library_Sync_Service {
 	 * @return int|\WP_Error Existing attachment or zero.
 	 */
 	private function duplicate( array $item, $content_sync = false, $verified_file = null ) {
-		$excluded  = [];
+		$excluded  = array();
 		$algorithm = isset( $item['file_data'] ) ? 'sha256' : 'md5';
 		$digest    = isset( $item['file_data'] ) ? hash( 'sha256', base64_decode( $item['file_data'], true ) ) : strtolower( $item['file_hash'] ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions -- Validated binary media transport.
 		// Only server-resolved staging metadata may bypass the inline byte bound.
@@ -883,30 +887,30 @@ class Media_Library_Sync_Service {
 			$expected_size = $item['file_size'];
 		}
 		if ( $content_sync ) {
-			$candidates = ! empty( $item['source_origin_attachment_id'] ) ? [ (int) $item['source_origin_attachment_id'] ] : [];
+			$candidates = ! empty( $item['source_origin_attachment_id'] ) ? array( (int) $item['source_origin_attachment_id'] ) : array();
 			if ( ! empty( $item['attachment_id'] ) ) {
 				$candidates = array_merge(
 					$candidates,
 					get_posts(
-						[
+						array(
 							'post_type'      => 'attachment',
 							'post_status'    => 'inherit',
 							'posts_per_page' => 10,
 							'fields'         => 'ids',
 							'orderby'        => 'ID',
 							'order'          => 'ASC',
-							'meta_query'     => [
+							'meta_query'     => array(
 								'relation' => 'OR',
-								[
+								array(
 									'key'   => '_rsl_ie_original_attachment_id',
 									'value' => $item['attachment_id'],
-								],
-								[
+								),
+								array(
 									'key'   => '_rsl_ie_source_attachment_id',
 									'value' => $item['attachment_id'],
-								],
-							], // phpcs:ignore WordPress.DB.SlowDBQuery -- Bounded source identity lookup.
-						]
+								),
+							), // phpcs:ignore WordPress.DB.SlowDBQuery -- Bounded source identity lookup.
+						)
 					)
 				);
 			}
@@ -928,10 +932,12 @@ class Media_Library_Sync_Service {
 				$sanitized = $this->sanitized_svg( $verified_file['path'], $item['file_name'] ?? '' );
 				if ( is_string( $sanitized ) ) {
 					$id = Media_Hash::find_indexed_attachment( md5( $sanitized ) );
-					if ( $id ) { return $this->candidate( $id, 'sha256', hash( 'sha256', $sanitized ), strlen( $sanitized ) ); }
+					if ( $id ) {
+						return $this->candidate( $id, 'sha256', hash( 'sha256', $sanitized ), strlen( $sanitized ) ); }
 				}
 			}
-			if ( ! $id ) { return 0; }
+			if ( ! $id ) {
+				return 0; }
 			$match = $this->candidate( $id, $algorithm, $digest, $expected_size );
 			if ( is_wp_error( $match ) || $match ) {
 				return $match; }
@@ -1001,25 +1007,29 @@ class Media_Library_Sync_Service {
 			return $this->error( 'file_unavailable', 400 );
 		}
 		if ( $original && 'image/svg+xml' === $mime ) {
-			$slug = (string) get_post_field( 'post_name', $id );
+			$slug     = (string) get_post_field( 'post_name', $id );
 			$transfer = self::$active_svg_transfers[ $id ] ?? ( 0 === strpos( $slug, 'rsl-ie-file_' ) ? substr( $slug, 7 ) : '' );
-			$record = File_Store::valid_id( $transfer ) ? get_option( 'rsl_ie_media_chunk_' . $transfer ) : null;
+			$record   = File_Store::valid_id( $transfer ) ? get_option( 'rsl_ie_media_chunk_' . $transfer ) : null;
 			if ( is_array( $record ) && (int) $record['owner'] === get_current_user_id() && (int) $record['blog'] === get_current_blog_id() ) {
-				$dir = File_Store::directory( $transfer );
+				$dir    = File_Store::directory( $transfer );
 				$source = is_wp_error( $dir ) ? '' : $dir . '/media.part';
 				if ( is_file( $source ) && ! is_link( $source ) && filesize( $source ) === $record['size'] && hash_file( 'sha256', $source ) === $record['sha256'] ) {
 					$sanitized = $this->sanitized_svg( $source, $record['name'] );
 					if ( is_string( $sanitized ) && strlen( $sanitized ) === $size && hash( 'sha256', $sanitized ) === $hash ) {
-						return [ 'sha256' => $record['sha256'], 'size' => $record['size'], 'mime' => $mime ];
+						return array(
+							'sha256' => $record['sha256'],
+							'size'   => $record['size'],
+							'mime'   => $mime,
+						);
 					}
 				}
 			}
 		}
-		return [
+		return array(
 			'sha256' => $hash,
 			'size'   => $size,
 			'mime'   => $mime,
-		];
+		);
 	}
 
 	/** Reproduce the installed SVG upload filters on a disposable copy. */
@@ -1051,16 +1061,29 @@ class Media_Library_Sync_Service {
 	}
 
 	private function sanitized_svg( $path, $name ) {
-		if ( 'svg' !== strtolower( pathinfo( $name, PATHINFO_EXTENSION ) ) || ! is_file( $path ) ) { return false; }
+		if ( 'svg' !== strtolower( pathinfo( $name, PATHINFO_EXTENSION ) ) || ! is_file( $path ) ) {
+			return false; }
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		$tmp = wp_tempnam( $name );
-		if ( ! $tmp ) { return false; }
+		if ( ! $tmp ) {
+			return false; }
 		try {
-			if ( ! copy( $path, $tmp ) || ! Sync_SVG::sanitize( $tmp, $name ) ) { return false; }
-			$file = apply_filters( 'wp_handle_sideload_prefilter', [ 'name' => $name, 'tmp_name' => $tmp, 'type' => 'image/svg+xml', 'size' => filesize( $tmp ), 'error' => 0 ] );
+			if ( ! copy( $path, $tmp ) || ! Sync_SVG::sanitize( $tmp, $name ) ) {
+				return false; }
+			$file = apply_filters(
+				'wp_handle_sideload_prefilter',
+				array(
+					'name'     => $name,
+					'tmp_name' => $tmp,
+					'type'     => 'image/svg+xml',
+					'size'     => filesize( $tmp ),
+					'error'    => 0,
+				)
+			);
 			return empty( $file['error'] ) && ( $file['tmp_name'] ?? '' ) === $tmp && is_file( $tmp ) ? file_get_contents( $tmp ) : false;
 		} finally {
-			if ( is_file( $tmp ) ) { wp_delete_file( $tmp ); }
+			if ( is_file( $tmp ) ) {
+				wp_delete_file( $tmp ); }
 		}
 	}
 
@@ -1142,14 +1165,14 @@ class Media_Library_Sync_Service {
 				return $this->error( 'invalid_file_type', 400 ); }
 			$id = wp_insert_attachment(
 				wp_slash(
-					[
-					'post_name'      => 'rsl-ie-' . $transfer_id,
-					'post_title'     => sanitize_text_field( $item['title'] ?? '' ),
-					'post_excerpt'   => wp_kses_post( $item['caption'] ?? '' ),
-					'post_content'   => wp_kses_post( $item['description'] ?? '' ),
-					'post_mime_type' => $type['type'],
-					'guid'           => trailingslashit( $uploads['baseurl'] ) . substr( $path, strlen( trailingslashit( $base ) ) ),
-					]
+					array(
+						'post_name'      => 'rsl-ie-' . $transfer_id,
+						'post_title'     => sanitize_text_field( $item['title'] ?? '' ),
+						'post_excerpt'   => wp_kses_post( $item['caption'] ?? '' ),
+						'post_content'   => wp_kses_post( $item['description'] ?? '' ),
+						'post_mime_type' => $type['type'],
+						'guid'           => trailingslashit( $uploads['baseurl'] ) . substr( $path, strlen( trailingslashit( $base ) ) ),
+					)
 				),
 				$path,
 				0,
@@ -1232,10 +1255,10 @@ class Media_Library_Sync_Service {
 		$type = wp_check_filetype_and_ext( $tmp, $item['file_name'], Sync_SVG::mimes() );
 		if ( ! $type['ext'] || ! $type['type'] ) {
 			return $this->error( 'invalid_file_type', 400 ); }
-		$post_data = [
+		$post_data = array(
 			'post_excerpt' => wp_kses_post( $item['caption'] ?? '' ),
 			'post_content' => wp_kses_post( $item['description'] ?? '' ),
-		];
+		);
 		if ( $transfer_id ) {
 			$post_data['post_name'] = 'rsl-ie-' . $transfer_id; }
 		$journal_move = static function ( $move, $file, $destination ) use ( $tmp, $transfer_id ) {
@@ -1245,14 +1268,16 @@ class Media_Library_Sync_Service {
 			if ( is_wp_error( $dir ) ) {
 				throw new \RuntimeException( __( 'Cannot persist media move.', 'import-export-by-rockstarlab' ) ); }
 			$journal = $dir . '/media-move.json';
-			$json    = wp_json_encode( [ 'path' => $destination ] );
+			$json    = wp_json_encode( array( 'path' => $destination ) );
 			// phpcs:ignore WordPress.WP.AlternativeFunctions -- Atomic local journal publication must precede WordPress moving the file.
 			if ( is_link( $journal ) || is_link( $journal . '.tmp' ) || false === $json || file_put_contents( $journal . '.tmp', $json, LOCK_EX ) !== strlen( $json ) || ! rename( $journal . '.tmp', $journal ) ) {
 				throw new \RuntimeException( __( 'Cannot persist media move.', 'import-export-by-rockstarlab' ) ); }
 			return $move;
 		};
-		$sync_mimes = Sync_SVG::mimes();
-		$mime_filter = static function ( $mimes ) use ( $sync_mimes ) { return $mimes + $sync_mimes; };
+		$sync_mimes   = Sync_SVG::mimes();
+		$mime_filter  = static function ( $mimes ) use ( $sync_mimes ) {
+			return $mimes + $sync_mimes;
+		};
 		add_filter( 'upload_mimes', $mime_filter );
 		add_filter( 'pre_move_uploaded_file', $journal_move, PHP_INT_MAX, 3 );
 		$size_filter = $this->image_size_filter();
@@ -1263,11 +1288,11 @@ class Media_Library_Sync_Service {
 				(string) ( $item['upload_subdir'] ?? '' ),
 				static function () use ( $item, $tmp, $type, $post_data ) {
 					return media_handle_sideload(
-						[
+						array(
 							'name'     => $item['file_name'],
 							'tmp_name' => $tmp,
 							'type'     => $type['type'],
-						],
+						),
 						0,
 						sanitize_text_field( $item['title'] ?? '' ),
 						$post_data
@@ -1299,7 +1324,7 @@ class Media_Library_Sync_Service {
 	 * small images finish in one request, very large ones still make one size per request.
 	 */
 	private function image_size_filter() {
-		return function ( $sizes, $image_meta = [] ) {
+		return function ( $sizes, $image_meta = array() ) {
 			if ( ! $this->bounded_metadata || ! is_array( $sizes ) ) {
 				return $sizes;
 			}
@@ -1335,8 +1360,12 @@ class Media_Library_Sync_Service {
 	 * @return void
 	 */
 	private function refresh_fields( $id, array $item ) {
-		$post = [];
-		foreach ( [ 'title' => 'post_title', 'caption' => 'post_excerpt', 'description' => 'post_content' ] as $key => $field ) {
+		$post = array();
+		foreach ( array(
+			'title'       => 'post_title',
+			'caption'     => 'post_excerpt',
+			'description' => 'post_content',
+		) as $key => $field ) {
 			if ( ! isset( $item[ $key ] ) ) {
 				continue; }
 			$value = 'title' === $key ? sanitize_text_field( $item[ $key ] ) : wp_kses_post( $item[ $key ] );
@@ -1346,7 +1375,7 @@ class Media_Library_Sync_Service {
 				$post[ $field ] = $value; }
 		}
 		if ( $post && current_user_can( 'edit_post', $id ) ) {
-			wp_update_post( wp_slash( [ 'ID' => $id ] + $post ) );
+			wp_update_post( wp_slash( array( 'ID' => $id ) + $post ) );
 		}
 		if ( isset( $item['alt_text'] ) && current_user_can( 'edit_post', $id ) ) {
 			update_post_meta( $id, '_wp_attachment_image_alt', sanitize_text_field( $item['alt_text'] ) );
@@ -1361,11 +1390,11 @@ class Media_Library_Sync_Service {
 	 * @return void
 	 */
 	private function record_source_ids( $id, array $item ) {
-		foreach ( [
+		foreach ( array(
 			'_rsl_ie_original_attachment_id'      => $item['attachment_id'],
 			'_rsl_ie_source_attachment_id'        => $item['attachment_id'],
 			'_rsl_ie_source_origin_attachment_id' => $item['source_origin_attachment_id'] ?? 0,
-		] as $key => $source ) {
+		) as $key => $source ) {
 			$source = (int) $source;
 			if ( $source && ! in_array( $source, array_map( 'intval', get_post_meta( $id, $key, false ) ), true ) ) {
 				add_post_meta( $id, $key, $source, false ); }
@@ -1395,11 +1424,11 @@ class Media_Library_Sync_Service {
 	private function valid_result( array $result, array $ids ) {
 		if ( ! Standalone_Sync_Policy::selection( $result['items'], $ids, 'source_id' ) ) {
 			return false; }
-		$counts = [
+		$counts = array(
 			'created' => 0,
 			'skipped' => 0,
 			'failed'  => 0,
-		];
+		);
 		foreach ( $result['items'] as $item ) {
 			if ( 'failed' !== $item['status'] && ( ! $item['attachment_id'] || '' !== $item['error_code'] ) ) {
 				return false; }
@@ -1414,8 +1443,8 @@ class Media_Library_Sync_Service {
 	public function negotiate_chunks( $site_id, $direction, $fingerprint ) {
 		// One answer per connection and run: asking again before every image added a full
 		// WordPress request (about a second) per file to every content sync.
-		static $negotiated = [];
-		$cache_key = (int) $site_id . '|' . $direction . '|' . $fingerprint;
+		static $negotiated = array();
+		$cache_key         = (int) $site_id . '|' . $direction . '|' . $fingerprint;
 		if ( isset( $negotiated[ $cache_key ] ) ) {
 			return $negotiated[ $cache_key ];
 		}
@@ -1428,28 +1457,34 @@ class Media_Library_Sync_Service {
 
 	/** Ask the peer for its chunk contract. */
 	private function negotiate_chunks_uncached( $site_id, $direction, $fingerprint ) {
-		$data = $this->chunk_request( $site_id, $direction, $fingerprint, [ 'action' => 'capabilities' ] );
+		$data = $this->chunk_request( $site_id, $direction, $fingerprint, array( 'action' => 'capabilities' ) );
 		if ( is_wp_error( $data ) ) {
 			return $data; }
-		$required = [
+		$required = array(
 			'chunk_bytes'               => Media_Chunk_Store::CHUNK_BYTES,
 			'snapshot_version'          => 1,
 			'bounded_snapshot'          => true,
 			'snapshot_metadata_binding' => true,
 			'idempotent_begin'          => true,
 			'idempotent_finalize'       => true,
-		];
+		);
 		foreach ( $required as $name => $value ) {
 			if ( ( $data[ $name ] ?? null ) !== $value ) {
 				return $this->error( 'peer_upgrade_required', 502 ); }
 		}
-		return $required + [ 'bounded_metadata' => true === ( $data['bounded_metadata'] ?? false ), 'begin_data' => true === ( $data['begin_data'] ?? false ), 'begin_reuse' => true === ( $data['begin_reuse'] ?? false ), 'media_language' => true === ( $data['media_language'] ?? false ), 'upload_subdir' => true === ( $data['upload_subdir'] ?? false ) ];
+		return $required + array(
+			'bounded_metadata' => true === ( $data['bounded_metadata'] ?? false ),
+			'begin_data'       => true === ( $data['begin_data'] ?? false ),
+			'begin_reuse'      => true === ( $data['begin_reuse'] ?? false ),
+			'media_language'   => true === ( $data['media_language'] ?? false ),
+			'upload_subdir'    => true === ( $data['upload_subdir'] ?? false ),
+		);
 	}
 
 	/** One bounded peer step, rechecking the saved connection on every request. */
 	public function chunk_request( $site_id, $direction, $fingerprint, array $payload ) {
 		$action = $payload['action'] ?? null;
-		$limits = [
+		$limits = array(
 			'capabilities'     => 8192,
 			'begin'            => 8192,
 			'append'           => 8192,
@@ -1461,14 +1496,14 @@ class Media_Library_Sync_Service {
 			'read-snapshot'    => 2097152,
 			'prepare-snapshot' => 0,
 			'finalize'         => 2097152,
-		];
+		);
 		if ( ! is_string( $action ) || ! isset( $limits[ $action ] ) ) {
 			return $this->error( 'invalid_payload', 400 ); }
 		$limit  = $limits[ $action ];
 		$access = $this->authorize();
 		if ( is_wp_error( $access ) ) {
 			return $access; }
-		if ( ! is_int( $site_id ) || $site_id < 1 || ! in_array( $direction, [ 'push', 'pull' ], true ) || ! is_string( $fingerprint ) || ! preg_match( '/^[a-f0-9]{64}$/D', $fingerprint ) ) {
+		if ( ! is_int( $site_id ) || $site_id < 1 || ! in_array( $direction, array( 'push', 'pull' ), true ) || ! is_string( $fingerprint ) || ! preg_match( '/^[a-f0-9]{64}$/D', $fingerprint ) ) {
 			return $this->error( 'invalid_payload', 400 ); }
 		// Content Sync already owns this connection for the whole operation.
 		$owned = Job_Lock::holds_resource( 'connection', $site_id );
@@ -1477,7 +1512,7 @@ class Media_Library_Sync_Service {
 			return $this->error( 'connection_busy', 409 ); }
 		try {
 			$site = Connected_Site::get_by_id( $site_id );
-			if ( ! $site || 'active' !== $site['status'] || ! in_array( $site['direction'], [ $direction, 'bidirectional' ], true ) || ! hash_equals( $fingerprint, ( new Sync_Job_Service() )->fingerprint( $site ) ) ) {
+			if ( ! $site || 'active' !== $site['status'] || ! in_array( $site['direction'], array( $direction, 'bidirectional' ), true ) || ! hash_equals( $fingerprint, ( new Sync_Job_Service() )->fingerprint( $site ) ) ) {
 				return $this->error( 'connection_unavailable', 409 ); }
 			$guard = apply_filters( 'rsl_ie_sync_connection_guard', true, $site );
 			if ( is_wp_error( $guard ) ) {
@@ -1485,15 +1520,15 @@ class Media_Library_Sync_Service {
 			$response = Remote_API::post(
 				$site['remote_url'],
 				'media-chunk',
-				[
+				array(
 					'timeout'             => 30,
 					'limit_response_size' => $limit,
-					'headers'             => [
+					'headers'             => array(
 						'Authorization' => 'Bearer ' . $site['api_key'],
 						'Content-Type'  => 'application/json',
-					],
+					),
 					'body'                => wp_json_encode( $payload ),
-				]
+				)
 			);
 			if ( is_wp_error( $response ) ) {
 				return $this->error( 'peer_unavailable', 502 ); }
@@ -1506,7 +1541,7 @@ class Media_Library_Sync_Service {
 				return $this->error( 'connection_busy', 409 ); }
 			if ( 200 !== (int) wp_remote_retrieve_response_code( $response ) || ! is_array( $data ) || true !== ( $data['success'] ?? null ) || 1 !== ( $data['chunk_contract_version'] ?? null ) || ! array_key_exists( 'result', $data ) ) {
 				return $this->error( 'peer_rejected', 502 ); }
-			if ( in_array( $action, [ 'discard', 'discard-snapshot' ], true ) ) {
+			if ( in_array( $action, array( 'discard', 'discard-snapshot' ), true ) ) {
 				return true === $data['result'] ? true : $this->error( 'invalid_peer_response', 502 );
 			}
 			return is_array( $data['result'] ) ? $data['result'] : $this->error( 'invalid_peer_response', 502 );
@@ -1529,15 +1564,15 @@ class Media_Library_Sync_Service {
 		$response = Remote_API::post(
 			$site['remote_url'],
 			$endpoint,
-			[
+			array(
 				'timeout'             => 180,
 				'limit_response_size' => 64000000,
-				'headers'             => [
+				'headers'             => array(
 					'Authorization' => 'Bearer ' . $site['api_key'],
 					'Content-Type'  => 'application/json',
-				],
+				),
 				'body'                => wp_json_encode( $payload ),
-			]
+			)
 		);
 		if ( is_wp_error( $response ) ) {
 			return $this->error( 'peer_unavailable', 502 ); }
@@ -1557,6 +1592,6 @@ class Media_Library_Sync_Service {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $status ) {
-		return new \WP_Error( 'rsl_ie_media_library_' . $code, __( 'Media synchronization could not complete. Check selection, limits, registered ACF fields, connection and permissions. Inspect the destination before repeating a transfer.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_media_library_' . $code, __( 'Media synchronization could not complete. Check selection, limits, registered ACF fields, connection and permissions. Inspect the destination before repeating a transfer.', 'import-export-by-rockstarlab' ), array( 'status' => $status ) );
 	}
 }

@@ -18,7 +18,7 @@ class File_Chunk_Store {
 	 */
 	public static function supported() {
 		global $wpdb;
-		foreach ( [ $wpdb->options, $wpdb->prefix . 'rsl_ie_file_chunks' ] as $table ) {
+		foreach ( array( $wpdb->options, $wpdb->prefix . 'rsl_ie_file_chunks' ) as $table ) {
 			if ( 'innodb' !== strtolower( (string) $wpdb->get_var( $wpdb->prepare( 'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s', $table ) ) ) ) {
 				return false;
 			}
@@ -38,10 +38,10 @@ class File_Chunk_Store {
 		$row = $wpdb->get_row( $wpdb->prepare( 'SELECT bytes,digest FROM %i WHERE file_id=%s AND chunk_index=%d', $wpdb->prefix . 'rsl_ie_file_chunks', $id, $index ) );
 		if ( $wpdb->last_error ) {
 			return File_Store::error( 'chunk_storage', 500 ); }
-		return $row ? [
+		return $row ? array(
 			'bytes'  => (int) $row->bytes,
 			'sha256' => $row->digest,
-		] : null;
+		) : null;
 	}
 
 	/**
@@ -73,16 +73,16 @@ class File_Chunk_Store {
 				return File_Store::error( 'chunk_content_conflict', 409 ); }
 			if ( null === $old && false === $wpdb->insert(
 				$wpdb->prefix . 'rsl_ie_file_chunks',
-				[
+				array(
 					'file_id'     => $id,
 					'chunk_index' => $index,
 					'bytes'       => $chunk['bytes'],
 					'digest'      => $chunk['sha256'],
-				],
-				[ '%s', '%d', '%d', '%s' ]
+				),
+				array( '%s', '%d', '%d', '%s' )
 			) ) {
 				return File_Store::error( 'chunk_storage', 500 ); }
-			if ( false === $wpdb->update( $wpdb->options, [ 'option_value' => maybe_serialize( $after ) ], [ 'option_name' => $key ], [ '%s' ], [ '%s' ] ) ) {
+			if ( false === $wpdb->update( $wpdb->options, array( 'option_value' => maybe_serialize( $after ) ), array( 'option_name' => $key ), array( '%s' ), array( '%s' ) ) ) {
 				return File_Store::error( 'chunk_storage', 500 ); }
 			if ( false === $wpdb->query( 'COMMIT' ) ) {
 				return File_Store::error( 'chunk_storage', 500 ); }

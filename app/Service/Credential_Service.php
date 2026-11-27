@@ -23,16 +23,16 @@ class Credential_Service {
 	 * @param array  $input Input.
 	 * @return mixed
 	 */
-	public function execute( $name, array $input = [] ) {
+	public function execute( $name, array $input = array() ) {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access; }
-		if ( ! in_array( $name, [ 'site-key-status', 'site-key-create', 'site-key-reveal', 'site-key-rotate', 'connection-key-rotate' ], true ) ) {
+		if ( ! in_array( $name, array( 'site-key-status', 'site-key-create', 'site-key-reveal', 'site-key-rotate', 'connection-key-rotate' ), true ) ) {
 			return $this->error( 'operation', 400 );
 		}
 		$valid = rest_validate_value_from_schema( $input, Settings_Catalog::definitions()[ $name ]['input'], 'input' );
 		if ( is_wp_error( $valid ) ) {
-			$valid->add_data( [ 'status' => 400 ] );
+			$valid->add_data( array( 'status' => 400 ) );
 			return $valid; }
 		if ( 'connection-key-rotate' === $name ) {
 			$result = ( new Connection_Service() )->execute( 'regenerate_key', $input );
@@ -44,10 +44,10 @@ class Credential_Service {
 		try {
 			$key  = get_option( 'rsl_ie_site_api_key', '' );
 			$key  = is_string( $key ) ? $key : '';
-			$site = [
+			$site = array(
 				'site_url'  => Site_URL::current_request_site_url(),
 				'site_name' => get_bloginfo( 'name' ),
-			];
+			);
 			if ( 'site-key-status' === $name ) {
 				return $this->status( $key ) + $site; }
 			if ( 'site-key-reveal' === $name && '' === $key ) {
@@ -61,7 +61,7 @@ class Credential_Service {
 			$bound = Sync_Authentication::bind( $key, 'site-key-rotate' === $name );
 			if ( is_wp_error( $bound ) || ! $this->status( $key )['bound'] ) {
 				return $this->error( 'binding_failed', 500 ); }
-			return 'site-key-create' === $name ? $this->status( $key ) + $site : [ 'site_key' => $key ] + $site;
+			return 'site-key-create' === $name ? $this->status( $key ) + $site : array( 'site_key' => $key ) + $site;
 		} finally {
 			Job_Lock::release( $lock ); }
 	}
@@ -73,13 +73,13 @@ class Credential_Service {
 	 * @return array
 	 */
 	private function status( $key ) {
-		$identity = get_option( 'rsl_ie_sync_key_identity', [] );
+		$identity = get_option( 'rsl_ie_sync_key_identity', array() );
 		$bound    = '' !== $key && is_array( $identity ) && ! empty( $identity['user_id'] ) && get_current_blog_id() === (int) ( $identity['blog_id'] ?? 0 ) && hash_equals( hash( 'sha256', $key ), (string) ( $identity['key_hash'] ?? '' ) );
-		return [
+		return array(
 			'configured'   => '' !== $key,
 			'bound'        => $bound,
 			'owner_active' => $bound && user_can( (int) $identity['user_id'], 'manage_options' ),
-		];
+		);
 	}
 
 	/**
@@ -90,6 +90,6 @@ class Credential_Service {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $status ) {
-		return new \WP_Error( 'rsl_ie_credential_' . $code, sprintf( /* translators: %s: error code. */ __( 'Credential operation failed: %s', 'import-export-by-rockstarlab' ), $code ), [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_credential_' . $code, sprintf( /* translators: %s: error code. */ __( 'Credential operation failed: %s', 'import-export-by-rockstarlab' ), $code ), array( 'status' => $status ) );
 	}
 }

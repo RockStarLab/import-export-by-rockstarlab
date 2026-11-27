@@ -23,7 +23,7 @@ class Remote_File_Service {
 	const SCHEME = 'rsl-remote';
 
 	/** Supported protocols. */
-	const PROTOCOLS = [ 'ftp', 'ftps', 'sftp' ];
+	const PROTOCOLS = array( 'ftp', 'ftps', 'sftp' );
 
 	/**
 	 * Whether a source or destination points at a saved server.
@@ -53,7 +53,7 @@ class Remote_File_Service {
 		if ( is_wp_error( $path ) ) {
 			return $path;
 		}
-		return [ $server, $path ];
+		return array( $server, $path );
 	}
 
 	/**
@@ -84,7 +84,7 @@ class Remote_File_Service {
 	 * @return array
 	 */
 	public static function servers() {
-		$out = [];
+		$out = array();
 		foreach ( self::all() as $server ) {
 			$out[] = self::public_view( $server );
 		}
@@ -129,8 +129,8 @@ class Remote_File_Service {
 		if ( '' === $secret ) {
 			return self::error( 'remote_password_missing', __( 'Enter the password.', 'import-export-by-rockstarlab' ) );
 		}
-		$label  = trim( sanitize_text_field( (string) ( $input['label'] ?? '' ) ) );
-		$server = [
+		$label                = trim( sanitize_text_field( (string) ( $input['label'] ?? '' ) ) );
+		$server               = array(
 			'id'          => $existing ? $existing['id'] : strtolower( wp_generate_password( 12, false, false ) ),
 			'label'       => '' !== $label ? $label : $host,
 			'protocol'    => $protocol,
@@ -143,7 +143,7 @@ class Remote_File_Service {
 			'host_key'    => $existing && $existing['host'] === $host && $existing['port'] === $port && $existing['protocol'] === $protocol ? ( $existing['host_key'] ?? '' ) : '',
 			'created_at'  => $existing['created_at'] ?? current_time( 'mysql' ),
 			'modified_at' => current_time( 'mysql' ),
-		];
+		);
 		$all[ $server['id'] ] = $server;
 		update_option( self::OPTION, $all, false );
 		return self::public_view( $server );
@@ -167,7 +167,7 @@ class Remote_File_Service {
 		}
 		unset( $all[ $id ] );
 		update_option( self::OPTION, $all, false );
-		return [ 'deleted' => true ];
+		return array( 'deleted' => true );
 	}
 
 	/**
@@ -200,13 +200,13 @@ class Remote_File_Service {
 				usort(
 					$items,
 					static function ( $a, $b ) {
-						return [ 'dir' === $a['type'] ? 0 : 1, strtolower( $a['name'] ) ] <=> [ 'dir' === $b['type'] ? 0 : 1, strtolower( $b['name'] ) ];
+						return array( 'dir' === $a['type'] ? 0 : 1, strtolower( $a['name'] ) ) <=> array( 'dir' === $b['type'] ? 0 : 1, strtolower( $b['name'] ) );
 					}
 				);
-				return [
+				return array(
 					'path'  => $path,
 					'items' => array_slice( $items, 0, 500 ),
-				];
+				);
 			}
 		);
 	}
@@ -240,10 +240,10 @@ class Remote_File_Service {
 					return $got;
 				}
 				clearstatcache( true, $local );
-				return [
+				return array(
 					'name' => wp_basename( $path ),
 					'size' => (int) filesize( $local ),
-				];
+				);
 			}
 		);
 	}
@@ -273,10 +273,10 @@ class Remote_File_Service {
 					return $put;
 				}
 				clearstatcache( true, $local );
-				return [
+				return array(
 					'path' => $path,
 					'size' => (int) filesize( $local ),
-				];
+				);
 			}
 		);
 	}
@@ -298,10 +298,10 @@ class Remote_File_Service {
 			function ( $conn ) use ( $path ) {
 				$stat = $conn->stat( $path );
 				return is_wp_error( $stat ) ? $stat : array_filter(
-					[
+					array(
 						'length'   => (string) $stat['size'],
 						'modified' => $stat['mtime'] ? (string) $stat['mtime'] : '',
-					],
+					),
 					'strlen'
 				);
 			}
@@ -314,11 +314,11 @@ class Remote_File_Service {
 	 * @return array
 	 */
 	public static function available() {
-		return [
+		return array(
 			'ftp'  => function_exists( 'ftp_connect' ),
 			'ftps' => function_exists( 'ftp_ssl_connect' ),
 			'sftp' => class_exists( '\phpseclib3\Net\SFTP' ),
-		];
+		);
 	}
 
 	/**
@@ -369,7 +369,7 @@ class Remote_File_Service {
 		if ( preg_match( '/[\x00-\x1f]/', $path ) ) {
 			return self::error( 'remote_path_invalid', __( 'The path on the server is not valid.', 'import-export-by-rockstarlab' ) );
 		}
-		$parts = [];
+		$parts = array();
 		foreach ( explode( '/', $path ) as $part ) {
 			if ( '' === $part || '.' === $part ) {
 				continue;
@@ -389,8 +389,8 @@ class Remote_File_Service {
 	 * @return array
 	 */
 	private static function all() {
-		$all = get_option( self::OPTION, [] );
-		return is_array( $all ) ? $all : [];
+		$all = get_option( self::OPTION, array() );
+		return is_array( $all ) ? $all : array();
 	}
 
 	/**
@@ -412,7 +412,7 @@ class Remote_File_Service {
 	 * @return array
 	 */
 	private static function public_view( array $server ) {
-		return [
+		return array(
 			'id'           => $server['id'],
 			'label'        => $server['label'],
 			'protocol'     => $server['protocol'],
@@ -423,7 +423,7 @@ class Remote_File_Service {
 			'has_password' => '' !== (string) ( $server['password'] ?? '' ),
 			'host_key'     => (string) ( $server['host_key'] ?? '' ),
 			'address'      => self::address( $server['id'], '/' ),
-		];
+		);
 	}
 
 	/**
@@ -494,6 +494,6 @@ class Remote_File_Service {
 	 * @return \WP_Error
 	 */
 	public static function error( $code, $message, $status = 400 ) {
-		return new \WP_Error( 'rsl_ie_' . $code, $message, [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_' . $code, $message, array( 'status' => $status ) );
 	}
 }

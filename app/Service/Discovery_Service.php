@@ -27,7 +27,7 @@ class Discovery_Service {
 	 * @return array
 	 */
 	public function get_capabilities() {
-		$names = [];
+		$names = array();
 		if ( Ability_Registry::is_available() ) {
 			foreach ( wp_get_abilities() as $ability ) {
 				$name = $ability->get_name();
@@ -38,12 +38,12 @@ class Discovery_Service {
 		}
 		sort( $names );
 
-		return [
+		return array(
 			'api_version'      => 1,
 			'plugin_version'   => RSL_IE_VERSION,
 			'abilities'        => $names,
 			'pro_addon_active' => Pro_Addon::is_pro_active(),
-		];
+		);
 	}
 
 	/**
@@ -52,10 +52,10 @@ class Discovery_Service {
 	 * @return array
 	 */
 	public function list_content_types() {
-		return [
+		return array(
 			'edition' => 'free',
 			'types'   => array_keys( ( new Free_Content_Provider() )->get_definitions() ),
-		];
+		);
 	}
 
 	/**
@@ -64,7 +64,7 @@ class Discovery_Service {
 	 * @return array
 	 */
 	public function list_formats() {
-		return [ 'formats' => Format_Factory::get_supported_formats() ];
+		return array( 'formats' => Format_Factory::get_supported_formats() );
 	}
 
 	/**
@@ -73,12 +73,12 @@ class Discovery_Service {
 	 * @return array
 	 */
 	public function get_integrations() {
-		return [
+		return array(
 			'acf'         => function_exists( 'acf_get_field_groups' ) && function_exists( 'acf_get_fields' ),
 			'yoast'       => defined( 'WPSEO_VERSION' ),
 			'rank_math'   => Seo_Fields::is_rank_math_active(),
 			'elementor'   => Elementor_Fields::is_active(),
 			'woocommerce' => class_exists( 'WooCommerce' ),
-		];
+		);
 	}
 }

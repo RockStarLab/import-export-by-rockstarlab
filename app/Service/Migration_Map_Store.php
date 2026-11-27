@@ -27,14 +27,14 @@ class Migration_Map_Store {
 		if ( ! isset( $state['map_count'] ) && isset( $state['maps'] ) && ! is_array( $state['maps'] ) ) {
 			return Migration_Sync_Maps::error();
 		}
-		$total = $state['map_count'] ?? count( $state['maps'] ?? [] );
+		$total = $state['map_count'] ?? count( $state['maps'] ?? array() );
 		if ( ! is_int( $total ) || $total < 0 || $offset > $total ) {
 			return Migration_Sync_Maps::error();
 		}
 		$expected = min( $limit, $total - $offset );
-		$maps     = [];
+		$maps     = array();
 		if ( ! isset( $state['map_count'] ) ) {
-			$maps = array_slice( $state['maps'] ?? [], $offset, $expected, true );
+			$maps = array_slice( $state['maps'] ?? array(), $offset, $expected, true );
 		} elseif ( $expected ) {
 			global $wpdb;
 			$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT ordinal,identity_key,target_id FROM %i WHERE job_id=%d AND ordinal>=%d AND ordinal<%d ORDER BY ordinal LIMIT %d', $wpdb->prefix . 'rsl_ie_migration_maps', $job_id, $offset, $offset + $expected, $limit ), ARRAY_A );
@@ -53,13 +53,13 @@ class Migration_Map_Store {
 				return Migration_Sync_Maps::error();
 			}
 		}
-		return [
+		return array(
 			'maps'        => (object) $maps,
 			'offset'      => $offset,
 			'next_offset' => $offset + $expected,
 			'total'       => $total,
 			'complete'    => $offset + $expected === $total,
-		];
+		);
 	}
 
 	/**
@@ -71,19 +71,19 @@ class Migration_Map_Store {
 	 * @return array|\WP_Error
 	 */
 	public static function select( $job_id, array $state, array $keys ) {
-		$wanted = [];
+		$wanted = array();
 		foreach ( $keys as $key ) {
 			if ( ! self::valid( $key, 1 ) ) {
 				return Migration_Sync_Maps::error();
 			}
 			$wanted[ $key ] = true;
 		}
-		$maps = [];
+		$maps = array();
 		if ( ! isset( $state['map_count'] ) ) {
-			if ( ! is_array( $state['maps'] ?? [] ) ) {
+			if ( ! is_array( $state['maps'] ?? array() ) ) {
 				return Migration_Sync_Maps::error();
 			}
-			$maps = array_intersect_key( $state['maps'] ?? [], $wanted );
+			$maps = array_intersect_key( $state['maps'] ?? array(), $wanted );
 		} else {
 			$count = $state['map_count'];
 			if ( ! is_int( $count ) || $count < 0 ) {
@@ -96,10 +96,10 @@ class Migration_Map_Store {
 			if ( $wpdb->last_error || (int) $actual !== $count ) {
 				return Migration_Sync_Maps::error();
 			}
-			$selected = [];
+			$selected = array();
 			foreach ( array_chunk( array_keys( $wanted ), 500 ) as $keys_page ) {
 				$placeholders = implode( ',', array_fill( 0, count( $keys_page ), '%s' ) );
-				$args         = array_merge( [ $table, $job_id, $count ], $keys_page );
+				$args         = array_merge( array( $table, $job_id, $count ), $keys_page );
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Only generated placeholders.
 				$rows = $wpdb->get_results( $wpdb->prepare( "SELECT ordinal,identity_key,target_id FROM %i WHERE job_id=%d AND ordinal<%d AND identity_key IN ($placeholders) ORDER BY ordinal", $args ), ARRAY_A );
 				if ( $wpdb->last_error ) {
@@ -131,10 +131,10 @@ class Migration_Map_Store {
 	/** Existing identities that can conflict with one newly confirmed batch. */
 	public static function conflicts( $job_id, array $state, array $maps ) {
 		if ( ! isset( $state['map_count'] ) ) {
-			return $state['maps'] ?? []; }
+			return $state['maps'] ?? array(); }
 		global $wpdb;
 		$table  = $wpdb->prefix . 'rsl_ie_migration_maps';
-		$result = [];
+		$result = array();
 		foreach ( $maps as $key => $target ) {
 			if ( ! self::valid( $key, $target ) ) {
 				return Migration_Sync_Maps::error(); }
@@ -157,7 +157,7 @@ class Migration_Map_Store {
 	/** Append one confirmed child batch without hydrating earlier identities. */
 	public static function append( $job_id, array $state, array $maps ) {
 		if ( ! isset( $state['map_count'] ) ) {
-			$previous = $state['maps'] ?? [];
+			$previous = $state['maps'] ?? array();
 			foreach ( $maps as $key => $id ) {
 				if ( isset( $previous[ $key ] ) && $previous[ $key ] !== $id ) {
 					return Migration_Sync_Maps::error();
@@ -204,13 +204,13 @@ class Migration_Map_Store {
 	 */
 	public static function read( $job_id, array $state ) {
 		if ( ! isset( $state['map_count'] ) ) {
-			return $state['maps'] ?? [];
+			return $state['maps'] ?? array();
 		}
 		if ( ! is_int( $state['map_count'] ) || $state['map_count'] < 0 ) {
 			return Migration_Sync_Maps::error();
 		}
 		global $wpdb;
-		$maps  = [];
+		$maps  = array();
 		$after = -1;
 		do {
 			$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT ordinal,identity_key,target_id FROM %i WHERE job_id=%d AND ordinal>%d AND ordinal<%d ORDER BY ordinal LIMIT 500', $wpdb->prefix . 'rsl_ie_migration_maps', $job_id, $after, $state['map_count'] ), ARRAY_A );
@@ -275,7 +275,7 @@ class Migration_Map_Store {
 		if ( false === $wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE job_id=%d AND ordinal>=%d', $table, $job_id, $count ) ) ) {
 			return Migration_Sync_Maps::error();
 		}
-		$page = [];
+		$page = array();
 		foreach ( $state['maps'] as $key => $id ) {
 			$page[ $key ] = $id;
 			if ( count( $page ) === 500 ) {
@@ -283,7 +283,7 @@ class Migration_Map_Store {
 				if ( is_wp_error( $saved ) ) {
 					return $saved;
 				}
-				$page = [];
+				$page = array();
 			}
 		}
 		if ( $page ) {
@@ -309,7 +309,7 @@ class Migration_Map_Store {
 		global $wpdb;
 		$table        = $wpdb->prefix . 'rsl_ie_migration_maps';
 		$placeholders = implode( ',', array_fill( 0, count( $page ), '%s' ) );
-		$args         = array_merge( [ $table, $job_id ], array_keys( $page ) );
+		$args         = array_merge( array( $table, $job_id ), array_keys( $page ) );
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Generated placeholders; arguments include table, job and every key.
 		$existing = $wpdb->get_results( $wpdb->prepare( "SELECT identity_key,target_id FROM %i WHERE job_id=%d AND identity_key IN ($placeholders)", $args ), ARRAY_A );
 		if ( $wpdb->last_error ) {
@@ -324,8 +324,8 @@ class Migration_Map_Store {
 		if ( ! $page ) {
 			return true;
 		}
-		$args   = [ $table ];
-		$values = [];
+		$args   = array( $table );
+		$values = array();
 		$next   = $count;
 		foreach ( $page as $key => $id ) {
 			$values[] = '(%d,%d,%s,%d)';

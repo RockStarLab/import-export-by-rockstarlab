@@ -18,7 +18,7 @@ class Sync_ACF_Media_Graph {
 	 * @return array|\WP_Error
 	 */
 	private static function records( array $posts ) {
-		$records = [];
+		$records = array();
 		foreach ( $posts as $post ) {
 			if ( 'attachment' !== $post['post_type'] ) {
 				if ( isset( $post['acf_attachment_media'] ) ) {
@@ -75,7 +75,7 @@ class Sync_ACF_Media_Graph {
 		if ( is_wp_error( $records ) || ! $records ) {
 			return $records;
 		}
-		$media = [];
+		$media = array();
 		foreach ( $maps as $key => $target ) {
 			if ( 0 === strpos( $key, 'post_type:attachment:' ) ) {
 				$media[ substr( $key, 21 ) ] = $target;

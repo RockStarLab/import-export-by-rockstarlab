@@ -21,7 +21,7 @@ class Sync_ACF_Attachments {
 	 */
 	public static function required( array $posts ) {
 		foreach ( $posts as $post ) {
-			if ( in_array( 'attachment', (array) ( $post['acf_post_types'] ?? [] ), true ) ) {
+			if ( in_array( 'attachment', (array) ( $post['acf_post_types'] ?? array() ), true ) ) {
 				return true;
 			}
 		}
@@ -40,7 +40,7 @@ class Sync_ACF_Attachments {
 			return $access;
 		}
 		$media  = new Media_Library_Sync_Service();
-		$proofs = [];
+		$proofs = array();
 		$bytes  = 0;
 		foreach ( $posts as &$post ) {
 			foreach ( $post['acf_post_types'] as $id => $type ) {
@@ -82,22 +82,22 @@ class Sync_ACF_Attachments {
 			return Migration_Sync_Maps::error();
 		}
 		$media    = new Media_Library_Sync_Service();
-		$proofs   = [];
-		$verified = [];
+		$proofs   = array();
+		$verified = array();
 		$bytes    = 0;
 		foreach ( $posts as $post ) {
-			$evidence = $post['acf_attachment_proofs'] ?? [];
+			$evidence = $post['acf_attachment_proofs'] ?? array();
 			if ( ! is_array( $evidence ) || count( $evidence ) > 50 ) {
 				return Migration_Sync_Maps::error();
 			}
 			$used = 0;
-			foreach ( (array) ( $post['acf_post_types'] ?? [] ) as $id => $type ) {
+			foreach ( (array) ( $post['acf_post_types'] ?? array() ) as $id => $type ) {
 				if ( 'attachment' !== $type ) {
 					continue;
 				}
 				++$used;
 				$proof = $evidence[ $id ] ?? null;
-				if ( ! is_array( $proof ) || array_keys( $proof ) !== [ 'sha256', 'size', 'mime' ] || ! is_string( $proof['sha256'] ) || ! preg_match( '/^[a-f0-9]{64}$/D', $proof['sha256'] ) || ! is_int( $proof['size'] ) || $proof['size'] < 1 || ( ! $chunked && $proof['size'] > Media_Library_Sync_Service::FILE_LIMIT ) || ! is_string( $proof['mime'] ) || ! preg_match( '#^[a-z0-9.+-]+/[a-z0-9.+-]+$#D', $proof['mime'] ) || ( isset( $proofs[ $id ] ) && $proofs[ $id ] !== $proof ) ) {
+				if ( ! is_array( $proof ) || array_keys( $proof ) !== array( 'sha256', 'size', 'mime' ) || ! is_string( $proof['sha256'] ) || ! preg_match( '/^[a-f0-9]{64}$/D', $proof['sha256'] ) || ! is_int( $proof['size'] ) || $proof['size'] < 1 || ( ! $chunked && $proof['size'] > Media_Library_Sync_Service::FILE_LIMIT ) || ! is_string( $proof['mime'] ) || ! preg_match( '#^[a-z0-9.+-]+/[a-z0-9.+-]+$#D', $proof['mime'] ) || ( isset( $proofs[ $id ] ) && $proofs[ $id ] !== $proof ) ) {
 					return Migration_Sync_Maps::error();
 				}
 				if ( ! isset( $proofs[ $id ] ) ) {

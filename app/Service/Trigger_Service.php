@@ -34,17 +34,17 @@ class Trigger_Service {
 	const LOG_SIZE        = 50;
 	const MIN_INTERVAL    = 60;
 	const AUTH_FAIL_LIMIT = 20;
-	const EVENTS          = [ 'webhook', 'post_published', 'woo_order_created', 'file_changed' ];
+	const EVENTS          = array( 'webhook', 'post_published', 'woo_order_created', 'file_changed' );
 
 	/** Register hooks. */
 	public static function init() {
 		$service = new self();
-		add_action( self::RUN_HOOK, [ $service, 'run_scheduled' ] );
-		add_action( self::FILE_HOOK, [ $service, 'check_files' ] );
-		add_action( 'transition_post_status', [ $service, 'on_post_status' ], 20, 3 );
-		add_action( 'woocommerce_new_order', [ $service, 'on_new_order' ], 20, 1 );
-		add_action( 'rest_api_init', [ $service, 'register_routes' ] );
-		add_action( 'admin_init', [ $service, 'maybe_schedule_file_check' ] );
+		add_action( self::RUN_HOOK, array( $service, 'run_scheduled' ) );
+		add_action( self::FILE_HOOK, array( $service, 'check_files' ) );
+		add_action( 'transition_post_status', array( $service, 'on_post_status' ), 20, 3 );
+		add_action( 'woocommerce_new_order', array( $service, 'on_new_order' ), 20, 1 );
+		add_action( 'rest_api_init', array( $service, 'register_routes' ) );
+		add_action( 'admin_init', array( $service, 'maybe_schedule_file_check' ) );
 	}
 
 	/**
@@ -54,7 +54,7 @@ class Trigger_Service {
 	 * @param array  $input Input.
 	 * @return array|\WP_Error
 	 */
-	public function execute( $name, array $input = [] ) {
+	public function execute( $name, array $input = array() ) {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access;
@@ -65,12 +65,12 @@ class Trigger_Service {
 		}
 		$valid = rest_validate_value_from_schema( $input, $definition['input'], 'input' );
 		if ( is_wp_error( $valid ) ) {
-			$valid->add_data( [ 'status' => 400 ] );
+			$valid->add_data( array( 'status' => 400 ) );
 			return $valid;
 		}
 		switch ( $name ) {
 			case 'trigger-list':
-				return [ 'triggers' => array_values( array_map( [ $this, 'public_view' ], $this->all() ) ) ];
+				return array( 'triggers' => array_values( array_map( array( $this, 'public_view' ), $this->all() ) ) );
 			case 'trigger-get':
 				$trigger = $this->get( $input['trigger_id'] );
 				return is_wp_error( $trigger ) ? $trigger : $this->public_view( $trigger );
@@ -82,22 +82,22 @@ class Trigger_Service {
 				return $this->delete( $input['trigger_id'] );
 			case 'trigger-run':
 				$result = $this->run( $input['trigger_id'], 'manual' );
-				return is_wp_error( $result ) ? $result : [
+				return is_wp_error( $result ) ? $result : array(
 					'job_id'     => (int) $result['job_id'],
 					'trigger_id' => $input['trigger_id'],
-				];
+				);
 			case 'trigger-rotate-token':
 				return $this->rotate_token( $input['trigger_id'] );
 			case 'trigger-log':
-				return [ 'entries' => $this->log_entries() ];
+				return array( 'entries' => $this->log_entries() );
 			case 'trigger-sources':
-				return [ 'sources' => $this->sources() ];
+				return array( 'sources' => $this->sources() );
 			case 'trigger-n8n-workflow':
 				$workflow = $this->n8n_workflow( $input['trigger_id'] );
-				return is_wp_error( $workflow ) ? $workflow : [
+				return is_wp_error( $workflow ) ? $workflow : array(
 					'workflow'      => json_decode( wp_json_encode( $workflow ), true ),
 					'workflow_json' => (string) wp_json_encode( $workflow, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ),
-				];
+				);
 		}
 		return $this->error( 'operation', __( 'Unknown trigger operation.', 'import-export-by-rockstarlab' ) );
 	}
@@ -123,27 +123,27 @@ class Trigger_Service {
 		}
 		$now     = gmdate( 'Y-m-d H:i:s' );
 		$id      = 'trg_' . substr( md5( wp_generate_uuid4() ), 0, 12 );
-		$trigger = [
-			'trigger_id'    => $id,
-			'name'          => $this->clean_name( $input['name'] ?? '', $source ),
-			'source_job_id' => (int) $source->id,
-			'event'         => $event,
-			'post_types'    => 'post_published' === $event ? $this->clean_post_types( $input['post_types'] ?? [ 'post' ] ) : [],
-			'delay'         => $this->clean_delay( $input['delay'] ?? null, $event ),
-			'status'        => 'active',
-			'created_by'    => get_current_user_id(),
-			'token_hash'    => '',
-			'file_state'    => [],
-			'pending_since' => '',
-			'last_run_at'   => '',
-			'last_job_id'   => 0,
-			'last_result'   => '',
-			'runs'          => 0,
-			'jobs'          => [],
+		$trigger = array(
+			'trigger_id'     => $id,
+			'name'           => $this->clean_name( $input['name'] ?? '', $source ),
+			'source_job_id'  => (int) $source->id,
+			'event'          => $event,
+			'post_types'     => 'post_published' === $event ? $this->clean_post_types( $input['post_types'] ?? array( 'post' ) ) : array(),
+			'delay'          => $this->clean_delay( $input['delay'] ?? null, $event ),
+			'status'         => 'active',
+			'created_by'     => get_current_user_id(),
+			'token_hash'     => '',
+			'file_state'     => array(),
+			'pending_since'  => '',
+			'last_run_at'    => '',
+			'last_job_id'    => 0,
+			'last_result'    => '',
+			'runs'           => 0,
+			'jobs'           => array(),
 			'allow_file_url' => false,
-			'created_at'    => $now,
-			'updated_at'    => $now,
-		];
+			'created_at'     => $now,
+			'updated_at'     => $now,
+		);
 		if ( 'post_published' === $event && ! $trigger['post_types'] ) {
 			return $this->error( 'trigger_post_types', __( 'Choose at least one post type.', 'import-export-by-rockstarlab' ) );
 		}
@@ -190,12 +190,12 @@ class Trigger_Service {
 			$t['name'] = $this->clean_name( $input['name'], null, $t['name'] );
 		}
 		if ( isset( $input['status'] ) ) {
-			if ( ! in_array( $input['status'], [ 'active', 'paused' ], true ) ) {
+			if ( ! in_array( $input['status'], array( 'active', 'paused' ), true ) ) {
 				return $this->error( 'trigger_status', __( 'A trigger is either active or paused.', 'import-export-by-rockstarlab' ) );
 			}
 			$t['status'] = $input['status'];
 			if ( 'paused' === $t['status'] ) {
-				wp_clear_scheduled_hook( self::RUN_HOOK, [ $id ] );
+				wp_clear_scheduled_hook( self::RUN_HOOK, array( $id ) );
 				$t['pending_since'] = '';
 			}
 		}
@@ -235,11 +235,11 @@ class Trigger_Service {
 		}
 		unset( $all[ $id ] );
 		$this->store( self::OPTION, $all );
-		wp_clear_scheduled_hook( self::RUN_HOOK, [ $id ] );
-		return [
+		wp_clear_scheduled_hook( self::RUN_HOOK, array( $id ) );
+		return array(
 			'deleted'    => true,
 			'trigger_id' => $id,
-		];
+		);
 	}
 
 	/**
@@ -256,11 +256,11 @@ class Trigger_Service {
 		if ( 'webhook' !== $all[ $id ]['event'] ) {
 			return $this->error( 'trigger_not_webhook', __( 'Only webhook triggers have a token.', 'import-export-by-rockstarlab' ) );
 		}
-		$token                     = $this->new_token();
+		$token                    = $this->new_token();
 		$all[ $id ]['token_hash'] = $this->hash_token( $token );
 		$all[ $id ]['updated_at'] = gmdate( 'Y-m-d H:i:s' );
 		$this->store( self::OPTION, $all );
-		return $this->public_view( $all[ $id ] ) + [ 'token' => $token ];
+		return $this->public_view( $all[ $id ] ) + array( 'token' => $token );
 	}
 
 	/**
@@ -298,10 +298,10 @@ class Trigger_Service {
 				return $this->finish( $t, $reason, $this->error( 'trigger_paused', __( 'This trigger is paused.', 'import-export-by-rockstarlab' ), 409 ) );
 			}
 			$last = $t['last_job_id'] ? rsl_ie()->Model->job->find( (int) $t['last_job_id'] ) : null;
-			if ( $last && in_array( $last->status, [ 'pending', 'processing', 'paused' ], true ) ) {
+			if ( $last && in_array( $last->status, array( 'pending', 'processing', 'paused' ), true ) ) {
 				return $this->finish( $t, $reason, $this->error( 'trigger_overlap', __( 'The previous job of this trigger is still running.', 'import-export-by-rockstarlab' ), 409 ) );
 			}
-			if ( in_array( $reason, [ 'webhook', 'webhook_file', 'manual' ], true ) && $t['last_run_at'] && time() - strtotime( $t['last_run_at'] . ' UTC' ) < self::MIN_INTERVAL ) {
+			if ( in_array( $reason, array( 'webhook', 'webhook_file', 'manual' ), true ) && $t['last_run_at'] && time() - strtotime( $t['last_run_at'] . ' UTC' ) < self::MIN_INTERVAL ) {
 				return $this->finish( $t, $reason, $this->error( 'trigger_too_soon', __( 'This trigger ran less than a minute ago. Try again later.', 'import-export-by-rockstarlab' ), 429 ) );
 			}
 			$context = Execution_Context::from_storage( (int) $t['created_by'], get_current_blog_id() );
@@ -332,7 +332,7 @@ class Trigger_Service {
 			$result = $this->run( $id, 'event' );
 			if ( is_wp_error( $result ) && 'rsl_ie_trigger_overlap' === $result->get_error_code() ) {
 				// Run again after the current job, so the new posts or orders are not missed.
-				wp_schedule_single_event( time() + max( 60, (int) $all[ $id ]['delay'] ), self::RUN_HOOK, [ $id ] );
+				wp_schedule_single_event( time() + max( 60, (int) $all[ $id ]['delay'] ), self::RUN_HOOK, array( $id ) );
 			}
 		}
 	}
@@ -380,7 +380,7 @@ class Trigger_Service {
 	 * @return array Trigger ID => changed|unchanged|baseline|error code.
 	 */
 	public function check_files() {
-		$out = [];
+		$out = array();
 		foreach ( $this->all() as $t ) {
 			if ( 'active' !== $t['status'] || 'file_changed' !== $t['event'] ) {
 				continue;
@@ -450,26 +450,26 @@ class Trigger_Service {
 		register_rest_route(
 			'rsl-ie/v1',
 			'/triggers/(?P<trigger_id>trg_[a-f0-9]{12})/run',
-			[
+			array(
 				'methods'             => 'POST',
-				'callback'            => [ $this, 'rest_run' ],
+				'callback'            => array( $this, 'rest_run' ),
 				'permission_callback' => '__return_true', // The secret token is checked in the callback.
-				'args'                => [
-					'trigger_id' => [
+				'args'                => array(
+					'trigger_id' => array(
 						'type'    => 'string',
 						'pattern' => '^trg_[a-f0-9]{12}$',
-					],
-				],
-			]
+					),
+				),
+			)
 		);
 		register_rest_route(
 			'rsl-ie/v1',
 			'/triggers/(?P<trigger_id>trg_[a-f0-9]{12})/jobs/(?P<job_id>[0-9]{1,12})',
-			[
+			array(
 				'methods'             => 'GET',
-				'callback'            => [ $this, 'rest_job' ],
+				'callback'            => array( $this, 'rest_job' ),
 				'permission_callback' => '__return_true', // The secret token is checked in the callback.
-			]
+			)
 		);
 	}
 
@@ -502,11 +502,11 @@ class Trigger_Service {
 			return $result;
 		}
 		return new \WP_REST_Response(
-			[
+			array(
 				'accepted'   => true,
 				'trigger_id' => $id,
 				'job_id'     => (int) $result['job_id'],
-			],
+			),
 			202
 		);
 	}
@@ -538,13 +538,13 @@ class Trigger_Service {
 	 */
 	public static function job_summary( $job ) {
 		$result = json_decode( (string) $job->result, true );
-		$result = is_array( $result ) ? $result : [];
-		$errors = isset( $result['errors'] ) && is_array( $result['errors'] ) ? $result['errors'] : [];
-		return [
+		$result = is_array( $result ) ? $result : array();
+		$errors = isset( $result['errors'] ) && is_array( $result['errors'] ) ? $result['errors'] : array();
+		return array(
 			'job_id'    => (int) $job->id,
 			'type'      => (string) $job->type,
 			'status'    => (string) $job->status,
-			'finished'  => in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true ),
+			'finished'  => in_array( $job->status, array( 'completed', 'failed', 'cancelled' ), true ),
 			'total'     => (int) $job->total_items,
 			'processed' => (int) $job->processed_items,
 			'created'   => (int) ( $result['created'] ?? 0 ),
@@ -553,7 +553,7 @@ class Trigger_Service {
 			'skipped'   => (int) ( $result['skipped'] ?? $job->skipped_items ),
 			'failed'    => (int) ( $result['failed'] ?? $job->failed_items ),
 			'errors'    => count( $errors ),
-		];
+		);
 	}
 
 	/**
@@ -590,13 +590,13 @@ class Trigger_Service {
 	 */
 	public function sources() {
 		global $wpdb;
-		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT id, job_name, type, data_type, status, parameters, file_path, created_at FROM %i WHERE type IN ('import','export') AND status IN ('completed','failed','cancelled') ORDER BY id DESC LIMIT %d", $wpdb->prefix . 'rsl_ie_jobs', 200 ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Live job list.
-		$out     = [];
+		$rows    = $wpdb->get_results( $wpdb->prepare( "SELECT id, job_name, type, data_type, status, parameters, file_path, created_at FROM %i WHERE type IN ('import','export') AND status IN ('completed','failed','cancelled') ORDER BY id DESC LIMIT %d", $wpdb->prefix . 'rsl_ie_jobs', 200 ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Live job list.
+		$out     = array();
 		$checked = 0;
 		foreach ( (array) $rows as $row ) {
 			$params = json_decode( (string) $row->parameters, true );
-			$params = is_array( $params ) ? $params : [];
-			if ( ! empty( $params['migration_parent_id'] ) || in_array( $row->data_type, [ 'media_sync', 'ai_url', 'content_update' ], true ) ) {
+			$params = is_array( $params ) ? $params : array();
+			if ( ! empty( $params['migration_parent_id'] ) || in_array( $row->data_type, array( 'media_sync', 'ai_url', 'content_update' ), true ) ) {
 				continue;
 			}
 			$from_url = '' !== (string) ( $params['source_url'] ?? '' );
@@ -608,14 +608,14 @@ class Trigger_Service {
 			if ( ++$checked > 100 || is_wp_error( ( new Schedule_Source_Service() )->execute( (int) $row->id ) ) ) {
 				continue;
 			}
-			$out[] = [
+			$out[] = array(
 				'job_id'       => (int) $row->id,
 				'label'        => self::source_label( $row ),
 				'type'         => (string) $row->type,
 				'content_type' => (string) $row->data_type,
 				'from_url'     => $from_url,
 				'created_at'   => (string) $row->created_at,
-			];
+			);
 			if ( count( $out ) >= 50 ) {
 				break;
 			}
@@ -631,7 +631,7 @@ class Trigger_Service {
 	 */
 	public static function source_label( $job ) {
 		$object = post_type_exists( (string) $job->data_type ) ? get_post_type_object( (string) $job->data_type ) : null;
-		$names  = [
+		$names  = array(
 			'urls'              => __( 'All Site URLs', 'import-export-by-rockstarlab' ),
 			'taxonomy'          => __( 'Taxonomy Terms', 'import-export-by-rockstarlab' ),
 			'comment'           => __( 'Comments', 'import-export-by-rockstarlab' ),
@@ -648,8 +648,8 @@ class Trigger_Service {
 			'woo_attribute'     => __( 'WooCommerce Attributes', 'import-export-by-rockstarlab' ),
 			'woo_shipping_zone' => __( 'WooCommerce Shipping Zones', 'import-export-by-rockstarlab' ),
 			'woo_tax_rate'      => __( 'WooCommerce Tax Rates', 'import-export-by-rockstarlab' ),
-		];
-		$what   = $object ? $object->labels->name : ( $names[ (string) $job->data_type ] ?? ucwords( str_replace( [ 'woo_', '_' ], [ 'WooCommerce ', ' ' ], (string) $job->data_type ) ) );
+		);
+		$what   = $object ? $object->labels->name : ( $names[ (string) $job->data_type ] ?? ucwords( str_replace( array( 'woo_', '_' ), array( 'WooCommerce ', ' ' ), (string) $job->data_type ) ) );
 		$label  = sprintf( '#%d %s · %s', (int) $job->id, 'export' === $job->type ? __( 'Export', 'import-export-by-rockstarlab' ) : __( 'Import', 'import-export-by-rockstarlab' ), $what );
 		return '' !== (string) $job->job_name ? $label . ' — ' . $job->job_name : $label;
 	}
@@ -672,109 +672,109 @@ class Trigger_Service {
 		}
 		$run     = rest_url( 'rsl-ie/v1/triggers/' . $t['trigger_id'] . '/run' );
 		$jobs    = rest_url( 'rsl-ie/v1/triggers/' . $t['trigger_id'] . '/jobs/' );
-		$headers = [
-			'parameters' => [
-				[
+		$headers = array(
+			'parameters' => array(
+				array(
 					'name'  => 'X-RSL-Token',
 					'value' => 'PASTE-THE-TRIGGER-TOKEN-HERE',
-				],
-			],
-		];
-		$start   = [
+				),
+			),
+		);
+		$start   = array(
 			'method'           => 'POST',
 			'url'              => $run,
 			'sendHeaders'      => true,
 			'headerParameters' => $headers,
 			'options'          => new \stdClass(),
-		];
+		);
 		if ( ! empty( $t['allow_file_url'] ) ) {
 			$start['sendBody']    = true;
 			$start['specifyBody'] = 'json';
 			$start['jsonBody']    = '{ "file_url": "https://example.com/files/import.csv" }';
 		}
 		$node = static function ( $name, $type, $version, array $parameters, $x ) {
-			return [
+			return array(
 				'parameters'  => $parameters ? $parameters : new \stdClass(),
 				'id'          => wp_generate_uuid4(),
 				'name'        => $name,
 				'type'        => $type,
 				'typeVersion' => $version,
-				'position'    => [ $x, 0 ],
-			];
+				'position'    => array( $x, 0 ),
+			);
 		};
 		// Node names are shown in n8n, so they are translated; links and the expression below use the same names.
-		$start_name      = __( 'Start the job', 'import-export-by-rockstarlab' );
-		$check_name      = __( 'Check the job', 'import-export-by-rockstarlab' );
-		$wait_name       = __( 'Wait 30 seconds', 'import-export-by-rockstarlab' );
-		$done_name       = __( 'Finished?', 'import-export-by-rockstarlab' );
-		$wait            = $node( $wait_name, 'n8n-nodes-base.wait', 1.1, [ 'amount' => 30 ], 440 );
+		$start_name        = __( 'Start the job', 'import-export-by-rockstarlab' );
+		$check_name        = __( 'Check the job', 'import-export-by-rockstarlab' );
+		$wait_name         = __( 'Wait 30 seconds', 'import-export-by-rockstarlab' );
+		$done_name         = __( 'Finished?', 'import-export-by-rockstarlab' );
+		$wait              = $node( $wait_name, 'n8n-nodes-base.wait', 1.1, array( 'amount' => 30 ), 440 );
 		$wait['webhookId'] = wp_generate_uuid4();
-		$link            = static function ( $to ) {
-			return [
+		$link              = static function ( $to ) {
+			return array(
 				'node'  => $to,
 				'type'  => 'main',
 				'index' => 0,
-			];
+			);
 		};
-		return [
+		return array(
 			/* translators: %s: trigger name. */
 			'name'        => sprintf( __( 'WordPress: %s', 'import-export-by-rockstarlab' ), $t['name'] ),
-			'nodes'       => [
-				$node( 'Start', 'n8n-nodes-base.manualTrigger', 1, [], 0 ),
+			'nodes'       => array(
+				$node( 'Start', 'n8n-nodes-base.manualTrigger', 1, array(), 0 ),
 				$node( $start_name, 'n8n-nodes-base.httpRequest', 4.2, $start, 220 ),
 				$wait,
 				$node(
 					$check_name,
 					'n8n-nodes-base.httpRequest',
 					4.2,
-					[
-						'url'              => '=' . $jobs . "{{ \$('" . str_replace( [ '\\', "'" ], [ '\\\\', "\\'" ], $start_name ) . "').item.json.job_id }}",
+					array(
+						'url'              => '=' . $jobs . "{{ \$('" . str_replace( array( '\\', "'" ), array( '\\\\', "\\'" ), $start_name ) . "').item.json.job_id }}",
 						'sendHeaders'      => true,
 						'headerParameters' => $headers,
 						'options'          => new \stdClass(),
-					],
+					),
 					660
 				),
 				$node(
 					$done_name,
 					'n8n-nodes-base.if',
 					2,
-					[
-						'conditions' => [
-							'options'    => [
+					array(
+						'conditions' => array(
+							'options'    => array(
 								'caseSensitive'  => true,
 								'leftValue'      => '',
 								'typeValidation' => 'strict',
-							],
-							'conditions' => [
-								[
+							),
+							'conditions' => array(
+								array(
 									'id'         => wp_generate_uuid4(),
 									'leftValue'  => '={{ $json.finished }}',
 									'rightValue' => true,
-									'operator'   => [
-										'type'      => 'boolean',
-										'operation' => 'true',
+									'operator'   => array(
+										'type'        => 'boolean',
+										'operation'   => 'true',
 										'singleValue' => true,
-									],
-								],
-							],
+									),
+								),
+							),
 							'combinator' => 'and',
-						],
+						),
 						'options'    => new \stdClass(),
-					],
+					),
 					880
 				),
-			],
-			'connections' => [
-				'Start'     => [ 'main' => [ [ $link( $start_name ) ] ] ],
-				$start_name => [ 'main' => [ [ $link( $wait_name ) ] ] ],
-				$wait_name  => [ 'main' => [ [ $link( $check_name ) ] ] ],
-				$check_name => [ 'main' => [ [ $link( $done_name ) ] ] ],
-				$done_name  => [ 'main' => [ [], [ $link( $wait_name ) ] ] ],
-			],
-			'settings'    => [ 'executionOrder' => 'v1' ],
+			),
+			'connections' => array(
+				'Start'     => array( 'main' => array( array( $link( $start_name ) ) ) ),
+				$start_name => array( 'main' => array( array( $link( $wait_name ) ) ) ),
+				$wait_name  => array( 'main' => array( array( $link( $check_name ) ) ) ),
+				$check_name => array( 'main' => array( array( $link( $done_name ) ) ) ),
+				$done_name  => array( 'main' => array( array(), array( $link( $wait_name ) ) ) ),
+			),
+			'settings'    => array( 'executionOrder' => 'v1' ),
 			'pinData'     => new \stdClass(),
-		];
+		);
 	}
 
 	/**
@@ -783,8 +783,8 @@ class Trigger_Service {
 	 * @return array
 	 */
 	public function log_entries() {
-		$log = get_option( self::LOG, [] );
-		return array_reverse( is_array( $log ) ? $log : [] );
+		$log = get_option( self::LOG, array() );
+		return array_reverse( is_array( $log ) ? $log : array() );
 	}
 
 	/**
@@ -795,25 +795,25 @@ class Trigger_Service {
 	 */
 	public function public_view( array $t ) {
 		$job = rsl_ie()->Model->job->find( (int) $t['source_job_id'] );
-		return [
-			'trigger_id'    => $t['trigger_id'],
-			'name'          => $t['name'],
-			'event'         => $t['event'],
-			'source_job_id' => (int) $t['source_job_id'],
-			'source'        => $job ? self::source_label( $job ) : '',
-			'source_type'   => $job ? (string) $job->type : '',
-			'post_types'    => array_values( $t['post_types'] ),
-			'delay'         => (int) $t['delay'],
-			'status'        => $t['status'],
-			'webhook_url'   => 'webhook' === $t['event'] ? rest_url( 'rsl-ie/v1/triggers/' . $t['trigger_id'] . '/run' ) : '',
-			'pending'       => '' !== $t['pending_since'],
-			'last_run_at'   => $t['last_run_at'],
-			'last_job_id'   => (int) $t['last_job_id'],
-			'last_result'   => $t['last_result'],
-			'runs'          => (int) $t['runs'],
+		return array(
+			'trigger_id'     => $t['trigger_id'],
+			'name'           => $t['name'],
+			'event'          => $t['event'],
+			'source_job_id'  => (int) $t['source_job_id'],
+			'source'         => $job ? self::source_label( $job ) : '',
+			'source_type'    => $job ? (string) $job->type : '',
+			'post_types'     => array_values( $t['post_types'] ),
+			'delay'          => (int) $t['delay'],
+			'status'         => $t['status'],
+			'webhook_url'    => 'webhook' === $t['event'] ? rest_url( 'rsl-ie/v1/triggers/' . $t['trigger_id'] . '/run' ) : '',
+			'pending'        => '' !== $t['pending_since'],
+			'last_run_at'    => $t['last_run_at'],
+			'last_job_id'    => (int) $t['last_job_id'],
+			'last_result'    => $t['last_result'],
+			'runs'           => (int) $t['runs'],
 			'allow_file_url' => ! empty( $t['allow_file_url'] ),
-			'created_at'    => $t['created_at'],
-		];
+			'created_at'     => $t['created_at'],
+		);
 	}
 
 	/**
@@ -822,14 +822,14 @@ class Trigger_Service {
 	 * @param string $id Trigger ID.
 	 */
 	private function queue( $id ) {
-		if ( wp_next_scheduled( self::RUN_HOOK, [ $id ] ) ) {
+		if ( wp_next_scheduled( self::RUN_HOOK, array( $id ) ) ) {
 			return;
 		}
 		$all = $this->all();
 		if ( ! isset( $all[ $id ] ) ) {
 			return;
 		}
-		wp_schedule_single_event( time() + (int) $all[ $id ]['delay'], self::RUN_HOOK, [ $id ] );
+		wp_schedule_single_event( time() + (int) $all[ $id ]['delay'], self::RUN_HOOK, array( $id ) );
 		$all[ $id ]['pending_since'] = gmdate( 'Y-m-d H:i:s' );
 		$this->store( self::OPTION, $all );
 	}
@@ -851,7 +851,7 @@ class Trigger_Service {
 				$x['last_run_at'] = gmdate( 'Y-m-d H:i:s' );
 				$x['last_job_id'] = (int) $result['job_id'];
 				$x['runs']        = (int) $x['runs'] + 1;
-				$x['jobs']        = array_slice( array_merge( (array) $x['jobs'], [ (int) $result['job_id'] ] ), -20 );
+				$x['jobs']        = array_slice( array_merge( (array) $x['jobs'], array( (int) $result['job_id'] ) ), -20 );
 			}
 			unset( $x );
 			$this->store( self::OPTION, $all );
@@ -868,9 +868,9 @@ class Trigger_Service {
 	 * @param array|\WP_Error $result Result.
 	 */
 	private function log( array $t, $reason, $result ) {
-		$log   = get_option( self::LOG, [] );
-		$log   = is_array( $log ) ? $log : [];
-		$log[] = [
+		$log   = get_option( self::LOG, array() );
+		$log   = is_array( $log ) ? $log : array();
+		$log[] = array(
 			'time'       => gmdate( 'Y-m-d H:i:s' ),
 			'trigger_id' => $t['trigger_id'],
 			'name'       => $t['name'],
@@ -878,7 +878,7 @@ class Trigger_Service {
 			'ok'         => ! is_wp_error( $result ),
 			'job_id'     => is_wp_error( $result ) ? 0 : (int) ( $result['job_id'] ?? 0 ),
 			'detail'     => is_wp_error( $result ) ? $result->get_error_code() : 'started',
-		];
+		);
 		$this->store( self::LOG, array_slice( $log, -self::LOG_SIZE ) );
 	}
 
@@ -895,10 +895,10 @@ class Trigger_Service {
 			return $this->error( 'trigger_source', __( 'Choose a finished import or export to run.', 'import-export-by-rockstarlab' ), 404 );
 		}
 		$params = json_decode( (string) $job->parameters, true );
-		if ( ! in_array( $job->type, [ 'import', 'export' ], true ) || in_array( $job->data_type, [ 'media_sync', 'ai_url', 'content_update' ], true ) || ! empty( $params['migration_parent_id'] ) ) {
+		if ( ! in_array( $job->type, array( 'import', 'export' ), true ) || in_array( $job->data_type, array( 'media_sync', 'ai_url', 'content_update' ), true ) || ! empty( $params['migration_parent_id'] ) ) {
 			return $this->error( 'trigger_source', __( 'Triggers can run file imports and exports only.', 'import-export-by-rockstarlab' ) );
 		}
-		if ( ! in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true ) ) {
+		if ( ! in_array( $job->status, array( 'completed', 'failed', 'cancelled' ), true ) ) {
 			return $this->error( 'trigger_source', __( 'Choose a job that has finished.', 'import-export-by-rockstarlab' ), 409 );
 		}
 		if ( 'file_changed' === $event && ( 'import' !== $job->type || '' === (string) ( $params['source_url'] ?? '' ) ) ) {
@@ -939,10 +939,10 @@ class Trigger_Service {
 			$state = ( new Remote_File_Service() )->state( $url );
 			return is_wp_error( $state ) ? $this->error( 'trigger_file_unreachable', $state->get_error_message(), 502 ) : $state;
 		}
-		$args = [
+		$args = array(
 			'timeout'     => 15,
 			'redirection' => 3,
-		];
+		);
 		// Same rule as the URL import itself: development hosts (*.local, *.test) are
 		// allowed, everything else goes through the safe HTTP API (no private addresses).
 		$local = (bool) preg_match( '/\.(local|test|localhost)$/i', (string) wp_parse_url( $url, PHP_URL_HOST ) );
@@ -958,11 +958,11 @@ class Trigger_Service {
 			return $this->error( 'trigger_file_http', 'HTTP ' . $code, 502 );
 		}
 		$state = array_filter(
-			[
+			array(
 				'etag'          => (string) wp_remote_retrieve_header( $response, 'etag' ),
 				'last_modified' => (string) wp_remote_retrieve_header( $response, 'last-modified' ),
 				'length'        => (string) wp_remote_retrieve_header( $response, 'content-length' ),
-			],
+			),
 			'strlen'
 		);
 		if ( isset( $state['etag'] ) || isset( $state['last_modified'] ) ) {
@@ -973,7 +973,7 @@ class Trigger_Service {
 		if ( is_wp_error( $response ) ) {
 			return $this->error( 'trigger_file_unreachable', $response->get_error_message(), 502 );
 		}
-		return [ 'sha256' => hash( 'sha256', (string) wp_remote_retrieve_body( $response ) ) ];
+		return array( 'sha256' => hash( 'sha256', (string) wp_remote_retrieve_body( $response ) ) );
 	}
 
 	/** Re-create the hourly file check if it went missing (e.g. after a cron reset). */
@@ -1002,27 +1002,27 @@ class Trigger_Service {
 	 * @return array
 	 */
 	private function all() {
-		$raw = get_option( self::OPTION, [] );
-		$out = [];
-		foreach ( is_array( $raw ) ? $raw : [] as $id => $t ) {
+		$raw = get_option( self::OPTION, array() );
+		$out = array();
+		foreach ( is_array( $raw ) ? $raw : array() as $id => $t ) {
 			if ( is_array( $t ) && isset( $t['trigger_id'], $t['event'], $t['source_job_id'] ) && $id === $t['trigger_id'] ) {
-				$out[ $id ] = $t + [
-					'post_types'    => [],
-					'delay'         => 0,
-					'status'        => 'active',
-					'token_hash'    => '',
-					'file_state'    => [],
-					'pending_since' => '',
-					'last_run_at'   => '',
-					'last_job_id'   => 0,
-					'last_result'   => '',
-					'runs'          => 0,
-					'jobs'          => [],
+				$out[ $id ] = $t + array(
+					'post_types'     => array(),
+					'delay'          => 0,
+					'status'         => 'active',
+					'token_hash'     => '',
+					'file_state'     => array(),
+					'pending_since'  => '',
+					'last_run_at'    => '',
+					'last_job_id'    => 0,
+					'last_result'    => '',
+					'runs'           => 0,
+					'jobs'           => array(),
 					'allow_file_url' => false,
-					'name'          => $id,
-					'created_by'    => 0,
-					'created_at'    => '',
-				];
+					'name'           => $id,
+					'created_by'     => 0,
+					'created_at'     => '',
+				);
 			}
 		}
 		return $out;
@@ -1056,7 +1056,7 @@ class Trigger_Service {
 	 * @return string[]
 	 */
 	private function clean_post_types( $types ) {
-		$public = get_post_types( [ 'public' => true ] );
+		$public = get_post_types( array( 'public' => true ) );
 		unset( $public['attachment'] );
 		return array_values( array_intersect( array_map( 'sanitize_key', (array) $types ), array_keys( $public ) ) );
 	}
@@ -1069,7 +1069,7 @@ class Trigger_Service {
 	 * @return int
 	 */
 	private function clean_delay( $delay, $event ) {
-		if ( in_array( $event, [ 'webhook', 'file_changed' ], true ) ) {
+		if ( in_array( $event, array( 'webhook', 'file_changed' ), true ) ) {
 			return 0;
 		}
 		return null === $delay || '' === $delay ? 60 : max( 0, min( 3600, (int) $delay ) );
@@ -1126,6 +1126,6 @@ class Trigger_Service {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $message, $status = 400 ) {
-		return new \WP_Error( 'rsl_ie_' . $code, $message, [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_' . $code, $message, array( 'status' => $status ) );
 	}
 }

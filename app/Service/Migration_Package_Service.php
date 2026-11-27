@@ -40,7 +40,7 @@ class Migration_Package_Service {
 	public function inspect( $path, $check_only = false, array $selected_keys = array(), $only_index = null ) {
 		$this->woocommerce_excluded = false;
 		$this->pro_excluded         = false;
-		$access = Access_Policy::check_management();
+		$access                     = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access; }
 		if ( ! class_exists( 'ZipArchive' ) ) {
@@ -103,10 +103,10 @@ class Migration_Package_Service {
 			$s           = Workflow_Schemas::string();
 			$step_schema = Workflow_Schemas::object(
 				array(
-					'type'         => $s,
-					'file'         => $s,
-					'taxonomy'     => $s,
-					'post_type'    => $s,
+					'type'      => $s,
+					'file'      => $s,
+					'taxonomy'  => $s,
+					'post_type' => $s,
 				),
 				array( 'type', 'file' )
 			);
@@ -143,7 +143,7 @@ class Migration_Package_Service {
 						$this->woocommerce_excluded = true;
 					}
 					$subtype = $step['taxonomy'] ?? $step['post_type'] ?? '';
-					$key = $step['type'] . ( '' !== $subtype ? ':' . $subtype : '' );
+					$key     = $step['type'] . ( '' !== $subtype ? ':' . $subtype : '' );
 					unset( $remaining_keys[ $key ] );
 					continue;
 				}
@@ -179,14 +179,14 @@ class Migration_Package_Service {
 				return $this->error( 'unlisted_entry' ); }
 			if ( $sort ) {
 				if ( 0 === $sort->count() ) {
-					return new \WP_Error( 'rsl_ie_migration_no_available_content', __( 'This package has no available content to import. Content types unavailable on this site are skipped.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+					return new \WP_Error( 'rsl_ie_migration_no_available_content', __( 'This package has no available content to import. Content types unavailable on this site are skipped.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 				}
 				if ( ! is_int( $only_index ) || $only_index < 0 || $only_index >= $sort->count() ) {
 					return $this->error( 'cursor', 409 );
 				}
 				return $sort->select( $only_index );
 			}
-			return $remaining_keys ? $this->error( 'selection' ) : [];
+			return $remaining_keys ? $this->error( 'selection' ) : array();
 		} catch ( \Throwable $error ) {
 			return $this->error( 'entry_index', 500 );
 		} finally {
@@ -624,11 +624,11 @@ class Migration_Package_Service {
 			if ( is_wp_error( $meta ) ) {
 				return $meta; }
 			$state  = $meta['package_preparation'] ?? array(
-				'store' => [
+				'store' => array(
 					'file_id' => $id,
 					'scope'   => 'public',
 					'count'   => 0,
-				],
+				),
 				'entry' => array( 'resource' => 0 ),
 			);
 			$source = $files->resolve( $id, $meta['purpose'] );
@@ -636,19 +636,19 @@ class Migration_Package_Service {
 				return $source; }
 			// Upgrade an in-flight legacy inline list once; new checkpoints contain only a count.
 			if ( isset( $state['steps'] ) ) {
-				$state['store'] = [
+				$state['store'] = array(
 					'file_id' => $id,
 					'scope'   => 'public',
 					'count'   => 0,
-				];
+				);
 				foreach ( $state['steps'] as $step ) {
 					Archive_Step_Store::put(
 						$state['store'],
 						$state['store']['count']++,
-						[
+						array(
 							'step'    => $step,
-							'created' => in_array( $step['file_id'], $state['created'] ?? [], true ),
-						]
+							'created' => in_array( $step['file_id'], $state['created'] ?? array(), true ),
+						)
 					); }
 				unset( $state['steps'], $state['created'] );
 			}
@@ -659,14 +659,14 @@ class Migration_Package_Service {
 				if ( is_wp_error( $valid ) ) {
 					return $valid; }
 				// Revalidate current row permissions without rebuilding a full step list.
-				$page = $state['page'] ?? [];
+				$page = $state['page'] ?? array();
 				if ( ( $page['offset'] ?? -1 ) !== $offset || ( $page['limit'] ?? 0 ) !== $limit ) {
-					$page = [
+					$page = array(
 						'offset' => $offset,
 						'limit'  => $limit,
 						'index'  => $offset,
-						'entry'  => [ 'resource' => 0 ],
-					];
+						'entry'  => array( 'resource' => 0 ),
+					);
 				}
 				if ( $offset > $state['store']['count'] ) {
 					return $this->error( 'cursor', 400 ); }
@@ -679,7 +679,7 @@ class Migration_Package_Service {
 						return $checked; }
 					if ( empty( $checked['pending'] ) ) {
 						++$page['index'];
-						$page['entry'] = [ 'resource' => 0 ]; }
+						$page['entry'] = array( 'resource' => 0 ); }
 				}
 				$state['page'] = $page;
 				if ( $page['index'] >= $end ) {
@@ -688,16 +688,16 @@ class Migration_Package_Service {
 				$saved                       = File_Store::save( $meta );
 				if ( is_wp_error( $saved ) ) {
 					return $saved; }
-				return isset( $state['page'] ) ? [
+				return isset( $state['page'] ) ? array(
 					'pending'         => true,
 					'package_file_id' => $id,
 					'sha256'          => $state['sha256'],
-					'steps'           => [],
+					'steps'           => array(),
 					'offset'          => $offset,
 					'next_offset'     => $offset,
 					'total_steps'     => $state['store']['count'],
 					'complete'        => false,
-				] : $this->prepared_page( $id, $state, $offset, $limit );
+				) : $this->prepared_page( $id, $state, $offset, $limit );
 			}
 			$child     = 'file_' . md5( 'migration-entry:' . $id . ':' . hash_file( 'sha256', $source['path'] ) . ':' . $state['store']['count'] );
 			$new_child = is_wp_error( File_Store::get( $child ) );
@@ -715,10 +715,10 @@ class Migration_Package_Service {
 				Archive_Step_Store::put(
 					$state['store'],
 					$state['store']['count']++,
-					[
+					array(
 						'step'    => $result['steps'][0],
 						'created' => $new_child,
-					]
+					)
 				);
 				$state['sha256'] = $result['sha256'];
 				$state['entry']  = array(
@@ -733,16 +733,16 @@ class Migration_Package_Service {
 			$saved                       = File_Store::save( $meta );
 			if ( is_wp_error( $saved ) ) {
 				return $saved; }
-			return $pending ? [
+			return $pending ? array(
 				'pending'         => true,
 				'package_file_id' => $id,
 				'sha256'          => $state['sha256'] ?? $state['entry']['package_sha256'],
-				'steps'           => [],
+				'steps'           => array(),
 				'offset'          => $offset,
 				'next_offset'     => $offset,
 				'total_steps'     => $state['store']['count'],
 				'complete'        => false,
-			] : $this->prepared_page( $id, $state, $offset, $limit );
+			) : $this->prepared_page( $id, $state, $offset, $limit );
 		} catch ( \Throwable $error ) {
 			return $this->error( 'step_unavailable', 409 );
 		} finally {
@@ -753,7 +753,7 @@ class Migration_Package_Service {
 		$total = $state['store']['count'];
 		if ( $offset > $total ) {
 			return $this->error( 'cursor', 400 ); }
-		$steps = [];
+		$steps = array();
 		$next  = $offset;
 		$bytes = 0;
 		while ( $next < $total && count( $steps ) < $limit ) {
@@ -769,18 +769,18 @@ class Migration_Package_Service {
 			$bytes  += $size;
 			++$next;
 		}
-		return [
-			'pending'         => false,
-			'package_file_id' => $id,
-			'sha256'          => $state['sha256'],
-			'steps'           => $steps,
-			'offset'          => $offset,
-			'next_offset'     => $next,
-			'total_steps'     => $total,
-			'complete'        => $next === $total,
+		return array(
+			'pending'              => false,
+			'package_file_id'      => $id,
+			'sha256'               => $state['sha256'],
+			'steps'                => $steps,
+			'offset'               => $offset,
+			'next_offset'          => $next,
+			'total_steps'          => $total,
+			'complete'             => $next === $total,
 			'woocommerce_excluded' => $this->woocommerce_excluded,
 			'pro_excluded'         => $this->pro_excluded,
-		];
+		);
 	}
 
 	/**
@@ -1003,15 +1003,15 @@ class Migration_Package_Service {
 						return $saved; }
 				}
 				$output[] = array(
-					'key'          => $step['scope']['key'],
-					'type'         => $step['scope']['type'],
-					'file_id'      => $r['file_id'],
-					'file_name'    => $r['file_name'],
-					'format'       => $r['format'],
-					'headers'      => $step['headers'],
-					'total_rows'   => $step['total_rows'],
-					'taxonomy'     => $step['manifest']['taxonomy'] ?? '',
-					'post_type'    => $step['manifest']['post_type'] ?? '',
+					'key'        => $step['scope']['key'],
+					'type'       => $step['scope']['type'],
+					'file_id'    => $r['file_id'],
+					'file_name'  => $r['file_name'],
+					'format'     => $r['format'],
+					'headers'    => $step['headers'],
+					'total_rows' => $step['total_rows'],
+					'taxonomy'   => $step['manifest']['taxonomy'] ?? '',
+					'post_type'  => $step['manifest']['post_type'] ?? '',
 				);
 			}
 			$published = true;

@@ -28,7 +28,7 @@ class UpdraftPlus_Store {
 		if ( ! $base || ! is_writable( $base ) ) {
 			throw new \RuntimeException( 'updraft_private_storage_unavailable' );
 		}
-		foreach ( [ ABSPATH, WP_CONTENT_DIR, $_SERVER['DOCUMENT_ROOT'] ?? ABSPATH ] as $public ) {
+		foreach ( array( ABSPATH, WP_CONTENT_DIR, $_SERVER['DOCUMENT_ROOT'] ?? ABSPATH ) as $public ) {
 			$public = realpath( $public );
 			if ( $public && ( $base === $public || strpos( $base, trailingslashit( $public ) ) === 0 ) ) {
 				throw new \RuntimeException( 'updraft_private_storage_public' );

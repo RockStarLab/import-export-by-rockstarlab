@@ -22,14 +22,14 @@ class Sync_Workflow_Service {
 	 * @param array  $input Typed input.
 	 * @return array|\WP_Error
 	 */
-	public function execute( $name, array $input = [] ) {
+	public function execute( $name, array $input = array() ) {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access;
 		}
 		$definitions = $this->definitions();
 		if ( ! isset( $definitions[ $name ] ) ) {
-			return new \WP_Error( 'rsl_ie_unknown_sync', __( 'Unknown sync ability.', 'import-export-by-rockstarlab' ), [ 'status' => 404 ] );
+			return new \WP_Error( 'rsl_ie_unknown_sync', __( 'Unknown sync ability.', 'import-export-by-rockstarlab' ), array( 'status' => 404 ) );
 		}
 		$definition = $definitions[ $name ];
 		if ( 'standalone' === ( $definition['handler'] ?? '' ) ) {
@@ -42,7 +42,7 @@ class Sync_Workflow_Service {
 		if ( is_wp_error( $input ) ) {
 			return $input;
 		}
-		foreach ( (array) ( $input['post_mapping'] ?? [] ) as $local => $remote ) {
+		foreach ( (array) ( $input['post_mapping'] ?? array() ) as $local => $remote ) {
 			if ( ! preg_match( '/^[1-9][0-9]*$/D', (string) $local ) ) {
 				return Sync_Policy::denied();
 			}
@@ -50,37 +50,37 @@ class Sync_Workflow_Service {
 		$is_connection = 0 === strpos( $name, 'connection-' );
 		$service       = $is_connection ? new Connection_Service() : $this->content_service();
 		$result        = 'sync-result' === $name ? $this->sync_result( $input['job_id'] ) : $service->execute( $definition['action'], $input );
-		if ( is_wp_error( $result ) && in_array( $result->get_error_code(), [ 'rsl_ie_connection_check', 'rsl_ie_connection_unavailable' ], true ) ) {
+		if ( is_wp_error( $result ) && in_array( $result->get_error_code(), array( 'rsl_ie_connection_check', 'rsl_ie_connection_unavailable' ), true ) ) {
 			// Connection checks explain the cause in text this plugin writes (never remote text or the key).
 			return $result;
 		}
 		if ( $is_connection && is_wp_error( $result ) && ! empty( $result->get_error_data()['plugin_message'] ) ) {
 			// "Invalid URL format", "This site is already connected"...: written here, safe to show.
-			return new \WP_Error( $result->get_error_code(), $result->get_error_message(), [ 'status' => $result->get_error_data()['status'] ?? 400 ] );
+			return new \WP_Error( $result->get_error_code(), $result->get_error_message(), array( 'status' => $result->get_error_data()['status'] ?? 400 ) );
 		}
 		if ( is_wp_error( $result ) && 'rsl_ie_migration_mapping_unavailable' === $result->get_error_code() && isset( $input['acf_post_mapping'] ) ) {
 			// Text written here (never the peer's): what the strict ACF reference mode needs.
-			return new \WP_Error( $result->get_error_code(), __( 'ACF Post Object, Relationship or Page Link references could not be confirmed. Every referenced post must be in this batch or listed in acf_post_mapping as post_type:TYPE:SOURCE_ID => destination ID, both sites need the same ACF field definitions, and bidirectional fields are not supported. Leave out acf_post_mapping to resolve references automatically.', 'import-export-by-rockstarlab' ), [ 'status' => $result->get_error_data()['status'] ?? 409 ] + array_intersect_key( (array) $result->get_error_data(), [ 'job_id' => true ] ) );
+			return new \WP_Error( $result->get_error_code(), __( 'ACF Post Object, Relationship or Page Link references could not be confirmed. Every referenced post must be in this batch or listed in acf_post_mapping as post_type:TYPE:SOURCE_ID => destination ID, both sites need the same ACF field definitions, and bidirectional fields are not supported. Leave out acf_post_mapping to resolve references automatically.', 'import-export-by-rockstarlab' ), array( 'status' => $result->get_error_data()['status'] ?? 409 ) + array_intersect_key( (array) $result->get_error_data(), array( 'job_id' => true ) ) );
 		}
 		if ( is_wp_error( $result ) ) {
 			// Remote error text is untrusted and may echo a bearer key or payload.
-			return new \WP_Error( $result->get_error_code(), __( 'The sync operation failed. Check connection status, selection and job history.', 'import-export-by-rockstarlab' ), [ 'status' => $result->get_error_data()['status'] ?? 400 ] + array_intersect_key( (array) $result->get_error_data(), [ 'job_id' => true ] ) );
+			return new \WP_Error( $result->get_error_code(), __( 'The sync operation failed. Check connection status, selection and job history.', 'import-export-by-rockstarlab' ), array( 'status' => $result->get_error_data()['status'] ?? 400 ) + array_intersect_key( (array) $result->get_error_data(), array( 'job_id' => true ) ) );
 		}
 		if ( 'connection-list' === $name ) {
-			return [
-				'sites' => array_map( [ $this, 'connection' ], array_slice( $result['sites'], $input['offset'] ?? 0, $input['limit'] ?? 100 ) ),
+			return array(
+				'sites' => array_map( array( $this, 'connection' ), array_slice( $result['sites'], $input['offset'] ?? 0, $input['limit'] ?? 100 ) ),
 				'total' => count( $result['sites'] ),
-			];
+			);
 		}
 		if ( isset( $result['site'] ) ) {
 			$result['site'] = $this->connection( $result['site'] );
 		}
-		foreach ( [ 'posts', 'children' ] as $key ) {
+		foreach ( array( 'posts', 'children' ) as $key ) {
 			if ( isset( $result[ $key ] ) ) {
 				if ( ! is_array( $result[ $key ] ) || count( $result[ $key ] ) > 1000 ) {
 					return Sync_Policy::denied();
 				}
-				$fields = [ 'ID', 'post_title', 'post_name', 'post_type', 'post_status', 'post_date', 'post_modified', 'post_parent', 'menu_order', 'children_count', 'original_id' ];
+				$fields = array( 'ID', 'post_title', 'post_name', 'post_type', 'post_status', 'post_date', 'post_modified', 'post_parent', 'menu_order', 'children_count', 'original_id' );
 				foreach ( $result[ $key ] as &$post ) {
 					if ( ! is_array( $post ) || ( $post['post_type'] ?? '' ) !== $input['post_type'] ) {
 						return Sync_Policy::denied();
@@ -89,7 +89,7 @@ class Sync_Workflow_Service {
 						return Sync_Policy::denied();
 					}
 					$post = array_intersect_key( $post, array_flip( $fields ) );
-					foreach ( [ 'ID', 'post_parent', 'menu_order', 'children_count', 'original_id' ] as $field ) {
+					foreach ( array( 'ID', 'post_parent', 'menu_order', 'children_count', 'original_id' ) as $field ) {
 						if ( isset( $post[ $field ] ) ) {
 							$post[ $field ] = (int) $post[ $field ];
 						}
@@ -99,14 +99,14 @@ class Sync_Workflow_Service {
 			}
 		}
 		// Core serializes empty PHP maps as arrays; use JSON objects consistently.
-		foreach ( [ 'mapping', 'matches', 'status_counts' ] as $field ) {
+		foreach ( array( 'mapping', 'matches', 'status_counts' ) as $field ) {
 			if ( isset( $result[ $field ] ) ) {
 				$result[ $field ] = (object) $result[ $field ];
 			}
 		}
 		if ( isset( $result['result'] ) ) {
-			foreach ( [ 'post_mapping', 'image_map', 'variation_map' ] as $field ) {
-				$result['result'][ $field ] = (object) ( $result['result'][ $field ] ?? [] );
+			foreach ( array( 'post_mapping', 'image_map', 'variation_map' ) as $field ) {
+				$result['result'][ $field ] = (object) ( $result['result'][ $field ] ?? array() );
 			}
 		}
 		return array_intersect_key( $result, $definition['output']['properties'] );
@@ -150,7 +150,7 @@ class Sync_Workflow_Service {
 	 * @return bool
 	 */
 	protected function result_type( $type ) {
-		return in_array( $type, [ 'post', 'page' ], true ); }
+		return in_array( $type, array( 'post', 'page' ), true ); }
 
 	/**
 	 * Retrieve only the bounded, safe result written by this Free workflow.
@@ -164,16 +164,16 @@ class Sync_Workflow_Service {
 			return $job;
 		}
 		$params = json_decode( (string) $job->parameters, true );
-		if ( ! in_array( $job->type, [ 'content_sync_push', 'content_sync_pull' ], true ) || ! $this->result_type( $job->data_type ) || $this->result_version() !== ( $params['sync_ability_version'] ?? 0 ) ) {
+		if ( ! in_array( $job->type, array( 'content_sync_push', 'content_sync_pull' ), true ) || ! $this->result_type( $job->data_type ) || $this->result_version() !== ( $params['sync_ability_version'] ?? 0 ) ) {
 			return Sync_Policy::denied();
 		}
 		$result = json_decode( (string) $job->result, true );
-		$fields = [ 'direction', 'selected_ids', 'post_mapping', 'created', 'updated', 'failed', 'images_synced', 'image_map', 'variation_map', 'posts' ];
-		return [
+		$fields = array( 'direction', 'selected_ids', 'post_mapping', 'created', 'updated', 'failed', 'images_synced', 'image_map', 'variation_map', 'posts' );
+		return array(
 			'job_id'  => (int) $id,
 			'message' => (string) $job->status,
 			'result'  => array_intersect_key( (array) $result, array_flip( $fields ) ),
-		];
+		);
 	}
 
 	/**
@@ -183,7 +183,7 @@ class Sync_Workflow_Service {
 	 * @return array
 	 */
 	private function connection( array $site ) {
-		$result               = array_intersect_key( $site, array_flip( [ 'id', 'name', 'remote_url', 'direction', 'status', 'created_by', 'created_at', 'updated_at', 'last_sync_at' ] ) );
+		$result               = array_intersect_key( $site, array_flip( array( 'id', 'name', 'remote_url', 'direction', 'status', 'created_by', 'created_at', 'updated_at', 'last_sync_at' ) ) );
 		$result['id']         = (int) $result['id'];
 		$result['created_by'] = (int) ( $result['created_by'] ?? 0 );
 		$parts                = wp_parse_url( $result['remote_url'] );

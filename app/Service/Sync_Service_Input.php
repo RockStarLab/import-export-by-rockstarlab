@@ -31,7 +31,7 @@ trait Sync_Service_Input {
 	 * @param array  $default_value Default value.
 	 * @return array
 	 */
-	private function array_param( array $input, $key, $default_value = [] ) {
+	private function array_param( array $input, $key, $default_value = array() ) {
 		return isset( $input[ $key ] ) && is_array( $input[ $key ] ) ? $input[ $key ] : $default_value;
 	}
 
@@ -42,7 +42,7 @@ trait Sync_Service_Input {
 	 * @return \WP_Error
 	 */
 	private function error( $message ) {
-		return new \WP_Error( 'rsl_ie_sync_error', $message, [ 'status' => 400 ] );
+		return new \WP_Error( 'rsl_ie_sync_error', $message, array( 'status' => 400 ) );
 	}
 
 	/**

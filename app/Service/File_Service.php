@@ -58,7 +58,7 @@ class File_Service {
 		$size   = filter_var( $input['file_size'] ?? null, FILTER_VALIDATE_INT );
 		$chunks = filter_var( $input['total_chunks'] ?? 1, FILTER_VALIDATE_INT );
 		$format = strtolower( pathinfo( $name, PATHINFO_EXTENSION ) );
-		if ( ! in_array( $format, [ 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ], true ) ) {
+		if ( ! in_array( $format, array( 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ), true ) ) {
 			return File_Store::error( 'invalid_upload_manifest', 400, __( 'This type of file cannot be imported. Use a CSV, XLSX, ODS, JSON, XML or ZIP file. A tab-separated .txt file can be renamed to .csv.', 'import-export-by-rockstarlab' ) );
 		}
 		if ( false !== $size && null !== $size && $size < 1 ) {
@@ -85,7 +85,7 @@ class File_Service {
 				if ( is_wp_error( $dir ) ) {
 					return $dir;
 				}
-				$record = [
+				$record = array(
 					'file_id'        => $id,
 					'owner_id'       => get_current_user_id(),
 					'blog_id'        => get_current_blog_id(),
@@ -96,16 +96,16 @@ class File_Service {
 					'format'         => $format,
 					'expected_bytes' => $size,
 					'total_chunks'   => $chunks,
-					'chunks'         => [],
+					'chunks'         => array(),
 					'received_bytes' => 0,
 					'created_at'     => time(),
 					'updated_at'     => time(),
-					'parser_options' => [
+					'parser_options' => array(
 						'delimiter'  => ',',
 						'has_header' => true,
 						'encoding'   => 'auto',
-					],
-				];
+					),
+				);
 				if ( File_Chunk_Store::supported() ) {
 					$record['chunk_storage']   = 'table';
 					$record['received_chunks'] = 0;
@@ -126,7 +126,7 @@ class File_Service {
 	 * @param array  $options Parser options.
 	 * @return array|\WP_Error
 	 */
-	public function from_url( $url, array $options = [] ) {
+	public function from_url( $url, array $options = array() ) {
 		$permission = Access_Policy::check_management();
 		if ( is_wp_error( $permission ) ) {
 			return $permission;
@@ -134,11 +134,11 @@ class File_Service {
 		if ( Remote_File_Service::is_remote( $url ) ) {
 			return $this->from_remote( trim( (string) $url ), $options );
 		}
-		$url    = self::google_sheets_download_url( esc_url_raw( trim( (string) $url ), [ 'http', 'https' ] ) );
+		$url    = self::google_sheets_download_url( esc_url_raw( trim( (string) $url ), array( 'http', 'https' ) ) );
 		$host   = (string) wp_parse_url( $url, PHP_URL_HOST );
 		$is_dev = (bool) preg_match( '/\.(local|test|localhost)$/i', $host );
 		if ( '' === $url || '' === $host || ( ! $is_dev && ! wp_http_validate_url( $url ) ) ) {
-			return new \WP_Error( 'rsl_ie_invalid_url', __( 'Enter a full http:// or https:// address of the file.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_invalid_url', __( 'Enter a full http:// or https:// address of the file.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 		}
 		if ( ! function_exists( 'wp_tempnam' ) ) { // Not loaded in WP-Cron, REST and front-end requests.
 			require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -147,20 +147,27 @@ class File_Service {
 		if ( ! $tmp ) {
 			return File_Store::error( 'file_write', 500 );
 		}
-		$args = [
+		$args = array(
 			'timeout'             => 120,
 			'stream'              => true,
 			'filename'            => $tmp,
 			'limit_response_size' => self::max_bytes(),
-		];
+		);
 		// Development hosts (*.local, *.test) are refused by the safe HTTP API.
-		$response = $is_dev ? wp_remote_get( $url, $args + [ 'reject_unsafe_urls' => false ] ) : wp_safe_remote_get( $url, $args );
+		$response = $is_dev ? wp_remote_get( $url, $args + array( 'reject_unsafe_urls' => false ) ) : wp_safe_remote_get( $url, $args );
 		$code     = is_wp_error( $response ) ? 0 : (int) wp_remote_retrieve_response_code( $response );
 		if ( is_wp_error( $response ) || $code < 200 || $code >= 300 ) {
 			wp_delete_file( $tmp );
 			$reason = is_wp_error( $response ) ? $response->get_error_message() : 'HTTP ' . $code;
 			/* translators: %s: error message or HTTP status. */
-			return new \WP_Error( 'rsl_ie_url_download_failed', sprintf( __( 'The file could not be downloaded (%s).', 'import-export-by-rockstarlab' ), $reason ), [ 'status' => 400, 'reason' => $reason ] );
+			return new \WP_Error(
+				'rsl_ie_url_download_failed',
+				sprintf( __( 'The file could not be downloaded (%s).', 'import-export-by-rockstarlab' ), $reason ),
+				array(
+					'status' => 400,
+					'reason' => $reason,
+				)
+			);
 		}
 		$name = '';
 		if ( preg_match( '/filename\*?=(?:UTF-8\'\')?"?([^";]+)"?/i', (string) wp_remote_retrieve_header( $response, 'content-disposition' ), $match ) ) {
@@ -171,9 +178,18 @@ class File_Service {
 		}
 		$name      = sanitize_file_name( '' === $name ? 'import' : $name );
 		$extension = strtolower( pathinfo( $name, PATHINFO_EXTENSION ) );
-		if ( ! in_array( $extension, [ 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ], true ) ) {
+		if ( ! in_array( $extension, array( 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ), true ) ) {
 			$type = strtolower( (string) wp_remote_retrieve_header( $response, 'content-type' ) );
-			foreach ( [ 'csv' => 'csv', 'comma-separated' => 'csv', 'xml' => 'xml', 'rss' => 'xml', 'json' => 'json', 'spreadsheetml' => 'xlsx', 'opendocument.spreadsheet' => 'ods', 'zip' => 'zip' ] as $needle => $guess ) {
+			foreach ( array(
+				'csv'                      => 'csv',
+				'comma-separated'          => 'csv',
+				'xml'                      => 'xml',
+				'rss'                      => 'xml',
+				'json'                     => 'json',
+				'spreadsheetml'            => 'xlsx',
+				'opendocument.spreadsheet' => 'ods',
+				'zip'                      => 'zip',
+			) as $needle => $guess ) {
 				if ( false !== strpos( $type, $needle ) ) {
 					$name     .= '.' . $guess;
 					$extension = $guess;
@@ -181,9 +197,9 @@ class File_Service {
 				}
 			}
 		}
-		if ( 'docs.google.com' === strtolower( $host ) && ! in_array( $extension, [ 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ], true ) ) {
+		if ( 'docs.google.com' === strtolower( $host ) && ! in_array( $extension, array( 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ), true ) ) {
 			wp_delete_file( $tmp );
-			return new \WP_Error( 'rsl_ie_url_not_a_file', __( 'Google Sheets returned a page instead of the sheet. In Google Sheets, click Share and set General access to "Anyone with the link", or use File > Share > Publish to web, then paste the link again.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_url_not_a_file', __( 'Google Sheets returned a page instead of the sheet. In Google Sheets, click Share and set General access to "Anyone with the link", or use File > Share > Publish to web, then paste the link again.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 		}
 		return $this->adopt_download( $tmp, $name, $extension, $url, $options );
 	}
@@ -207,7 +223,7 @@ class File_Service {
 		}
 		$path = (string) ( $parts['path'] ?? '' );
 		$gid  = '';
-		foreach ( [ (string) ( $parts['query'] ?? '' ), (string) ( $parts['fragment'] ?? '' ) ] as $chunk ) {
+		foreach ( array( (string) ( $parts['query'] ?? '' ), (string) ( $parts['fragment'] ?? '' ) ) as $chunk ) {
 			if ( '' === $gid && preg_match( '/(?:^|[&#?])gid=(\d+)/', $chunk, $match ) ) {
 				$gid = $match[1];
 			}
@@ -264,16 +280,16 @@ class File_Service {
 	 */
 	private function adopt_download( $tmp, $name, $extension, $url, array $options ) {
 		$size = (int) filesize( $tmp );
-		if ( ! in_array( $extension, [ 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ], true ) || $size < 1 ) {
+		if ( ! in_array( $extension, array( 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ), true ) || $size < 1 ) {
 			wp_delete_file( $tmp );
-			return new \WP_Error( 'rsl_ie_url_not_a_file', __( 'The address does not return a CSV, XML, JSON, XLSX, ODS or ZIP file.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_url_not_a_file', __( 'The address does not return a CSV, XML, JSON, XLSX, ODS or ZIP file.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 		}
 		$record = $this->begin(
-			[
+			array(
 				'file_name'    => $name,
 				'file_size'    => $size,
 				'total_chunks' => 1,
-			]
+			)
 		);
 		if ( is_wp_error( $record ) ) {
 			wp_delete_file( $tmp );
@@ -313,15 +329,15 @@ class File_Service {
 	 * @param array $options Parser options.
 	 * @return array|\WP_Error
 	 */
-	public function upload( array $file, array $options = [] ) {
+	public function upload( array $file, array $options = array() ) {
 		if ( ! $this->is_upload( $file ) ) {
 			return File_Store::error( 'invalid_uploaded_file' );
 		}
 		$record = $this->begin(
-			[
+			array(
 				'file_name' => $file['name'] ?? '',
 				'file_size' => filesize( $file['tmp_name'] ),
-			]
+			)
 		);
 		if ( is_wp_error( $record ) ) {
 			return $record;
@@ -417,10 +433,10 @@ class File_Service {
 					wp_delete_file( $staged );
 					return File_Store::error( 'chunk_size_mismatch' );
 				}
-				$chunk = [
+				$chunk = array(
 					'bytes'  => $bytes,
 					'sha256' => hash_file( 'sha256', $staged ),
-				];
+				);
 				if ( null !== $previous && $previous !== $chunk ) {
 					wp_delete_file( $staged );
 					return File_Store::error( 'chunk_content_conflict', 409 );
@@ -437,7 +453,7 @@ class File_Service {
 				$record['received_bytes'] = $total + $bytes;
 				$record['updated_at']     = time();
 				$saved                    = $table_chunks ? File_Chunk_Store::publish( $id, $index, $chunk, $before, $record ) : File_Store::save( $record );
-				return is_wp_error( $saved ) ? $saved : array_merge( $this->describe( $record ), [ 'chunk_index' => $index ] );
+				return is_wp_error( $saved ) ? $saved : array_merge( $this->describe( $record ), array( 'chunk_index' => $index ) );
 			}
 		);
 	}
@@ -450,7 +466,7 @@ class File_Service {
 	 * @param bool   $resumable Yield between assembly batches.
 	 * @return array|\WP_Error
 	 */
-	public function finalize( $id, array $options = [], $resumable = false ) {
+	public function finalize( $id, array $options = array(), $resumable = false ) {
 		return $this->locked(
 			$id,
 			function () use ( $id, $options, $resumable ) {
@@ -481,10 +497,10 @@ class File_Service {
 					if ( is_wp_error( $assembled ) ) {
 						return $assembled; }
 					if ( ! $assembled ) {
-						return $this->describe( $record ) + [
+						return $this->describe( $record ) + array(
 							'assembled_chunks' => $record['assembly']['next'],
 							'assembled_bytes'  => $record['assembly']['bytes'],
-						];
+						);
 					}
 				} else {
 					$target = fopen( $path, 'wb' );
@@ -617,13 +633,13 @@ class File_Service {
 					if ( false === file_put_contents( $target, wp_json_encode( $normal['rows'] ) ) ) {
 						return File_Store::error( 'file_write', 500 );
 					}
-					return [
+					return array(
 						'path'         => realpath( $target ),
 						'format'       => 'json',
 						'source'       => $normal['source'],
-						'counts'       => [ 'records' => count( $normal['rows'] ) ],
+						'counts'       => array( 'records' => count( $normal['rows'] ) ),
 						'records_path' => $normal['path'],
-					];
+					);
 				}
 			}
 			if ( $nested ) {
@@ -631,13 +647,13 @@ class File_Service {
 				if ( false === file_put_contents( $target, wp_json_encode( $nested['rows'] ) ) ) {
 					return File_Store::error( 'file_write', 500 );
 				}
-				return [
+				return array(
 					'path'         => realpath( $target ),
 					'format'       => 'json',
 					'source'       => 'json_records',
-					'counts'       => [ 'records' => count( $nested['rows'] ) ],
+					'counts'       => array( 'records' => count( $nested['rows'] ) ),
 					'records_path' => $nested['path'],
-				];
+				);
 			}
 		}
 		$prepared = apply_filters( 'rsl_ie_import_file_prepared', null, $path, $record['format'], $record );
@@ -649,19 +665,19 @@ class File_Service {
 		}
 		$target = is_array( $prepared ) && isset( $prepared['path'] ) && is_string( $prepared['path'] ) ? realpath( $prepared['path'] ) : false;
 		$format = is_array( $prepared ) && isset( $prepared['format'] ) ? strtolower( (string) $prepared['format'] ) : $record['format'];
-		if ( ! $target || dirname( $target ) !== realpath( $dir ) || is_link( $prepared['path'] ) || ! is_file( $target ) || ! in_array( $format, [ 'csv', 'json', 'xml', 'xlsx', 'ods' ], true ) ) {
+		if ( ! $target || dirname( $target ) !== realpath( $dir ) || is_link( $prepared['path'] ) || ! is_file( $target ) || ! in_array( $format, array( 'csv', 'json', 'xml', 'xlsx', 'ods' ), true ) ) {
 			return File_Store::error( 'file_write', 500 );
 		}
-		$counts = [];
-		foreach ( (array) ( $prepared['counts'] ?? [] ) as $key => $value ) {
+		$counts = array();
+		foreach ( (array) ( $prepared['counts'] ?? array() ) as $key => $value ) {
 			$counts[ sanitize_key( $key ) ] = (int) $value;
 		}
-		return [
+		return array(
 			'path'   => $target,
 			'format' => $format,
 			'source' => sanitize_key( $prepared['source'] ?? 'custom' ),
 			'counts' => $counts,
-		];
+		);
 	}
 
 	/**
@@ -675,10 +691,10 @@ class File_Service {
 	 * @return bool|\WP_Error Whether all chunks have been assembled.
 	 */
 	private function assemble_slice( array &$record, $path ) {
-		$state  = $record['assembly'] ?? [
+		$state  = $record['assembly'] ?? array(
 			'next'  => 0,
 			'bytes' => 0,
-		];
+		);
 		$target = fopen( $path, 'c+b' );
 		if ( ! $target ) {
 			return File_Store::error( 'file_write', 500 ); }
@@ -776,7 +792,7 @@ class File_Service {
 		if ( '' === $head ) {
 			return $format; }
 		$is_zip = "PK\x03\x04" === substr( $head, 0, 4 );
-		if ( $is_zip && in_array( $format, [ 'csv', 'json', 'xml' ], true ) ) {
+		if ( $is_zip && in_array( $format, array( 'csv', 'json', 'xml' ), true ) ) {
 			if ( ! class_exists( 'ZipArchive' ) ) {
 				return $format; }
 			$zip = new \ZipArchive();
@@ -806,7 +822,7 @@ class File_Service {
 				return 'csv'; }
 		}
 		// "Excel" downloads from some systems are CSV text with an .xlsx/.ods name.
-		if ( ! $is_zip && in_array( $format, [ 'xlsx', 'ods' ], true ) && false === strpos( $head, "\0" ) && '<' !== $first ) {
+		if ( ! $is_zip && in_array( $format, array( 'xlsx', 'ods' ), true ) && false === strpos( $head, "\0" ) && '<' !== $first ) {
 			$line = strtok( $text, "\r\n" );
 			if ( false !== $line && preg_match( '/[,;\t]/', $line ) && preg_match( '//u', $line ) ) {
 				return 'csv'; }
@@ -830,7 +846,7 @@ class File_Service {
 			return File_Store::error( 'zip_invalid' );
 		}
 		try {
-			$entries = [];
+			$entries = array();
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName -- Native ZipArchive property.
 			for ( $i = 0; $i < $zip->numFiles; ++$i ) {
 				$stat = $zip->statIndex( $i );
@@ -845,12 +861,12 @@ class File_Service {
 					return File_Store::error( 'zip_unsafe_entry' );
 				}
 				$format = strtolower( pathinfo( $name, PATHINFO_EXTENSION ) );
-				if ( '/' !== substr( $name, -1 ) && false === strpos( $name, '__MACOSX/' ) && '.' !== substr( basename( $name ), 0, 1 ) && in_array( $format, [ 'csv', 'json', 'xml', 'xlsx', 'ods' ], true ) ) {
+				if ( '/' !== substr( $name, -1 ) && false === strpos( $name, '__MACOSX/' ) && '.' !== substr( basename( $name ), 0, 1 ) && in_array( $format, array( 'csv', 'json', 'xml', 'xlsx', 'ods' ), true ) ) {
 					if ( $entries ) {
 						// Two data files: say so, instead of "too large" for a small archive.
 						return File_Store::error( 'zip_entry_count' );
 					}
-					$entries[] = $stat + [ 'format' => $format ];
+					$entries[] = $stat + array( 'format' => $format );
 				}
 			}
 			if ( 1 !== count( $entries ) ) {
@@ -903,11 +919,11 @@ class File_Service {
 				wp_delete_file( $output );
 				return File_Store::error( 'zip_integrity' );
 			}
-			return [
+			return array(
 				'path'      => $output,
 				'file_name' => sanitize_file_name( basename( $entry['name'] ) ),
 				'format'    => $entry['format'],
-			];
+			);
 		} finally {
 			$zip->close();
 		}
@@ -920,14 +936,14 @@ class File_Service {
 	 * @param array  $options Parser options.
 	 * @return array|\WP_Error
 	 */
-	public function preview( $id, array $options = [] ) {
+	public function preview( $id, array $options = array() ) {
 		return $this->locked(
 			$id,
 			function () use ( $id, $options ) {
 				$record = $this->authorized( $id );
 				if ( ! is_wp_error( $record ) && 'export' === $record['purpose'] ) {
 					// Previewing parses import uploads; say so instead of a bare "not ready".
-					return new \WP_Error( 'rsl_ie_export_file_preview', __( 'This is an export file, and only import uploads can be previewed. Use file-get for its download URL, or export-preview to read sample rows of the same export.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+					return new \WP_Error( 'rsl_ie_export_file_preview', __( 'This is an export file, and only import uploads can be previewed. Use file-get for its download URL, or export-preview to read sample rows of the same export.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 				}
 				$record = $this->resolve( $id, 'import' );
 				return is_wp_error( $record ) ? $record : $this->preview_record( $record, $options );
@@ -948,16 +964,16 @@ class File_Service {
 			if ( is_wp_error( $valid ) ) {
 				return $valid; }
 			$this->cleanup_ready_chunks( $record );
-			return $this->describe( $record ) + [
-				'headers'        => [],
-				'preview'        => [],
+			return $this->describe( $record ) + array(
+				'headers'        => array(),
+				'preview'        => array(),
 				'total_rows'     => 0,
 				'columns'        => 0,
 				'parser_options' => $record['parser_options'],
-			];
+			);
 		}
 
-		if ( in_array( $record['format'], [ 'xlsx', 'ods' ], true ) ) {
+		if ( in_array( $record['format'], array( 'xlsx', 'ods' ), true ) ) {
 			$container = $this->check_spreadsheet_container( $record['path'] );
 			if ( is_wp_error( $container ) ) {
 				return $container;
@@ -967,11 +983,11 @@ class File_Service {
 			$record['parser_options'],
 			array_intersect_key(
 				$options,
-				[
+				array(
 					'delimiter'  => true,
 					'has_header' => true,
 					'encoding'   => true,
-				]
+				)
 			)
 		);
 		$encoding = \RockStarLab\ImportExport\Model\Format\CSV_Format::normalize_encoding( $settings['encoding'] ?? 'auto' );
@@ -982,7 +998,7 @@ class File_Service {
 		if ( ! is_string( $settings['delimiter'] ) ) {
 			return File_Store::error( 'invalid_delimiter' );
 		}
-		if ( in_array( strtolower( $settings['delimiter'] ), [ 'tab', '\\t' ], true ) ) {
+		if ( in_array( strtolower( $settings['delimiter'] ), array( 'tab', '\\t' ), true ) ) {
 			$settings['delimiter'] = "\t";
 		}
 		if ( 1 !== strlen( $settings['delimiter'] ) || ! is_bool( $settings['has_header'] ) ) {
@@ -992,7 +1008,7 @@ class File_Service {
 		if ( is_wp_error( $parser ) ) {
 			return $parser;
 		}
-		if ( in_array( $record['format'], [ 'csv', 'json', 'xlsx', 'ods' ], true ) ) {
+		if ( in_array( $record['format'], array( 'csv', 'json', 'xlsx', 'ods' ), true ) ) {
 			$summary = $parser->preview( $record['path'], $settings );
 			if ( is_wp_error( $summary ) ) {
 				return $summary;
@@ -1038,14 +1054,14 @@ class File_Service {
 		if ( 'zip' === strtolower( pathinfo( $record['original_name'], PATHINFO_EXTENSION ) ) ) {
 			wp_delete_file( dirname( $record['path'] ) . '/source.zip' );
 		}
-		$described = $this->describe( $record ) + [
+		$described = $this->describe( $record ) + array(
 			'headers'        => $headers,
 			// A JSON object file gives rows keyed by member name; the preview is always a list.
 			'preview'        => array_values( (array) $rows ),
 			'total_rows'     => (int) $count,
 			'columns'        => count( $headers ),
 			'parser_options' => $settings,
-		];
+		);
 		if ( isset( $detected ) && is_string( $detected ) && '' !== $detected ) {
 			$described['detected_delimiter'] = $detected;
 		}
@@ -1068,10 +1084,10 @@ class File_Service {
 	 * @return array{0:string[],1:array,2:int}|\WP_Error
 	 */
 	public static function xml_columns( $parser, $path, array $settings ) {
-		$rows          = [];
-		$media         = [];
-		$headers       = [];
-		$media_headers = [];
+		$rows          = array();
+		$media         = array();
+		$headers       = array();
+		$media_headers = array();
 		$count         = 0;
 		$sampled       = 0;
 		foreach ( $parser->rows( $path, $settings ) as $row ) {
@@ -1099,11 +1115,11 @@ class File_Service {
 			// A Media import reads wp:attachment_url from the media items.
 			foreach ( array_keys( $media_headers ) as $column ) {
 				if ( 0 !== strpos( (string) $column, 'Meta: ' ) ) {
-					$headers += [ $column => true ];
+					$headers += array( $column => true );
 				}
 			}
 		}
-		return [ array_map( 'strval', array_keys( $headers ) ), $rows, $count ];
+		return array( array_map( 'strval', array_keys( $headers ) ), $rows, $count );
 	}
 
 	/**
@@ -1272,7 +1288,7 @@ class File_Service {
 				if ( is_wp_error( $record ) ) {
 					return $record;
 				}
-				if ( ! in_array( $record['status'], [ 'uploading', 'aborted' ], true ) ) {
+				if ( ! in_array( $record['status'], array( 'uploading', 'aborted' ), true ) ) {
 					return File_Store::error( 'upload_state_conflict', 409 );
 				}
 				$removed = File_Store::remove( $id );
@@ -1281,7 +1297,7 @@ class File_Service {
 				}
 				unset( $record['assembly'] );
 				$record['status']          = 'aborted';
-				$record['chunks']          = [];
+				$record['chunks']          = array();
 				$record['received_bytes']  = 0;
 				$record['received_chunks'] = 0;
 				$record['updated_at']      = time();
@@ -1323,14 +1339,14 @@ class File_Service {
 	 * @return array
 	 */
 	private function describe( array $record ) {
-		$result = array_intersect_key( $record, array_flip( [ 'file_id', 'file_name', 'format', 'purpose', 'status', 'file_size', 'expected_bytes', 'total_chunks', 'converted_from', 'conversion', 'records_path' ] ) ) + [ 'received_chunks' => $record['received_chunks'] ?? count( $record['chunks'] ?? [] ) ];
+		$result = array_intersect_key( $record, array_flip( array( 'file_id', 'file_name', 'format', 'purpose', 'status', 'file_size', 'expected_bytes', 'total_chunks', 'converted_from', 'conversion', 'records_path' ) ) ) + array( 'received_chunks' => $record['received_chunks'] ?? count( $record['chunks'] ?? array() ) );
 		if ( 'export' === $record['purpose'] && 'ready' === $record['status'] ) {
 			$result['download_url']         = rest_url( 'rsl-ie/v1/files/' . $record['file_id'] . '/download' );
 			$result['browser_download_url'] = add_query_arg(
-				[
+				array(
 					'action'  => 'rsl_ie_file_download',
 					'file_id' => $record['file_id'],
-				],
+				),
 				admin_url( 'admin-post.php' )
 			);
 		}
@@ -1408,7 +1424,7 @@ class File_Service {
 				if ( $source !== $path && ( ! copy( $source, $path ) || hash_file( 'sha256', $source ) !== hash_file( 'sha256', $path ) ) ) {
 					return File_Store::error( 'file_write', 500 );
 				}
-				$record = [
+				$record = array(
 					'file_id'    => $id,
 					'owner_id'   => (int) $job->user_id,
 					'blog_id'    => get_current_blog_id(),
@@ -1421,7 +1437,7 @@ class File_Service {
 					'job_id'     => (int) $job->id,
 					'created_at' => time(),
 					'updated_at' => time(),
-				];
+				);
 				$saved  = File_Store::save( $record );
 				return is_wp_error( $saved ) ? $saved : $this->describe( $record );
 			}
@@ -1470,7 +1486,7 @@ class File_Service {
 				return File_Store::error( 'export_not_ready', 409 );
 			}
 			$saved = File_Store::save(
-				[
+				array(
 					'file_id'    => $id,
 					'job_id'     => (int) $job_id,
 					'owner_id'   => (int) $job->user_id,
@@ -1479,17 +1495,17 @@ class File_Service {
 					'status'     => 'writing',
 					'created_at' => time(),
 					'updated_at' => time(),
-				]
+				)
 			);
 			if ( is_wp_error( $saved ) ) {
 				return $saved;
 			}
 		}
-		return [
+		return array(
 			'dir'     => $dir,
 			'path'    => $dir . '/' . sanitize_file_name( $name ),
 			'file_id' => $id,
-		];
+		);
 	}
 
 	/**
@@ -1526,12 +1542,12 @@ class File_Service {
 					$name = pathinfo( $name, PATHINFO_FILENAME ) . '.zip';
 				}
 				$stream = fopen( $path, 'rb' );
-				return $stream ? [
+				return $stream ? array(
 					'stream'       => $stream,
 					'filename'     => $name,
 					'file_size'    => fstat( $stream )['size'],
 					'content_type' => $zip_download ? 'application/zip' : 'application/octet-stream',
-				] : File_Store::error( 'file_read', 500 );
+				) : File_Store::error( 'file_read', 500 );
 			}
 		);
 	}

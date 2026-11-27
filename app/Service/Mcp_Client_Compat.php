@@ -23,7 +23,7 @@ class Mcp_Client_Compat {
 	 * Register the request filter.
 	 */
 	public static function hooks() {
-		add_filter( 'rest_pre_dispatch', [ self::class, 'fill_protocol_version' ], 5, 3 );
+		add_filter( 'rest_pre_dispatch', array( self::class, 'fill_protocol_version' ), 5, 3 );
 	}
 
 	/**

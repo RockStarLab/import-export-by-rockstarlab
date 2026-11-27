@@ -24,7 +24,7 @@ class Settings_Service {
 	 * @param array  $input Input.
 	 * @return mixed
 	 */
-	public function execute( $name, array $input = [] ) {
+	public function execute( $name, array $input = array() ) {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access; }
@@ -33,7 +33,7 @@ class Settings_Service {
 			return $this->error( 'operation', 400 ); }
 		$valid = rest_validate_value_from_schema( $input, $definition['input'], 'input' );
 		if ( is_wp_error( $valid ) ) {
-			$valid->add_data( [ 'status' => 400 ] );
+			$valid->add_data( array( 'status' => 400 ) );
 			return $valid; }
 		if ( 0 === strpos( $name, 'site-key-' ) || 'connection-key-rotate' === $name ) {
 			return ( new Credential_Service() )->execute( $name, $input );
@@ -63,7 +63,7 @@ class Settings_Service {
 	private function settings() {
 		$menu    = Admin_Menu_Settings::get_settings();
 		$buttons = Button_Location_Settings::get_settings();
-		return [
+		return array(
 			'menu_title'                 => $menu['menu_title'],
 			'visible_items'              => array_values( array_keys( array_filter( $menu['visible_items'] ) ) ),
 			'show_tree_action'           => (bool) $menu['show_tree_action'],
@@ -72,7 +72,7 @@ class Settings_Service {
 			'available_menu_items'       => array_keys( Admin_Menu_Settings::get_menu_items() ),
 			'available_button_locations' => array_keys( $buttons['export_button_locations'] ),
 			'ai'                         => $this->ai_status(),
-		];
+		);
 	}
 
 	/**
@@ -83,7 +83,7 @@ class Settings_Service {
 	 */
 	private function update_settings( array $input ) {
 		$before = $this->settings();
-		foreach ( [ 'visible_items', 'export_button_locations', 'sync_button_locations' ] as $key ) {
+		foreach ( array( 'visible_items', 'export_button_locations', 'sync_button_locations' ) as $key ) {
 			if ( isset( $input[ $key ] ) && ( count( $input[ $key ] ) !== count( array_unique( $input[ $key ] ) ) || array_diff( $input[ $key ], $before[ 'visible_items' === $key ? 'available_menu_items' : 'available_button_locations' ] ) ) ) {
 				return $this->error( 'invalid_choice', 400 );
 			}
@@ -120,19 +120,19 @@ class Settings_Service {
 	 */
 	private function preferences() {
 		$user   = get_current_user_id();
-		$promos = [];
-		foreach ( [ 'import', 'export', 'updater', 'migration' ] as $context ) {
+		$promos = array();
+		foreach ( array( 'import', 'export', 'updater', 'migration' ) as $context ) {
 			if ( get_user_meta( $user, 'rsl_ie_dismiss_pro_promo_' . $context, true ) ) {
 				$promos[] = $context; }
 		}
 		$until = (int) get_user_meta( $user, 'rsl_ie_media_hash_notice_snoozed_until', true );
-		return [
+		return array(
 			'dismissed_pro_promos'      => $promos,
 			'migration_intro_dismissed' => (bool) get_user_meta( $user, 'rsl_ie_dismiss_content_migration_intro', true ),
 			'media_hash_notice'         => get_user_meta( $user, 'rsl_ie_dismiss_media_hash_notice', true ) ? 'dismiss' : ( $until > time() ? 'snooze' : 'show' ),
 			'media_hash_snoozed_until'  => $until,
 			'review_notice_dismissed'   => (bool) get_option( 'rsl_ie_review_dismissed', false ),
-		];
+		);
 	}
 
 	/**
@@ -143,12 +143,12 @@ class Settings_Service {
 	 */
 	private function update_preferences( array $input ) {
 		if ( isset( $input['dismiss_pro_promo'] ) ) {
-			$input['dismissed_pro_promos'] = array_values( array_unique( array_merge( $input['dismissed_pro_promos'] ?? $this->preferences()['dismissed_pro_promos'], [ $input['dismiss_pro_promo'] ] ) ) );
+			$input['dismissed_pro_promos'] = array_values( array_unique( array_merge( $input['dismissed_pro_promos'] ?? $this->preferences()['dismissed_pro_promos'], array( $input['dismiss_pro_promo'] ) ) ) );
 			unset( $input['dismiss_pro_promo'] );
 		}
 		$user = get_current_user_id();
 		if ( isset( $input['dismissed_pro_promos'] ) ) {
-			foreach ( [ 'import', 'export', 'updater', 'migration' ] as $context ) {
+			foreach ( array( 'import', 'export', 'updater', 'migration' ) as $context ) {
 				update_user_meta( $user, 'rsl_ie_dismiss_pro_promo_' . $context, in_array( $context, $input['dismissed_pro_promos'], true ) ? 1 : 0 );
 			}
 		}
@@ -182,7 +182,7 @@ class Settings_Service {
 	 */
 	private function ai_status() {
 		$core      = OpenAI_API_Key::is_wp7_plus();
-		$providers = [];
+		$providers = array();
 		if ( $core && function_exists( 'wp_get_connectors' ) ) {
 			foreach ( wp_get_connectors() as $id => $connector ) {
 				if ( 'ai_provider' !== $connector['type'] || 'api_key' !== ( $connector['authentication']['method'] ?? '' ) ) {
@@ -190,28 +190,28 @@ class Settings_Service {
 				$auth        = $connector['authentication'];
 				$active      = isset( $connector['plugin']['is_active'] ) && is_callable( $connector['plugin']['is_active'] ) && call_user_func( $connector['plugin']['is_active'] );
 				$source      = function_exists( '_wp_connectors_get_api_key_source' ) && ! empty( $auth['setting_name'] ) ? _wp_connectors_get_api_key_source( $auth['setting_name'], $auth['env_var_name'] ?? '', $auth['constant_name'] ?? '' ) : 'none';
-				$registered  = get_registered_settings()[ $auth['setting_name'] ?? '' ] ?? [];
-				$providers[] = [
+				$registered  = get_registered_settings()[ $auth['setting_name'] ?? '' ] ?? array();
+				$providers[] = array(
 					'id'         => $id,
 					'label'      => $connector['name'],
 					'active'     => (bool) $active,
 					'configured' => 'none' !== $source,
 					'source'     => $source,
-					'writable'   => $active && ! empty( $registered['show_in_rest'] ) && ! in_array( $source, [ 'env', 'constant' ], true ),
-				];
+					'writable'   => $active && ! empty( $registered['show_in_rest'] ) && ! in_array( $source, array( 'env', 'constant' ), true ),
+				);
 			}
 		} elseif ( ! $core ) {
 			$configured  = '' !== (string) get_option( 'rsl_ie_openai_api_key', '' );
-			$providers[] = [
+			$providers[] = array(
 				'id'         => 'openai',
 				'label'      => 'OpenAI',
 				'active'     => true,
 				'configured' => $configured,
 				'source'     => $configured ? 'database' : 'none',
 				'writable'   => true,
-			];
+			);
 		}
-		return [
+		return array(
 			'mode'       => $core ? 'wordpress_ai_client' : 'plugin_openai',
 			'configured' => (bool) array_filter(
 				$providers,
@@ -220,7 +220,7 @@ class Settings_Service {
 			),
 			'setup_url'  => admin_url( $core ? 'options-connectors.php' : 'admin.php?page=rsl-ie-plugin-options' ),
 			'providers'  => $providers,
-		];
+		);
 	}
 
 	/**
@@ -234,27 +234,27 @@ class Settings_Service {
 		if ( 'ai-key-test' === $name ) {
 			if ( empty( $input['api_key'] ) ) {
 				$result = ( new \RockStarLab\ImportExport\Helper\AI_Content_Extractor() )->test_connection();
-				return is_wp_error( $result ) ? $this->error( 'ai_test_failed', 502 ) : [
+				return is_wp_error( $result ) ? $this->error( 'ai_test_failed', 502 ) : array(
 					'connected' => true,
 					'message'   => __( 'Connection successful.', 'import-export-by-rockstarlab' ),
-				];
+				);
 			}
 			$response = wp_remote_get(
 				'https://api.openai.com/v1/models',
-				[
+				array(
 					'timeout'     => 15,
 					'redirection' => 0,
-					'headers'     => [
+					'headers'     => array(
 						'Authorization' => 'Bearer ' . $input['api_key'],
 						'Accept'        => 'application/json',
-					],
-				]
+					),
+				)
 			);
 			$status   = is_wp_error( $response ) ? 0 : (int) wp_remote_retrieve_response_code( $response );
-			return $status >= 200 && $status < 300 ? [
+			return $status >= 200 && $status < 300 ? array(
 				'connected' => true,
 				'message'   => __( 'Connection successful.', 'import-export-by-rockstarlab' ),
-			] : $this->error( 'ai_test_failed', 502 );
+			) : $this->error( 'ai_test_failed', 502 );
 		}
 		if ( 'ai-key-delete' === $name && ! empty( $input['legacy'] ) ) {
 			update_option( 'rsl_ie_openai_api_key', '', false );
@@ -289,6 +289,6 @@ class Settings_Service {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $status ) {
-		return new \WP_Error( 'rsl_ie_settings_' . $code, sprintf( /* translators: %s: error code. */ __( 'Settings operation failed: %s', 'import-export-by-rockstarlab' ), $code ), [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_settings_' . $code, sprintf( /* translators: %s: error code. */ __( 'Settings operation failed: %s', 'import-export-by-rockstarlab' ), $code ), array( 'status' => $status ) );
 	}
 }

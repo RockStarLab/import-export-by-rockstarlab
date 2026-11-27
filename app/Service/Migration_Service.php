@@ -30,7 +30,7 @@ class Migration_Service {
 	 * @return bool
 	 */
 	public static function supports( $job ) {
-		return $job && in_array( $job->type, [ 'migration_export', 'migration_import' ], true ) && 'site_migration' === $job->data_type && 1 === ( json_decode( $job->parameters, true )['migration_version'] ?? 0 );
+		return $job && in_array( $job->type, array( 'migration_export', 'migration_import' ), true ) && 'site_migration' === $job->data_type && 1 === ( json_decode( $job->parameters, true )['migration_version'] ?? 0 );
 	}
 
 	/**
@@ -49,7 +49,7 @@ class Migration_Service {
 	 * @param array|object $input Parsed input.
 	 * @return array|\WP_Error
 	 */
-	public function execute( $name, $input = [] ) {
+	public function execute( $name, $input = array() ) {
 		if ( $input instanceof \stdClass ) {
 			$input = (array) $input; }
 		$access = Access_Policy::check_management();
@@ -60,15 +60,15 @@ class Migration_Service {
 			return $this->error( 'operation', 400 ); }
 		$valid = rest_validate_value_from_schema( $input, $definition['input'], 'input' );
 		if ( is_wp_error( $valid ) ) {
-			$valid->add_data( [ 'status' => 400 ] );
+			$valid->add_data( array( 'status' => 400 ) );
 			return $valid; }
 		$input = rest_sanitize_value_from_schema( $input, $definition['input'] );
 		if ( 'migration-plan' === $name ) {
 			$steps = Migration_Plan::leaves();
-			return is_wp_error( $steps ) ? $steps : [
+			return is_wp_error( $steps ) ? $steps : array(
 				'steps'      => array_values( $steps ),
-				'operations' => [ 'export_file', 'import_file' ],
-			]; }
+				'operations' => array( 'export_file', 'import_file' ),
+			); }
 		if ( 'migration-prepare' === $name ) {
 			return ( new Migration_Package_Service() )->prepare_public( $input['file_id'], $input['offset'] ?? 0, $input['limit'] ?? 100 ); }
 		if ( 'migration-import-start' === $name ) {
@@ -90,7 +90,7 @@ class Migration_Service {
 	 */
 	private static function with_portable_acf_fields( array $step ) {
 		$fields = (array) $step['fields'];
-		if ( ! in_array( $step['type'], [ 'post', 'page', 'custom_post_types' ], true ) || ! function_exists( 'acf_get_field_groups' ) || ! class_exists( '\\RockStarLab\\ImportExport\\Helper\\ACF_Fields' ) ) {
+		if ( ! in_array( $step['type'], array( 'post', 'page', 'custom_post_types' ), true ) || ! function_exists( 'acf_get_field_groups' ) || ! class_exists( '\\RockStarLab\\ImportExport\\Helper\\ACF_Fields' ) ) {
 			return $fields;
 		}
 		$post_type = (string) ( $step['post_type'] ?? $step['type'] );
@@ -112,45 +112,45 @@ class Migration_Service {
 		$available = Migration_Plan::leaves();
 		if ( is_wp_error( $available ) ) {
 			return $available; }
-		$selected = [];
+		$selected = array();
 		foreach ( $input['steps'] as $selection ) {
 			$key = $selection['key'];
 			if ( isset( $selected[ $key ] ) || ! isset( $available[ $key ] ) ) {
 				return $this->error( 'step_unavailable', 400 ); }
 			$step    = $available[ $key ];
-			$options = [
+			$options = array(
 				'custom_export_file_name' => pathinfo( $step['filename'], PATHINFO_FILENAME ),
 				'items_per_iteration'     => 100,
-			];
-			foreach ( [ 'taxonomy', 'post_type' ] as $field ) {
+			);
+			foreach ( array( 'taxonomy', 'post_type' ) as $field ) {
 				if ( isset( $step[ $field ] ) ) {
 						$options[ $field ] = $step[ $field ]; }
 			}
 			if ( isset( $selection['selected_ids'] ) ) {
 				$options['selected_ids'] = $selection['selected_ids']; }
-			$request = [
+			$request = array(
 				'export_type'    => $step['type'],
 				'format'         => 'json',
 				'options'        => $options,
 				'fields'         => self::with_portable_acf_fields( $step ),
-				'format_options' => [ 'json_pretty_print' => 1 ],
-			];
+				'format_options' => array( 'json_pretty_print' => 1 ),
+			);
 			if ( isset( $step['taxonomy'] ) ) {
-				$request['dynamic_filters'] = [
-					[
+				$request['dynamic_filters'] = array(
+					array(
 						'field'     => 'taxonomy',
 						'condition' => 'equals',
 						'value'     => $step['taxonomy'],
-					],
-				]; }
+					),
+				); }
 			$valid = Export_Request::normalize( $request );
 			if ( is_wp_error( $valid ) ) {
 				return $valid; }
-			$selected[ $key ] = [
-				'key'          => $key,
-				'order'        => $step['order'],
-				'request'      => $request,
-			];
+			$selected[ $key ] = array(
+				'key'     => $key,
+				'order'   => $step['order'],
+				'request' => $request,
+			);
 		}
 		uasort(
 			$selected,
@@ -176,13 +176,13 @@ class Migration_Service {
 		unset( $input['request_id'] );
 		// Definitions are resolved only after dedup, so a repeated completed request
 		// remains stable if registered fields or the installed provider change.
-		$params = [
+		$params = array(
 			'migration_version' => 1,
 			'input'             => $input,
 			'execution_context' => $context->to_storage(),
-		];
+		);
 		return Job_Service::enqueue(
-			[
+			array(
 				'type'        => 'migration_export',
 				'data_type'   => 'site_migration',
 				'file_format' => 'zip',
@@ -192,13 +192,13 @@ class Migration_Service {
 				'total_items' => count( $input['steps'] ),
 				'parameters'  => wp_json_encode( $params ),
 				'settings'    => wp_json_encode(
-					[
+					array(
 						'stage'    => 'queued',
 						'index'    => 0,
-						'children' => [],
-					]
+						'children' => array(),
+					)
 				),
-			],
+			),
 			$request_id,
 			function () use ( $input ) {
 				if ( ! class_exists( 'ZipArchive' ) ) {
@@ -230,7 +230,8 @@ class Migration_Service {
 			if ( is_wp_error( $requests ) ) {
 				return $requests; }
 			foreach ( $requests as $step ) {
-				if ( 'database_table' === ( $step['request']['export_type'] ?? '' ) ) { return $this->error( 'scope', 400 ); }
+				if ( 'database_table' === ( $step['request']['export_type'] ?? '' ) ) {
+					return $this->error( 'scope', 400 ); }
 				$valid = Export_Request::normalize( $step['request'] );
 				if ( is_wp_error( $valid ) ) {
 					return $valid; }
@@ -241,7 +242,7 @@ class Migration_Service {
 	/**
 	 * Read server-derived progress; never expose paths or prepared request data.
 	 *
-	 * @param int        $id Parent ID.
+	 * @param int $id Parent ID.
 	 * @return array|\WP_Error
 	 */
 	public function status( $id ) {
@@ -253,7 +254,7 @@ class Migration_Service {
 		$state   = json_decode( $job->settings, true );
 		$allowed = $this->authorize( $job );
 
-		return [
+		return array(
 			'job_id'             => (int) $job->id,
 			'status'             => $job->status,
 			'stage'              => $state['stage'],
@@ -264,7 +265,7 @@ class Migration_Service {
 			'file_id'            => ! is_wp_error( $allowed ) && 'completed' === $job->status ? ( $state['file_id'] ?? '' ) : '',
 			'poll_after_seconds' => 2,
 			'result'             => 'migration_import' === $job->type ? Migration_Import_Service::counters( $job, $state ) : Migration_Import_Service::empty_result(),
-		];
+		);
 	}
 
 	/**
@@ -287,16 +288,16 @@ class Migration_Service {
 			return $this->error( 'busy', 409 ); }
 		try {
 			$job     = rsl_ie()->Model->job->find( $id );
-			$targets = [
+			$targets = array(
 				'pause'  => 'paused',
 				'resume' => 'processing',
 				'cancel' => 'cancelled',
-			];
+			);
 			if ( ! isset( $targets[ $action ] ) ) {
 				return $this->error( 'operation', 400 ); }
 			if ( $targets[ $action ] === $job->status && 'resume' !== $action ) {
 				return $this->status( $id ); }
-			$allowed = 'resume' === $action ? [ 'paused' ] : ( 'cancel' === $action ? [ 'pending', 'processing', 'paused' ] : [ 'pending', 'processing' ] );
+			$allowed = 'resume' === $action ? array( 'paused' ) : ( 'cancel' === $action ? array( 'pending', 'processing', 'paused' ) : array( 'pending', 'processing' ) );
 			if ( ! in_array( $job->status, $allowed, true ) ) {
 				return $this->error( 'state_conflict', 409 ); }
 			if ( 'resume' === $action ) {
@@ -328,10 +329,10 @@ class Migration_Service {
 				$saved                     = $this->save(
 					$id,
 					$state,
-					[
+					array(
 						'status'       => 'processing',
 						'completed_at' => null,
-					]
+					)
 				);
 				if ( is_wp_error( $saved ) ) {
 					return $saved; }
@@ -349,14 +350,14 @@ class Migration_Service {
 			$saved = $this->save(
 				$id,
 				$state,
-				[
+				array(
 					'status'       => $targets[ $action ],
 					'completed_at' => 'cancel' === $action ? current_time( 'mysql' ) : null,
-				]
+				)
 			);
 			if ( is_wp_error( $saved ) ) {
 				return $saved; }
-			wp_clear_scheduled_hook( 'rsl_ie_run_job', [ (int) $id ] );
+			wp_clear_scheduled_hook( 'rsl_ie_run_job', array( (int) $id ) );
 			if ( 'resume' === $action ) {
 				Job_Runner::schedule( $id ); }
 			return $this->status( $id );
@@ -376,8 +377,8 @@ class Migration_Service {
 			return $this->error( 'busy', 409 ); }
 		try {
 			$job = rsl_ie()->Model->job->find( $id );
-			if ( ! self::supports( $job ) || ! in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
-				return []; }
+			if ( ! self::supports( $job ) || ! in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
+				return array(); }
 			if ( ! empty( json_decode( $job->parameters, true )['migration_parent_id'] ) ) {
 				return $this->error( 'parent_required', 409 ); }
 			self::$active = (int) $id;
@@ -388,7 +389,8 @@ class Migration_Service {
 				}
 			);
 			if ( is_wp_error( $result ) ) {
-				if ( 'rsl_ie_media_library_connection_busy' === $result->get_error_code() ) { return $result; }
+				if ( 'rsl_ie_media_library_connection_busy' === $result->get_error_code() ) {
+					return $result; }
 				return $this->fail( $id, $result->get_error_code() ); }
 			return $result;
 		} catch ( \Throwable $exception ) {
@@ -405,7 +407,7 @@ class Migration_Service {
 	 * @return mixed|\WP_Error
 	 */
 	private function context( $job, callable $callback ) {
-		$stored = json_decode( $job->parameters, true )['execution_context'] ?? [];
+		$stored = json_decode( $job->parameters, true )['execution_context'] ?? array();
 		if ( ( $stored['user_id'] ?? 0 ) !== (int) $job->user_id || ( $stored['blog_id'] ?? 0 ) !== get_current_blog_id() ) {
 			return $this->error( 'context', 403 ); }
 		$context = Execution_Context::from_storage( $stored['user_id'], $stored['blog_id'] );
@@ -436,10 +438,10 @@ class Migration_Service {
 			return $this->save(
 				$job->id,
 				$state,
-				[
+				array(
 					'status'     => 'processing',
 					'started_at' => current_time( 'mysql' ),
-				]
+				)
 			);
 		}
 		if ( $state['index'] >= count( $state['requests'] ) ) {
@@ -457,9 +459,9 @@ class Migration_Service {
 		$child = rsl_ie()->Model->job->find( $state['children'][ $index ] );
 		if ( ! $child || 'export' !== $child->type || (int) $child->user_id !== (int) $job->user_id || ( json_decode( $child->parameters, true )['migration_parent_id'] ?? 0 ) !== (int) $job->id ) {
 			return $this->error( 'child_unavailable', 409 ); }
-		if ( in_array( $child->status, [ 'pending', 'processing' ], true ) ) {
+		if ( in_array( $child->status, array( 'pending', 'processing' ), true ) ) {
 			$result = ( new Export_Service() )->process_background_batch( $child->id );
-			return is_wp_error( $result ) ? $result : [ 'pending' => true ];
+			return is_wp_error( $result ) ? $result : array( 'pending' => true );
 		}
 		if ( 'completed' !== $child->status || $child->failed_items > 0 || $child->skipped_items > 0 ) {
 			return $this->error( 'child_failed', 409 ); }
@@ -468,11 +470,11 @@ class Migration_Service {
 		return $this->save(
 			$job->id,
 			$state,
-			[
+			array(
 				'processed_items' => $state['index'],
 				'success_items'   => $state['index'],
 				'progress'        => 95 * $state['index'] / count( $state['requests'] ),
-			]
+			)
 		);
 	}
 
@@ -520,23 +522,27 @@ class Migration_Service {
 					$added = $zip->addFromString( $name, '[]' );
 				} else {
 					$file = $files->from_job( $child->id );
-					if ( is_wp_error( $file ) ) { return $file; }
+					if ( is_wp_error( $file ) ) {
+						return $file; }
 					$record = $files->resolve( $file['file_id'], 'export' );
-					if ( is_wp_error( $record ) ) { return $record; }
+					if ( is_wp_error( $record ) ) {
+						return $record; }
 					$added = $zip->addFile( $record['path'], $name );
 				}
-				if ( ! $added ) { return $this->error( 'zip_write', 500 ); }
+				if ( ! $added ) {
+					return $this->error( 'zip_write', 500 ); }
 
-				$entry = [
+				$entry = array(
 					'type' => $step['request']['export_type'],
 					'file' => $name,
-				];
-				foreach ( [ 'taxonomy', 'post_type' ] as $field ) {
+				);
+				foreach ( array( 'taxonomy', 'post_type' ) as $field ) {
 					if ( isset( $step['request']['options'][ $field ] ) ) {
 								$entry[ $field ] = $step['request']['options'][ $field ]; }
 				}
 				$entry = apply_filters( 'rsl_ie_migration_manifest_entry', $entry, $step );
-				if ( is_wp_error( $entry ) ) { return $entry; }
+				if ( is_wp_error( $entry ) ) {
+					return $entry; }
 				$line = ( $count ? ',' : '' ) . wp_json_encode( $entry );
 				if ( fwrite( $manifest, $line ) !== strlen( $line ) ) {
 					return $this->error( 'zip_write', 500 ); }
@@ -552,7 +558,7 @@ class Migration_Service {
 			// phpcs:ignore WordPress.WP.AlternativeFunctions -- Atomic publication within the same private directory.
 			if ( ! rename( $tmp, $path ) ) {
 				return $this->error( 'zip_write', 500 ); } // phpcs:ignore WordPress.WP.AlternativeFunctions -- Atomic publication within the same private directory.
-			$record = [
+			$record = array(
 				'file_id'    => $id,
 				'owner_id'   => (int) $job->user_id,
 				'blog_id'    => get_current_blog_id(),
@@ -566,7 +572,7 @@ class Migration_Service {
 				'job_id'     => (int) $job->id,
 				'created_at' => time(),
 				'updated_at' => time(),
-			];
+			);
 			$saved  = File_Store::save( $record );
 			if ( is_wp_error( $saved ) ) {
 				return $saved; }
@@ -575,19 +581,19 @@ class Migration_Service {
 			return $this->save(
 				$job->id,
 				$state,
-				[
+				array(
 					'status'       => 'completed',
 					'progress'     => 100,
 					'file_path'    => $path,
 					'file_size'    => $record['file_size'],
 					'completed_at' => current_time( 'mysql' ),
 					'result'       => wp_json_encode(
-						[
+						array(
 							'file_id'     => $id,
 							'total_steps' => $count,
-						]
+						)
 					),
-				]
+				)
 			);
 		} finally {
 			if ( $zip ) {
@@ -608,8 +614,8 @@ class Migration_Service {
 	 * @param array $columns Other columns.
 	 * @return array|\WP_Error
 	 */
-	protected function save( $id, array $state, array $columns = [] ) {
-		if ( in_array( $columns['status'] ?? '', [ 'failed', 'cancelled' ], true ) ) {
+	protected function save( $id, array $state, array $columns = array() ) {
+		if ( in_array( $columns['status'] ?? '', array( 'failed', 'cancelled' ), true ) ) {
 			$job = rsl_ie()->Model->job->find( $id );
 			if ( $job && 'migration_import' === $job->type ) {
 				$columns['result'] = wp_json_encode( Migration_Import_Service::counters( $job, $state ) );
@@ -617,12 +623,12 @@ class Migration_Service {
 		}
 		$saved = rsl_ie()->Model->job->update(
 			$id,
-			[
+			array(
 				'settings'   => wp_json_encode( $state ),
 				'updated_at' => current_time( 'mysql' ),
-			] + $columns
+			) + $columns
 		);
-		return is_wp_error( $saved ) ? $saved : [ 'saved' => true ];
+		return is_wp_error( $saved ) ? $saved : array( 'saved' => true );
 	}
 
 	/**
@@ -640,17 +646,17 @@ class Migration_Service {
 		$stopped = $this->stop_children( $job, $state );
 		if ( is_wp_error( $stopped ) ) {
 			$state['error_code'] = sanitize_key( $stopped->get_error_code() );
-			return $this->save( $id, $state, [ 'status' => 'paused' ] );
+			return $this->save( $id, $state, array( 'status' => 'paused' ) );
 		}
 		$state['stage']      = 'failed';
 		$state['error_code'] = sanitize_key( $code );
 		return $this->save(
 			$id,
 			$state,
-			[
+			array(
 				'status'       => 'failed',
 				'completed_at' => current_time( 'mysql' ),
-			]
+			)
 		);
 	}
 
@@ -667,10 +673,10 @@ class Migration_Service {
 			$saved               = $this->save(
 				$job->id,
 				$state,
-				[
+				array(
 					'status'       => 'paused',
 					'completed_at' => null,
-				]
+				)
 			);
 			return $saved;
 		}
@@ -678,34 +684,34 @@ class Migration_Service {
 		$saved = $this->save(
 			$job->id,
 			$state,
-			[
+			array(
 				'status'       => 'cancelled',
 				'completed_at' => current_time( 'mysql' ),
-			]
+			)
 		);
 		if ( ! is_wp_error( $saved ) ) {
-			wp_clear_scheduled_hook( 'rsl_ie_run_job', [ (int) $job->id ] ); }
+			wp_clear_scheduled_hook( 'rsl_ie_run_job', array( (int) $job->id ) ); }
 		return $saved;
 	}
 
 	/** Close unfinished owned children only after their resources are cleaned. */
 	private function stop_children( $job, array $state ) {
-		foreach ( $state['children'] ?? [] as $id ) {
+		foreach ( $state['children'] ?? array() as $id ) {
 			$child = rsl_ie()->Model->job->find( $id );
-			if ( $child && in_array( $child->status, [ 'pending', 'processing', 'paused' ], true ) && ( json_decode( $child->parameters, true )['migration_parent_id'] ?? 0 ) === (int) $job->id ) {
+			if ( $child && in_array( $child->status, array( 'pending', 'processing', 'paused' ), true ) && ( json_decode( $child->parameters, true )['migration_parent_id'] ?? 0 ) === (int) $job->id ) {
 				$saved = rsl_ie()->Model->job->update(
 					$id,
-					[
+					array(
 						'status'       => 'cancelled',
 						'completed_at' => current_time( 'mysql' ),
-					]
+					)
 				);
 				if ( is_wp_error( $saved ) ) {
 					return $saved; }
 				$fresh = rsl_ie()->Model->job->find( $id );
 				if ( ! $fresh || 'cancelled' !== $fresh->status ) {
 					return $this->error( 'child_cancel_failed', 500 ); }
-				wp_clear_scheduled_hook( 'rsl_ie_run_job', [ (int) $id ] );
+				wp_clear_scheduled_hook( 'rsl_ie_run_job', array( (int) $id ) );
 			}
 		}
 	}
@@ -721,5 +727,5 @@ class Migration_Service {
 		$message = 'busy' === $code
 			? __( 'The migration is working on a batch right now. Try again in a few seconds.', 'import-export-by-rockstarlab' )
 			: __( 'Migration cannot continue. Check its status, selected steps and current permissions.', 'import-export-by-rockstarlab' );
-		return new \WP_Error( 'rsl_ie_migration_' . $code, $message, [ 'status' => $status ] ); }
+		return new \WP_Error( 'rsl_ie_migration_' . $code, $message, array( 'status' => $status ) ); }
 }

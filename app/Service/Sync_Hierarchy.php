@@ -23,18 +23,18 @@ class Sync_Hierarchy {
 	 */
 	public static function schema() {
 		return S::object(
-			[
-				'version' => [
+			array(
+				'version' => array(
 					'type' => 'integer',
-					'enum' => [ 1 ],
-				],
-				'parents' => [
+					'enum' => array( 1 ),
+				),
+				'parents' => array(
 					'type'                 => 'object',
 					'additionalProperties' => S::integer( 1 ),
 					'maxProperties'        => 50,
-				],
-			],
-			[ 'version', 'parents' ]
+				),
+			),
+			array( 'version', 'parents' )
 		);
 	}
 
@@ -49,7 +49,7 @@ class Sync_Hierarchy {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access; }
-		if ( 'post_type' === $kind && in_array( $type, [ 'post', 'page' ], true ) ) {
+		if ( 'post_type' === $kind && in_array( $type, array( 'post', 'page' ), true ) ) {
 			$access = Sync_Peer_Policy::post( $type, 'sync_pull' );
 			return is_wp_error( $access ) ? $access : self::post_provider( $type );
 		}
@@ -63,7 +63,7 @@ class Sync_Hierarchy {
 	 * @return array
 	 */
 	public static function post_provider( $type ) {
-		return [
+		return array(
 			'records' => 'posts',
 			'id'      => 'ID',
 			'parent'  => 'post_parent',
@@ -85,10 +85,10 @@ class Sync_Hierarchy {
 				add_filter( 'wp_insert_post_data', $dates, 10, 2 );
 				try {
 					$result = wp_update_post(
-						[
+						array(
 							'ID'          => $id,
 							'post_parent' => $parent_id,
-						],
+						),
 						true
 					);
 					return is_wp_error( $result ) || (int) get_post( $id )->post_parent !== $parent_id ? self::error() : true;
@@ -101,9 +101,9 @@ class Sync_Hierarchy {
 				return ( new \RockStarLab\ImportExport\Controller\Content_Sync_API_Controller( false ) )->receive_content( $request );
 			},
 			'maps'    => static function ( $data ) {
-				return $data['data']['post_map'] ?? [];
+				return $data['data']['post_map'] ?? array();
 			},
-		];
+		);
 	}
 
 	/**
@@ -139,15 +139,15 @@ class Sync_Hierarchy {
 		$provider = self::provider( $kind, $type );
 		if ( is_wp_error( $provider ) ) {
 			return $provider; }
-		$edges = [];
+		$edges = array();
 		foreach ( $ids as $id ) {
 			$parent = call_user_func( $provider['read'], $id );
 			if ( is_wp_error( $parent ) ) {
 				return $parent; }
-			$edges[] = [
+			$edges[] = array(
 				'id'     => $id,
 				'parent' => $parent,
-			];
+			);
 		}
 		return self::validate( $edges, $hierarchy );
 	}
@@ -164,19 +164,19 @@ class Sync_Hierarchy {
 		$response = Remote_API::post(
 			$site['remote_url'],
 			'migration-hierarchy-check',
-			[
+			array(
 				'timeout' => 30,
-				'headers' => [
+				'headers' => array(
 					'Authorization' => 'Bearer ' . $site['api_key'],
 					'Content-Type'  => 'application/json',
-				],
+				),
 				'body'    => wp_json_encode(
-					[
+					array(
 						'kind' => $kind,
 						'type' => $type,
-					]
+					)
 				),
-			]
+			)
 		);
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 			return self::error(); }
@@ -194,12 +194,12 @@ class Sync_Hierarchy {
 	 * @return array
 	 */
 	public static function envelope( $kind, $type, array $payload, array $input ) {
-		return isset( $input['hierarchy'] ) ? [
+		return isset( $input['hierarchy'] ) ? array(
 			'kind'      => $kind,
 			'type'      => $type,
 			'payload'   => $payload,
 			'hierarchy' => $input['hierarchy'],
-		] : $payload;
+		) : $payload;
 	}
 
 	/**
@@ -214,17 +214,17 @@ class Sync_Hierarchy {
 		$kind    = isset( $input['taxonomy'] ) ? 'taxonomy' : 'post_type';
 		$type    = $input[ $kind ];
 		$edges   = $step['hierarchy_edges'];
-		$parents = [];
+		$parents = array();
 		foreach ( array_diff( array_filter( array_column( $edges, 'parent' ) ), array_column( $edges, 'id' ) ) as $parent ) {
 			$target = $maps[ $kind . ':' . $type . ':' . $parent ] ?? 0;
 			if ( ! is_int( $target ) || $target < 1 ) {
 				return self::error(); }
 			$parents[ $parent ] = $target;
 		}
-		$input['hierarchy'] = [
+		$input['hierarchy'] = array(
 			'version' => 1,
 			'parents' => $parents,
-		];
+		);
 		if ( preg_match( '/-pull$/D', $step['params']['operation'] ) ) {
 			$input['hierarchy']['edges'] = $edges; }
 		return $input;
@@ -239,18 +239,18 @@ class Sync_Hierarchy {
 	 */
 	public static function peer( $request, $receive = false ) {
 		$schema = S::object(
-			[
-				'kind' => S::string( [ 'post_type', 'taxonomy' ] ),
-				'type' => S::string() + [
+			array(
+				'kind' => S::string( array( 'post_type', 'taxonomy' ) ),
+				'type' => S::string() + array(
 					'pattern'   => '^[a-z0-9_-]+$',
 					'minLength' => 1,
 					'maxLength' => 32,
-				],
-			] + ( $receive ? [
-				'payload'   => [ 'type' => 'object' ],
+				),
+			) + ( $receive ? array(
+				'payload'   => array( 'type' => 'object' ),
 				'hierarchy' => self::schema(),
-			] : [] ),
-			$receive ? [ 'kind', 'type', 'payload', 'hierarchy' ] : [ 'kind', 'type' ]
+			) : array() ),
+			$receive ? array( 'kind', 'type', 'payload', 'hierarchy' ) : array( 'kind', 'type' )
 		);
 		$input  = $request->get_params();
 		if ( is_wp_error( rest_validate_value_from_schema( $input, $schema ) ) ) {
@@ -259,25 +259,25 @@ class Sync_Hierarchy {
 		if ( is_wp_error( $provider ) ) {
 			return $provider; }
 		if ( ! $receive ) {
-			return [
+			return array(
 				'hierarchy_version' => 1,
 				'kind'              => $input['kind'],
 				'type'              => $input['type'],
-			]; }
+			); }
 		$payload = $input['payload'];
 		if ( isset( $payload[ $input['kind'] ] ) && $payload[ $input['kind'] ] !== $input['type'] ) {
 			return self::error(); }
-		$records = $payload[ $provider['records'] ] ?? [];
+		$records = $payload[ $provider['records'] ] ?? array();
 		if ( ! is_array( $records ) ) {
 			return self::error(); }
-		$edges = [];
+		$edges = array();
 		foreach ( $records as $record ) {
 			if ( ! is_array( $record ) || ( $record[ $input['kind'] ] ?? $payload[ $input['kind'] ] ?? '' ) !== $input['type'] ) {
 				return self::error(); }
-			$edges[] = [
+			$edges[] = array(
 				'id'     => $record[ $provider['id'] ] ?? 0,
 				'parent' => $record[ $provider['parent'] ] ?? 0,
-			];
+			);
 		}
 		$valid = self::validate( $edges, $input['hierarchy'] );
 		if ( is_wp_error( $valid ) ) {
@@ -287,7 +287,7 @@ class Sync_Hierarchy {
 			if ( is_wp_error( $parent ) ) {
 				return $parent; }
 		}
-		$explicit = $payload[ $provider['mapping'] ] ?? [];
+		$explicit = $payload[ $provider['mapping'] ] ?? array();
 		if ( ! is_array( $explicit ) || array_intersect( $explicit, $input['hierarchy']['parents'] ) ) {
 			return self::error(); }
 		// All records enter through their native preflight/importer, then exact parent finalization.
@@ -313,9 +313,18 @@ class Sync_Hierarchy {
 
 	/** Describe frozen source edges plus confirmed local external parents for PULL. */
 	public static function pull_schema() {
-		$schema                                    = self::schema();
-		$schema['properties']['edges'] = S::items( S::object( [ 'id' => S::integer( 1 ), 'parent' => S::integer() ], [ 'id', 'parent' ] ), 50 );
-		$schema['required'][]                      = 'edges';
+		$schema                        = self::schema();
+		$schema['properties']['edges'] = S::items(
+			S::object(
+				array(
+					'id'     => S::integer( 1 ),
+					'parent' => S::integer(),
+				),
+				array( 'id', 'parent' )
+			),
+			50
+		);
+		$schema['required'][]          = 'edges';
 		return $schema;
 	}
 
@@ -398,7 +407,7 @@ class Sync_Hierarchy {
 		foreach ( $ordered as $edge ) {
 			$id       = (int) $mapping[ $edge['id'] ];
 			$parent   = $edge['parent'] ? (int) ( $mapping[ $edge['parent'] ] ?? $hierarchy['parents'][ $edge['parent'] ] ?? 0 ) : 0;
-			$seen     = [ $id => true ];
+			$seen     = array( $id => true );
 			$ancestor = $parent;
 			// Refuse destination cycles, inaccessible ancestors and unbounded chains.
 			while ( $ancestor ) {
@@ -427,6 +436,6 @@ class Sync_Hierarchy {
 	 * @return \WP_Error
 	 */
 	public static function error() {
-		return new \WP_Error( 'rsl_ie_sync_hierarchy_unavailable', __( 'The peer could not confirm the requested hierarchy. Inspect completed transfers before repeating.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+		return new \WP_Error( 'rsl_ie_sync_hierarchy_unavailable', __( 'The peer could not confirm the requested hierarchy. Inspect completed transfers before repeating.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 	}
 }

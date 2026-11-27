@@ -62,7 +62,14 @@ class Sync_Synced_Patterns {
 			$fixed = self::apply_terms( $fixed, self::import_terms( $terms ) );
 		}
 		if ( $fixed !== $content ) {
-			wp_update_post( wp_slash( array( 'ID' => $post_id, 'post_content' => $fixed ) ) );
+			wp_update_post(
+				wp_slash(
+					array(
+						'ID'           => $post_id,
+						'post_content' => $fixed,
+					)
+				)
+			);
 		}
 		return array_values( array_unique( array_map( 'intval', $map ) ) );
 	}
@@ -105,13 +112,13 @@ class Sync_Synced_Patterns {
 					continue;
 				}
 				$out[ $id ] = array(
-					'post_type' => $block->post_type,
-					'title'   => $block->post_title,
-					'name'    => $block->post_name,
-					'status'  => $block->post_status,
-					'content' => $block->post_content,
-					'site'    => untrailingslashit( home_url() ),
-					'sync'    => (string) get_post_meta( $id, 'wp_pattern_sync_status', true ),
+					'post_type'   => $block->post_type,
+					'title'       => $block->post_title,
+					'name'        => $block->post_name,
+					'status'      => $block->post_status,
+					'content'     => $block->post_content,
+					'site'        => untrailingslashit( home_url() ),
+					'sync'        => (string) get_post_meta( $id, 'wp_pattern_sync_status', true ),
 					// Where this pattern came from, so a round trip finds the original again.
 					'origin_id'   => (int) get_post_meta( $id, self::SOURCE_ID_META, true ),
 					'origin_site' => (string) get_post_meta( $id, self::SOURCE_SITE_META, true ),
@@ -147,11 +154,11 @@ class Sync_Synced_Patterns {
 			if ( ! $source_id || ! is_array( $p ) || ! isset( $p['content'] ) || ! is_string( $p['content'] ) ) {
 				continue;
 			}
-			$site  = esc_url_raw( (string) ( $p['site'] ?? '' ) );
-			$type  = 'wp_navigation' === ( $p['post_type'] ?? '' ) ? 'wp_navigation' : 'wp_block';
+			$site           = esc_url_raw( (string) ( $p['site'] ?? '' ) );
+			$type           = 'wp_navigation' === ( $p['post_type'] ?? '' ) ? 'wp_navigation' : 'wp_block';
 			$p['post_type'] = $type;
-			$local = self::find( $source_id, $site, $p );
-			$args  = array(
+			$local          = self::find( $source_id, $site, $p );
+			$args           = array(
 				'post_type'    => $type,
 				'post_title'   => sanitize_text_field( (string) ( $p['title'] ?? '' ) ),
 				'post_content' => $p['content'],
@@ -195,7 +202,14 @@ class Sync_Synced_Patterns {
 			$content = get_post_field( 'post_content', $local, 'raw' );
 			$fixed   = self::apply( $content, $map );
 			if ( $fixed !== $content ) {
-				wp_update_post( wp_slash( array( 'ID' => $local, 'post_content' => $fixed ) ) );
+				wp_update_post(
+					wp_slash(
+						array(
+							'ID'           => $local,
+							'post_content' => $fixed,
+						)
+					)
+				);
 			}
 		}
 		return $map;
@@ -234,7 +248,11 @@ class Sync_Synced_Patterns {
 			foreach ( self::block_term_ids( $content ) as $term_id ) {
 				$term = get_term( $term_id );
 				if ( $term && ! is_wp_error( $term ) ) {
-					$out[ $term_id ] = array( 'taxonomy' => $term->taxonomy, 'slug' => $term->slug, 'name' => $term->name );
+					$out[ $term_id ] = array(
+						'taxonomy' => $term->taxonomy,
+						'slug'     => $term->slug,
+						'name'     => $term->name,
+					);
 				}
 			}
 		}
@@ -285,7 +303,9 @@ class Sync_Synced_Patterns {
 				if ( ! is_array( $attrs ) ) {
 					return $m[0];
 				}
-				$swap    = static function ( $id ) use ( $map ) { return isset( $map[ (int) $id ] ) ? $map[ (int) $id ] : $id; };
+				$swap    = static function ( $id ) use ( $map ) {
+					return isset( $map[ (int) $id ] ) ? $map[ (int) $id ] : $id;
+				};
 				$changed = $attrs;
 				if ( 'query' === $m[1] && isset( $changed['query']['taxQuery'] ) && is_array( $changed['query']['taxQuery'] ) ) {
 					foreach ( $changed['query']['taxQuery'] as $tax => $ids ) {
@@ -332,10 +352,12 @@ class Sync_Synced_Patterns {
 		foreach ( $m as $one ) {
 			$attrs = json_decode( $one[2], true );
 			foreach ( (array) ( $attrs['query']['taxQuery'] ?? array() ) as $list ) {
-				foreach ( (array) $list as $id ) { $ids[] = (int) $id; }
+				foreach ( (array) $list as $id ) {
+					$ids[] = (int) $id; }
 			}
 			foreach ( (array) ( $attrs['categories'] ?? array() ) as $cat ) {
-				if ( is_array( $cat ) && isset( $cat['id'] ) ) { $ids[] = (int) $cat['id']; }
+				if ( is_array( $cat ) && isset( $cat['id'] ) ) {
+					$ids[] = (int) $cat['id']; }
 			}
 		}
 		return array_values( array_unique( array_filter( $ids ) ) );
@@ -398,8 +420,14 @@ class Sync_Synced_Patterns {
 				'posts_per_page' => 1,
 				'fields'         => 'ids',
 				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Bounded identity lookup.
-					array( 'key' => self::SOURCE_ID_META, 'value' => $source_id ),
-					array( 'key' => self::SOURCE_SITE_META, 'value' => $site ),
+					array(
+			'key'   => self::SOURCE_ID_META,
+			'value' => $source_id,
+				),
+					array(
+				'key'   => self::SOURCE_SITE_META,
+				'value' => $site,
+				),
 				),
 			)
 		);

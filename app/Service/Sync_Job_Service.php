@@ -38,15 +38,15 @@ class Sync_Job_Service {
 	 */
 	public function provider( $edition ) {
 		if ( 'free' === $edition ) {
-			return [
+			return array(
 				'definitions' => Sync_Catalog::definitions() + Media_Library_Catalog::definitions(),
-				'policy'      => [ Sync_Policy::class, 'input' ],
+				'policy'      => array( Sync_Policy::class, 'input' ),
 				'execute'     => static function ( $operation, $input ) {
 					return isset( Media_Library_Catalog::definitions()[ $operation ] )
 						? ( new Media_Library_Sync_Service() )->execute( substr( $operation, 11 ), $input )
 						: ( new Sync_Workflow_Service() )->execute( $operation, $input );
 				},
-			];
+			);
 		}
 		$provider = apply_filters( 'rsl_ie_sync_job_provider', null, $edition );
 		return is_array( $provider ) || is_wp_error( $provider ) ? $provider : $this->error( 'provider_unavailable', 403 );
@@ -84,7 +84,7 @@ class Sync_Job_Service {
 		}
 			$valid = rest_validate_value_from_schema( $input, $definition['input'], 'input' );
 		if ( is_wp_error( $valid ) ) {
-			$valid->add_data( [ 'status' => 400 ] );
+			$valid->add_data( array( 'status' => 400 ) );
 			return $valid;
 		}
 			$input = rest_sanitize_value_from_schema( $input, $definition['input'] );
@@ -108,7 +108,7 @@ class Sync_Job_Service {
 		if ( is_wp_error( $provider ) ) {
 			return $provider;
 		}
-		$queue     = $provider['definitions'][ $operation ]['background'] ?? [];
+		$queue     = $provider['definitions'][ $operation ]['background'] ?? array();
 		$selection = isset( $queue['selection'] ) ? $input[ $queue['selection'] ] : ( $input['post_ids'] ?? $input['comment_ids'] ?? $input['term_ids'] );
 		$request   = $input['request_id'];
 		unset( $input['request_id'] );
@@ -122,25 +122,25 @@ class Sync_Job_Service {
 		}
 		try {
 			$site          = Connected_Site::get_by_id( $input['site_id'] );
-			$params        = [
+			$params        = array(
 				'sync_queue_version'     => 1,
 				'edition'                => $edition,
 				'operation'              => $operation,
 				'input'                  => $input,
 				'connection_fingerprint' => $site ? $this->fingerprint( $site ) : '',
 				'execution_context'      => $context->to_storage(),
-			];
+			);
 			$parent_job    = $migration_parent_id ? rsl_ie()->Model->job->find( $migration_parent_id ) : null;
-			$parent_params = $parent_job ? json_decode( $parent_job->parameters, true ) : [];
+			$parent_params = $parent_job ? json_decode( $parent_job->parameters, true ) : array();
 			if ( $migration_parent_id && ! $parent_job ) {
 				return $this->error( 'migration_parent_required', 409 ); }
-			if ( in_array( $operation, [ 'sync-media-push', 'sync-media-pull' ], true ) && ( ! $migration_parent_id || 1 === ( $parent_params['media_chunk_version'] ?? null ) ) ) {
+			if ( in_array( $operation, array( 'sync-media-push', 'sync-media-pull' ), true ) && ( ! $migration_parent_id || 1 === ( $parent_params['media_chunk_version'] ?? null ) ) ) {
 				$params['media_chunk_version'] = 1; }
 			if ( $migration_parent_id ) {
 				$params['migration_parent_id'] = (int) $migration_parent_id;
 			}
 			return Job_Service::enqueue(
-				[
+				array(
 					'type'        => 'sync_background',
 					'data_type'   => $queue['content_type'] ?? $input['post_type'] ?? $input['taxonomy'],
 					'file_format' => 'json',
@@ -150,12 +150,12 @@ class Sync_Job_Service {
 					'total_items' => count( $selection ),
 					'parameters'  => wp_json_encode( $params ),
 					'settings'    => wp_json_encode(
-						[
+						array(
 							'stage'          => 'queued',
 							'history_job_id' => 0,
-						]
+						)
 					),
-				],
+				),
 				hash( 'sha256', $edition . ':' . $operation . ':' . $request ),
 				function () use ( $params ) {
 					return $this->preflight( $params );
@@ -173,7 +173,7 @@ class Sync_Job_Service {
 	 * @param array $source_post_ids Internal deferred comment destinations; never used for execution.
 	 * @return true|\WP_Error
 	 */
-	public function preflight( array $params, array $source_post_ids = [], array $confirmed_media_ids = [] ) {
+	public function preflight( array $params, array $source_post_ids = array(), array $confirmed_media_ids = array() ) {
 		if ( 1 !== ( $params['sync_queue_version'] ?? 0 ) || ! is_array( $params['input'] ?? null ) ) {
 			return $this->error( 'invalid_job', 400 );
 		}
@@ -187,13 +187,13 @@ class Sync_Job_Service {
 		}
 		$schema = $definition['input'];
 		if ( $source_post_ids ) {
-			if ( 'standalone' !== ( $definition['handler'] ?? '' ) || ! in_array( $definition['action'], [ 'push_comments', 'pull_comments' ], true ) || isset( $params['input']['post_mapping'] ) || isset( $params['input']['target_post_id'] ) ) {
+			if ( 'standalone' !== ( $definition['handler'] ?? '' ) || ! in_array( $definition['action'], array( 'push_comments', 'pull_comments' ), true ) || isset( $params['input']['post_mapping'] ) || isset( $params['input']['target_post_id'] ) ) {
 				return $this->error( 'invalid_mapping', 400 );
 			}
 			unset( $schema['anyOf'] );
 			if ( 'push_comments' === $definition['action'] ) {
-				$parents = [];
-				foreach ( $params['input']['comment_ids'] ?? [] as $id ) {
+				$parents = array();
+				foreach ( $params['input']['comment_ids'] ?? array() as $id ) {
 					$comment   = get_comment( $id );
 					$parents[] = $comment ? (int) $comment->comment_post_ID : 0;
 				}
@@ -206,7 +206,7 @@ class Sync_Job_Service {
 		if ( is_wp_error( $valid ) ) {
 			return $valid;
 		}
-		foreach ( array_keys( $params['input']['post_mapping'] ?? $params['input']['term_mapping'] ?? [] ) as $id ) {
+		foreach ( array_keys( $params['input']['post_mapping'] ?? $params['input']['term_mapping'] ?? array() ) as $id ) {
 			if ( ! preg_match( '/^[1-9][0-9]*$/D', (string) $id ) ) {
 				return $this->error( 'invalid_mapping', 400 );
 			}
@@ -224,7 +224,7 @@ class Sync_Job_Service {
 		$site      = Connected_Site::get_by_id( $params['input']['site_id'] );
 		$parts     = explode( '-', $params['operation'] );
 		$direction = end( $parts );
-		if ( ! $site || 'active' !== $site['status'] || ! in_array( $site['direction'], [ $direction, 'bidirectional' ], true ) || ! hash_equals( $params['connection_fingerprint'], $this->fingerprint( $site ) ) ) {
+		if ( ! $site || 'active' !== $site['status'] || ! in_array( $site['direction'], array( $direction, 'bidirectional' ), true ) || ! hash_equals( $params['connection_fingerprint'], $this->fingerprint( $site ) ) ) {
 			return $this->error( 'connection_changed', 409 );
 		}
 		return true;
@@ -276,7 +276,7 @@ class Sync_Job_Service {
 		$params = json_decode( $job->parameters, true );
 		$state  = json_decode( $job->settings, true );
 		$result = json_decode( (string) $job->result, true );
-		return [
+		return array(
 			'job_id'             => (int) $job->id,
 			'status'             => $job->status,
 			'stage'              => $state['stage'] ?? 'queued',
@@ -289,7 +289,7 @@ class Sync_Job_Service {
 			'uncertain'          => ! empty( $state['uncertain'] ),
 			'result'             => is_wp_error( $this->provider( $params['edition'] ) ) ? null : ( $result ? $result : null ),
 			'poll_after_seconds' => 2,
-		];
+		);
 	}
 
 	/**
@@ -313,11 +313,11 @@ class Sync_Job_Service {
 			if ( is_wp_error( $job ) ) {
 				return $job;
 			}
-			$allowed = [
-				'pause'  => [ 'pending', 'processing', 'paused' ],
-				'resume' => [ 'pending', 'processing', 'paused' ],
-				'cancel' => [ 'pending', 'processing', 'paused', 'cancelled' ],
-			];
+			$allowed = array(
+				'pause'  => array( 'pending', 'processing', 'paused' ),
+				'resume' => array( 'pending', 'processing', 'paused' ),
+				'cancel' => array( 'pending', 'processing', 'paused', 'cancelled' ),
+			);
 			$params  = json_decode( $job->parameters, true );
 			$handled = apply_filters( 'rsl_ie_sync_queue_transition', null, $job, $action );
 			if ( null !== $handled ) {
@@ -335,7 +335,7 @@ class Sync_Job_Service {
 				$result = $this->in_context(
 					$job,
 					function ( $params ) use ( $state ) {
-						return $this->preflight( $params, [], $this->confirmed_media_ids( $params, $state ) );
+						return $this->preflight( $params, array(), $this->confirmed_media_ids( $params, $state ) );
 					}
 				);
 				if ( is_wp_error( $result ) ) {
@@ -347,29 +347,29 @@ class Sync_Job_Service {
 				return $this->error( 'uncertain', 409 ); }
 			if ( 'cancel' === $action && $this->chunked_media( $params ) && ! empty( $state['media'] ) ) {
 				$state['stage'] = 'media_cancel';
-				$saved          = $this->save( $id, $state, [ 'status' => 'processing' ] );
+				$saved          = $this->save( $id, $state, array( 'status' => 'processing' ) );
 				if ( is_wp_error( $saved ) ) {
 					return $saved; }
 				Job_Runner::schedule( $id );
 				return $this->snapshot( rsl_ie()->Model->job->find( $id ) );
 			}
-			$status = [
+			$status = array(
 				'pause'  => 'paused',
 				'resume' => 'pending',
 				'cancel' => 'cancelled',
-			][ $action ];
+			)[ $action ];
 			$saved  = rsl_ie()->Model->job->update(
 				$id,
-				[
+				array(
 					'status'       => $status,
 					'completed_at' => 'cancelled' === $status ? current_time( 'mysql' ) : null,
 					'updated_at'   => current_time( 'mysql' ),
-				]
+				)
 			);
 			if ( is_wp_error( $saved ) ) {
 				return $saved;
 			}
-			wp_clear_scheduled_hook( 'rsl_ie_run_job', [ (int) $id ] );
+			wp_clear_scheduled_hook( 'rsl_ie_run_job', array( (int) $id ) );
 			if ( 'resume' === $action ) {
 				Job_Runner::schedule( $id );
 			}
@@ -388,7 +388,7 @@ class Sync_Job_Service {
 	 */
 	private function in_context( $job, callable $callback ) {
 		$params   = json_decode( $job->parameters, true );
-		$identity = $params['execution_context'] ?? [];
+		$identity = $params['execution_context'] ?? array();
 		if ( ( $identity['user_id'] ?? 0 ) !== (int) $job->user_id || ( $identity['blog_id'] ?? 0 ) !== get_current_blog_id() ) {
 			return $this->error( 'invalid_context', 403 );
 		}
@@ -422,8 +422,8 @@ class Sync_Job_Service {
 		}
 		try {
 			$job = $model->find( $id );
-			if ( ! $job || ! in_array( $job->status, [ 'pending', 'processing' ], true ) ) {
-				return [];
+			if ( ! $job || ! in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
+				return array();
 			}
 			$state = json_decode( $job->settings, true );
 			if ( 'transferring' === ( $state['stage'] ?? '' ) ) {
@@ -437,7 +437,7 @@ class Sync_Job_Service {
 						return $handled; }
 					if ( $this->chunked_media( $params ) && 'media_cancel' === ( $state['stage'] ?? '' ) ) {
 						return $this->media_cancel( $job, $params, $state ); }
-					$valid = $this->preflight( $params, [], $this->confirmed_media_ids( $params, $state ) );
+					$valid = $this->preflight( $params, array(), $this->confirmed_media_ids( $params, $state ) );
 					if ( is_wp_error( $valid ) ) {
 						return $valid;
 					}
@@ -446,11 +446,11 @@ class Sync_Job_Service {
 					if ( 'queued' === ( $state['stage'] ?? '' ) ) {
 						return $this->save(
 							$job->id,
-							[
+							array(
 								'stage'          => 'ready',
 								'history_job_id' => 0,
-							],
-							[ 'status' => 'processing' ]
+							),
+							array( 'status' => 'processing' )
 						);
 					}
 					if ( 'ready' !== ( $state['stage'] ?? '' ) ) {
@@ -462,19 +462,19 @@ class Sync_Job_Service {
 			if ( is_wp_error( $result ) ) {
 				$fresh = $model->find( $id );
 				$state = json_decode( $fresh->settings, true );
-				if ( $this->chunked_media( json_decode( $fresh->parameters, true ) ) && in_array( $result->get_error_code(), [ 'rsl_ie_media_library_peer_unavailable', 'rsl_ie_media_library_peer_rejected', 'rsl_ie_media_library_connection_busy' ], true ) ) {
+				if ( $this->chunked_media( json_decode( $fresh->parameters, true ) ) && in_array( $result->get_error_code(), array( 'rsl_ie_media_library_peer_unavailable', 'rsl_ie_media_library_peer_rejected', 'rsl_ie_media_library_connection_busy' ), true ) ) {
 					$state['error_code']  = $result->get_error_code();
 					$state['retry_count'] = ( $state['retry_count'] ?? 0 ) + 1;
 					$state['uncertain']   = $this->uncertain_state( $state );
-					return $this->save( $id, $state, [ 'status' => $state['retry_count'] >= 3 ? 'paused' : 'processing' ] );
+					return $this->save( $id, $state, array( 'status' => $state['retry_count'] >= 3 ? 'paused' : 'processing' ) );
 				}
 				if ( $this->chunked_media( json_decode( $fresh->parameters, true ) ) && 'finalize' === ( $state['media']['phase'] ?? '' ) ) {
 					$state['error_code'] = sanitize_key( $result->get_error_code() );
 					$state['uncertain']  = true;
-					return $this->save( $id, $state, [ 'status' => 'paused' ] );
+					return $this->save( $id, $state, array( 'status' => 'paused' ) );
 				}
 				// Messages of these codes are written by this plugin (never remote text).
-				$own = in_array( $result->get_error_code(), [ 'rsl_ie_sync_failed', 'rsl_ie_connection_unavailable', 'rsl_ie_remote_pro_inactive' ], true ) ? $result->get_error_message() : '';
+				$own = in_array( $result->get_error_code(), array( 'rsl_ie_sync_failed', 'rsl_ie_connection_unavailable', 'rsl_ie_remote_pro_inactive' ), true ) ? $result->get_error_message() : '';
 				return $this->fail( $id, $result->get_error_code(), $this->uncertain_state( $state ), $own );
 			}
 			return $result;
@@ -485,7 +485,7 @@ class Sync_Job_Service {
 			if ( $this->chunked_media( json_decode( $fresh->parameters, true ) ) ) {
 				$state['error_code'] = 'rsl_ie_sync_job_worker_interrupted';
 				$state['uncertain']  = $uncertain;
-				return $this->save( $id, $state, [ 'status' => 'paused' ] );
+				return $this->save( $id, $state, array( 'status' => 'paused' ) );
 			}
 			return $this->fail( $id, 'worker_interrupted', $uncertain );
 		} finally {
@@ -500,8 +500,8 @@ class Sync_Job_Service {
 	/** Read confirmed sources only from the persisted worker checkpoint. */
 	private function confirmed_media_ids( array $params, array $state ) {
 		if ( ! $this->chunked_media( $params ) ) {
-			return []; }
-		$ids = array_column( $state['aggregate']['items'] ?? [], 'source_id' );
+			return array(); }
+		$ids = array_column( $state['aggregate']['items'] ?? array(), 'source_id' );
 		if ( 'done' === ( $state['media']['phase'] ?? '' ) ) {
 			$ids[] = $state['media']['result']['items'][0]['source_id'];
 		}
@@ -510,26 +510,26 @@ class Sync_Job_Service {
 
 	/** Only explicitly versioned media jobs use the staged transport. */
 	private function chunked_media( array $params ) {
-		return 1 === ( $params['media_chunk_version'] ?? null ) && in_array( $params['operation'] ?? '', [ 'sync-media-push', 'sync-media-pull' ], true );
+		return 1 === ( $params['media_chunk_version'] ?? null ) && in_array( $params['operation'] ?? '', array( 'sync-media-push', 'sync-media-pull' ), true );
 	}
 
 	/** Advance one file step and atomically persist the returned checkpoint. */
 	private function media_step( $job, array $params, array $state ) {
-		if ( ! in_array( $state['stage'] ?? '', [ 'queued', 'media_push' ], true ) ) {
+		if ( ! in_array( $state['stage'] ?? '', array( 'queued', 'media_push' ), true ) ) {
 			return $this->error( 'invalid_checkpoint', 400 ); }
-		$state         += [
+		$state         += array(
 			'cursor'    => 0,
-			'aggregate' => [
+			'aggregate' => array(
 				'created' => 0,
 				'skipped' => 0,
 				'failed'  => 0,
-				'items'   => [],
-			],
-		];
+				'items'   => array(),
+			),
+		);
 		$state['stage'] = 'media_push';
 		unset( $state['retry_count'], $state['error_code'], $state['uncertain'] );
 		$driver = 'sync-media-pull' === $params['operation'] ? new Media_Chunk_Pull() : new Media_Chunk_Push();
-		$media  = $state['media'] ?? [];
+		$media  = $state['media'] ?? array();
 		if ( 'done' === ( $media['phase'] ?? '' ) ) {
 			if ( empty( $media['cleaned'] ) ) {
 				$next = $driver->cleanup( (int) $params['input']['site_id'], $params['connection_fingerprint'], $media );
@@ -538,7 +538,7 @@ class Sync_Job_Service {
 				$state['media'] = $next;
 				return $this->save( $job->id, $state, $this->media_result_columns( $job, $state ) );
 			}
-			foreach ( [ 'created', 'skipped', 'failed' ] as $count ) {
+			foreach ( array( 'created', 'skipped', 'failed' ) as $count ) {
 				$state['aggregate'][ $count ] += $media['result'][ $count ]; }
 			$state['aggregate']['items'][] = $media['result']['items'][0];
 			++$state['cursor'];
@@ -548,18 +548,18 @@ class Sync_Job_Service {
 			unset( $input['site_id'] );
 			if ( ! isset( $input['media_ids'][ $state['cursor'] ] ) ) {
 				return $this->error( 'invalid_checkpoint', 400 ); }
-			$input['media_ids'] = [ $input['media_ids'][ $state['cursor'] ] ];
+			$input['media_ids'] = array( $input['media_ids'][ $state['cursor'] ] );
 			$request            = 'media-job-' . $job->id . '-' . $state['cursor'] . '-' . substr( hash( 'sha256', $job->parameters ), 0, 32 );
 			$next               = $driver->advance( (int) $params['input']['site_id'], $params['connection_fingerprint'], $request, $input, $media );
 			if ( is_wp_error( $next ) && empty( $media ) && 'rsl_ie_media_library_file_unavailable' === $next->get_error_code() ) {
 				// A missing source file fails only this item; the rest of the batch continues.
 				++$state['aggregate']['failed'];
-				$state['aggregate']['items'][] = [
+				$state['aggregate']['items'][] = array(
 					'source_id'     => (int) $input['media_ids'][0],
 					'attachment_id' => 0,
 					'status'        => 'failed',
 					'error_code'    => 'file_unavailable',
-				];
+				);
 				++$state['cursor'];
 				$next = null;
 			}
@@ -568,7 +568,7 @@ class Sync_Job_Service {
 			if ( null !== $next ) {
 				$state['media'] = $next; }
 		}
-		$columns = [ 'status' => 'processing' ] + $this->media_result_columns( $job, $state );
+		$columns = array( 'status' => 'processing' ) + $this->media_result_columns( $job, $state );
 		if ( $state['cursor'] === (int) $job->total_items ) {
 			$definition = $this->provider( $params['edition'] )['definitions'][ $params['operation'] ];
 			if ( is_wp_error( rest_validate_value_from_schema( $state['aggregate'], $definition['output'] ) ) || array_column( $state['aggregate']['items'], 'source_id' ) !== $params['input']['media_ids'] ) {
@@ -586,26 +586,26 @@ class Sync_Job_Service {
 
 	/** Publish every confirmed outcome, including the file awaiting cleanup. */
 	private function media_result_columns( $job, array $state ) {
-		$result = $state['aggregate'] ?? [
+		$result = $state['aggregate'] ?? array(
 			'created' => 0,
 			'skipped' => 0,
 			'failed'  => 0,
-			'items'   => [],
-		];
+			'items'   => array(),
+		);
 		if ( 'done' === ( $state['media']['phase'] ?? '' ) ) {
-			foreach ( [ 'created', 'skipped', 'failed' ] as $count ) {
+			foreach ( array( 'created', 'skipped', 'failed' ) as $count ) {
 				$result[ $count ] += $state['media']['result'][ $count ]; }
 			$result['items'][] = $state['media']['result']['items'][0];
 		}
 		$processed = count( $result['items'] );
-		return [
+		return array(
 			'processed_items' => $processed,
 			'progress'        => (int) floor( 100 * $processed / $job->total_items ),
 			'success_items'   => $result['created'],
 			'skipped_items'   => $result['skipped'],
 			'failed_items'    => $result['failed'],
 			'result'          => $processed ? wp_json_encode( $result ) : null,
-		];
+		);
 	}
 
 	/** Called only by the locked parent; persist each cleanup result before stopping. */
@@ -615,7 +615,7 @@ class Sync_Job_Service {
 			return $this->error( 'busy', 409 ); }
 		try {
 			$job    = rsl_ie()->Model->job->find( $id );
-			$params = $job ? json_decode( $job->parameters, true ) : [];
+			$params = $job ? json_decode( $job->parameters, true ) : array();
 			if ( ! $job || (int) $job->user_id !== (int) $parent->user_id || ( $params['migration_parent_id'] ?? 0 ) !== (int) $parent->id ) {
 				return $this->error( 'migration_parent_required', 409 ); }
 			$handled = $this->in_context(
@@ -637,7 +637,7 @@ class Sync_Job_Service {
 					if ( empty( $state['media'] ) ) {
 						return true; }
 					$state['stage'] = 'media_cancel';
-					$saved          = $this->save( $job->id, $state, [] );
+					$saved          = $this->save( $job->id, $state, array() );
 					if ( is_wp_error( $saved ) ) {
 						return $saved; }
 					// At most one transfer and one snapshot, with a checkpoint after each.
@@ -664,13 +664,13 @@ class Sync_Job_Service {
 		if ( is_wp_error( $next ) ) {
 			return $next; }
 		$state['media'] = $next;
-		$columns        = [];
+		$columns        = array();
 		if ( ! empty( $next['cleaned'] ) ) {
 			$state['stage'] = 'cancelled';
-			$columns        = [
+			$columns        = array(
 				'status'       => 'cancelled',
 				'completed_at' => current_time( 'mysql' ),
-			]; }
+			); }
 		return $this->save( $job->id, $state, $columns + $this->media_result_columns( $job, $state ) );
 	}
 
@@ -684,14 +684,14 @@ class Sync_Job_Service {
 	private function transfer( $job, array $params ) {
 		$saved = $this->save(
 			$job->id,
-			[
+			array(
 				'stage'          => 'transferring',
 				'history_job_id' => 0,
-			],
-			[
+			),
+			array(
 				'status'     => 'processing',
 				'started_at' => current_time( 'mysql' ),
-			]
+			)
 		);
 		if ( is_wp_error( $saved ) ) {
 			return $saved;
@@ -699,11 +699,11 @@ class Sync_Job_Service {
 		$link  = function ( $history_id ) use ( $job ) {
 			$saved = $this->save(
 				$job->id,
-				[
+				array(
 					'stage'          => 'transferring',
 					'history_job_id' => (int) $history_id,
-				],
-				[]
+				),
+				array()
 			);
 			if ( is_wp_error( $saved ) ) {
 				throw new \RuntimeException( __( 'Sync checkpoint failed.', 'import-export-by-rockstarlab' ) );
@@ -730,12 +730,12 @@ class Sync_Job_Service {
 		}
 		// Translations (Polylang) travel with the selected posts: the run can sync more than were selected.
 		$total  = max( (int) $job->total_items, is_array( $result['result']['selected_ids'] ?? null ) ? count( $result['result']['selected_ids'] ) : 0 );
-		$counts = [
+		$counts = array(
 			'success_items' => $total,
 			'skipped_items' => 0,
 			'failed_items'  => 0,
-		];
-		foreach ( $provider['definitions'][ $params['operation'] ]['background']['counters'] ?? [] as $column => $field ) {
+		);
+		foreach ( $provider['definitions'][ $params['operation'] ]['background']['counters'] ?? array() as $column => $field ) {
 			$counts[ $column ] = $result[ $field ];
 		}
 		if ( array_sum( $counts ) !== $total && array_sum( $counts ) !== (int) $job->total_items ) {
@@ -744,20 +744,20 @@ class Sync_Job_Service {
 		$partial = $counts['failed_items'] > 0;
 		return $this->save(
 			$job->id,
-			[
+			array(
 				'error_code'     => $partial ? 'rsl_ie_sync_job_partial_failure' : '',
 				'uncertain'      => $partial,
 				'stage'          => $partial ? 'failed' : 'done',
 				'history_job_id' => (int) ( $result['job_id'] ?? 0 ),
-			],
-			[
+			),
+			array(
 				'status'          => $partial ? 'failed' : 'completed',
 				'total_items'     => $total,
 				'processed_items' => $total,
 				'progress'        => 100,
 				'result'          => wp_json_encode( $result ),
 				'completed_at'    => current_time( 'mysql' ),
-			] + $counts
+			) + $counts
 		);
 	}
 
@@ -772,12 +772,12 @@ class Sync_Job_Service {
 	private function save( $id, array $state, array $columns ) {
 		$result = rsl_ie()->Model->job->update(
 			$id,
-			[
+			array(
 				'settings'   => wp_json_encode( $state ),
 				'updated_at' => current_time( 'mysql' ),
-			] + $columns
+			) + $columns
 		);
-		return is_wp_error( $result ) ? $result : [ 'saved' => true ];
+		return is_wp_error( $result ) ? $result : array( 'saved' => true );
 	}
 
 	/**
@@ -796,11 +796,11 @@ class Sync_Job_Service {
 		$state['error_code'] = sanitize_key( $code );
 		$state['uncertain']  = $uncertain || ! empty( $state['uncertain'] );
 		// The Jobs Log showed only "Failed": say why, in text this plugin writes.
-		$reasons = [
+		$reasons = array(
 			'rsl_ie_sync_job_connection_changed' => __( 'The connection was edited or its address changed after the job started, so nothing was sent. Start the sync again.', 'import-export-by-rockstarlab' ),
 			'rsl_ie_connection_unavailable'      => __( 'The connection is not active or does not allow this direction. Fix it in Content Sync and start the sync again.', 'import-export-by-rockstarlab' ),
 			'rsl_ie_sync_job_worker_interrupted' => __( 'The job was interrupted by the server.', 'import-export-by-rockstarlab' ),
-		];
+		);
 		$message = '' !== (string) $own_message ? (string) $own_message : $reasons[ $state['error_code'] ] ?? sprintf( /* translators: %s: error code. */ __( 'The sync failed (%s).', 'import-export-by-rockstarlab' ), $state['error_code'] );
 		if ( $state['uncertain'] && '' === (string) $own_message ) {
 			$message .= ' ' . __( 'Some content may already have changed on the other site: check it before you start the sync again.', 'import-export-by-rockstarlab' );
@@ -809,10 +809,10 @@ class Sync_Job_Service {
 		return $this->save(
 			$id,
 			$state,
-			[
+			array(
 				'status'       => 'failed',
 				'completed_at' => current_time( 'mysql' ),
-			]
+			)
 		);
 	}
 
@@ -825,8 +825,8 @@ class Sync_Job_Service {
 	 */
 	private function error( $code, $status ) {
 		if ( 'connection_busy' === $code || 'busy' === $code ) {
-			return new \WP_Error( 'rsl_ie_sync_job_' . $code, __( 'This connection is busy with another sync transfer. Wait until it finishes (check rsl-ie/sync-job-status), then try again.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
+			return new \WP_Error( 'rsl_ie_sync_job_' . $code, __( 'This connection is busy with another sync transfer. Wait until it finishes (check rsl-ie/sync-job-status), then try again.', 'import-export-by-rockstarlab' ), array( 'status' => $status ) );
 		}
-		return new \WP_Error( 'rsl_ie_sync_job_' . $code, __( 'The background sync cannot continue. Check its status, provider, connection and permissions before retrying.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_sync_job_' . $code, __( 'The background sync cannot continue. Check its status, provider, connection and permissions before retrying.', 'import-export-by-rockstarlab' ), array( 'status' => $status ) );
 	}
 }

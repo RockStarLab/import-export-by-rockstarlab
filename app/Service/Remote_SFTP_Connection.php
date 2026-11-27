@@ -43,7 +43,7 @@ class Remote_SFTP_Connection {
 			return Remote_File_Service::error( 'remote_connect_failed', sprintf( __( 'Could not connect to %1$s on port %2$d (%3$s).', 'import-export-by-rockstarlab' ), $server['host'], (int) $server['port'], $e->getMessage() ), 502 );
 		}
 		$this->sftp = $sftp;
-		return [ 'host_key' => 'SHA256:' . rtrim( base64_encode( hash( 'sha256', base64_decode( (string) preg_replace( '/^\S+\s+(\S+).*$/', '$1', $key ) ), true ) ), '=' ) ]; // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions -- OpenSSH-style fingerprint.
+		return array( 'host_key' => 'SHA256:' . rtrim( base64_encode( hash( 'sha256', base64_decode( (string) preg_replace( '/^\S+\s+(\S+).*$/', '$1', $key ) ), true ) ), '=' ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions -- OpenSSH-style fingerprint.
 	}
 
 	/**
@@ -57,17 +57,17 @@ class Remote_SFTP_Connection {
 		if ( ! is_array( $rows ) ) {
 			return $this->missing( $path );
 		}
-		$out = [];
+		$out = array();
 		foreach ( $rows as $name => $row ) {
-			if ( in_array( (string) $name, [ '.', '..' ], true ) ) {
+			if ( in_array( (string) $name, array( '.', '..' ), true ) ) {
 				continue;
 			}
-			$out[] = [
+			$out[] = array(
 				'name'  => (string) $name,
 				'type'  => self::TYPE_DIRECTORY === ( $row['type'] ?? 0 ) ? 'dir' : 'file',
 				'size'  => (int) ( $row['size'] ?? 0 ),
 				'mtime' => (int) ( $row['mtime'] ?? 0 ),
-			];
+			);
 		}
 		return $out;
 	}
@@ -83,10 +83,10 @@ class Remote_SFTP_Connection {
 		if ( ! is_array( $stat ) || self::TYPE_DIRECTORY === ( $stat['type'] ?? 0 ) ) {
 			return $this->missing( $path );
 		}
-		return [
+		return array(
 			'size'  => (int) ( $stat['size'] ?? 0 ),
 			'mtime' => (int) ( $stat['mtime'] ?? 0 ),
-		];
+		);
 	}
 
 	/**

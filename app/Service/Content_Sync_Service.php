@@ -26,7 +26,7 @@ class Content_Sync_Service {
 	 *
 	 * @var array<int, int>
 	 */
-	private $existing_parent_map = [];
+	private $existing_parent_map = array();
 	/**
 	 * Source IDs of the posts received in the current batch (a post synced from one of them is not
 	 * matched by slug for another, as happens with translations sharing a slug on a site without Polylang).
@@ -83,7 +83,7 @@ class Content_Sync_Service {
 	 *
 	 * @var array
 	 */
-	private $input = [];
+	private $input = array();
 
 	/**
 	 * Immediate history job for this execution.
@@ -97,7 +97,7 @@ class Content_Sync_Service {
 	 *
 	 * @var array
 	 */
-	private $sync_result = [];
+	private $sync_result = array();
 
 	/**
 	 * Select the server-owned Free policy; callers cannot set it through input.
@@ -118,15 +118,15 @@ class Content_Sync_Service {
 	 * @param array  $input Parsed input, independent of HTTP globals.
 	 * @return array|\WP_Error
 	 */
-	public function execute( $action, array $input = [] ) {
+	public function execute( $action, array $input = array() ) {
 		$access = \RockStarLab\ImportExport\Abilities\Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access;
 		}
-		if ( ! in_array( $action, [ 'auto_map_by_title', 'get_children_posts', 'get_local_posts_info', 'get_remote_comments', 'get_remote_posts', 'get_remote_terms', 'pull_comments', 'pull_content', 'pull_terms', 'push_comments', 'push_content', 'push_terms', 'search_local_posts', 'search_local_terms', 'search_remote_posts' ], true ) ) {
+		if ( ! in_array( $action, array( 'auto_map_by_title', 'get_children_posts', 'get_local_posts_info', 'get_remote_comments', 'get_remote_posts', 'get_remote_terms', 'pull_comments', 'pull_content', 'pull_terms', 'push_comments', 'push_content', 'push_terms', 'search_local_posts', 'search_local_terms', 'search_remote_posts' ), true ) ) {
 			return $this->error( __( 'Unknown sync operation.', 'import-export-by-rockstarlab' ) );
 		}
-		$peer_action = [
+		$peer_action = array(
 			'push_content'         => 'send_content',
 			'get_remote_terms'     => 'list_terms',
 			'search_local_terms'   => 'list_terms',
@@ -140,14 +140,14 @@ class Content_Sync_Service {
 			'search_remote_posts'  => 'list_posts',
 			'get_local_posts_info' => 'send_content',
 			'auto_map_by_title'    => 'send_content',
-		][ $action ] ?? null;
+		)[ $action ] ?? null;
 		if ( $peer_action ) {
 			$check_input = $input;
 			if ( 'push_comments' === $action ) {
 				unset( $check_input['target_post_id'] ); }
 			if ( 'pull_terms' === $action ) {
 				unset( $check_input['term_ids'] ); }
-			if ( in_array( $action, [ 'pull_comments', 'get_remote_comments' ], true ) ) {
+			if ( in_array( $action, array( 'pull_comments', 'get_remote_comments' ), true ) ) {
 				unset( $check_input['comment_ids'], $check_input['post_id'] ); }
 			$access = \RockStarLab\ImportExport\Abilities\Sync_Peer_Policy::check( $peer_action, $check_input );
 			if ( is_wp_error( $access ) ) {
@@ -155,7 +155,7 @@ class Content_Sync_Service {
 		}
 		$this->input       = $input;
 		$this->job_id      = 0;
-		$this->sync_result = [];
+		$this->sync_result = array();
 		if ( $this->free_scope ) {
 			$access = $this->policy_class::input( $action, $input );
 			if ( is_wp_error( $access ) ) {
@@ -167,23 +167,23 @@ class Content_Sync_Service {
 		// while the previous one is still running, so wait briefly for it instead of
 		// failing with "connection busy". A write waits a little too: the mapping dialog may still be
 		// loading the remote list when the user confirms.
-		$wait    = in_array( $action, [ 'get_remote_posts', 'search_remote_posts', 'get_children_posts', 'get_remote_comments', 'auto_map_by_title', 'get_remote_terms' ], true ) ? 10 : 5;
-		$lock    = $site_id ? Job_Lock::acquire_resource( 'connection', $site_id, $wait ) : null;
+		$wait = in_array( $action, array( 'get_remote_posts', 'search_remote_posts', 'get_children_posts', 'get_remote_comments', 'auto_map_by_title', 'get_remote_terms' ), true ) ? 10 : 5;
+		$lock = $site_id ? Job_Lock::acquire_resource( 'connection', $site_id, $wait ) : null;
 		if ( false === $lock || is_wp_error( $lock ) ) {
-			return new \WP_Error( 'rsl_ie_connection_busy', __( 'This connection is already in use. Try again later.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+			return new \WP_Error( 'rsl_ie_connection_busy', __( 'This connection is already in use. Try again later.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 		}
 		try {
 			if ( $site_id ) {
 				$site      = Connected_Site::get_by_id( $site_id );
 				$direction = 0 === strpos( $action, 'push_' ) ? 'push' : ( 0 === strpos( $action, 'pull_' ) ? 'pull' : '' );
 				if ( ! $site ) {
-					return new \WP_Error( 'rsl_ie_connection_unavailable', __( 'This connection no longer exists. Choose another site.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+					return new \WP_Error( 'rsl_ie_connection_unavailable', __( 'This connection no longer exists. Choose another site.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 				}
 				if ( 'active' !== $site['status'] ) {
-					return new \WP_Error( 'rsl_ie_connection_unavailable', __( 'The last check of this connection failed (for example, the other site changed its API key or could not be reached). Open Content Sync, Import, Export > Content Sync, fix the connection with Edit if needed and click Test Connection.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+					return new \WP_Error( 'rsl_ie_connection_unavailable', __( 'The last check of this connection failed (for example, the other site changed its API key or could not be reached). Open Content Sync, Import, Export > Content Sync, fix the connection with Edit if needed and click Test Connection.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 				}
-				if ( $direction && ! in_array( $site['direction'], [ $direction, 'bidirectional' ], true ) ) {
-					return new \WP_Error( 'rsl_ie_connection_unavailable', 'push' === $direction ? __( 'This connection only receives content from the other site. To send as well, click Edit for this site in Content Sync and save it: saved connections work in both directions.', 'import-export-by-rockstarlab' ) : __( 'This connection only sends content to the other site. To receive as well, click Edit for this site in Content Sync and save it: saved connections work in both directions.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+				if ( $direction && ! in_array( $site['direction'], array( $direction, 'bidirectional' ), true ) ) {
+					return new \WP_Error( 'rsl_ie_connection_unavailable', 'push' === $direction ? __( 'This connection only receives content from the other site. To send as well, click Edit for this site in Content Sync and save it: saved connections work in both directions.', 'import-export-by-rockstarlab' ) : __( 'This connection only sends content to the other site. To receive as well, click Edit for this site in Content Sync and save it: saved connections work in both directions.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 				}
 				$guard = apply_filters( 'rsl_ie_sync_connection_guard', true, $site );
 				if ( is_wp_error( $guard ) ) {
@@ -192,7 +192,7 @@ class Content_Sync_Service {
 				if ( $this->free_scope && 'push_content' === $action && ! empty( $input['post_mapping'] ) ) {
 					$ids = array_values( array_filter( array_map( 'absint', $input['post_mapping'] ) ) );
 					if ( $ids ) {
-						$remote = $this->remote_post( $site, 'send-content', [ 'post_ids' => $ids ] );
+						$remote = $this->remote_post( $site, 'send-content', array( 'post_ids' => $ids ) );
 						$access = is_wp_error( $remote ) ? $remote : $this->policy_class::remote_posts( $remote['data']['posts'] ?? null, $ids, $input['post_type'] );
 						if ( is_wp_error( $access ) ) {
 							return $access;
@@ -200,9 +200,13 @@ class Content_Sync_Service {
 					}
 				}
 			}
-			$result = Media_Reference_Transfer::run( $direction ?? '', $site ?? [], function () use ( $action, $input ) {
-				return $this->$action( $input );
-			} );
+			$result = Media_Reference_Transfer::run(
+				$direction ?? '',
+				$site ?? array(),
+				function () use ( $action, $input ) {
+					return $this->$action( $input );
+				}
+			);
 			if ( is_wp_error( $result ) && $this->job_id ) {
 				$this->fail_content_sync_job( $this->job_id, $result->get_error_message() );
 			}
@@ -210,18 +214,18 @@ class Content_Sync_Service {
 				return new \WP_Error(
 					'rsl_ie_sync_partial',
 					__( 'Some records could not be synchronized. Inspect the sync result before retrying.', 'import-export-by-rockstarlab' ),
-					[
+					array(
 						'status' => 409,
 						'job_id' => $this->job_id,
-					]
+					)
 				);
 			}
 			if ( is_wp_error( $result ) && $this->job_id ) {
 				$result->add_data(
-					[
+					array(
 						'status' => $result->get_error_data()['status'] ?? 400,
 						'job_id' => $this->job_id,
-					]
+					)
 				);
 			}
 			if ( ! is_wp_error( $result ) && $this->job_id ) {
@@ -229,7 +233,7 @@ class Content_Sync_Service {
 				$result['result'] = $this->sync_result;
 			}
 			// "Last Sync" on the Content Sync screen shows the last completed push or pull.
-			if ( ! is_wp_error( $result ) && $site_id && in_array( $direction ?? '', [ 'push', 'pull' ], true ) ) {
+			if ( ! is_wp_error( $result ) && $site_id && in_array( $direction ?? '', array( 'push', 'pull' ), true ) ) {
 				Connected_Site::update_last_sync( $site_id );
 			}
 			return $result;
@@ -243,10 +247,10 @@ class Content_Sync_Service {
 			return new \WP_Error(
 				'rsl_ie_sync_failed',
 				$message,
-				[
+				array(
 					'status' => 500,
 					'job_id' => $this->job_id,
-				]
+				)
 			);
 		} finally {
 			if ( $lock ) {
@@ -415,7 +419,7 @@ class Content_Sync_Service {
 	 * @return array|\WP_Error
 	 */
 	private function search_local_terms( array $input ) {
-		$helpers = [
+		$helpers = array(
 			'collect_term_acf_images_for_sync'  => function ( $info, $term, $taxonomy, &$images ) {
 				return $this->collect_term_acf_images_for_sync( $info, $term, $taxonomy, $images ); },
 			'download_remote_images_for_sync'   => function ( ...$args ) {
@@ -442,8 +446,8 @@ class Content_Sync_Service {
 				return $this->update_mapped_synced_term( ...$args ); },
 			'upload_images_to_remote'           => function ( ...$args ) {
 				return $this->upload_images_to_remote( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_terms_operation', \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(), 'search_local_terms', [ $input ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_terms_operation', \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(), 'search_local_terms', array( $input ), $helpers );
 	}
 
 	/**
@@ -551,7 +555,7 @@ class Content_Sync_Service {
 	 * @return array|\WP_Error
 	 */
 	private function get_remote_terms( array $input ) {
-		$helpers = [
+		$helpers = array(
 			'collect_term_acf_images_for_sync'  => function ( $info, $term, $taxonomy, &$images ) {
 				return $this->collect_term_acf_images_for_sync( $info, $term, $taxonomy, $images ); },
 			'download_remote_images_for_sync'   => function ( ...$args ) {
@@ -578,8 +582,8 @@ class Content_Sync_Service {
 				return $this->update_mapped_synced_term( ...$args ); },
 			'upload_images_to_remote'           => function ( ...$args ) {
 				return $this->upload_images_to_remote( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_terms_operation', \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(), 'get_remote_terms', [ $input ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_terms_operation', \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(), 'get_remote_terms', array( $input ), $helpers );
 	}
 
 	/**
@@ -589,7 +593,7 @@ class Content_Sync_Service {
 	 * @return array|\WP_Error
 	 */
 	private function push_terms( array $input ) {
-		$helpers = [
+		$helpers = array(
 			'collect_term_acf_images_for_sync'  => function ( $info, $term, $taxonomy, &$images ) {
 				return $this->collect_term_acf_images_for_sync( $info, $term, $taxonomy, $images ); },
 			'download_remote_images_for_sync'   => function ( ...$args ) {
@@ -616,8 +620,8 @@ class Content_Sync_Service {
 				return $this->update_mapped_synced_term( ...$args ); },
 			'upload_images_to_remote'           => function ( ...$args ) {
 				return $this->upload_images_to_remote( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_terms_operation', \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(), 'push_terms', [ $input ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_terms_operation', \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(), 'push_terms', array( $input ), $helpers );
 	}
 
 	/**
@@ -627,7 +631,7 @@ class Content_Sync_Service {
 	 * @return array|\WP_Error
 	 */
 	private function pull_terms( array $input ) {
-		$helpers = [
+		$helpers = array(
 			'collect_term_acf_images_for_sync'  => function ( $info, $term, $taxonomy, &$images ) {
 				return $this->collect_term_acf_images_for_sync( $info, $term, $taxonomy, $images ); },
 			'download_remote_images_for_sync'   => function ( ...$args ) {
@@ -654,8 +658,8 @@ class Content_Sync_Service {
 				return $this->update_mapped_synced_term( ...$args ); },
 			'upload_images_to_remote'           => function ( ...$args ) {
 				return $this->upload_images_to_remote( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_terms_operation', \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(), 'pull_terms', [ $input ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_terms_operation', \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(), 'pull_terms', array( $input ), $helpers );
 	}
 
 	/**
@@ -755,10 +759,10 @@ class Content_Sync_Service {
 		if ( $this->standalone_domain ) {
 			if ( ! \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::selection( $comments, $comment_ids, 'comment_ID' ) ) {
 				return \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(); }
-			$targets = $target_post_id ? [ $target_post_id ] : array_values( (array) ( $input['post_mapping'] ?? [] ) );
+			$targets = $target_post_id ? array( $target_post_id ) : array_values( (array) ( $input['post_mapping'] ?? array() ) );
 			$targets = array_values( array_unique( array_map( 'intval', $targets ) ) );
-			$remote  = $this->remote_post( $site, 'send-content', [ 'post_ids' => $targets ] );
-			$posts   = is_wp_error( $remote ) ? [] : ( $remote['data']['posts'] ?? [] );
+			$remote  = $this->remote_post( $site, 'send-content', array( 'post_ids' => $targets ) );
+			$posts   = is_wp_error( $remote ) ? array() : ( $remote['data']['posts'] ?? array() );
 			if ( ! \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::selection( $posts, $targets, 'ID' ) ) {
 				return \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(); }
 			foreach ( $posts as $post ) {
@@ -780,15 +784,15 @@ class Content_Sync_Service {
 			$site,
 			'receive-comments',
 			array(
-				'comments'       => $comments,
-				'image_map'      => $image_map,
-				'image_sources'  => $image_sources,
-				'target_post_id' => $target_post_id,
-				'post_mapping'   => (array) ( $input['post_mapping'] ?? [] ),
+				'comments'               => $comments,
+				'image_map'              => $image_map,
+				'image_sources'          => $image_sources,
+				'target_post_id'         => $target_post_id,
+				'post_mapping'           => (array) ( $input['post_mapping'] ?? array() ),
 				// A reply pushed from the Comments screen without its parent was refused with
 				// "records or destinations are invalid"; like a selective pull, it becomes a top comment.
 				'detach_missing_parents' => ! $this->standalone_domain,
-			) + ( isset( $input['comment_user_mapping'] ) ? [ 'comment_user_mapping' => $input['comment_user_mapping'] ] : [] ),
+			) + ( isset( $input['comment_user_mapping'] ) ? array( 'comment_user_mapping' => $input['comment_user_mapping'] ) : array() ),
 			60
 		);
 
@@ -805,7 +809,7 @@ class Content_Sync_Service {
 				'created' => isset( $result['created'] ) ? (int) $result['created'] : 0,
 				'updated' => isset( $result['updated'] ) ? (int) $result['updated'] : 0,
 				'failed'  => isset( $result['failed'] ) ? (int) $result['failed'] : 0,
-				'mapping' => $result['mapping'] ?? [],
+				'mapping' => $result['mapping'] ?? array(),
 			)
 		);
 	}
@@ -899,7 +903,7 @@ class Content_Sync_Service {
 				'updated' => $result['updated'],
 				'failed'  => $result['failed'],
 				'errors'  => $result['errors'],
-				'mapping' => $result['mapping'] ?? [],
+				'mapping' => $result['mapping'] ?? array(),
 			)
 		);
 	}
@@ -918,7 +922,7 @@ class Content_Sync_Service {
 		}
 		// Admin screens send no post type. A push lists local IDs; a pull lists remote IDs
 		// and maps local => remote for updates, so only its updated local posts tell the type.
-		$local = 'push' === $direction ? (array) $post_ids : [];
+		$local = 'push' === $direction ? (array) $post_ids : array();
 		if ( 'pull' === $direction ) {
 			$mapping = is_string( $post_mapping ) ? json_decode( $post_mapping, true ) : $post_mapping;
 			foreach ( (array) $mapping as $local_id => $remote_id ) {
@@ -944,19 +948,19 @@ class Content_Sync_Service {
 	private function create_content_sync_job( $direction, $site, $post_ids, $post_mapping ) {
 		$direction = 'pull' === $direction ? 'pull' : 'push';
 		$post_type = $this->history_post_type( $direction, $post_ids, $post_mapping );
-		$edition   = Sync_Policy::class === $this->policy_class && in_array( $post_type, [ 'post', 'page' ], true ) ? 'free' : 'pro';
+		$edition   = Sync_Policy::class === $this->policy_class && in_array( $post_type, array( 'post', 'page' ), true ) ? 'free' : 'pro';
 		$scheduler = new Sync_Job_Service();
 		$provider  = $scheduler->provider( $edition );
 		$operation = 'sync-' . $direction;
 		$replay    = null;
 		if ( is_array( $provider ) && isset( $provider['definitions'][ $operation ] ) ) {
-			$replay = [
+			$replay = array(
 				'sync_queue_version'     => 1,
 				'edition'                => $edition,
 				'operation'              => $operation,
-				'input'                  => array_intersect_key( [ 'post_type' => $post_type ] + $this->input, $provider['definitions'][ $operation ]['input']['properties'] ),
+				'input'                  => array_intersect_key( array( 'post_type' => $post_type ) + $this->input, $provider['definitions'][ $operation ]['input']['properties'] ),
 				'connection_fingerprint' => $scheduler->fingerprint( $site ),
-			];
+			);
 		}
 		$job_id = rsl_ie()->Model->job->create(
 			array(
@@ -1000,7 +1004,7 @@ class Content_Sync_Service {
 	 * @return void
 	 */
 	private function complete_content_sync_job( $job_id, $processed, $result ) {
-		$this->sync_result = array_intersect_key( $result, array_flip( [ 'direction', 'selected_ids', 'post_mapping', 'created', 'updated', 'failed', 'images_synced', 'image_map', 'variation_map', 'posts' ] ) );
+		$this->sync_result = array_intersect_key( $result, array_flip( array( 'direction', 'selected_ids', 'post_mapping', 'created', 'updated', 'failed', 'images_synced', 'image_map', 'variation_map', 'posts' ) ) );
 		$job_id            = absint( $job_id );
 		if ( $job_id <= 0 ) {
 			return;
@@ -1085,10 +1089,10 @@ class Content_Sync_Service {
 	 */
 	private function pull_missing_ancestors( $site, array $posts_data ) {
 		$known     = array_flip( array_map( 'intval', array_column( $posts_data, 'ID' ) ) );
-		$ancestors = [];
+		$ancestors = array();
 		$queue     = $posts_data;
 		for ( $depth = 0; $depth < 20 && $queue; ++$depth ) {
-			$wanted = [];
+			$wanted = array();
 			foreach ( $queue as $post ) {
 				$parent = (int) ( $post['post_parent'] ?? 0 );
 				$type   = (string) ( $post['post_type'] ?? '' );
@@ -1100,12 +1104,12 @@ class Content_Sync_Service {
 			if ( ! $wanted || count( $known ) + count( $wanted ) > 100 ) {
 				break;
 			}
-			$remote = $this->remote_post( $site, 'send-content', [ 'post_ids' => array_keys( $wanted ) ], 120 );
+			$remote = $this->remote_post( $site, 'send-content', array( 'post_ids' => array_keys( $wanted ) ), 120 );
 			if ( is_wp_error( $remote ) ) {
 				return $remote;
 			}
-			$queue = [];
-			foreach ( (array) ( $remote['data']['posts'] ?? [] ) as $parent_post ) {
+			$queue = array();
+			foreach ( (array) ( $remote['data']['posts'] ?? array() ) as $parent_post ) {
 				$id = (int) ( $parent_post['ID'] ?? 0 );
 				if ( $id < 1 || ! isset( $wanted[ $id ] ) || isset( $known[ $id ] ) ) {
 					continue;
@@ -1311,13 +1315,13 @@ class Content_Sync_Service {
 				$data = $this->remote_post(
 					$site,
 					'list-posts',
-					[
+					array(
 						'post_type'        => $type,
 						'status'           => '',
 						'include_children' => 1,
 						'page'             => $page,
 						'per_page'         => $per_page,
-					],
+					),
 					60
 				);
 				if ( is_wp_error( $data ) ) {
@@ -1360,7 +1364,14 @@ class Content_Sync_Service {
 		$candidates = array_values( (array) apply_filters( 'rsl_ie_sync_title_candidates', $titles[ $this->normalize_post_title_for_mapping( $post->post_title ) ] ?? array(), $post ) );
 		$ids        = array_unique( array_map( 'intval', wp_list_pluck( $candidates, 'ID' ) ) );
 		if ( count( $ids ) > 1 ) {
-			return new \WP_Error( 'rsl_ie_sync_ambiguous_title', sprintf( /* translators: %s: post title. */ __( 'Several posts on the remote site are titled "%s". Choose the right one in the list for this post.', 'import-export-by-rockstarlab' ), wp_strip_all_tags( $post->post_title ) ), [ 'status' => 409, 'remote_ids' => array_values( $ids ) ] );
+			return new \WP_Error(
+				'rsl_ie_sync_ambiguous_title',
+				sprintf( /* translators: %s: post title. */ __( 'Several posts on the remote site are titled "%s". Choose the right one in the list for this post.', 'import-export-by-rockstarlab' ), wp_strip_all_tags( $post->post_title ) ),
+				array(
+					'status'     => 409,
+					'remote_ids' => array_values( $ids ),
+				)
+			);
 		}
 		return $candidates ? $candidates[0] : null;
 	}
@@ -1379,13 +1390,13 @@ class Content_Sync_Service {
 			$data = $this->remote_post(
 				$site,
 				'list-posts',
-				[
+				array(
 					'post_type' => $post->post_type,
 					'search'    => $post->post_title,
 					'status'    => '',
 					'page'      => $page,
 					'per_page'  => 50,
-				]
+				)
 			);
 			if ( is_wp_error( $data ) ) {
 				return $data;
@@ -1396,7 +1407,14 @@ class Content_Sync_Service {
 			foreach ( (array) apply_filters( 'rsl_ie_sync_title_candidates', $data['posts'], $post ) as $candidate ) {
 				if ( is_array( $candidate ) && ( $candidate['post_type'] ?? '' ) === $post->post_type && $this->normalize_post_title_for_mapping( $candidate['post_title'] ?? '' ) === $local_title ) {
 					if ( $match && (int) $match['ID'] !== (int) $candidate['ID'] ) {
-						return new \WP_Error( 'rsl_ie_sync_ambiguous_title', sprintf( /* translators: %s: post title. */ __( 'Several posts on the remote site are titled "%s". Choose the right one in the list for this post.', 'import-export-by-rockstarlab' ), wp_strip_all_tags( $post->post_title ) ), [ 'status' => 409, 'remote_ids' => [ (int) $match['ID'], (int) $candidate['ID'] ] ] );
+						return new \WP_Error(
+							'rsl_ie_sync_ambiguous_title',
+							sprintf( /* translators: %s: post title. */ __( 'Several posts on the remote site are titled "%s". Choose the right one in the list for this post.', 'import-export-by-rockstarlab' ), wp_strip_all_tags( $post->post_title ) ),
+							array(
+								'status'     => 409,
+								'remote_ids' => array( (int) $match['ID'], (int) $candidate['ID'] ),
+							)
+						);
 					}
 					$match = $candidate;
 				}
@@ -1406,7 +1424,7 @@ class Content_Sync_Service {
 				return $match;
 			}
 		}
-		return new \WP_Error( 'rsl_ie_sync_search_incomplete', __( 'Remote search is too broad. Choose an explicit mapping.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+		return new \WP_Error( 'rsl_ie_sync_search_incomplete', __( 'Remote search is too broad. Choose an explicit mapping.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 	}
 
 	/**
@@ -1591,7 +1609,7 @@ class Content_Sync_Service {
 		 * @param array $input    Operation input (with_translations => false turns it off).
 		 */
 		$post_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) apply_filters( 'rsl_ie_content_sync_push_translations', $post_ids, $input ) ) ) ) );
-		$job_id = $this->create_content_sync_job( 'push', $site, $post_ids, $post_mapping );
+		$job_id   = $this->create_content_sync_job( 'push', $site, $post_ids, $post_mapping );
 		if ( ! $job_id ) {
 			return $this->error( __( 'Could not create a sync history job.', 'import-export-by-rockstarlab' ) );
 		}
@@ -1625,16 +1643,25 @@ class Content_Sync_Service {
 		if ( is_wp_error( $posts_data ) ) {
 			return $posts_data;
 		}
-		$this->batch_source_ids = array_values( array_filter( array_map( static function ( $p ) { return is_array( $p ) ? (int) ( $p['ID'] ?? 0 ) : 0; }, (array) $posts_data ) ) );
+		$this->batch_source_ids = array_values(
+			array_filter(
+				array_map(
+					static function ( $p ) {
+						return is_array( $p ) ? (int) ( $p['ID'] ?? 0 ) : 0;
+					},
+					(array) $posts_data
+				)
+			)
+		);
 
 		if ( array_key_exists( 'woo_product_mapping', $input ) ) {
 			$posts_data = Sync_Product_Links::run(
 				'export',
 				$posts_data,
-				[
+				array(
 					'mapping' => $input['woo_product_mapping'],
 					'site'    => $site,
-				]
+				)
 			);
 			if ( is_wp_error( $posts_data ) ) {
 				return $posts_data;
@@ -1661,11 +1688,11 @@ class Content_Sync_Service {
 			$acf_users = Sync_ACF_Users::run(
 				'prepare',
 				$posts_data,
-				[
+				array(
 					'mapping'  => $input['acf_user_mapping'],
 					'outgoing' => true,
 					'site'     => $site,
-				]
+				)
 			);
 			if ( is_wp_error( $acf_users ) ) {
 				return $acf_users;
@@ -1680,11 +1707,11 @@ class Content_Sync_Service {
 			$acf_terms = Sync_ACF_Terms::run(
 				'prepare',
 				$posts_data,
-				[
+				array(
 					'mapping'  => $input['acf_term_mapping'],
 					'outgoing' => true,
 					'site'     => $site,
-				]
+				)
 			);
 			if ( is_wp_error( $acf_terms ) ) {
 				return $acf_terms;
@@ -1699,11 +1726,11 @@ class Content_Sync_Service {
 			$acf_posts = Sync_ACF_Posts::run(
 				'prepare',
 				$posts_data,
-				[
+				array(
 					'mapping'  => $input['acf_post_mapping'],
 					'outgoing' => true,
 					'site'     => $site,
-				]
+				)
 			);
 			if ( is_wp_error( $acf_posts ) ) {
 				return $acf_posts;
@@ -1733,7 +1760,7 @@ class Content_Sync_Service {
 		\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::$sender = true;
 		foreach ( $posts_data as &$post_data ) {
 			$source_meta = $post_data['meta'] ?? null;
-			$post_data = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_post_domains(
+			$post_data   = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_post_domains(
 				$post_data,
 				$source_domain,
 				$target_domain,
@@ -1744,7 +1771,9 @@ class Content_Sync_Service {
 			// Sender-side lookup would resolve target IDs against the source DB.
 			if ( is_array( $source_meta ) ) {
 				$post_data['meta'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_in_meta_public(
-					$source_meta, $source_domain, $target_domain
+					$source_meta,
+					$source_domain,
+					$target_domain
 				);
 			}
 		}
@@ -1796,7 +1825,7 @@ class Content_Sync_Service {
 							'synced_patterns' => $synced_patterns,
 							'block_terms'     => Sync_Synced_Patterns::collect_terms( $posts_data ),
 						// translators: %s = content placeholder.
-						) + ( isset( $input['author_mapping'] ) ? [ 'author_mapping' => $input['author_mapping'] ] : [] ) + ( isset( $input['comment_user_mapping'] ) ? [ 'comment_user_mapping' => $input['comment_user_mapping'] ] : [] ) + ( isset( $input['acf_user_mapping'] ) ? [ 'acf_user_mapping' => $input['acf_user_mapping'] ] : [] ) + ( isset( $input['acf_term_mapping'] ) ? [ 'acf_term_mapping' => $input['acf_term_mapping'] ] : [] ) + ( isset( $input['acf_post_mapping'] ) ? [ 'acf_post_mapping' => $input['acf_post_mapping'] ] : [] ) + ( array_key_exists( 'woo_product_mapping', $input ) ? [ 'woo_product_mapping' => $input['woo_product_mapping'] ] : [] ) + ( ! empty( $input['acf_media_references'] ) ? [ 'acf_media_version' => 1 ] : [] ),
+						) + ( isset( $input['author_mapping'] ) ? array( 'author_mapping' => $input['author_mapping'] ) : array() ) + ( isset( $input['comment_user_mapping'] ) ? array( 'comment_user_mapping' => $input['comment_user_mapping'] ) : array() ) + ( isset( $input['acf_user_mapping'] ) ? array( 'acf_user_mapping' => $input['acf_user_mapping'] ) : array() ) + ( isset( $input['acf_term_mapping'] ) ? array( 'acf_term_mapping' => $input['acf_term_mapping'] ) : array() ) + ( isset( $input['acf_post_mapping'] ) ? array( 'acf_post_mapping' => $input['acf_post_mapping'] ) : array() ) + ( array_key_exists( 'woo_product_mapping', $input ) ? array( 'woo_product_mapping' => $input['woo_product_mapping'] ) : array() ) + ( ! empty( $input['acf_media_references'] ) ? array( 'acf_media_version' => 1 ) : array() ),
 						$input
 					)
 				),
@@ -1825,7 +1854,7 @@ class Content_Sync_Service {
 		}
 
 		if ( array_key_exists( 'woo_product_mapping', $input ) ) {
-			$confirmed = Sync_Product_Links::run( 'ack', $posts_data, [ 'response' => $data ] );
+			$confirmed = Sync_Product_Links::run( 'ack', $posts_data, array( 'response' => $data ) );
 			if ( is_wp_error( $confirmed ) ) {
 				$this->fail_content_sync_job( $job_id, $confirmed->get_error_message() );
 				return $confirmed;
@@ -1883,14 +1912,14 @@ class Content_Sync_Service {
 		 * @param array    $post_map   Source post ID => target post ID.
 		 * @param array    $posts_data Pushed posts.
 		 */
-		$after_push = (array) apply_filters( 'rsl_ie_content_sync_after_push', [], $site, isset( $data['data']['post_map'] ) ? (array) $data['data']['post_map'] : [], $posts_data );
+		$after_push = (array) apply_filters( 'rsl_ie_content_sync_after_push', array(), $site, isset( $data['data']['post_map'] ) ? (array) $data['data']['post_map'] : array(), $posts_data );
 		$this->complete_content_sync_job(
 			$job_id,
 			(int) $data['data']['total'],
 			array(
 				'created'       => (int) ( $data['data']['created'] ?? 0 ),
 				'updated'       => (int) ( $data['data']['updated'] ?? 0 ),
-				'variation_map' => isset( $input['woo_product_mapping'] ) ? (array) ( $data['data']['variation_map'] ?? [] ) : [],
+				'variation_map' => isset( $input['woo_product_mapping'] ) ? (array) ( $data['data']['variation_map'] ?? array() ) : array(),
 				'direction'     => 'push',
 				'site_id'       => (int) $site_id,
 				'remote_url'    => isset( $site['remote_url'] ) ? (string) $site['remote_url'] : '',
@@ -2355,10 +2384,10 @@ class Content_Sync_Service {
 						// translators: %s = content placeholder.
 						array(
 							'post_ids' => $post_ids,
-						) + ( ! array_key_exists( 'with_translations', $input ) || ! empty( $input['with_translations'] ) ? [ 'with_translations' => 1 ] : [] ) + ( isset( $input['acf_user_mapping'] ) ? [ 'acf_users_version' => 1 ] : [] ) + ( isset( $input['acf_term_mapping'] ) ? [ 'acf_terms_version' => 1 ] : [] ) + ( isset( $input['acf_post_mapping'] ) ? [ 'acf_posts_version' => 1 ] : [] ) + ( array_key_exists( 'woo_product_mapping', $input ) ? [
+						) + ( ! array_key_exists( 'with_translations', $input ) || ! empty( $input['with_translations'] ) ? array( 'with_translations' => 1 ) : array() ) + ( isset( $input['acf_user_mapping'] ) ? array( 'acf_users_version' => 1 ) : array() ) + ( isset( $input['acf_term_mapping'] ) ? array( 'acf_terms_version' => 1 ) : array() ) + ( isset( $input['acf_post_mapping'] ) ? array( 'acf_posts_version' => 1 ) : array() ) + ( array_key_exists( 'woo_product_mapping', $input ) ? array(
 							'woo_links_version'   => 1,
 							'woo_product_mapping' => $input['woo_product_mapping'],
-						] : [] ) + ( ! empty( $input['acf_media_references'] ) ? [ 'acf_media_version' => 1 ] : [] ) + Sync_ACF_Graph::request() + Sync_Product_Links::request()
+						) : array() ) + ( ! empty( $input['acf_media_references'] ) ? array( 'acf_media_version' => 1 ) : array() ) + Sync_ACF_Graph::request() + Sync_Product_Links::request()
 					),
 				)
 			);
@@ -2434,7 +2463,7 @@ class Content_Sync_Service {
 			}
 		}
 
-		$access = \RockStarLab\ImportExport\Abilities\Sync_Peer_Policy::check( 'receive_content', [ 'posts' => $posts_data ] );
+		$access = \RockStarLab\ImportExport\Abilities\Sync_Peer_Policy::check( 'receive_content', array( 'posts' => $posts_data ) );
 		if ( is_wp_error( $access ) ) {
 			return $access; }
 		$deferred = Sync_Product_Links::validate_deferred( $posts_data );
@@ -2449,7 +2478,7 @@ class Content_Sync_Service {
 			}
 		}
 
-		$authors = [];
+		$authors = array();
 		if ( isset( $input['author_mapping'] ) ) {
 			$authors = apply_filters( 'rsl_ie_sync_post_authors', Migration_Sync_Maps::error(), $posts_data, $input['author_mapping'], true );
 			if ( is_wp_error( $authors ) ) {
@@ -2462,9 +2491,9 @@ class Content_Sync_Service {
 			return $comment_users;
 		}
 
-		$woo_variation_map = [];
+		$woo_variation_map = array();
 		if ( array_key_exists( 'woo_product_mapping', $input ) ) {
-			$woo_links = Sync_Product_Links::run( 'prepare', $posts_data, [ 'mapping' => $input['woo_product_mapping'] ] );
+			$woo_links = Sync_Product_Links::run( 'prepare', $posts_data, array( 'mapping' => $input['woo_product_mapping'] ) );
 			if ( is_wp_error( $woo_links ) ) {
 				return $woo_links;
 			}
@@ -2474,23 +2503,23 @@ class Content_Sync_Service {
 			}
 		}
 
-		$acf_users = [];
-		$acf_posts = [];
+		$acf_users = array();
+		$acf_posts = array();
 		if ( isset( $input['acf_user_mapping'] ) ) {
-			$acf_users = Sync_ACF_Users::run( 'prepare', $posts_data, [ 'mapping' => $input['acf_user_mapping'] ] );
+			$acf_users = Sync_ACF_Users::run( 'prepare', $posts_data, array( 'mapping' => $input['acf_user_mapping'] ) );
 			if ( is_wp_error( $acf_users ) ) {
 				return $acf_users;
 			}
 		}
 		if ( isset( $input['acf_term_mapping'] ) ) {
-			$acf_terms = Sync_ACF_Terms::run( 'prepare', $posts_data, [ 'mapping' => $input['acf_term_mapping'] ] );
+			$acf_terms = Sync_ACF_Terms::run( 'prepare', $posts_data, array( 'mapping' => $input['acf_term_mapping'] ) );
 			if ( is_wp_error( $acf_terms ) ) {
 				return $acf_terms;
 			}
 		}
 
 		if ( isset( $input['acf_post_mapping'] ) ) {
-			$acf_posts = Sync_ACF_Posts::run( 'prepare', $posts_data, [ 'mapping' => $input['acf_post_mapping'] ] );
+			$acf_posts = Sync_ACF_Posts::run( 'prepare', $posts_data, array( 'mapping' => $input['acf_post_mapping'] ) );
 			if ( is_wp_error( $acf_posts ) ) {
 				return $acf_posts;
 			}
@@ -2504,7 +2533,7 @@ class Content_Sync_Service {
 		}
 
 		if ( isset( $input['acf_term_mapping'] ) ) {
-			$posts_data = Sync_ACF_Terms::run( 'strip', $posts_data, [ 'assignments' => $acf_terms ] );
+			$posts_data = Sync_ACF_Terms::run( 'strip', $posts_data, array( 'assignments' => $acf_terms ) );
 			if ( is_wp_error( $posts_data ) ) {
 				return $posts_data;
 			}
@@ -2965,7 +2994,7 @@ class Content_Sync_Service {
 
 		// Fix hierarchical relationships (e.g. pages) after all imports so we can
 		// resolve parent IDs that were created in the same pull batch.
-		foreach ( isset( $input['hierarchy'] ) ? [] : $imported_remote_to_local as $remote_id => $local_id ) {
+		foreach ( isset( $input['hierarchy'] ) ? array() : $imported_remote_to_local as $remote_id => $local_id ) {
 			if ( ! array_key_exists( $remote_id, $imported_remote_parent ) ) {
 				continue;
 			}
@@ -3052,14 +3081,14 @@ class Content_Sync_Service {
 		}
 
 		if ( isset( $input['acf_user_mapping'] ) ) {
-			$confirmed = Sync_ACF_Users::run( 'finalize', $acf_users, [ 'posts' => $imported_remote_to_local ] );
+			$confirmed = Sync_ACF_Users::run( 'finalize', $acf_users, array( 'posts' => $imported_remote_to_local ) );
 			if ( is_wp_error( $confirmed ) ) {
 				$this->fail_content_sync_job( $job_id, $confirmed->get_error_message() );
 				return $confirmed;
 			}
 		}
 		if ( isset( $input['acf_term_mapping'] ) ) {
-			$confirmed = Sync_ACF_Terms::run( 'finalize', $acf_terms, [ 'posts' => $imported_remote_to_local ] );
+			$confirmed = Sync_ACF_Terms::run( 'finalize', $acf_terms, array( 'posts' => $imported_remote_to_local ) );
 			if ( is_wp_error( $confirmed ) ) {
 				$this->fail_content_sync_job( $job_id, $confirmed->get_error_message() );
 				return $confirmed;
@@ -3067,7 +3096,7 @@ class Content_Sync_Service {
 		}
 
 		if ( isset( $input['acf_post_mapping'] ) ) {
-			$confirmed = Sync_ACF_Posts::run( 'finalize', $acf_posts, [ 'posts' => $imported_remote_to_local ] );
+			$confirmed = Sync_ACF_Posts::run( 'finalize', $acf_posts, array( 'posts' => $imported_remote_to_local ) );
 			if ( is_wp_error( $confirmed ) ) {
 				$this->fail_content_sync_job( $job_id, $confirmed->get_error_message() );
 				return $confirmed;
@@ -3078,11 +3107,11 @@ class Content_Sync_Service {
 			$confirmed = Sync_Product_Links::run(
 				'finalize',
 				$woo_links,
-				[
+				array(
 					'posts'      => $imported_remote_to_local,
 					'variations' => $woo_variation_map,
 					'records'    => $posts_data,
-				]
+				)
 			);
 			if ( is_wp_error( $confirmed ) ) {
 				$this->fail_content_sync_job( $job_id, $confirmed->get_error_message() );
@@ -3105,7 +3134,7 @@ class Content_Sync_Service {
 		 * @param array $posts_data Received posts.
 		 */
 		do_action( 'rsl_ie_sync_posts_received', $imported_remote_to_local, $posts_data );
-		$after_pull      = (array) apply_filters( 'rsl_ie_content_sync_after_pull', [], $site, $imported_remote_to_local, $posts_data );
+		$after_pull      = (array) apply_filters( 'rsl_ie_content_sync_after_pull', array(), $site, $imported_remote_to_local, $posts_data );
 		$total_processed = $imported_count + $updated_count;
 		$this->complete_content_sync_job(
 			$job_id,
@@ -3291,7 +3320,7 @@ class Content_Sync_Service {
 	 * @param array $users Server-validated comment-to-local-user assignments.
 	 * @return void|\WP_Error
 	 */
-	private function import_synced_comments( $post_id, $comments, array $users = [] ) {
+	private function import_synced_comments( $post_id, $comments, array $users = array() ) {
 		$source_to_local = array();
 
 		foreach ( (array) $comments as $comment_data ) {
@@ -3695,15 +3724,15 @@ class Content_Sync_Service {
 	 * @return mixed
 	 */
 	private function import_product_variations( $parent_post_id, $variations, $image_map, $image_sources = array(), $verified = false ) {
-		$helpers = [
+		$helpers = array(
 			'find_existing_post_by_source_meta' => function ( ...$args ) {
 				return $this->find_existing_post_by_source_meta( ...$args ); },
 			'resolve_synced_term'               => function ( ...$args ) {
 				return $this->resolve_synced_term( ...$args ); },
 			'save_synced_post_meta'             => function ( ...$args ) {
 				return $this->save_synced_post_meta( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_extension', false, 'service', 'import_product_variations', [ $parent_post_id, $variations, $image_map, $image_sources, $verified ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_extension', false, 'service', 'import_product_variations', array( $parent_post_id, $variations, $image_map, $image_sources, $verified ), $helpers );
 	}
 
 	/**
@@ -3716,15 +3745,15 @@ class Content_Sync_Service {
 	 * @return int[]
 	 */
 	private function import_grouped_children( $parent_post_id, $children, $image_map, $image_sources = array() ) {
-		$helpers = [
+		$helpers = array(
 			'find_existing_post_by_source_meta' => function ( ...$args ) {
 				return $this->find_existing_post_by_source_meta( ...$args ); },
 			'resolve_synced_term'               => function ( ...$args ) {
 				return $this->resolve_synced_term( ...$args ); },
 			'save_synced_post_meta'             => function ( ...$args ) {
 				return $this->save_synced_post_meta( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_extension', false, 'service', 'import_grouped_children', [ $parent_post_id, $children, $image_map, $image_sources ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_extension', false, 'service', 'import_grouped_children', array( $parent_post_id, $children, $image_map, $image_sources ), $helpers );
 	}
 
 	/**
@@ -4030,15 +4059,15 @@ class Content_Sync_Service {
 	 * @return int|false
 	 */
 	private function find_existing_product_by_sku( array $post_data ) {
-		$helpers = [
+		$helpers = array(
 			'find_existing_post_by_source_meta' => function ( ...$args ) {
 				return $this->find_existing_post_by_source_meta( ...$args ); },
 			'resolve_synced_term'               => function ( ...$args ) {
 				return $this->resolve_synced_term( ...$args ); },
 			'save_synced_post_meta'             => function ( ...$args ) {
 				return $this->save_synced_post_meta( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_extension', false, 'service', 'find_existing_product_by_sku', [ $post_data ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_extension', false, 'service', 'find_existing_product_by_sku', array( $post_data ), $helpers );
 	}
 
 	/**
@@ -4049,15 +4078,15 @@ class Content_Sync_Service {
 	 * @return mixed
 	 */
 	private function sync_woocommerce_product_type( $post_id, array $post_data ) {
-		$helpers = [
+		$helpers = array(
 			'find_existing_post_by_source_meta' => function ( ...$args ) {
 				return $this->find_existing_post_by_source_meta( ...$args ); },
 			'resolve_synced_term'               => function ( ...$args ) {
 				return $this->resolve_synced_term( ...$args ); },
 			'save_synced_post_meta'             => function ( ...$args ) {
 				return $this->save_synced_post_meta( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_extension', false, 'service', 'sync_woocommerce_product_type', [ $post_id, $post_data ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_extension', false, 'service', 'sync_woocommerce_product_type', array( $post_id, $post_data ), $helpers );
 	}
 
 	/**
@@ -4075,8 +4104,8 @@ class Content_Sync_Service {
 
 		global $wpdb;
 
-		$update = [];
-		$format = [];
+		$update = array();
+		$format = array();
 
 		if ( ! empty( $post_data['post_modified'] ) ) {
 			$update['post_modified'] = (string) $post_data['post_modified'];
@@ -4088,7 +4117,7 @@ class Content_Sync_Service {
 			$format[]                    = '%s';
 		}
 
-		$wpdb->update( $wpdb->posts, $update, [ 'ID' => $post_id ], $format, [ '%d' ] );
+		$wpdb->update( $wpdb->posts, $update, array( 'ID' => $post_id ), $format, array( '%d' ) );
 		clean_post_cache( $post_id );
 	}
 
@@ -4142,7 +4171,7 @@ class Content_Sync_Service {
 		if ( '' !== $description ) {
 			$args['description'] = $description;
 		}
-		$new_term     = wp_insert_term( wp_slash( sanitize_text_field( (string) $term_info['name'] ) ), $taxonomy, wp_slash( $args ) );
+		$new_term = wp_insert_term( wp_slash( sanitize_text_field( (string) $term_info['name'] ) ), $taxonomy, wp_slash( $args ) );
 		if ( is_wp_error( $new_term ) || empty( $new_term['term_id'] ) ) {
 			return 0;
 		}
@@ -4206,7 +4235,7 @@ class Content_Sync_Service {
 	 * @return array
 	 */
 	private function prepare_term_for_sync( $term, $taxonomy ) {
-		$helpers = [
+		$helpers = array(
 			'collect_term_acf_images_for_sync'  => function ( $info, $term, $taxonomy, &$images ) {
 				return $this->collect_term_acf_images_for_sync( $info, $term, $taxonomy, $images ); },
 			'download_remote_images_for_sync'   => function ( ...$args ) {
@@ -4233,8 +4262,8 @@ class Content_Sync_Service {
 				return $this->update_mapped_synced_term( ...$args ); },
 			'upload_images_to_remote'           => function ( ...$args ) {
 				return $this->upload_images_to_remote( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_terms_operation', \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(), 'prepare_term_for_sync', [ $term, $taxonomy ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_terms_operation', \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(), 'prepare_term_for_sync', array( $term, $taxonomy ), $helpers );
 	}
 
 	/**
@@ -4265,7 +4294,7 @@ class Content_Sync_Service {
 	 * @return array Counts.
 	 */
 	private function import_synced_terms( $taxonomy, $terms, $term_mapping = array() ) {
-		$helpers = [
+		$helpers = array(
 			'collect_term_acf_images_for_sync'  => function ( $info, $term, $taxonomy, &$images ) {
 				return $this->collect_term_acf_images_for_sync( $info, $term, $taxonomy, $images ); },
 			'download_remote_images_for_sync'   => function ( ...$args ) {
@@ -4292,8 +4321,8 @@ class Content_Sync_Service {
 				return $this->update_mapped_synced_term( ...$args ); },
 			'upload_images_to_remote'           => function ( ...$args ) {
 				return $this->upload_images_to_remote( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_terms_operation', \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(), 'import_synced_terms', [ $taxonomy, $terms, $term_mapping ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_terms_operation', \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(), 'import_synced_terms', array( $taxonomy, $terms, $term_mapping ), $helpers );
 	}
 
 	/**
@@ -4407,7 +4436,7 @@ class Content_Sync_Service {
 			}
 
 			// SEO social images and canonical URLs: point them at the copies on the other site.
-			$seo_url = static function ( $value ) use ( $source_domain, $target_domain, $image_map, $image_sources ) {
+			$seo_url   = static function ( $value ) use ( $source_domain, $target_domain, $image_map, $image_sources ) {
 				if ( ! is_string( $value ) || '' === $value ) {
 					return $value;
 				}
@@ -4662,15 +4691,15 @@ class Content_Sync_Service {
 	 * @return bool Whether the taxonomy is available.
 	 */
 	private function ensure_woocommerce_attribute_taxonomy( $taxonomy ) {
-		$helpers = [
+		$helpers = array(
 			'find_existing_post_by_source_meta' => function ( ...$args ) {
 				return $this->find_existing_post_by_source_meta( ...$args ); },
 			'resolve_synced_term'               => function ( ...$args ) {
 				return $this->resolve_synced_term( ...$args ); },
 			'save_synced_post_meta'             => function ( ...$args ) {
 				return $this->save_synced_post_meta( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_extension', false, 'service', 'ensure_woocommerce_attribute_taxonomy', [ $taxonomy ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_extension', false, 'service', 'ensure_woocommerce_attribute_taxonomy', array( $taxonomy ), $helpers );
 	}
 
 	/**
@@ -4680,15 +4709,15 @@ class Content_Sync_Service {
 	 * @return mixed
 	 */
 	private function refresh_woocommerce_product_after_sync( $post_id ) {
-		$helpers = [
+		$helpers = array(
 			'find_existing_post_by_source_meta' => function ( ...$args ) {
 				return $this->find_existing_post_by_source_meta( ...$args ); },
 			'resolve_synced_term'               => function ( ...$args ) {
 				return $this->resolve_synced_term( ...$args ); },
 			'save_synced_post_meta'             => function ( ...$args ) {
 				return $this->save_synced_post_meta( ...$args ); },
-		];
-		return apply_filters( 'rsl_ie_sync_extension', false, 'service', 'refresh_woocommerce_product_after_sync', [ $post_id ], $helpers );
+		);
+		return apply_filters( 'rsl_ie_sync_extension', false, 'service', 'refresh_woocommerce_product_after_sync', array( $post_id ), $helpers );
 	}
 
 	/**
@@ -4783,9 +4812,14 @@ class Content_Sync_Service {
 		}
 
 		// HTML/shortcode IDs may refer to deleted media or unrelated posts.
-		return array_values( array_filter( array_unique( $image_ids ), static function ( $id ) {
-			return 'attachment' === get_post_type( $id ) && wp_get_attachment_url( $id );
-		} ) );
+		return array_values(
+			array_filter(
+				array_unique( $image_ids ),
+				static function ( $id ) {
+					return 'attachment' === get_post_type( $id ) && wp_get_attachment_url( $id );
+				}
+			)
+		);
 	}
 
 	/**
@@ -4842,7 +4876,7 @@ class Content_Sync_Service {
 	 */
 	private function standalone_comment_importer() {
 		return new \RockStarLab\ImportExport\Service\Comment_Sync_Importer(
-			[
+			array(
 				'resolve'  => function ( $data, $map ) {
 					return $this->resolve_standalone_comment_post_id( $data, $map ); },
 				'media'    => function ( $value, $post ) {
@@ -4851,7 +4885,7 @@ class Content_Sync_Service {
 					return $this->import_comment_acf_for_sync( $id, $data ); },
 				'acf_meta' => function ( $key, $data ) {
 					return $this->is_acf_comment_sync_meta_key( $key, $data ); },
-			]
+			)
 		);
 	}
 	/**
@@ -4864,7 +4898,7 @@ class Content_Sync_Service {
 		if ( ! $post_ids || count( $post_ids ) > 50 ) {
 			return \RockStarLab\ImportExport\Service\Migration_Sync_Maps::error();
 		}
-		$access = \RockStarLab\ImportExport\Abilities\Sync_Peer_Policy::check( 'send_content', [ 'post_ids' => $post_ids ] );
+		$access = \RockStarLab\ImportExport\Abilities\Sync_Peer_Policy::check( 'send_content', array( 'post_ids' => $post_ids ) );
 		return is_wp_error( $access ) ? $access : $this->prepare_posts( $post_ids );
 	}
 
@@ -4947,8 +4981,8 @@ class Content_Sync_Service {
 						}
 
 						// Yoast / Rank Math settings of the term travel with the post.
-						$term_info                  = \RockStarLab\ImportExport\Helper\Seo_Fields::add_term_seo_to_payload( $term_info, $term, $taxonomy );
-						$term_info                  = (array) apply_filters( 'rsl_ie_sync_term_payload', $term_info, $term, $taxonomy );
+						$term_info                 = \RockStarLab\ImportExport\Helper\Seo_Fields::add_term_seo_to_payload( $term_info, $term, $taxonomy );
+						$term_info                 = (array) apply_filters( 'rsl_ie_sync_term_payload', $term_info, $term, $taxonomy );
 						$terms_data[ $taxonomy ][] = $term_info;
 
 						foreach ( array_merge( \RockStarLab\ImportExport\Helper\Seo_Fields::term_seo_image_ids( $term_info ), \RockStarLab\ImportExport\Helper\Term_Payload::meta_image_ids( $term_info ) ) as $image_id ) {
@@ -5058,7 +5092,7 @@ class Content_Sync_Service {
 				}
 			}
 
-				$post_data = array(
+				$post_data  = array(
 					'ID'                => $post->ID,
 					'post_title'        => $post->post_title,
 					'post_content'      => $post->post_content,
@@ -5097,30 +5131,30 @@ class Content_Sync_Service {
 				}
 
 				if ( 'product' === $post->post_type ) {
-					$helpers    = [
+					$helpers    = array(
 						'get_term_parent_path'       => function ( ...$args ) {
 							return $this->get_term_parent_path( ...$args ); },
 						'get_term_slug_by_id'        => function ( ...$args ) {
 							return $this->get_term_slug_by_id( ...$args ); },
 						'portable_synced_meta_value' => function ( ...$args ) {
 							return $this->portable_synced_meta_value( ...$args ); },
-					];
+					);
 					$enriched   = apply_filters(
 						'rsl_ie_sync_extension',
-						[
+						array(
 							'post'    => $post_data,
 							'images'  => $all_images,
-							'context' => [],
-						],
+							'context' => array(),
+						),
 						'service',
 						'enrich_post',
-						[ $post_data, $post, $all_images ],
+						array( $post_data, $post, $all_images ),
 						$helpers
 					);
 					$post_data  = $enriched['post'];
 					$all_images = $enriched['images'];
 					foreach ( $enriched['context'] as $attachment_id => $contexts ) {
-						$image_context[ $attachment_id ] = array_merge( $image_context[ $attachment_id ] ?? [], $contexts ); }
+						$image_context[ $attachment_id ] = array_merge( $image_context[ $attachment_id ] ?? array(), $contexts ); }
 				}
 
 				/**
@@ -5133,10 +5167,10 @@ class Content_Sync_Service {
 				$posts_data[] = $post_data;
 		}
 
-		return [
+		return array(
 			'posts'   => $posts_data,
 			'images'  => $all_images,
 			'context' => $image_context,
-		];
+		);
 	}
 }

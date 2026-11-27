@@ -19,7 +19,7 @@ class Sync_Media_Authors {
 	 * @param array  $context Parsed protocol input.
 	 * @return array|true|\WP_Error
 	 */
-	public static function run( $operation, array $data, array $context = [] ) {
+	public static function run( $operation, array $data, array $context = array() ) {
 		return apply_filters( 'rsl_ie_sync_media_authors', Migration_Sync_Maps::error(), $operation, $data, $context );
 	}
 }

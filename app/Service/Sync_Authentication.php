@@ -30,11 +30,11 @@ class Sync_Authentication {
 			return true; }
 		update_option(
 			'rsl_ie_sync_key_identity',
-			[
+			array(
 				'user_id'  => get_current_user_id(),
 				'blog_id'  => get_current_blog_id(),
 				'key_hash' => hash( 'sha256', $key ),
-			],
+			),
 			false
 		);
 		return true;
@@ -50,11 +50,11 @@ class Sync_Authentication {
 		$header = $request->get_header( 'Authorization' );
 		$key    = get_option( 'rsl_ie_site_api_key' );
 		if ( ! is_string( $key ) || '' === $key || ! preg_match( '/^Bearer\s+(\S+)\s*$/iD', (string) $header, $matches ) || ! hash_equals( $key, $matches[1] ) ) {
-			return new \WP_Error( 'rsl_ie_sync_key_invalid', __( 'A valid Content Sync bearer key is required.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
+			return new \WP_Error( 'rsl_ie_sync_key_invalid', __( 'A valid Content Sync bearer key is required.', 'import-export-by-rockstarlab' ), array( 'status' => 403 ) );
 		}
 		$binding = get_option( 'rsl_ie_sync_key_identity' );
 		if ( ! is_array( $binding ) || ! hash_equals( (string) ( $binding['key_hash'] ?? '' ), hash( 'sha256', $key ) ) || get_current_blog_id() !== (int) ( $binding['blog_id'] ?? 0 ) ) {
-			return new \WP_Error( 'rsl_ie_sync_key_setup_required', __( 'An administrator must open this site’s Content Sync API key once to bind the existing key to their account. The key does not need to change.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
+			return new \WP_Error( 'rsl_ie_sync_key_setup_required', __( 'An administrator must open this site’s Content Sync API key once to bind the existing key to their account. The key does not need to change.', 'import-export-by-rockstarlab' ), array( 'status' => 403 ) );
 		}
 		return Execution_Context::from_storage( (int) ( $binding['user_id'] ?? 0 ), (int) $binding['blog_id'] );
 	}

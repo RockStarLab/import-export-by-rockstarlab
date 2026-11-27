@@ -39,7 +39,7 @@ class Media_Folder_Service {
 		$job = $this->record( $id );
 		if ( is_wp_error( $job ) ) {
 			return $job; }
-		if ( ! in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true ) ) {
+		if ( ! in_array( $job->status, array( 'completed', 'failed', 'cancelled' ), true ) ) {
 			return $this->error( 'state_conflict', 409 ); }
 		$params = $this->decode( $job->parameters );
 		if ( empty( $params['all_files'] ) ) {
@@ -63,13 +63,13 @@ class Media_Folder_Service {
 			}
 		}
 		return $this->start(
-			[
+			array(
 				'folder_path'    => $params['folder_path'] ?? '',
 				'selected_files' => $files,
 				'sync_options'   => $params['sync_options'] ?? [],
 				'scan_options'   => $params['scan_options'] ?? [],
 				'request_id'     => '' === $request_id ? '' : 'restart:' . $id . ':' . $request_id,
-			]
+			)
 		);
 	}
 
@@ -81,7 +81,7 @@ class Media_Folder_Service {
 	 */
 	private function decode( $json ) {
 		$value = json_decode( (string) $json, true );
-		return is_array( $value ) ? $value : [];
+		return is_array( $value ) ? $value : array();
 	}
 
 	/**
@@ -151,13 +151,13 @@ class Media_Folder_Service {
 			}
 			return $options;
 		}
-		$options += [
+		$options += array(
 			'duplicate_check'    => 'hash',
 			'duplicate_handling' => 'skip',
 			'file_operation'     => 'keep',
 			'batch_size'         => 3,
 			'rml_integration'    => false,
-		];
+		);
 		if ( 'override' === $options['duplicate_handling'] ) {
 			$options['duplicate_handling'] = 'overwrite';
 		}
@@ -173,7 +173,7 @@ class Media_Folder_Service {
 	 * @param bool  $public_paths Return relative paths for agents.
 	 * @return array|\WP_Error
 	 */
-	public function browse( array $input = [], $public_paths = true ) {
+	public function browse( array $input = array(), $public_paths = true ) {
 		$access = $this->authorize();
 		if ( is_wp_error( $access ) ) {
 			return $access;
@@ -182,7 +182,7 @@ class Media_Folder_Service {
 		if ( is_wp_error( $dir ) ) {
 			return $dir;
 		}
-		$folders = [];
+		$folders = array();
 		$entries = scandir( $dir );
 		if ( false === $entries ) {
 			return $this->error( 'scan_unavailable', 400 ); }
@@ -192,10 +192,10 @@ class Media_Folder_Service {
 			}
 			$child = $this->directory( $dir . '/' . $name );
 			if ( ! is_wp_error( $child ) ) {
-				$folders[] = [
+				$folders[] = array(
 					'name' => $name,
 					'path' => $public_paths ? $this->relative( $child ) : $child,
-				];
+				);
 			}
 		}
 		usort(
@@ -207,7 +207,7 @@ class Media_Folder_Service {
 		$up     = $this->relative( $dir ) !== '';
 		$offset = max( 0, (int) ( $input['offset'] ?? 0 ) );
 		$page   = array_slice( $folders, $offset, $public_paths ? min( 500, max( 1, (int) ( $input['limit'] ?? 100 ) ) ) : count( $folders ) );
-		return [
+		return array(
 			'folders'      => $page,
 			'current_path' => $public_paths ? $this->relative( $dir ) : $dir,
 			'can_go_up'    => $up,
@@ -215,7 +215,7 @@ class Media_Folder_Service {
 			'total'        => count( $folders ),
 			'next_offset'  => $offset + count( $page ),
 			'complete'     => $offset + count( $page ) >= count( $folders ),
-		];
+		);
 	}
 	/**
 	 * Scan a bounded folder selection, preserving shared file filters.
@@ -233,12 +233,12 @@ class Media_Folder_Service {
 		if ( is_wp_error( $dir ) ) {
 			return $dir;
 		}
-		$options = $this->options( $input['options'] ?? [], true );
+		$options = $this->options( $input['options'] ?? array(), true );
 		if ( is_wp_error( $options ) ) {
 			return $options;
 		}
 		try {
-			$files = Media_Sync::scan_folder( $dir, $options + [ 'max_files' => 10000 ] );
+			$files = Media_Sync::scan_folder( $dir, $options + array( 'max_files' => 10000 ) );
 		} catch ( \Throwable $error ) {
 			return $this->error( 'scan_unavailable', 400 );
 		}
@@ -258,12 +258,12 @@ class Media_Folder_Service {
 				$file['path'] = $this->relative( $file['path'] );
 			}unset( $file );
 		}
-		return [
+		return array(
 			'files'       => $page,
 			'total'       => count( $files ),
 			'next_offset' => $offset + count( $page ),
 			'complete'    => $offset + count( $page ) >= count( $files ),
-		];
+		);
 	}
 	/**
 	 * Persist explicit sources, options and trusted execution identity.
@@ -280,16 +280,16 @@ class Media_Folder_Service {
 		if ( is_wp_error( $root ) ) {
 			return $root;
 		}
-		$options = $this->options( $input['sync_options'] ?? [] );
-		$scan    = $this->options( $input['scan_options'] ?? [], true );
+		$options = $this->options( $input['sync_options'] ?? array() );
+		$scan    = $this->options( $input['scan_options'] ?? array(), true );
 		if ( is_wp_error( $options ) || is_wp_error( $scan ) ) {
 			return is_wp_error( $options ) ? $options : $scan;
 		}
-		$files = $input['selected_files'] ?? [];
+		$files = $input['selected_files'] ?? array();
 		if ( ! is_array( $files ) || ! $files || count( $files ) > 1000 ) {
 			return $this->error( 'invalid_selection', 400 );
 		}
-		$paths = [];
+		$paths = array();
 		foreach ( $files as $file ) {
 			$path = is_array( $file ) ? ( $file['path'] ?? '' ) : $file;
 			if ( ! is_string( $path ) || '' === $path ) {
@@ -310,7 +310,7 @@ class Media_Folder_Service {
 		if ( is_wp_error( $context ) ) {
 			return $context;
 		}
-		$params   = [
+		$params   = array(
 			'folder_version'    => 1,
 			'folder_path'       => $root,
 			'all_files'         => array_values( $paths ),
@@ -318,10 +318,10 @@ class Media_Folder_Service {
 			'scan_options'      => $scan,
 			'sync_options'      => $options,
 			'execution_context' => $context->to_storage(),
-		];
-		$settings = $params + [ 'offset' => 0 ];
+		);
+		$settings = $params + array( 'offset' => 0 );
 		$created  = Job_Service::enqueue(
-			[
+			array(
 				'type'        => 'import',
 				'data_type'   => 'media_sync',
 				'file_format' => 'folder',
@@ -331,7 +331,7 @@ class Media_Folder_Service {
 				'total_items' => count( $paths ),
 				'parameters'  => wp_json_encode( $params ),
 				'settings'    => wp_json_encode( $settings ),
-			],
+			),
 			$input['request_id'] ?? '',
 			function () use ( $paths, $root ) {
 				foreach ( $paths as $path ) {
@@ -346,7 +346,7 @@ class Media_Folder_Service {
 			return $created;
 		}
 		$result = $this->status( $created['job_id'] );
-		return is_wp_error( $result ) ? $result : array_merge( $result, array_intersect_key( $created, array_flip( [ 'deduplicated','scheduling_warning' ] ) ) );
+		return is_wp_error( $result ) ? $result : array_merge( $result, array_intersect_key( $created, array_flip( array( 'deduplicated', 'scheduling_warning' ) ) ) );
 	}
 	/**
 	 * Check that a job belongs to the folder domain and current site.
@@ -378,15 +378,15 @@ class Media_Folder_Service {
 	 */
 	private function snapshot( $job ) {
 		$result           = $this->decode( $job->result );
-		$result          += [
+		$result          += array(
 			'processed' => 0,
 			'success'   => 0,
 			'skipped'   => 0,
 			'failed'    => 0,
-			'errors'    => [],
-			'items'     => [],
-		];
-		$result           = array_intersect_key( $result, array_flip( [ 'processed','success','skipped','failed','errors','items','error' ] ) );
+			'errors'    => array(),
+			'items'     => array(),
+		);
+		$result           = array_intersect_key( $result, array_flip( array( 'processed', 'success', 'skipped', 'failed', 'errors', 'items', 'error' ) ) );
 		$code             = static function ( $value ) {
 			return is_string( $value ) && preg_match( '/^[a-zA-Z0-9_.-]{1,100}$/D', $value ) ? $value : 'legacy_media_error';
 		};
@@ -397,22 +397,22 @@ class Media_Folder_Service {
 		$result['items'] = array_slice( (array) $result['items'], -200 );
 		foreach ( $result['items'] as &$item ) {
 			$item['file'] = $this->relative( (string) ( $item['file'] ?? '' ) );
-			$item         = array_intersect_key( $item, array_flip( [ 'action','file','attachment_id','reason' ] ) );
+			$item         = array_intersect_key( $item, array_flip( array( 'action', 'file', 'attachment_id', 'reason' ) ) );
 			if ( isset( $item['reason'] ) ) {
 				$item['reason'] = $code( $item['reason'] );
 			}
 		}
 		unset( $item );
-		return [
+		return array(
 			'job_id'             => (int) $job->id,
 			'status'             => $job->status,
 			'progress'           => (float) $job->progress,
-			'completed'          => in_array( $job->status, [ 'completed','cancelled','failed' ], true ),
+			'completed'          => in_array( $job->status, array( 'completed', 'cancelled', 'failed' ), true ),
 			'offset'             => (int) $job->processed_items,
 			'total'              => (int) $job->total_items,
 			'result'             => $result,
 			'poll_after_seconds' => 2,
-		];
+		);
 	}
 	/**
 	 * Pause, resume or cancel under the same lock as the worker.
@@ -435,11 +435,11 @@ class Media_Folder_Service {
 			if ( is_wp_error( $job ) ) {
 				return $job;
 			}
-			$states = [
-				'pause'  => [ 'pending', 'processing', 'paused' ],
-				'resume' => [ 'paused', 'pending', 'processing' ],
-				'cancel' => [ 'pending', 'processing', 'paused', 'cancelled' ],
-			];
+			$states = array(
+				'pause'  => array( 'pending', 'processing', 'paused' ),
+				'resume' => array( 'paused', 'pending', 'processing' ),
+				'cancel' => array( 'pending', 'processing', 'paused', 'cancelled' ),
+			);
 			if ( ! isset( $states[ $action ] ) || ! in_array( $job->status, $states[ $action ], true ) ) {
 				return $this->error( 'state_conflict', 409 );
 			}
@@ -459,17 +459,17 @@ class Media_Folder_Service {
 								return $valid;
 				}
 			}
-			$status = [
+			$status = array(
 				'pause'  => 'paused',
 				'resume' => 'processing',
 				'cancel' => 'cancelled',
-			][ $action ];
-			$saved  = rsl_ie()->Model->job->update( $id, [ 'status' => $status ] );
+			)[ $action ];
+			$saved  = rsl_ie()->Model->job->update( $id, array( 'status' => $status ) );
 			if ( is_wp_error( $saved ) ) {
 				return $saved;
 			}
-			wp_clear_scheduled_hook( 'rsl_ie_run_job', [ (int) $id ] );
-			wp_clear_scheduled_hook( 'rsl_ie_process_media_sync_job', [ (int) $id ] );
+			wp_clear_scheduled_hook( 'rsl_ie_run_job', array( (int) $id ) );
+			wp_clear_scheduled_hook( 'rsl_ie_process_media_sync_job', array( (int) $id ) );
 			if ( 'resume' === $action ) {
 				Job_Runner::schedule( $id );
 			}
@@ -496,10 +496,10 @@ class Media_Folder_Service {
 	 */
 	private function run_context( $job, callable $operation ) {
 		$params = $this->decode( $job->parameters );
-		$stored = $params['execution_context'] ?? [
+		$stored = $params['execution_context'] ?? array(
 			'user_id' => (int) $job->user_id,
 			'blog_id' => get_current_blog_id(),
-		];
+		);
 		if ( ! is_array( $stored ) || ( $stored['user_id'] ?? 0 ) !== (int) $job->user_id || ( $stored['blog_id'] ?? 0 ) !== get_current_blog_id() ) {
 			return $this->error( 'invalid_context', 403 );
 		}
@@ -528,7 +528,7 @@ class Media_Folder_Service {
 			if ( ! $job ) {
 				return $this->error( 'job_not_found', 404 );
 			}
-			if ( ! in_array( $job->status, [ 'pending','processing' ], true ) ) {
+			if ( ! in_array( $job->status, array( 'pending', 'processing' ), true ) ) {
 				return $this->snapshot( $job );
 			}
 			$media_lock = Job_Lock::acquire_resource( 'media', 'folder-import' );
@@ -547,11 +547,11 @@ class Media_Folder_Service {
 				$data['error'] = $result->get_error_code();
 				$model->update(
 					$id,
-					[
+					array(
 						'status'       => 'failed',
 						'result'       => wp_json_encode( $data ),
 						'completed_at' => current_time( 'mysql' ),
-					]
+					)
 				);
 				return $result;
 			}
@@ -562,10 +562,10 @@ class Media_Folder_Service {
 			$data['error'] = 'rsl_ie_media_interrupted';
 			$model->update(
 				$id,
-				[
+				array(
 					'status' => 'failed',
 					'result' => wp_json_encode( $data ),
-				]
+				)
 			);
 			return $this->error( 'interrupted', 409 );
 		} finally {
@@ -573,7 +573,7 @@ class Media_Folder_Service {
 				Job_Lock::release( $media_lock );
 			}Job_Lock::release( $lock );
 			$fresh = $model->find( $id );
-			if ( $fresh && in_array( $fresh->status, [ 'pending','processing' ], true ) ) {
+			if ( $fresh && in_array( $fresh->status, array( 'pending', 'processing' ), true ) ) {
 				Job_Runner::schedule( $id );
 			}
 		}
@@ -600,7 +600,7 @@ class Media_Folder_Service {
 		if ( is_wp_error( $root ) ) {
 			return $root;
 		}
-		$options = $this->options( $settings['sync_options'] ?? [] );
+		$options = $this->options( $settings['sync_options'] ?? array() );
 		if ( is_wp_error( $options ) ) {
 			return $options;
 		}
@@ -609,10 +609,10 @@ class Media_Folder_Service {
 			$settings['all_files'] = $params['all_files'] ?? null;
 			if ( ! is_array( $settings['all_files'] ) ) {
 				$scan = $this->scan(
-					[
+					array(
 						'folder_path' => $root,
-						'options'     => $settings['scan_options'] ?? [],
-					],
+						'options'     => $settings['scan_options'] ?? array(),
+					),
 					false
 				);
 				if ( is_wp_error( $scan ) ) {
@@ -627,14 +627,14 @@ class Media_Folder_Service {
 			return $this->error( 'invalid_job', 400 );
 		}
 		$result  = $this->decode( $job->result );
-		$result += [
+		$result += array(
 			'processed' => 0,
 			'success'   => 0,
 			'skipped'   => 0,
 			'failed'    => 0,
-			'errors'    => [],
-			'items'     => [],
-		];
+			'errors'    => array(),
+			'items'     => array(),
+		);
 		unset( $result['error'] );
 		$start = microtime( true );
 		foreach ( array_slice( $files, $offset, $options['batch_size'] ) as $file ) {
@@ -644,7 +644,12 @@ class Media_Folder_Service {
 				$pending = $this->image_metadata_step( (int) $item['attachment_id'] );
 				if ( is_wp_error( $pending ) ) {
 					// One unreadable image fails that file, not the whole folder import.
-					$item    = [ 'action' => 'failed', 'file' => $item['file'], 'attachment_id' => (int) $item['attachment_id'], 'reason' => $pending->get_error_code() ];
+					$item    = array(
+						'action'        => 'failed',
+						'file'          => $item['file'],
+						'attachment_id' => (int) $item['attachment_id'],
+						'reason'        => $pending->get_error_code(),
+					);
 					$pending = false;
 				}
 				if ( $pending ) {
@@ -652,16 +657,16 @@ class Media_Folder_Service {
 				}
 				unset( $settings['pending_image'] );
 			} else {
-				$settings['in_flight'] = [ 'offset' => $offset ];
+				$settings['in_flight'] = array( 'offset' => $offset );
 				$saved                 = $this->save( $job->id, $settings, $result, count( $files ), 'processing' );
 				if ( is_wp_error( $saved ) ) {
 					return $saved;
 				}
 				$item = $this->import_one( $path, $root, $options );
-				if ( in_array( $item['action'], [ 'created', 'updated' ], true ) && wp_attachment_is_image( $item['attachment_id'] ) ) {
+				if ( in_array( $item['action'], array( 'created', 'updated' ), true ) && wp_attachment_is_image( $item['attachment_id'] ) ) {
 					// An overwritten original requires new dimensions and sizes.
 					if ( 'updated' === $item['action'] ) {
-						wp_update_attachment_metadata( $item['attachment_id'], [] );
+						wp_update_attachment_metadata( $item['attachment_id'], array() );
 					}
 					// Publish the identity before image work. Retries never copy/import it again.
 					$settings['pending_image'] = $item;
@@ -672,7 +677,12 @@ class Media_Folder_Service {
 					}
 					$pending = $this->image_metadata_step( (int) $item['attachment_id'] );
 					if ( is_wp_error( $pending ) ) {
-						$item    = [ 'action' => 'failed', 'file' => $item['file'], 'attachment_id' => (int) $item['attachment_id'], 'reason' => $pending->get_error_code() ];
+						$item    = array(
+							'action'        => 'failed',
+							'file'          => $item['file'],
+							'attachment_id' => (int) $item['attachment_id'],
+							'reason'        => $pending->get_error_code(),
+						);
 						$pending = false;
 					}
 					if ( $pending ) {
@@ -696,7 +706,7 @@ class Media_Folder_Service {
 			if ( is_wp_error( $saved ) ) {
 				return $saved;
 			}
-			if ( ( in_array( $item['action'], [ 'created', 'updated' ], true ) && wp_attachment_is_image( $item['attachment_id'] ) ) || microtime( true ) - $start >= 10 ) {
+			if ( ( in_array( $item['action'], array( 'created', 'updated' ), true ) && wp_attachment_is_image( $item['attachment_id'] ) ) || microtime( true ) - $start >= 10 ) {
 				break;
 			}
 		}
@@ -717,11 +727,11 @@ class Media_Folder_Service {
 	 * @return array
 	 */
 	private function import_one( $source, $root, array $options ) {
-		$item = [
+		$item = array(
 			'action' => 'failed',
 			'file'   => is_string( $source ) ? $source : '',
 			'reason' => 'invalid_source',
-		];
+		);
 		$path = is_string( $source ) ? Media_Sync::validate_source_file( $source, $root ) : $this->error( 'invalid_source', 400 );
 		if ( is_wp_error( $path ) ) {
 			return $item;
@@ -732,12 +742,12 @@ class Media_Folder_Service {
 			return $item;
 		}
 		if ( $existing && 'skip' === $options['duplicate_handling'] ) {
-			return [
+			return array(
 				'action'        => 'skipped',
 				'file'          => $path,
 				'attachment_id' => (int) $existing,
 				'reason'        => 'duplicate_' . $options['duplicate_check'],
-			];
+			);
 		}
 		$options['base_folder']          = $root;
 		$options['rml_folder_structure'] = $options['rml_integration'];
@@ -747,11 +757,11 @@ class Media_Folder_Service {
 			$item['reason'] = is_wp_error( $import ) ? $import->get_error_code() : 'import_failed';
 			return $item;
 		}
-		return [
+		return array(
 			'action'        => $existing && (int) $existing === (int) $import ? 'updated' : 'created',
 			'file'          => $path,
 			'attachment_id' => (int) $import,
-		];
+		);
 	}
 	/**
 	 * Generate all missing sizes for one image, retaining native WordPress checkpoints.
@@ -798,7 +808,7 @@ class Media_Folder_Service {
 	private function save( $id, array $settings, array $result, $total, $status ) {
 		return rsl_ie()->Model->job->update(
 			$id,
-			[
+			array(
 				'settings'        => wp_json_encode( $settings ),
 				'result'          => wp_json_encode( $result ),
 				'status'          => $status,
@@ -809,7 +819,7 @@ class Media_Folder_Service {
 				'failed_items'    => $result['failed'],
 				'progress'        => $total ? round( 100 * $result['processed'] / $total, 2 ) : 100,
 				'completed_at'    => 'completed' === $status ? current_time( 'mysql' ) : null,
-			]
+			)
 		); }
 	/**
 	 * Safe, stable domain error.
@@ -820,13 +830,13 @@ class Media_Folder_Service {
 	 */
 	private function error( $code, $status ) {
 		if ( 'invalid_path' === $code ) {
-			return new \WP_Error( 'rsl_ie_media_' . $code, __( 'Folder not found in the uploads directory. Enter a folder name relative to uploads (for example ftp-import) or pick one with Browse.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
+			return new \WP_Error( 'rsl_ie_media_' . $code, __( 'Folder not found in the uploads directory. Enter a folder name relative to uploads (for example ftp-import) or pick one with Browse.', 'import-export-by-rockstarlab' ), array( 'status' => $status ) );
 		}
 		if ( 'empty_folder' === $code ) {
 			return new \WP_Error( 'rsl_ie_media_' . $code, __( 'The folder has no files that match the scan options of this job.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
 		}
 		if ( 'rml_unavailable' === $code ) {
-			return new \WP_Error( 'rsl_ie_media_' . $code, __( 'Real Media Library is unavailable. Activate the plugin or turn off Real Media Library integration and start sync again.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
+			return new \WP_Error( 'rsl_ie_media_' . $code, __( 'Real Media Library is unavailable. Activate the plugin or turn off Real Media Library integration and start sync again.', 'import-export-by-rockstarlab' ), array( 'status' => $status ) );
 		}
-		return new \WP_Error( 'rsl_ie_media_' . $code, __( 'Media folder operation could not complete. Check selection, permissions, job state and saved results.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] ); }
+		return new \WP_Error( 'rsl_ie_media_' . $code, __( 'Media folder operation could not complete. Check selection, permissions, job state and saved results.', 'import-export-by-rockstarlab' ), array( 'status' => $status ) ); }
 }

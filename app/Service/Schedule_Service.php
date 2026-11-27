@@ -22,7 +22,7 @@ class Schedule_Service {
 	 * @param array  $input Closed input.
 	 * @return mixed
 	 */
-	public function execute( $name, array $input = [] ) {
+	public function execute( $name, array $input = array() ) {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access;
@@ -33,25 +33,25 @@ class Schedule_Service {
 		}
 		$valid = rest_validate_value_from_schema( $input, $definition['input'], 'input' );
 		if ( is_wp_error( $valid ) ) {
-			$valid->add_data( [ 'status' => 400 ] );
+			$valid->add_data( array( 'status' => 400 ) );
 			return $valid;
 		}
 		if ( 'schedule-options' === $name ) {
-			$recurrences = [];
-			foreach ( [ 'hourly', 'twicedaily', 'daily', 'weekly' ] as $key ) {
+			$recurrences = array();
+			foreach ( array( 'hourly', 'twicedaily', 'daily', 'weekly' ) as $key ) {
 				$interval = wp_get_schedules()[ $key ]['interval'] ?? 0;
 				if ( $interval ) {
-					$recurrences[] = [
+					$recurrences[] = array(
 						'value'    => $key,
 						'interval' => (int) $interval,
-					];
+					);
 				}
 			}
-			return [
+			return array(
 				'timezone'    => wp_timezone_string(),
 				'now'         => wp_date( 'Y-m-d\TH:i' ),
 				'recurrences' => $recurrences,
-			];
+			);
 		}
 		if ( 'schedule-list-source-jobs' === $name ) {
 			return $this->sources( $input );
@@ -60,10 +60,10 @@ class Schedule_Service {
 			global $wpdb;
 			$limit = $input['per_page'] ?? 20;
 			$rows  = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i ORDER BY id DESC LIMIT %d OFFSET %d', $wpdb->prefix . 'rsl_ie_job_schedules', $limit + 1, ( ( $input['page'] ?? 1 ) - 1 ) * $limit ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Live schedule page.
-			return [
-				'schedules' => array_map( [ $this, 'snapshot' ], array_slice( $rows, 0, $limit ) ),
+			return array(
+				'schedules' => array_map( array( $this, 'snapshot' ), array_slice( $rows, 0, $limit ) ),
 				'more'      => count( $rows ) > $limit,
-			];
+			);
 		}
 		$id   = $input['schedule_id'] ?? 0;
 		$lock = Job_Lock::acquire_resource( 'schedule', $id );
@@ -80,7 +80,7 @@ class Schedule_Service {
 				return $this->snapshot( $row );
 			}
 			if ( 'schedule-delete' === $name ) {
-				$cleared = wp_clear_scheduled_hook( Job_Scheduler::CRON_HOOK, [ $id ], true );
+				$cleared = wp_clear_scheduled_hook( Job_Scheduler::CRON_HOOK, array( $id ), true );
 				if ( is_wp_error( $cleared ) ) {
 					return $cleared;
 				}
@@ -89,10 +89,10 @@ class Schedule_Service {
 					return $this->error( 'delete_failed', 500 );
 				}
 				delete_option( 'rsl_ie_schedule_meta_' . $id );
-				return [
+				return array(
 					'schedule_id' => $id,
 					'deleted'     => true,
-				];
+				);
 			}
 			return $this->save( $row, $input );
 		} finally {
@@ -109,7 +109,7 @@ class Schedule_Service {
 	 */
 	private function save( $row, array $input ) {
 		$id   = $row ? (int) $row->id : 0;
-		$meta = $id ? get_option( 'rsl_ie_schedule_meta_' . $id, [] ) : [];
+		$meta = $id ? get_option( 'rsl_ie_schedule_meta_' . $id, array() ) : array();
 		$zone = $input['timezone'] ?? $meta['timezone'] ?? wp_timezone_string();
 		try {
 			$timezone = new \DateTimeZone( $zone );
@@ -123,7 +123,7 @@ class Schedule_Service {
 		}
 		$transitions     = $timezone->getTransitions( $date->getTimestamp() - DAY_IN_SECONDS, $date->getTimestamp() + DAY_IN_SECONDS );
 		$previous_offset = null;
-		foreach ( $transitions ? $transitions : [] as $transition ) {
+		foreach ( $transitions ? $transitions : array() as $transition ) {
 			$wall = strtotime( $local . ' UTC' );
 			if ( null !== $previous_offset && $transition['offset'] < $previous_offset && $wall >= $transition['ts'] + $transition['offset'] && $wall < $transition['ts'] + $previous_offset ) {
 				return $this->error( 'ambiguous_time_use_utc', 400 );
@@ -136,22 +136,22 @@ class Schedule_Service {
 			return $this->error( 'recurrence', 400 );
 		}
 		$status         = $input['status'] ?? ( $row ? $row->status : 'active' );
-		$timing_changed = ! $row || isset( $input['start_at'], $input['timezone'] ) || array_intersect( array_keys( $input ), [ 'start_at', 'timezone', 'schedule_type', 'recurrence' ] );
+		$timing_changed = ! $row || isset( $input['start_at'], $input['timezone'] ) || array_intersect( array_keys( $input ), array( 'start_at', 'timezone', 'schedule_type', 'recurrence' ) );
 		$next           = $timing_changed ? $date->getTimestamp() : ( $row->next_run_gmt ? strtotime( $row->next_run_gmt . ' UTC' ) : $date->getTimestamp() );
 		if ( 'active' === $status && $next <= time() ) {
 			return $this->error( 'future_time_required', 400 );
 		}
-		$source_id = $input['source_job_id'] ?? (int) $row->source_job_id;
+		$source_id    = $input['source_job_id'] ?? (int) $row->source_job_id;
 		$changed_only = (bool) ( $input['changed_only'] ?? $meta['changed_only'] ?? false );
 		if ( $changed_only && ! Schedule_Source_Service::supports_changed_only( $source_id ) ) {
 			return $this->error( 'changed_only_unsupported', 400 );
 		}
-		$source    = ( ! $row || isset( $input['source_job_id'] ) || 'active' === $status ) ? ( new Schedule_Source_Service() )->execute( $source_id ) : true;
+		$source = ( ! $row || isset( $input['source_job_id'] ) || 'active' === $status ) ? ( new Schedule_Source_Service() )->execute( $source_id ) : true;
 		if ( is_wp_error( $source ) ) {
 			return $source;
 		}
 		$name   = sanitize_text_field( $input['name'] ?? $row->name ?? '' );
-		$data   = [
+		$data   = array(
 			'source_job_id' => $source_id,
 			'name'          => '' === $name ? sprintf( /* translators: %d: job ID. */ __( 'Schedule for Job #%d', 'import-export-by-rockstarlab' ), $source_id ) : $name,
 			'schedule_type' => $type,
@@ -161,7 +161,7 @@ class Schedule_Service {
 			'next_run_gmt'  => 'active' === $status ? gmdate( 'Y-m-d H:i:s', $next ) : null,
 			'updated_at'    => current_time( 'mysql', true ),
 			'created_by'    => get_current_user_id(),
-		];
+		);
 		$result = $id ? rsl_ie()->Model->job_schedule->update( $id, $data ) : rsl_ie()->Model->job_schedule->create( $data );
 		if ( false === $result || is_wp_error( $result ) ) {
 			return $this->error( 'save_failed', 500 );
@@ -169,29 +169,29 @@ class Schedule_Service {
 		$id = $id ? $id : (int) $result;
 		update_option(
 			'rsl_ie_schedule_meta_' . $id,
-			[
+			array(
 				'timezone'     => $zone,
 				'error_code'   => '',
 				'changed_only' => $changed_only,
-			],
+			),
 			false
 		);
 		$scheduled = Job_Scheduler::sync_event( $id );
 		if ( is_wp_error( $scheduled ) ) {
 			rsl_ie()->Model->job_schedule->update(
 				$id,
-				[
+				array(
 					'status'       => 'failed',
 					'next_run_gmt' => null,
-				]
+				)
 			);
 			update_option(
 				'rsl_ie_schedule_meta_' . $id,
-				[
+				array(
 					'timezone'     => $zone,
 					'error_code'   => $scheduled->get_error_code(),
 					'changed_only' => $changed_only,
-				],
+				),
 				false
 			);
 			return $this->error( 'cron_failed', 500 );
@@ -206,8 +206,8 @@ class Schedule_Service {
 	 * @return array
 	 */
 	public function snapshot( $row ) {
-		$meta = get_option( 'rsl_ie_schedule_meta_' . $row->id, [] );
-		return [
+		$meta = get_option( 'rsl_ie_schedule_meta_' . $row->id, array() );
+		return array(
 			'id'            => (int) $row->id,
 			'source_job_id' => (int) $row->source_job_id,
 			'last_job_id'   => (int) $row->last_job_id,
@@ -223,7 +223,7 @@ class Schedule_Service {
 			'error_message' => $meta['error_message'] ?? '',
 			'error_gmt'     => $meta['error_gmt'] ?? '',
 			'changed_only'  => ! empty( $meta['changed_only'] ),
-		];
+		);
 	}
 
 	/**
@@ -234,7 +234,7 @@ class Schedule_Service {
 	 * @return string
 	 */
 	public static function job_label( $job, $with_status = false ) {
-		if ( in_array( (string) $job->type, [ 'export', 'import' ], true ) ) {
+		if ( in_array( (string) $job->type, array( 'export', 'import' ), true ) ) {
 			$label = Trigger_Service::source_label( $job );
 		} else {
 			$label = sprintf( '#%d %s · %s', (int) $job->id, (string) $job->type, (string) $job->data_type );
@@ -243,11 +243,11 @@ class Schedule_Service {
 		if ( ! $with_status ) {
 			return $label;
 		}
-		$statuses = [
+		$statuses = array(
 			'completed' => __( 'completed', 'import-export-by-rockstarlab' ),
 			'failed'    => __( 'failed', 'import-export-by-rockstarlab' ),
 			'cancelled' => __( 'cancelled', 'import-export-by-rockstarlab' ),
-		];
+		);
 		return sprintf( '%1$s (%2$s)', $label, $statuses[ (string) $job->status ] ?? (string) $job->status );
 	}
 
@@ -262,20 +262,20 @@ class Schedule_Service {
 		$limit   = $input['per_page'] ?? 10;
 		$search  = $input['q'] ?? '';
 		$rows    = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM %i WHERE type IN ('import','export','content_sync_push','content_sync_pull','sync_background') AND status IN ('completed','failed','cancelled') AND (%s = '' OR job_name LIKE %s OR id = %d) ORDER BY id DESC LIMIT %d OFFSET %d", $wpdb->prefix . 'rsl_ie_jobs', $search, '%' . $wpdb->esc_like( $search ) . '%', (int) $search, $limit + 1, ( ( $input['page'] ?? 1 ) - 1 ) * $limit ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Bounded source search.
-		$results = [];
+		$results = array();
 		foreach ( array_slice( $rows, 0, $limit ) as $row ) {
 			$valid     = ( new Schedule_Source_Service() )->execute( $row->id );
-			$results[] = [
+			$results[] = array(
 				'id'          => (int) $row->id,
 				'text'        => self::job_label( $row, true ),
 				'schedulable' => ! is_wp_error( $valid ),
 				'error_code'  => is_wp_error( $valid ) ? $valid->get_error_code() : '',
-			];
+			);
 		}
-		return [
+		return array(
 			'results'    => $results,
-			'pagination' => [ 'more' => count( $rows ) > $limit ],
-		];
+			'pagination' => array( 'more' => count( $rows ) > $limit ),
+		);
 	}
 
 	/**
@@ -287,10 +287,10 @@ class Schedule_Service {
 	 */
 	private function error( $code, $status ) {
 		if ( 'changed_only_unsupported' === $code ) {
-			return new \WP_Error( 'rsl_ie_schedule_' . $code, __( '"Changes only" works with exports of posts, pages and WooCommerce orders. Turn it off for this source job.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
+			return new \WP_Error( 'rsl_ie_schedule_' . $code, __( '"Changes only" works with exports of posts, pages and WooCommerce orders. Turn it off for this source job.', 'import-export-by-rockstarlab' ), array( 'status' => $status ) );
 		}
 		// Reasons a person can fix get a sentence; the screen and agents used to show "Schedule operation failed: timezone".
-		$readable = [
+		$readable = array(
 			'future_time_required'   => __( 'Choose a start time in the future.', 'import-export-by-rockstarlab' ),
 			'timezone'               => __( 'Unknown time zone. Use a time zone name such as Europe/Berlin, or UTC.', 'import-export-by-rockstarlab' ),
 			'date'                   => __( 'The start time is not a valid date and time (YYYY-MM-DD HH:MM).', 'import-export-by-rockstarlab' ),
@@ -298,10 +298,10 @@ class Schedule_Service {
 			'recurrence'             => __( 'Choose how often to repeat: once, hourly, twice daily, daily or weekly.', 'import-export-by-rockstarlab' ),
 			'not_found'              => __( 'Schedule not found. It may have been deleted.', 'import-export-by-rockstarlab' ),
 			'busy'                   => __( 'This schedule is running or being changed right now. Try again in a moment.', 'import-export-by-rockstarlab' ),
-		];
+		);
 		if ( isset( $readable[ $code ] ) ) {
-			return new \WP_Error( 'rsl_ie_schedule_' . $code, $readable[ $code ], [ 'status' => $status ] );
+			return new \WP_Error( 'rsl_ie_schedule_' . $code, $readable[ $code ], array( 'status' => $status ) );
 		}
-		return new \WP_Error( 'rsl_ie_schedule_' . $code, sprintf( /* translators: %s: error code. */ __( 'Schedule operation failed: %s', 'import-export-by-rockstarlab' ), $code ), [ 'status' => $status ] );
+		return new \WP_Error( 'rsl_ie_schedule_' . $code, sprintf( /* translators: %s: error code. */ __( 'Schedule operation failed: %s', 'import-export-by-rockstarlab' ), $code ), array( 'status' => $status ) );
 	}
 }

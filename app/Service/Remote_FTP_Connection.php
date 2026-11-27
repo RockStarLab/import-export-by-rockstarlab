@@ -39,7 +39,7 @@ class Remote_FTP_Connection {
 			ftp_pasv( $conn, true );
 		}
 		$this->conn = $conn;
-		return [];
+		return array();
 	}
 
 	/**
@@ -50,18 +50,18 @@ class Remote_FTP_Connection {
 	 */
 	public function listing( $path ) {
 		$rows = function_exists( 'ftp_mlsd' ) ? @ftp_mlsd( $this->conn, $path ) : false; // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Falls back to NLST.
-		$out  = [];
+		$out  = array();
 		if ( is_array( $rows ) ) {
 			foreach ( $rows as $row ) {
-				if ( in_array( $row['name'] ?? '', [ '.', '..', '' ], true ) || in_array( $row['type'] ?? '', [ 'cdir', 'pdir' ], true ) ) {
+				if ( in_array( $row['name'] ?? '', array( '.', '..', '' ), true ) || in_array( $row['type'] ?? '', array( 'cdir', 'pdir' ), true ) ) {
 					continue;
 				}
-				$out[] = [
+				$out[] = array(
 					'name'  => $row['name'],
 					'type'  => 'dir' === ( $row['type'] ?? '' ) ? 'dir' : 'file',
 					'size'  => (int) ( $row['size'] ?? 0 ),
 					'mtime' => isset( $row['modify'] ) ? (int) strtotime( substr( $row['modify'], 0, 14 ) . ' UTC' ) : 0,
-				];
+				);
 			}
 			return $out;
 		}
@@ -71,16 +71,16 @@ class Remote_FTP_Connection {
 		}
 		foreach ( $names as $name ) {
 			$name = wp_basename( $name );
-			if ( in_array( $name, [ '.', '..' ], true ) ) {
+			if ( in_array( $name, array( '.', '..' ), true ) ) {
 				continue;
 			}
 			$size  = ftp_size( $this->conn, rtrim( $path, '/' ) . '/' . $name );
-			$out[] = [
+			$out[] = array(
 				'name'  => $name,
 				'type'  => $size < 0 ? 'dir' : 'file',
 				'size'  => max( 0, $size ),
 				'mtime' => 0,
-			];
+			);
 		}
 		return $out;
 	}
@@ -97,10 +97,10 @@ class Remote_FTP_Connection {
 			return $this->missing( $path );
 		}
 		$mtime = ftp_mdtm( $this->conn, $path );
-		return [
+		return array(
 			'size'  => (int) $size,
 			'mtime' => $mtime > 0 ? (int) $mtime : 0,
-		];
+		);
 	}
 
 	/**

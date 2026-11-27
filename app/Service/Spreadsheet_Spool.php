@@ -80,16 +80,16 @@ class Spreadsheet_Spool {
 				$build['xlsx'] = $reader instanceof \PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 				if ( $build['xlsx'] ) {
 					$build['map']           = \RockStarLab\ImportExport\Model\Format\XLSX_Part_Map::resolve( $parts, \RockStarLab\ImportExport\Model\Format\XLSX_Part_Map::data_sheet_index( $parts ) );
-					$build['members']       = array_values( array_filter( [ $build['map']['worksheet'], $build['map']['strings'] ] ) );
+					$build['members']       = array_values( array_filter( array( $build['map']['worksheet'], $build['map']['strings'] ) ) );
 					$build['after_extract'] = null === $build['map']['strings'] ? 'cells' : 'strings';
 				} elseif ( $reader instanceof \PhpOffice\PhpSpreadsheet\Reader\Ods ) {
-					$build['members']       = [ 'content.xml' ];
+					$build['members']       = array( 'content.xml' );
 					$build['after_extract'] = 'select';
 				} else {
 					throw new \RuntimeException( __( 'Unsupported spreadsheet container.', 'import-export-by-rockstarlab' ) ); }
 				$build['phase'] = 'extract';
 			} elseif ( 'extract' === $build['phase'] ) {
-				$build['extraction'] = $build['extraction'] ?? [];
+				$build['extraction'] = $build['extraction'] ?? array();
 				if ( $parts->stage( $build['members'][0], $build['extraction'] ) ) {
 					array_shift( $build['members'] );
 					unset( $build['extraction'] );

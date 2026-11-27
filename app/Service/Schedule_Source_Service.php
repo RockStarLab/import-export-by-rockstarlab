@@ -15,10 +15,10 @@ defined( 'ABSPATH' ) || exit;
 /** Never copy a completed worker checkpoint into a new queue job. */
 class Schedule_Source_Service {
 	/** Content types whose export can be limited to items modified since a time. */
-	const CHANGED_ONLY_TYPES = [ 'post', 'page', 'woo_order' ];
+	const CHANGED_ONLY_TYPES = array( 'post', 'page', 'woo_order' );
 
 	/** Modified-date filter field per export type (orders keep theirs in date_modified). */
-	const CHANGED_FIELD = [ 'woo_order' => 'date_modified' ];
+	const CHANGED_FIELD = array( 'woo_order' => 'date_modified' );
 
 	/** @var string Local MySQL time; empty exports everything. */
 	private $changed_since = '';
@@ -62,7 +62,7 @@ class Schedule_Source_Service {
 		if ( '' !== $request_id && is_array( $result ) && ! empty( $result['job_id'] ) ) {
 			$source = rsl_ie()->Model->job->find( $id );
 			if ( $source ) {
-				rsl_ie()->Model->job->update( $result['job_id'], [ 'job_name' => $source->job_name ] ); }
+				rsl_ie()->Model->job->update( $result['job_id'], array( 'job_name' => $source->job_name ) ); }
 		}
 		return $result;
 	}
@@ -80,8 +80,8 @@ class Schedule_Source_Service {
 			return $job;
 		}
 		$params = json_decode( (string) $job->parameters, true );
-		if ( ! is_array( $params ) || ! empty( $params['migration_parent_id'] ) || ! in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true ) ) {
-			return new \WP_Error( 'rsl_ie_schedule_source_unavailable', __( 'Select a terminal, independent source job.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+		if ( ! is_array( $params ) || ! empty( $params['migration_parent_id'] ) || ! in_array( $job->status, array( 'completed', 'failed', 'cancelled' ), true ) ) {
+			return new \WP_Error( 'rsl_ie_schedule_source_unavailable', __( 'Select a terminal, independent source job.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 		}
 		$start = '' !== $request_id;
 		if ( Media_Folder_Service::supports( $job ) ) {
@@ -91,15 +91,15 @@ class Schedule_Source_Service {
 			return $start ? $folder->restart( $id, $request_id, true ) : $folder->scan(
 				[
 					'folder_path' => $selection['folder_path'] ?? '',
-					'options'     => $selection['scan_options'] ?? [],
+					'options'     => $selection['scan_options'] ?? array(),
 					'limit'       => 1,
-				]
+				)
 			);
 		}
 		if ( AI_URL_Service::supports( $job ) ) {
-			return ( new AI_URL_Service() )->execute( $start ? 'ai-url-import-start' : 'ai-url-prepare', $params['input'] + ( $start ? [ 'request_id' => $request_id ] : [] ), $params['edition'] );
+			return ( new AI_URL_Service() )->execute( $start ? 'ai-url-import-start' : 'ai-url-prepare', $params['input'] + ( $start ? array( 'request_id' => $request_id ) : array() ), $params['edition'] );
 		}
-		if ( Sync_Job_Service::supports( $job ) || in_array( $job->type, [ 'content_sync_push', 'content_sync_pull' ], true ) ) {
+		if ( Sync_Job_Service::supports( $job ) || in_array( $job->type, array( 'content_sync_push', 'content_sync_pull' ), true ) ) {
 			$service = new Sync_Job_Service();
 			if ( is_array( $params['schedule_replay'] ?? null ) ) {
 				$params = $params['schedule_replay'];
@@ -115,19 +115,19 @@ class Schedule_Source_Service {
 					}
 					if ( isset( $in['post_mapping'] ) && is_string( $in['post_mapping'] ) ) {
 						$decoded            = json_decode( $in['post_mapping'], true );
-						$in['post_mapping'] = is_array( $decoded ) ? $decoded : [];
+						$in['post_mapping'] = is_array( $decoded ) ? $decoded : array();
 					}
-					if ( isset( $in['post_mapping'] ) && [] === $in['post_mapping'] ) {
+					if ( isset( $in['post_mapping'] ) && array() === $in['post_mapping'] ) {
 						unset( $in['post_mapping'] );
 					}
-					if ( empty( $in['post_type'] ) && in_array( $job->data_type, [ 'post', 'page' ], true ) ) {
+					if ( empty( $in['post_type'] ) && in_array( $job->data_type, array( 'post', 'page' ), true ) ) {
 						// Syncs from the Pages screen were logged as "post"; use the type of the local items.
 						// A push lists local IDs. A pull lists remote IDs and maps local => remote for
 						// updates (remote => "new" for new posts), so read only its updated local posts.
-						$local = (array) ( $in['post_ids'] ?? [] );
+						$local = (array) ( $in['post_ids'] ?? array() );
 						if ( 'sync-pull' === ( $params['operation'] ?? '' ) ) {
-							$local = [];
-							foreach ( (array) ( $in['post_mapping'] ?? [] ) as $local_id => $remote_id ) {
+							$local = array();
+							foreach ( (array) ( $in['post_mapping'] ?? array() ) as $local_id => $remote_id ) {
 								if ( is_numeric( $remote_id ) ) {
 									$local[] = (int) $local_id;
 								}
@@ -136,7 +136,7 @@ class Schedule_Source_Service {
 						$types           = array_unique( array_map( 'get_post_type', $local ) );
 						$in['post_type'] = 1 === count( $types ) && reset( $types ) ? reset( $types ) : $job->data_type;
 						// Older rows logged product pushes from the admin screens as free "post" syncs.
-						if ( ! in_array( $in['post_type'], [ 'post', 'page' ], true ) ) {
+						if ( ! in_array( $in['post_type'], array( 'post', 'page' ), true ) ) {
 							$params['edition'] = 'pro';
 						}
 					}
@@ -145,22 +145,22 @@ class Schedule_Source_Service {
 			} elseif ( ! Sync_Job_Service::supports( $job ) ) {
 				$site = Connected_Site::get_by_id( $params['site_id'] ?? 0 );
 				if ( ! $site ) {
-					return new \WP_Error( 'rsl_ie_schedule_connection_missing', __( 'The source connection is unavailable.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+					return new \WP_Error( 'rsl_ie_schedule_connection_missing', __( 'The source connection is unavailable.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 				}
-				$params = [
+				$params = array(
 					'sync_queue_version'     => 1,
-					'edition'                => in_array( $job->data_type, [ 'post', 'page' ], true ) ? 'free' : 'pro',
+					'edition'                => in_array( $job->data_type, array( 'post', 'page' ), true ) ? 'free' : 'pro',
 					'operation'              => 'content_sync_push' === $job->type ? 'sync-push' : 'sync-pull',
-					'input'                  => [
+					'input'                  => array(
 						'site_id'   => (int) $params['site_id'],
-						'post_ids'  => $params['post_ids'] ?? [],
+						'post_ids'  => $params['post_ids'] ?? array(),
 						'post_type' => $job->data_type,
-					] + ( ! empty( $params['post_mapping'] ) ? [ 'post_mapping' => $params['post_mapping'] ] : [] ),
+					) + ( ! empty( $params['post_mapping'] ) ? array( 'post_mapping' => $params['post_mapping'] ) : array() ),
 					'connection_fingerprint' => $service->fingerprint( $site ),
-				];
+				);
 			}
 			$valid = $service->preflight( $params );
-			return is_wp_error( $valid ) || ! $start ? $valid : $service->execute( $params['operation'] . '-start', $params['input'] + [ 'request_id' => $request_id ], $params['edition'] );
+			return is_wp_error( $valid ) || ! $start ? $valid : $service->execute( $params['operation'] . '-start', $params['input'] + array( 'request_id' => $request_id ), $params['edition'] );
 		}
 		if ( Job_Service::supports( $job ) ) {
 			$input = json_decode( (string) ( $job->request_payload ?? '' ), true );
@@ -173,19 +173,26 @@ class Schedule_Source_Service {
 				// trigger may name another file with the same columns for one run.
 				$url = '' !== $this->file_url ? $this->file_url : (string) ( $params['source_url'] ?? '' );
 				if ( $start && '' !== $url ) {
-					$fresh = ( new File_Service() )->from_url( $url, $params['parser_options'] ?? [ 'delimiter' => $params['delimiter'] ?? ',', 'has_header' => $params['options']['has_header'] ?? true, 'encoding' => $params['encoding'] ?? 'auto' ] );
+					$fresh = ( new File_Service() )->from_url(
+						$url,
+						$params['parser_options'] ?? array(
+							'delimiter'  => $params['delimiter'] ?? ',',
+							'has_header' => $params['options']['has_header'] ?? true,
+							'encoding'   => $params['encoding'] ?? 'auto',
+						)
+					);
 					if ( is_wp_error( $fresh ) ) {
 						return $fresh;
 					}
 					if ( '' !== $this->file_url ) {
 						// Imports started from WP-CLI or by agents may store columns only by position;
 						// name them from the source job's file first, so the new file is matched by name.
-						$named = $this->name_columns( (array) ( $input['mapping'] ?? [] ), $input );
+						$named = $this->name_columns( (array) ( $input['mapping'] ?? array() ), $input );
 						if ( is_wp_error( $named ) ) {
 							File_Store::remove( $fresh['file_id'] );
 							return $named;
 						}
-						$mapping = $this->map_by_name( $named, (array) ( $fresh['headers'] ?? [] ) );
+						$mapping = $this->map_by_name( $named, (array) ( $fresh['headers'] ?? array() ) );
 						if ( is_wp_error( $mapping ) ) {
 							File_Store::remove( $fresh['file_id'] );
 							return $mapping;
@@ -195,20 +202,20 @@ class Schedule_Source_Service {
 					$input['file_id']   = $fresh['file_id'];
 					$input['file_path'] = 'rsl-ie-file:' . $fresh['file_id'];
 				}
-				$service            = new Import_Service();
+				$service = new Import_Service();
 				return $start ? $service->start( $input ) : $service->check_request( $input );
 			}
 			if ( $start && '' !== $this->changed_since && in_array( $input['export_type'] ?? '', self::CHANGED_ONLY_TYPES, true ) ) {
 				// Stored requests keep their filters under options; requests from agents may have them at the top level.
-				$changed = [
+				$changed = array(
 					'field'     => self::CHANGED_FIELD[ $input['export_type'] ] ?? 'post_modified',
 					'condition' => 'equals_or_greater',
 					'value'     => $this->changed_since,
-				];
+				);
 				if ( isset( $input['options']['filters'] ) && is_array( $input['options']['filters'] ) ) {
 					$input['options']['filters'][] = $changed;
 				} else {
-					$input['filters']   = is_array( $input['filters'] ?? null ) ? $input['filters'] : [];
+					$input['filters']   = is_array( $input['filters'] ?? null ) ? $input['filters'] : array();
 					$input['filters'][] = $changed;
 				}
 			}
@@ -222,7 +229,7 @@ class Schedule_Source_Service {
 		 * @param string $request_id Occurrence identity or empty preflight.
 		 */
 		$result = apply_filters( 'rsl_ie_schedule_source', null, $job, $request_id );
-		return null !== $result ? $result : new \WP_Error( 'rsl_ie_schedule_provider_unavailable', __( 'No available schedule provider supports this source.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
+		return null !== $result ? $result : new \WP_Error( 'rsl_ie_schedule_provider_unavailable', __( 'No available schedule provider supports this source.', 'import-export-by-rockstarlab' ), array( 'status' => 403 ) );
 	}
 	/**
 	 * Give every mapped column its name from the source job's file.
@@ -245,17 +252,17 @@ class Schedule_Source_Service {
 		if ( ! $need || false === ( $request['options']['has_header'] ?? true ) ) {
 			return $mapping;
 		}
-		$headers = [];
+		$headers = array();
 		$format  = (string) ( $request['format'] ?? '' );
-		if ( ! empty( $request['file_path'] ) && in_array( $format, [ 'csv', 'xlsx', 'ods' ], true ) ) {
+		if ( ! empty( $request['file_path'] ) && in_array( $format, array( 'csv', 'xlsx', 'ods' ), true ) ) {
 			try {
 				$rows = Format_Factory::create( $format )->rows(
 					$request['file_path'],
-					[
+					array(
 						'delimiter'  => $request['delimiter'] ?? ',',
 						'encoding'   => $request['encoding'] ?? 'auto',
 						'has_header' => $request['options']['has_header'] ?? true,
-					]
+					)
 				);
 				foreach ( $rows as $row ) {
 					if ( is_array( $row ) ) {
@@ -264,7 +271,7 @@ class Schedule_Source_Service {
 					break;
 				}
 			} catch ( \Throwable $error ) {
-				$headers = [];
+				$headers = array();
 			}
 		}
 		foreach ( $mapping as $n => $entry ) {
@@ -276,7 +283,7 @@ class Schedule_Source_Service {
 				return new \WP_Error(
 					'rsl_ie_file_columns_unknown',
 					__( 'The column names of the source import are no longer available, so a new file cannot be matched by column name. Run the import once in the import wizard and create the trigger from that job.', 'import-export-by-rockstarlab' ),
-					[ 'status' => 409 ]
+					array( 'status' => 409 )
 				);
 			}
 			$mapping[ $n ]['source_field'] = (string) $headers[ $index ];
@@ -292,14 +299,14 @@ class Schedule_Source_Service {
 	 * @return array|\WP_Error
 	 */
 	private function map_by_name( array $mapping, array $headers ) {
-		$index = [];
+		$index = array();
 		foreach ( array_values( $headers ) as $i => $column ) {
 			$key = Mapping_Template_Service::column_key( $column );
 			if ( '' !== $key && ! isset( $index[ $key ] ) ) {
 				$index[ $key ] = $i;
 			}
 		}
-		$missing = [];
+		$missing = array();
 		foreach ( $mapping as $n => $entry ) {
 			if ( ! is_array( $entry ) || ! isset( $entry['source_field'] ) || '' === (string) $entry['source_field'] ) {
 				continue;
@@ -316,10 +323,10 @@ class Schedule_Source_Service {
 				'rsl_ie_file_columns_missing',
 				/* translators: %s: column names. */
 				sprintf( __( 'The file is missing columns the import uses: %s.', 'import-export-by-rockstarlab' ), implode( ', ', array_slice( $missing, 0, 20 ) ) ),
-				[
+				array(
 					'status'  => 422,
 					'missing' => array_values( $missing ),
-				]
+				)
 			);
 		}
 		return $mapping;

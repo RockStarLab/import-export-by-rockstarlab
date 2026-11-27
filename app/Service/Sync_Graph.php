@@ -19,7 +19,7 @@ class Sync_Graph {
 	 * @return array|\WP_Error
 	 */
 	public static function order( array $records, $key, $parent_key ) {
-		$by_id = [];
+		$by_id = array();
 		foreach ( $records as $record ) {
 			if ( ! is_array( $record ) || ! isset( $record[ $key ] ) || ! is_scalar( $record[ $key ] ) || ! ctype_digit( (string) $record[ $key ] ) || (int) $record[ $key ] < 1 ) {
 				return \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(); }
@@ -28,10 +28,10 @@ class Sync_Graph {
 				return \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied(); }
 			$by_id[ (int) $record[ $key ] ] = $record;
 		}
-		$state   = [];
-		$ordered = [];
+		$state   = array();
+		$ordered = array();
 		foreach ( array_keys( $by_id ) as $id ) {
-			$path = [];
+			$path = array();
 			while ( isset( $by_id[ $id ] ) && 2 !== ( $state[ $id ] ?? 0 ) ) {
 				if ( 1 === ( $state[ $id ] ?? 0 ) ) {
 					return \RockStarLab\ImportExport\Abilities\Standalone_Sync_Policy::denied();

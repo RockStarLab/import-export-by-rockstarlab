@@ -9,9 +9,9 @@ defined( 'ABSPATH' ) || exit;
 /** The caller must persist returned state before scheduling another step. */
 class Media_Chunk_Push {
 	/** Execute one step. State and request identity must come from the owning job. */
-	public function advance( $site_id, $fingerprint, $request_id, array $input, array $state = [] ) {
+	public function advance( $site_id, $fingerprint, $request_id, array $input, array $state = array() ) {
 		$media  = new Media_Library_Sync_Service();
-		$access = $media->preflight( 'push', [ 'site_id' => $site_id ] + $input, true );
+		$access = $media->preflight( 'push', array( 'site_id' => $site_id ) + $input, true );
 		if ( is_wp_error( $access ) ) {
 			return $access; }
 		if ( ! is_string( $request_id ) || ! preg_match( '/^[A-Za-z0-9_-]{16,128}$/D', $request_id ) || ! is_array( $input['media_ids'] ?? null ) || 1 !== count( $input['media_ids'] ) || ! is_int( $input['media_ids'][0] ?? null ) ) {
@@ -23,18 +23,19 @@ class Media_Chunk_Push {
 		if ( is_wp_error( $graph ) ) {
 			return $graph; }
 		$input   += $graph;
-		$identity = hash( 'sha256', wp_json_encode( [ $site_id, $fingerprint, $request_id, $input ] ) );
+		$identity = hash( 'sha256', wp_json_encode( array( $site_id, $fingerprint, $request_id, $input ) ) );
 		if ( $state && ( $state['identity'] ?? null ) !== $identity ) {
 			return $this->error(); }
 		$access = $state['capabilities'] ?? $media->negotiate_chunks( $site_id, 'push', $fingerprint );
-		if ( is_wp_error( $access ) ) { return $access; }
+		if ( is_wp_error( $access ) ) {
+			return $access; }
 		$state['capabilities'] = $access;
-		$state += [
+		$state                += array(
 			'identity'   => $identity,
 			'request_id' => $request_id,
 			'phase'      => 'snapshot',
-		];
-		$call   = static function ( $payload ) use ( $media, $site_id, $fingerprint ) {
+		);
+		$call                  = static function ( $payload ) use ( $media, $site_id, $fingerprint ) {
 			return $media->chunk_request( $site_id, 'push', $fingerprint, $payload );
 		};
 		switch ( $state['phase'] ) {
@@ -62,25 +63,27 @@ class Media_Chunk_Push {
 				$state['phase']    = 'begin';
 				break;
 			case 'begin':
-				$s = $state['snapshot'];
-				$initial = [];
+				$s       = $state['snapshot'];
+				$initial = array();
 				if ( ! empty( $access['begin_reuse'] ) ) {
 					$file = Media_Chunk_Store::resolve( $s['snapshot_id'], 'source:local' );
-					if ( is_wp_error( $file ) ) { return $file; }
+					if ( is_wp_error( $file ) ) {
+						return $file; }
 					$initial['file_hash'] = md5_file( $file['path'] );
 				} elseif ( ! empty( $access['begin_data'] ) ) {
 					$slice = Media_Chunk_Store::read_snapshot( $s['snapshot_id'], 0 );
-					if ( is_wp_error( $slice ) ) { return $slice; }
+					if ( is_wp_error( $slice ) ) {
+						return $slice; }
 					$initial['data'] = $slice['data'];
 				}
 				$result = $call(
-					[
+					array(
 						'action'     => 'begin',
 						'request_id' => $request_id,
 						'file_name'  => $s['file_name'],
 						'size'       => $s['size'],
 						'sha256'     => $s['sha256'],
-					] + $initial
+					) + $initial
 				);
 				if ( is_wp_error( $result ) ) {
 					return $result; }
@@ -95,12 +98,12 @@ class Media_Chunk_Push {
 				if ( is_wp_error( $slice ) ) {
 					return $slice; }
 				$result = $call(
-					[
+					array(
 						'action'      => 'append',
 						'transfer_id' => $t['transfer_id'],
 						'offset'      => $t['offset'],
 						'data'        => $slice['data'],
-					]
+					)
 				);
 				if ( is_wp_error( $result ) ) {
 					return $result; }
@@ -111,31 +114,31 @@ class Media_Chunk_Push {
 				break;
 			case 'finalize':
 				$result = $call(
-					[
+					array(
 						'action'       => 'finalize',
 						'transfer_id'  => $state['transfer']['transfer_id'],
 						// A receiver that does not know file languages refuses unknown keys.
-						'metadata'     => array_diff_key( $state['metadata'], ( ! empty( $access['media_language'] ) ? [] : [ 'pll' => true ] ) + ( ! empty( $access['upload_subdir'] ) ? [] : [ 'upload_subdir' => true ] ) ),
+						'metadata'     => array_diff_key( $state['metadata'], ( ! empty( $access['media_language'] ) ? array() : array( 'pll' => true ) ) + ( ! empty( $access['upload_subdir'] ) ? array() : array( 'upload_subdir' => true ) ) ),
 						'envelope'     => $state['envelope'],
 						'defer_fields' => false,
-					] + ( ! empty( $access['bounded_metadata'] ) ? [ 'bounded_metadata' => true ] : [] )
+					) + ( ! empty( $access['bounded_metadata'] ) ? array( 'bounded_metadata' => true ) : array() )
 				);
 				if ( is_wp_error( $result ) ) {
 					return $result; }
-				if ( ! empty( $access['bounded_metadata'] ) && [ 'pending' => true ] === $result ) {
+				if ( ! empty( $access['bounded_metadata'] ) && array( 'pending' => true ) === $result ) {
 					break;
 				}
-				foreach ( [
+				foreach ( array(
 					'acf_media_fields_version'     => 'acf_media_fields_version',
 					'acf_attachment_media_version' => 'acf_attachment_media_version',
 					'media_authors'                => 'media_authors_version',
 					'acf_attachment_users'         => 'acf_attachment_users_version',
 					'acf_attachment_terms'         => 'acf_attachment_terms_version',
-				] as $key => $version ) {
+				) as $key => $version ) {
 					if ( isset( $state['envelope'][ $key ] ) && 1 !== ( $result[ $version ] ?? null ) ) {
 						return $this->error(); }
 				}
-				$result = array_intersect_key( $result, array_flip( [ 'created', 'skipped', 'failed', 'items' ] ) );
+				$result = array_intersect_key( $result, array_flip( array( 'created', 'skipped', 'failed', 'items' ) ) );
 				if ( is_wp_error( rest_validate_value_from_schema( $result, Media_Library_Catalog::definitions()['sync-media-push']['output'] ) ) || 1 !== count( $result['items'] ) || $result['items'][0]['source_id'] !== $id || 1 !== $result['created'] + $result['skipped'] + $result['failed'] ) {
 					return $this->error(); }
 				$item = $result['items'][0];
@@ -164,13 +167,13 @@ class Media_Chunk_Push {
 				$site_id,
 				'push',
 				$fingerprint,
-				[
+				array(
 					'action'     => 'begin',
 					'request_id' => $state['request_id'],
 					'file_name'  => $s['file_name'],
 					'size'       => $s['size'],
 					'sha256'     => $s['sha256'],
-				]
+				)
 			);
 			if ( is_wp_error( $result ) ) {
 				return $result; }
@@ -185,10 +188,10 @@ class Media_Chunk_Push {
 				$site_id,
 				'push',
 				$fingerprint,
-				[
+				array(
 					'action'      => 'discard',
 					'transfer_id' => $state['transfer']['transfer_id'],
-				]
+				)
 			);
 			if ( is_wp_error( $result ) ) {
 				return $result; }
@@ -208,6 +211,6 @@ class Media_Chunk_Push {
 	}
 
 	private function error() {
-		return new \WP_Error( 'rsl_ie_media_chunk_checkpoint', __( 'The media transfer checkpoint or peer response is invalid.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+		return new \WP_Error( 'rsl_ie_media_chunk_checkpoint', __( 'The media transfer checkpoint or peer response is invalid.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 	}
 }

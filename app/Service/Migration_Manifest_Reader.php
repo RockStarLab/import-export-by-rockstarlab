@@ -127,7 +127,7 @@ class Migration_Manifest_Reader {
 			$decoded = base64_decode( rtrim( $line, "\n" ), true );
 			if ( false === $decoded ) {
 				throw new \RuntimeException( __( 'Invalid manifest spool.', 'import-export-by-rockstarlab' ) ); }
-			yield unserialize( $decoded, [ 'allowed_classes' => false ] );
+			yield unserialize( $decoded, array( 'allowed_classes' => false ) );
 		}
 		if ( ! feof( $this->steps_stream ) ) {
 			throw new \RuntimeException( __( 'Cannot read manifest spool.', 'import-export-by-rockstarlab' ) ); }

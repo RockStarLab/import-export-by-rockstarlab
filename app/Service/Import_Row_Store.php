@@ -7,7 +7,7 @@ class Import_Row_Store {
 	/** Replace unpublished rows while the import job lock is held. */
 	public static function reset( $job_id ) {
 		global $wpdb;
-		return false !== $wpdb->delete( $wpdb->prefix . 'rsl_ie_import_rows', [ 'job_id' => $job_id ], [ '%d' ] ) ? true : self::error();
+		return false !== $wpdb->delete( $wpdb->prefix . 'rsl_ie_import_rows', array( 'job_id' => $job_id ), array( '%d' ) ) ? true : self::error();
 	}
 	/** Store a prepared slice before publishing its count. */
 	public static function append( $job_id, $offset, array $rows ) {
@@ -18,13 +18,13 @@ class Import_Row_Store {
 				return self::error(); }
 			if ( false === $wpdb->insert(
 				$wpdb->prefix . 'rsl_ie_import_rows',
-				[
+				array(
 					'job_id'  => $job_id,
 					'ordinal' => $offset++,
 					'digest'  => hash( 'sha256', $json ),
 					'payload' => $json,
-				],
-				[ '%d', '%d', '%s', '%s' ]
+				),
+				array( '%d', '%d', '%s', '%s' )
 			) ) {
 				return self::error(); }
 		}
@@ -58,7 +58,7 @@ class Import_Row_Store {
 		$committed = false;
 		try {
 			$job = $wpdb->get_row( $wpdb->prepare( 'SELECT parameters,status FROM %i WHERE id=%d FOR UPDATE', $jobs, $job_id ) );
-			if ( ! $job || ! in_array( $job->status, [ 'pending', 'processing' ], true ) || $job->parameters !== $expected_parameters ) {
+			if ( ! $job || ! in_array( $job->status, array( 'pending', 'processing' ), true ) || $job->parameters !== $expected_parameters ) {
 				return self::error(); }
 			$bounds = $wpdb->get_row( $wpdb->prepare( 'SELECT COUNT(*) AS count_rows,MIN(ordinal) AS first_row,MAX(ordinal) AS last_row FROM %i WHERE job_id=%d', $storage, $job_id ) );
 			if ( ! $bounds || (int) $bounds->count_rows !== $offset || ( $offset && ( 0 !== (int) $bounds->first_row || $offset - 1 !== (int) $bounds->last_row ) ) ) {
@@ -66,7 +66,7 @@ class Import_Row_Store {
 			$saved = self::append( $job_id, $offset, $rows );
 			if ( is_wp_error( $saved ) ) {
 				return $saved; }
-			if ( false === $wpdb->update( $jobs, [ 'parameters' => $json ], [ 'id' => $job_id ], [ '%s' ], [ '%d' ] ) ) {
+			if ( false === $wpdb->update( $jobs, array( 'parameters' => $json ), array( 'id' => $job_id ), array( '%s' ), array( '%d' ) ) ) {
 				return self::error(); }
 			if ( false === $wpdb->query( 'COMMIT' ) ) {
 				return self::error(); }
@@ -85,11 +85,11 @@ class Import_Row_Store {
 		global $wpdb;
 		$expected = min( $limit, max( 0, $count - $offset ) );
 		if ( ! $expected ) {
-			return []; }
+			return array(); }
 		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT ordinal,digest,payload FROM %i WHERE job_id=%d AND ordinal>=%d AND ordinal<%d ORDER BY ordinal', $wpdb->prefix . 'rsl_ie_import_rows', $job_id, $offset, $offset + $expected ), ARRAY_A );
 		if ( $wpdb->last_error || count( $rows ) !== $expected ) {
 			return self::error(); }
-		$result = [];
+		$result = array();
 		foreach ( $rows as $row ) {
 			if ( (int) $row['ordinal'] !== $offset++ || ! hash_equals( $row['digest'], hash( 'sha256', $row['payload'] ) ) ) {
 				return self::error(); }
@@ -106,7 +106,7 @@ class Import_Row_Store {
 			return self::error(); }
 		$expected = min( $limit, max( 0, $count - $offset ) );
 		if ( ! $expected ) {
-			return []; }
+			return array(); }
 		global $wpdb;
 		$sizes = $wpdb->get_results( $wpdb->prepare( 'SELECT ordinal,OCTET_LENGTH(payload) AS bytes FROM %i WHERE job_id=%d AND ordinal>=%d AND ordinal<%d ORDER BY ordinal', $wpdb->prefix . 'rsl_ie_import_rows', $job_id, $offset, $offset + $expected ), ARRAY_A );
 		if ( $wpdb->last_error || count( $sizes ) !== $expected ) {
@@ -125,7 +125,7 @@ class Import_Row_Store {
 	}
 
 	public static function all( $job_id, $count ) {
-		$result = [];
+		$result = array();
 		for ( $offset = 0; $offset < $count; $offset += 100 ) {
 			$rows = self::read( $job_id, $count, $offset, 100 );
 			if ( is_wp_error( $rows ) ) {
@@ -136,6 +136,6 @@ class Import_Row_Store {
 		return $result;
 	}
 	private static function error() {
-		return new \WP_Error( 'rsl_ie_import_rows_unavailable', __( 'Prepared import rows are unavailable or changed.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+		return new \WP_Error( 'rsl_ie_import_rows_unavailable', __( 'Prepared import rows are unavailable or changed.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 	}
 }

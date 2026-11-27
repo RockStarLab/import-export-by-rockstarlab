@@ -9,9 +9,9 @@ defined( 'ABSPATH' ) || exit;
 /** The caller must persist returned state before scheduling another step. */
 class Media_Chunk_Pull {
 	/** Execute one step. State and request identity must come from the owning job. */
-	public function advance( $site_id, $fingerprint, $request_id, array $input, array $state = [] ) {
+	public function advance( $site_id, $fingerprint, $request_id, array $input, array $state = array() ) {
 		$media  = new Media_Library_Sync_Service();
-		$access = $media->preflight( 'pull', [ 'site_id' => $site_id ] + $input, true );
+		$access = $media->preflight( 'pull', array( 'site_id' => $site_id ) + $input, true );
 		if ( is_wp_error( $access ) ) {
 			return $access; }
 		if ( ! is_string( $request_id ) || ! preg_match( '/^[A-Za-z0-9_-]{16,128}$/D', $request_id ) || ! is_array( $input['media_ids'] ?? null ) || 1 !== count( $input['media_ids'] ) || ! is_int( $input['media_ids'][0] ?? null ) ) {
@@ -21,34 +21,35 @@ class Media_Chunk_Pull {
 		if ( is_wp_error( $graph ) ) {
 			return $graph; }
 		$input   += $graph;
-		$identity = hash( 'sha256', wp_json_encode( [ $site_id, $fingerprint, $request_id, $input ] ) );
+		$identity = hash( 'sha256', wp_json_encode( array( $site_id, $fingerprint, $request_id, $input ) ) );
 		if ( $state && ( $state['identity'] ?? null ) !== $identity ) {
 			return $this->error(); }
 		$access = $state['capabilities'] ?? $media->negotiate_chunks( $site_id, 'pull', $fingerprint );
-		if ( is_wp_error( $access ) ) { return $access; }
+		if ( is_wp_error( $access ) ) {
+			return $access; }
 		$state['capabilities'] = $access;
-		$state += [
+		$state                += array(
 			'identity'   => $identity,
 			'request_id' => $request_id,
 			'phase'      => 'snapshot',
-		];
-		$call   = static function ( $payload ) use ( $media, $site_id, $fingerprint ) {
+		);
+		$call                  = static function ( $payload ) use ( $media, $site_id, $fingerprint ) {
 			return $media->chunk_request( $site_id, 'pull', $fingerprint, $payload );
 		};
 		switch ( $state['phase'] ) {
 			case 'snapshot':
 				$snapshot = isset( $state['snapshot'] ) ? $call(
-					[
+					array(
 						'action'      => 'advance-snapshot',
 						'snapshot_id' => $state['snapshot']['snapshot_id'],
-					]
+					)
 				) : $call(
-					[
+					array(
 						'action'        => 'snapshot',
 						'attachment_id' => $id,
 						'request_id'    => $request_id,
 						'bounded'       => true,
-					]
+					)
 				);
 				if ( is_wp_error( $snapshot ) ) {
 					return $snapshot; }
@@ -60,11 +61,11 @@ class Media_Chunk_Pull {
 				break;
 			case 'metadata':
 				$payload = $call(
-					[
+					array(
 						'action'      => 'prepare-snapshot',
 						'snapshot_id' => $state['snapshot']['snapshot_id'],
 						'input'       => $input,
-					]
+					)
 				);
 				if ( is_wp_error( $payload ) ) {
 					return $payload; }
@@ -90,11 +91,11 @@ class Media_Chunk_Pull {
 			case 'append':
 				$t     = $state['transfer'];
 				$slice = $call(
-					[
+					array(
 						'action'      => 'read-snapshot',
 						'snapshot_id' => $state['snapshot']['snapshot_id'],
 						'offset'      => $t['offset'],
-					]
+					)
 				);
 				if ( is_wp_error( $slice ) ) {
 					return $slice; }
@@ -116,20 +117,20 @@ class Media_Chunk_Pull {
 				$result = $media->receive_staged_file( $state['transfer']['transfer_id'], $state['metadata'], 'local', false, $state['envelope'], true );
 				if ( is_wp_error( $result ) ) {
 					return $result; }
-				if ( [ 'pending' => true ] === $result ) {
+				if ( array( 'pending' => true ) === $result ) {
 					break;
 				}
-				foreach ( [
+				foreach ( array(
 					'acf_media_fields_version'     => 'acf_media_fields_version',
 					'acf_attachment_media_version' => 'acf_attachment_media_version',
 					'media_authors'                => 'media_authors_version',
 					'acf_attachment_users'         => 'acf_attachment_users_version',
 					'acf_attachment_terms'         => 'acf_attachment_terms_version',
-				] as $key => $version ) {
+				) as $key => $version ) {
 					if ( isset( $state['envelope'][ $key ] ) && 1 !== ( $result[ $version ] ?? null ) ) {
 						return $this->error(); }
 				}
-				$result = array_intersect_key( $result, array_flip( [ 'created', 'skipped', 'failed', 'items' ] ) );
+				$result = array_intersect_key( $result, array_flip( array( 'created', 'skipped', 'failed', 'items' ) ) );
 				if ( is_wp_error( rest_validate_value_from_schema( $result, Media_Library_Catalog::definitions()['sync-media-pull']['output'] ) ) || 1 !== count( $result['items'] ) || $result['items'][0]['source_id'] !== $id || 1 !== $result['created'] + $result['skipped'] + $result['failed'] ) {
 					return $this->error(); }
 				$item = $result['items'][0];
@@ -173,10 +174,10 @@ class Media_Chunk_Pull {
 				$site_id,
 				'pull',
 				$fingerprint,
-				[
+				array(
 					'action'      => 'discard-snapshot',
 					'snapshot_id' => $state['snapshot']['snapshot_id'],
-				]
+				)
 			);
 			if ( is_wp_error( $result ) ) {
 				return $result; }
@@ -187,7 +188,7 @@ class Media_Chunk_Pull {
 	}
 
 	private function snapshot_valid( array $s, $id, $previous ) {
-		if ( ! File_Store::valid_id( $s['snapshot_id'] ?? null ) || ( $s['attachment_id'] ?? null ) !== $id || ! is_string( $s['file_name'] ?? null ) || sanitize_file_name( $s['file_name'] ) !== $s['file_name'] || ! is_int( $s['size'] ?? null ) || $s['size'] < 1 || ! $this->progress( [ 'transfer_id' => $s['snapshot_id'] ] + $s, $s['size'] ) ) {
+		if ( ! File_Store::valid_id( $s['snapshot_id'] ?? null ) || ( $s['attachment_id'] ?? null ) !== $id || ! is_string( $s['file_name'] ?? null ) || sanitize_file_name( $s['file_name'] ) !== $s['file_name'] || ! is_int( $s['size'] ?? null ) || $s['size'] < 1 || ! $this->progress( array( 'transfer_id' => $s['snapshot_id'] ) + $s, $s['size'] ) ) {
 			return false; }
 		if ( $s['ready'] && ( ! is_string( $s['sha256'] ?? null ) || ! preg_match( '/^[a-f0-9]{64}$/D', $s['sha256'] ) ) ) {
 			return false; }
@@ -211,7 +212,7 @@ class Media_Chunk_Pull {
 	private function metadata_valid( array $payload, array $snapshot, array $input ) {
 		if ( ! is_array( $payload['media'] ?? null ) || count( $payload['media'] ) !== 1 ) {
 			return false; }
-		$item = $payload['media'][0] ?? [];
+		$item = $payload['media'][0] ?? array();
 		if ( ( $item['attachment_id'] ?? null ) !== $snapshot['attachment_id'] || ( $item['file_size'] ?? null ) !== $snapshot['size'] || ( $item['file_sha256'] ?? null ) !== $snapshot['sha256'] || ( $item['file_name'] ?? null ) !== $snapshot['file_name'] ) {
 			return false; }
 		if ( isset( $input['acf_graph_hashes'] ) ) {
@@ -219,11 +220,11 @@ class Media_Chunk_Pull {
 				return false; }
 		} elseif ( isset( $payload['acf_graph_hashes'] ) || isset( $payload['acf_media_fields_version'] ) || isset( $payload['acf_attachment_media_version'] ) ) {
 			return false; }
-		foreach ( [
+		foreach ( array(
 			'author_mapping'   => 'media_authors',
 			'acf_user_mapping' => 'acf_attachment_users',
 			'acf_term_mapping' => 'acf_attachment_terms',
-		] as $option => $key ) {
+		) as $option => $key ) {
 			if ( isset( $input[ $option ] ) && ( 1 !== ( $payload[ $key ]['version'] ?? null ) || ( $payload[ $key ]['mapping'] ?? null ) !== $input[ $option ] ) ) {
 				return false; }
 			if ( ! isset( $input[ $option ] ) && isset( $payload[ $key ] ) ) {
@@ -237,6 +238,6 @@ class Media_Chunk_Pull {
 	}
 
 	private function error() {
-		return new \WP_Error( 'rsl_ie_media_chunk_checkpoint', __( 'The media transfer checkpoint or peer response is invalid.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+		return new \WP_Error( 'rsl_ie_media_chunk_checkpoint', __( 'The media transfer checkpoint or peer response is invalid.', 'import-export-by-rockstarlab' ), array( 'status' => 409 ) );
 	}
 }
