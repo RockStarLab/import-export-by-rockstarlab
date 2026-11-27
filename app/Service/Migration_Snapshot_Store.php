@@ -18,6 +18,7 @@ class Migration_Snapshot_Store {
 		$hash   = hash( 'sha256', $json );
 		$table  = $wpdb->prefix . 'rsl_ie_migration_snapshots';
 		$update = in_array( $family, [ 'woo_rows', 'woo_map' ], true ) ? 'digest=digest' : 'digest=VALUES(digest),payload=VALUES(payload)';
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $update is one of two fixed literals chosen above.
 		$saved  = $wpdb->query( $wpdb->prepare( 'INSERT INTO %i (job_id,family,batch_index,digest,payload) VALUES (%d,%s,%d,%s,%s) ON DUPLICATE KEY UPDATE ' . $update, $table, $job_id, $family, $index, $hash, $json ) );
 		if ( false === $saved ) {
 			return self::error();

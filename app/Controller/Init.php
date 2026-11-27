@@ -1575,9 +1575,11 @@ class Init {
 	private function get_current_taxonomy_from_request() {
 		$taxonomy = filter_input( INPUT_GET, 'taxonomy', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only screen detection; no state is changed.
 		if ( ! is_string( $taxonomy ) && isset( $_GET['taxonomy'] ) ) {
 			$taxonomy = sanitize_text_field( wp_unslash( $_GET['taxonomy'] ) );
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		return is_string( $taxonomy ) ? sanitize_key( wp_unslash( $taxonomy ) ) : '';
 	}
@@ -1588,7 +1590,7 @@ class Init {
 		 * @return void
 		 */
 	private function load_comment_quick_action_assets() {
-		$comment_type = isset( $_GET['comment_type'] ) ? sanitize_key( wp_unslash( $_GET['comment_type'] ) ) : '';
+		$comment_type = isset( $_GET['comment_type'] ) ? sanitize_key( wp_unslash( $_GET['comment_type'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen detection.
 		if ( 'review' === $comment_type ) {
 			return;
 		}

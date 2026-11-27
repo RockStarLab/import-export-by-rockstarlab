@@ -308,11 +308,11 @@ class Site_Migration_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		if ( empty( $_FILES['file'] ) || ! is_array( $_FILES['file'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		if ( empty( $_FILES['file'] ) || ! is_array( $_FILES['file'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Request verified by verify_request() above.
 			$this->send_error( __( 'No file uploaded.', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
-		$file = $this->sanitize_file_upload( wp_unslash( $_FILES['file'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$file = $this->sanitize_file_upload( wp_unslash( $_FILES['file'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized by sanitize_file_upload(); request verified above.
 		if ( is_wp_error( $file ) ) {
 			$this->send_error( $file, null, 400 );
 		}

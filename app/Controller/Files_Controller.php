@@ -32,14 +32,14 @@ class Files_Controller {
 	 * File_Service rechecks current capabilities, site and export permissions.
 	 */
 	public function browser_download() {
-		$method = $_SERVER['REQUEST_METHOD'] ?? '';
+		$method = isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '';
 		if ( ! in_array( $method, [ 'GET', 'HEAD' ], true ) ) {
 			header( 'Allow: GET, HEAD' );
 			wp_die( esc_html__( 'Use GET to download an export.', 'import-export-by-rockstarlab' ), '', [ 'response' => 405 ] );
 		}
 		auth_redirect();
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only download; authentication and service authorization are required.
-		$id  = isset( $_GET['file_id'] ) && is_string( $_GET['file_id'] ) ? wp_unslash( $_GET['file_id'] ) : '';
+		$id  = isset( $_GET['file_id'] ) && is_string( $_GET['file_id'] ) ? sanitize_text_field( wp_unslash( $_GET['file_id'] ) ) : '';
 		$zip = isset( $_GET['zip'] ) && is_string( $_GET['zip'] ) && rest_sanitize_boolean( wp_unslash( $_GET['zip'] ) );
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 		$result = ( new File_Service() )->download( $id, $zip );
