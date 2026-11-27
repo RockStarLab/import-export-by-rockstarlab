@@ -21,12 +21,12 @@ class Schema_Registry {
 	 * @return array
 	 */
 	public static function object( array $properties ) {
-		return [
+		return array(
 			'type'                 => 'object',
 			'properties'           => $properties,
 			'required'             => array_keys( $properties ),
 			'additionalProperties' => false,
-		];
+		);
 	}
 
 	/**
@@ -35,10 +35,10 @@ class Schema_Registry {
 	 * @return array
 	 */
 	public static function strings() {
-		return [
+		return array(
 			'type'  => 'array',
-			'items' => [ 'type' => 'string' ],
-		];
+			'items' => array( 'type' => 'string' ),
+		);
 	}
 
 	/**
@@ -47,11 +47,11 @@ class Schema_Registry {
 	 * @return array
 	 */
 	public static function empty_input() {
-		return [
+		return array(
 			'type'                 => 'object',
 			'default'              => new \stdClass(),
 			'additionalProperties' => false,
 			'maxProperties'        => 0,
-		];
+		);
 	}
 }

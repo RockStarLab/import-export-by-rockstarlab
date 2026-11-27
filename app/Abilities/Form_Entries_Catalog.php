@@ -19,59 +19,59 @@ class Form_Entries_Catalog {
 	public static function definitions() {
 		$s    = Workflow_Schemas::string();
 		$n    = Workflow_Schemas::integer();
-		$b    = [ 'type' => 'boolean' ];
+		$b    = array( 'type' => 'boolean' );
 		$form = Workflow_Schemas::object(
-			[
+			array(
 				'source'  => $s,
 				'form_id' => $n,
 				'title'   => $s,
 				'active'  => $b,
 				'entries' => $n,
-			],
-			[ 'source', 'form_id', 'title', 'entries' ]
+			),
+			array( 'source', 'form_id', 'title', 'entries' )
 		);
-		$list = [
-			'form-entry-forms'  => [
+		$list = array(
+			'form-entry-forms'  => array(
 				'List forms whose entries can be exported: Gravity Forms forms (source gravityforms, form_id = form ID) and Contact Form 7 forms stored by Flamingo (source flamingo, form_id = the Flamingo channel ID). entries counts active entries (not spam or trash). Export them with export-count/export-preview/export-start, export_type form_entries and options {form_source, form_id}.',
 				Schema_Registry::empty_input(),
 				Workflow_Schemas::object(
-					[
+					array(
 						'sources' => Workflow_Schemas::items( $s, 5 ),
 						'forms'   => Workflow_Schemas::items( $form, 500 ),
-					],
-					[ 'sources', 'forms' ]
+					),
+					array( 'sources', 'forms' )
 				),
-			],
-			'form-entry-fields' => [
+			),
+			'form-entry-fields' => array(
 				'Read the columns of one form: entry_id, date_created (site time), status (active, spam, trash), for Flamingo subject/from_name/from_email, the form fields under their labels, then source_url, ip, user_agent and user. default_fields leave out ip, user_agent and user. Exported files use the labels as column titles (Entry ID, Date, Status, Page URL...) unless options.column_headers says otherwise. Use the column names in fields and in filters (form fields: equals, not_equals, contains, not_contains; date_created: greater, less, equals_or_greater, equals_or_less, between; status: equals one value).',
 				Workflow_Schemas::object(
-					[
-						'form_source' => Workflow_Schemas::string( [ 'gravityforms', 'flamingo' ] ),
+					array(
+						'form_source' => Workflow_Schemas::string( array( 'gravityforms', 'flamingo' ) ),
 						'form_id'     => Workflow_Schemas::integer( 1 ),
-					],
-					[ 'form_source', 'form_id' ]
+					),
+					array( 'form_source', 'form_id' )
 				),
 				Workflow_Schemas::object(
-					[
+					array(
 						'fields'         => Workflow_Schemas::items(
 							Workflow_Schemas::object(
-								[
+								array(
 									'name'  => $s,
 									'label' => $s,
-								],
-								[ 'name', 'label' ]
+								),
+								array( 'name', 'label' )
 							),
 							500
 						),
 						'default_fields' => Workflow_Schemas::items( $s, 500 ),
-					],
-					[ 'fields', 'default_fields' ]
+					),
+					array( 'fields', 'default_fields' )
 				),
-			],
-		];
-		$out  = [];
+			),
+		);
+		$out  = array();
 		foreach ( $list as $key => $contract ) {
-			$out[ $key ] = [
+			$out[ $key ] = array(
 				'label'       => ucwords( str_replace( '-', ' ', $key ) ),
 				'description' => $contract[0],
 				'input'       => $contract[1],
@@ -79,7 +79,7 @@ class Form_Entries_Catalog {
 				'readonly'    => true,
 				'destructive' => false,
 				'idempotent'  => true,
-			];
+			);
 		}
 		return $out;
 	}

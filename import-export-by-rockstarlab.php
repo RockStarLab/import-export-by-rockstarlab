@@ -181,11 +181,11 @@ add_action(
 		}
 		$fs = rsl_ie_fs();
 		if ( ! $fs->is_registered() && ! $fs->is_anonymous() && ! $fs->is_pending_activation() ) {
-			$fs->skip_connection( [ get_current_blog_id() ] );
+			$fs->skip_connection( array( get_current_blog_id() ) );
 		}
 	},
 	1
 );
 
 // Deactivation hook - cleanup
-register_deactivation_hook( RSL_IE_FILE, [ '\RockStarLab\ImportExport\App', 'deactivate_cleanup' ] );
+register_deactivation_hook( RSL_IE_FILE, array( '\RockStarLab\ImportExport\App', 'deactivate_cleanup' ) );

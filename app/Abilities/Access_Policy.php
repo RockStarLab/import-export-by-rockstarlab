@@ -23,12 +23,12 @@ class Access_Policy {
 	 * @return true|\WP_Error
 	 */
 	public static function check_transformations( array $groups ) {
-		$ids = [];
+		$ids = array();
 		foreach ( $groups as $group ) {
 			foreach ( (array) $group as $id ) {
 				$id = is_array( $id ) ? ( $id['id'] ?? '' ) : $id;
 				if ( ! is_scalar( $id ) || '' === (string) $id ) {
-					return new \WP_Error( 'rsl_ie_invalid_transformation', __( 'Invalid field transformation.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+					return new \WP_Error( 'rsl_ie_invalid_transformation', __( 'Invalid field transformation.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 				}
 				$ids[] = (string) $id;
 			}
@@ -47,7 +47,7 @@ class Access_Policy {
 		 * @param array $ids Unique requested IDs.
 		 */
 		$result = apply_filters( 'rsl_ie_ability_authorize_transformations', null, array_values( array_unique( $ids ) ) );
-		return true === $result || is_wp_error( $result ) ? $result : new \WP_Error( 'rsl_ie_transformations_unavailable', __( 'Requested field transformations require an available PRO provider.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
+		return true === $result || is_wp_error( $result ) ? $result : new \WP_Error( 'rsl_ie_transformations_unavailable', __( 'Requested field transformations require an available PRO provider.', 'import-export-by-rockstarlab' ), array( 'status' => 403 ) );
 	}
 
 	/**
@@ -58,13 +58,13 @@ class Access_Policy {
 	 * @param array  $context   Normalized options, parsed records and target IDs.
 	 * @return array|\WP_Error Canonical type and edition, or a failure.
 	 */
-	public static function check_content_type( $type, $operation, array $context = [] ) {
+	public static function check_content_type( $type, $operation, array $context = array() ) {
 		$permission = self::check_management();
 		if ( is_wp_error( $permission ) ) {
 			return $permission;
 		}
 		if ( ! is_string( $type ) || ! is_string( $operation ) ) {
-			return new \WP_Error( 'rsl_ie_invalid_type', __( 'A content type and operation are required.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+			return new \WP_Error( 'rsl_ie_invalid_type', __( 'A content type and operation are required.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 		}
 		$type      = strtolower( trim( $type ) );
 		$provider  = new Free_Content_Provider();
@@ -74,10 +74,10 @@ class Access_Policy {
 			if ( is_wp_error( $permission ) ) {
 				return $permission;
 			}
-			return [
+			return array(
 				'type'    => $canonical,
 				'edition' => 'free',
-			];
+			);
 		}
 
 		/**
@@ -94,7 +94,7 @@ class Access_Policy {
 		if ( is_wp_error( $result ) || ( is_array( $result ) && ! empty( $result['type'] ) && ! empty( $result['edition'] ) ) ) {
 			return $result;
 		}
-		return new \WP_Error( 'rsl_ie_unsupported_content_type', __( 'No available provider supports this content type.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+		return new \WP_Error( 'rsl_ie_unsupported_content_type', __( 'No available provider supports this content type.', 'import-export-by-rockstarlab' ), array( 'status' => 400 ) );
 	}
 
 	/**
@@ -107,7 +107,7 @@ class Access_Policy {
 			return new \WP_Error(
 				'rsl_ie_forbidden',
 				__( 'You do not have permission to use the plugin API.', 'import-export-by-rockstarlab' ),
-				[ 'status' => 403 ]
+				array( 'status' => 403 )
 			);
 		}
 		return true;
@@ -132,7 +132,7 @@ class Access_Policy {
 			return new \WP_Error(
 				'rsl_ie_resource_unavailable',
 				__( 'This resource is not available in the current site context.', 'import-export-by-rockstarlab' ),
-				[ 'status' => 404 ]
+				array( 'status' => 404 )
 			);
 		}
 		return true;
@@ -154,7 +154,7 @@ class Access_Policy {
 			return new \WP_Error(
 				'rsl_ie_object_forbidden',
 				__( 'You do not have permission to access this object.', 'import-export-by-rockstarlab' ),
-				[ 'status' => 403 ]
+				array( 'status' => 403 )
 			);
 		}
 		return true;

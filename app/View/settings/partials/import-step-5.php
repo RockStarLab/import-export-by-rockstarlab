@@ -95,7 +95,7 @@ $rsl_ie_current_site_url = \RockStarLab\ImportExport\Helper\Site_URL::current_re
 				<td>
 					<select id="rsl-ie-default-taxonomy" name="default_taxonomy">
 						<?php
-						$rsl_ie_taxonomies = get_taxonomies( [ 'show_ui' => true ], 'objects' );
+						$rsl_ie_taxonomies = get_taxonomies( array( 'show_ui' => true ), 'objects' );
 						$rsl_ie_default    = isset( $rsl_ie_taxonomies['product_cat'] ) ? 'product_cat' : 'category';
 						foreach ( $rsl_ie_taxonomies as $rsl_ie_tax ) {
 							printf( '<option value="%1$s"%3$s>%2$s (%1$s)</option>', esc_attr( $rsl_ie_tax->name ), esc_html( $rsl_ie_tax->labels->name ), selected( $rsl_ie_tax->name, $rsl_ie_default, false ) );

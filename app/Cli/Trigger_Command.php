@@ -53,7 +53,7 @@ class Trigger_Command {
 	 */
 	public function list_( $args, $assoc ) {
 		Cli_Helper::require_admin();
-		$rows   = (array) ( Cli_Helper::call( 'rsl-ie/trigger-list' )['triggers'] ?? [] );
+		$rows   = (array) ( Cli_Helper::call( 'rsl-ie/trigger-list' )['triggers'] ?? array() );
 		$format = $assoc['format'] ?? 'table';
 		if ( 'ids' === $format ) {
 			WP_CLI::line( implode( ' ', wp_list_pluck( $rows, 'trigger_id' ) ) );
@@ -100,7 +100,7 @@ class Trigger_Command {
 	 */
 	public function run( $args, $assoc ) {
 		Cli_Helper::require_admin();
-		$started = Cli_Helper::call( 'rsl-ie/trigger-run', [ 'trigger_id' => (string) $args[0] ] );
+		$started = Cli_Helper::call( 'rsl-ie/trigger-run', array( 'trigger_id' => (string) $args[0] ) );
 		$job_id  = (int) ( $started['job_id'] ?? 0 );
 		if ( ! $job_id ) {
 			WP_CLI::error( 'The trigger did not start a job.' );
@@ -132,8 +132,8 @@ class Trigger_Command {
 	 */
 	public function log( $args, $assoc ) {
 		Cli_Helper::require_admin();
-		$rows   = (array) ( Cli_Helper::call( 'rsl-ie/trigger-log' )['entries'] ?? [] );
-		$fields = [ 'time', 'trigger_id', 'name', 'reason', 'ok', 'job_id', 'detail' ];
+		$rows   = (array) ( Cli_Helper::call( 'rsl-ie/trigger-log' )['entries'] ?? array() );
+		$fields = array( 'time', 'trigger_id', 'name', 'reason', 'ok', 'job_id', 'detail' );
 		WP_CLI\Utils\format_items( $assoc['format'] ?? 'table', Cli_Helper::rows( $rows, $fields ), $fields );
 	}
 }

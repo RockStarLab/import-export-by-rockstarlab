@@ -18,13 +18,13 @@ class Workflow_Schemas {
 	 * @param array $required Required property names.
 	 * @return array
 	 */
-	public static function object( array $properties, array $required = [] ) {
-		return [
+	public static function object( array $properties, array $required = array() ) {
+		return array(
 			'type'                 => 'object',
 			'properties'           => $properties,
 			'required'             => $required,
 			'additionalProperties' => false,
-		];
+		);
 	}
 	/**
 	 * Bounded list.
@@ -34,11 +34,11 @@ class Workflow_Schemas {
 	 * @return array
 	 */
 	public static function items( array $items, $max = 1000 ) {
-		return [
+		return array(
 			'type'     => 'array',
 			'items'    => $items,
 			'maxItems' => $max,
-		];
+		);
 	}
 	/**
 	 * String or enumerated string.
@@ -46,11 +46,11 @@ class Workflow_Schemas {
 	 * @param array $values Optional values.
 	 * @return array
 	 */
-	public static function string( array $values = [] ) {
-		return $values ? [
+	public static function string( array $values = array() ) {
+		return $values ? array(
 			'type' => 'string',
 			'enum' => $values,
-		] : [ 'type' => 'string' ];
+		) : array( 'type' => 'string' );
 	}
 	/**
 	 * Bounded integer.
@@ -60,11 +60,11 @@ class Workflow_Schemas {
 	 * @return array
 	 */
 	public static function integer( $min = 0, $max = PHP_INT_MAX ) {
-		return [
+		return array(
 			'type'    => 'integer',
 			'minimum' => $min,
 			'maximum' => $max,
-		];
+		);
 	}
 	/**
 	 * JSON content value; preserves nested ACF/meta data.
@@ -72,7 +72,7 @@ class Workflow_Schemas {
 	 * @return array
 	 */
 	public static function value() {
-		return [ 'type' => [ 'string', 'number', 'integer', 'boolean', 'object', 'array', 'null' ] ];
+		return array( 'type' => array( 'string', 'number', 'integer', 'boolean', 'object', 'array', 'null' ) );
 	}
 	/**
 	 * Opaque file identity.
@@ -80,10 +80,10 @@ class Workflow_Schemas {
 	 * @return array
 	 */
 	public static function file_id() {
-		return [
+		return array(
 			'type'    => 'string',
 			'pattern' => '^file_[a-f0-9]{32}$',
-		];
+		);
 	}
 	/**
 	 * Durable client request identity.
@@ -91,12 +91,12 @@ class Workflow_Schemas {
 	 * @return array
 	 */
 	public static function request_id() {
-		return [
+		return array(
 			'type'      => 'string',
 			'minLength' => 1,
 			'maxLength' => 128,
 			'pattern'   => '^[A-Za-z0-9][A-Za-z0-9._:-]*$',
-		];
+		);
 	}
 	/**
 	 * Parser choices, with no caller-supplied path.
@@ -105,18 +105,18 @@ class Workflow_Schemas {
 	 */
 	public static function parser() {
 		return self::object(
-			[
-				'delimiter'  => [
+			array(
+				'delimiter'  => array(
 					'type'      => 'string',
 					'minLength' => 1,
 					'maxLength' => 1,
-				],
-				'has_header' => [ 'type' => 'boolean' ],
-				'encoding'   => [
+				),
+				'has_header' => array( 'type' => 'boolean' ),
+				'encoding'   => array(
 					'type' => 'string',
-					'enum' => [ 'auto', 'UTF-8', 'UTF-16LE', 'UTF-16BE', 'Windows-1250', 'Windows-1251', 'Windows-1252', 'ISO-8859-1', 'ISO-8859-2', 'ISO-8859-15' ],
-				],
-			]
+					'enum' => array( 'auto', 'UTF-8', 'UTF-16LE', 'UTF-16BE', 'Windows-1250', 'Windows-1251', 'Windows-1252', 'ISO-8859-1', 'ISO-8859-2', 'ISO-8859-15' ),
+				),
+			)
 		);
 	}
 	/**
@@ -126,28 +126,28 @@ class Workflow_Schemas {
 	 */
 	public static function mapping() {
 		$entry          = self::object(
-			[
-				'source_field'    => [
+			array(
+				'source_field'    => array(
 					'type'      => 'string',
 					'minLength' => 1,
-				],
+				),
 				'source_index'    => self::integer(),
-				'target_field'    => [
+				'target_field'    => array(
 					'type'      => 'string',
 					'minLength' => 1,
-				],
+				),
 				'function_ids'    => self::items(
-					[
-						'type'    => [ 'integer', 'string' ],
+					array(
+						'type'    => array( 'integer', 'string' ),
 						'pattern' => '^[A-Za-z0-9_-]+$',
-					],
+					),
 					100
 				),
-				'taxonomy_format' => self::string( [ 'name', 'slug', 'id' ] ),
-			],
-			[ 'target_field' ]
+				'taxonomy_format' => self::string( array( 'name', 'slug', 'id' ) ),
+			),
+			array( 'target_field' )
 		);
-		$entry['oneOf'] = [ [ 'required' => [ 'source_field' ] ], [ 'required' => [ 'source_index' ] ] ];
+		$entry['oneOf'] = array( array( 'required' => array( 'source_field' ) ), array( 'required' => array( 'source_index' ) ) );
 		return self::items( $entry );
 	}
 	/**
@@ -157,50 +157,50 @@ class Workflow_Schemas {
 	 */
 	public static function import_options() {
 		$s = self::string();
-		$b = [ 'type' => 'boolean' ];
-		$p = array_fill_keys( [ 'duplicate_check', 'unique_field', 'post_status', 'default_status' ], $s );
-		foreach ( [ 'duplicate_mode', 'duplicate_handling', 'if_exists' ] as $key ) {
-			$p[ $key ] = self::string( [ 'skip', 'update', 'create', 'ignore' ] ); }
-		$p['if_not_exists']        = self::string( [ 'create', 'skip' ] );
-		$p['post_type']            = self::string( [ 'post', 'page' ] );
+		$b = array( 'type' => 'boolean' );
+		$p = array_fill_keys( array( 'duplicate_check', 'unique_field', 'post_status', 'default_status' ), $s );
+		foreach ( array( 'duplicate_mode', 'duplicate_handling', 'if_exists' ) as $key ) {
+			$p[ $key ] = self::string( array( 'skip', 'update', 'create', 'ignore' ) ); }
+		$p['if_not_exists']        = self::string( array( 'create', 'skip' ) );
+		$p['post_type']            = self::string( array( 'post', 'page' ) );
 		$p['post_author']          = self::integer( 1 );
-		$p['comment_status']       = self::string( [ 'open', 'closed' ] );
+		$p['comment_status']       = self::string( array( 'open', 'closed' ) );
 		$p['ping_status']          = $p['comment_status'];
-		$p['default_type']         = self::string( [ 'comment', 'pingback', 'trackback' ] );
-		$p['media_duplicate_mode'] = self::string( [ 'skip', 'create', 'replace', 'update' ] );
-		$p                        += array_fill_keys( [ 'auto_import_media', 'update_existing', 'import_acf', 'validate_post_exists', 'skip_missing_posts', 'create_missing_posts', 'generate_thumbnails', 'replace_links', 'has_header' ], $b );
+		$p['default_type']         = self::string( array( 'comment', 'pingback', 'trackback' ) );
+		$p['media_duplicate_mode'] = self::string( array( 'skip', 'create', 'replace', 'update' ) );
+		$p                        += array_fill_keys( array( 'auto_import_media', 'update_existing', 'import_acf', 'validate_post_exists', 'skip_missing_posts', 'create_missing_posts', 'generate_thumbnails', 'replace_links', 'has_header' ), $b );
 		$p['batch_size']           = self::integer( 1, 500 );
 		$p['download_timeout']     = self::integer( 1, 300 );
 		$p['replace_links_rules']  = self::items(
 			self::object(
-				[
-					'search'  => [
+				array(
+					'search'  => array(
 						'type'      => 'string',
 						'minLength' => 1,
-					],
+					),
 					'replace' => $s,
-				],
-				[ 'search', 'replace' ]
+				),
+				array( 'search', 'replace' )
 			),
 			100
 		);
 		$p['row_filters']          = self::items(
 			self::object(
-				[
-					'field'    => [
+				array(
+					'field'    => array(
 						'type'        => 'string',
 						'minLength'   => 1,
 						'description' => 'Source column name (file header or parsed XML field).',
-					],
+					),
 					'operator' => self::string( \RockStarLab\ImportExport\Service\Import_Row_Filter::OPERATORS ),
 					'value'    => $s,
-				],
-				[ 'field', 'operator' ]
+				),
+				array( 'field', 'operator' )
 			),
 			20
 		);
-		$p['row_filters_match']    = self::string( [ 'all', 'any' ] );
-		$p['date_order']           = self::string( [ 'auto', 'dmy', 'mdy' ] );
+		$p['row_filters_match']    = self::string( array( 'all', 'any' ) );
+		$p['date_order']           = self::string( array( 'auto', 'dmy', 'mdy' ) );
 		return self::object( $p );
 	}
 	/**
@@ -210,15 +210,15 @@ class Workflow_Schemas {
 	 * @return array
 	 */
 	public static function import_input( $start = false ) {
-		$p        = [
+		$p        = array(
 			'file_id'     => self::file_id(),
-			'import_type' => self::string( [ 'post', 'page', 'comment', 'media' ] ),
+			'import_type' => self::string( array( 'post', 'page', 'comment', 'media' ) ),
 			'mapping'     => self::mapping(),
 			'options'     => self::import_options(),
 			'delimiter'   => self::parser()['properties']['delimiter'],
 			'encoding'    => self::parser()['properties']['encoding'],
-		];
-		$required = [ 'file_id', 'import_type', 'mapping' ];
+		);
+		$required = array( 'file_id', 'import_type', 'mapping' );
 		if ( $start ) {
 			$p['request_id'] = self::request_id();
 			$required[]      = 'request_id'; }
@@ -232,14 +232,14 @@ class Workflow_Schemas {
 	public static function filters() {
 		return self::items(
 			self::object(
-				[
+				array(
 					'field'     => self::string(),
 					'condition' => self::string(),
 					'value'     => self::value(),
 					'taxonomy'  => self::string(),
 					'type'      => self::string(),
-				],
-				[ 'field', 'condition' ]
+				),
+				array( 'field', 'condition' )
 			),
 			100
 		);
@@ -253,21 +253,21 @@ class Workflow_Schemas {
 	public static function query( $kind ) {
 		$s    = self::string();
 		$n    = self::integer();
-		$keys = 'meta' === $kind ? [
+		$keys = 'meta' === $kind ? array(
 			'key'     => $s,
 			'value'   => self::value(),
 			'compare' => $s,
 			'type'    => $s,
-		] : ( 'tax' === $kind ? [
+		) : ( 'tax' === $kind ? array(
 			'taxonomy'         => $s,
 			'field'            => $s,
 			'terms'            => self::value(),
 			'operator'         => $s,
-			'include_children' => [ 'type' => 'boolean' ],
-		] : [
+			'include_children' => array( 'type' => 'boolean' ),
+		) : array(
 			'after'     => self::value(),
 			'before'    => self::value(),
-			'inclusive' => [ 'type' => 'boolean' ],
+			'inclusive' => array( 'type' => 'boolean' ),
 			'column'    => $s,
 			'compare'   => $s,
 			'year'      => $n,
@@ -278,22 +278,22 @@ class Workflow_Schemas {
 			'second'    => $n,
 			'week'      => $n,
 			'dayofweek' => $n,
-		] );
+		) );
 		$leaf = self::object( $keys );
 		$node = $leaf;
 		for ( $depth = 0; $depth < 3; ++$depth ) {
-			$node = [
-				'anyOf' => [
+			$node = array(
+				'anyOf' => array(
 					$leaf,
 					self::items( $node, 100 ),
-					[
+					array(
 						'type'                 => 'object',
-						'properties'           => [ 'relation' => self::string( [ 'AND', 'OR' ] ) ],
-						'patternProperties'    => [ '^[0-9]+$' => $node ],
+						'properties'           => array( 'relation' => self::string( array( 'AND', 'OR' ) ) ),
+						'patternProperties'    => array( '^[0-9]+$' => $node ),
 						'additionalProperties' => false,
-					],
-				],
-			];
+					),
+				),
+			);
 		}
 		return $node;
 	}
@@ -303,54 +303,57 @@ class Workflow_Schemas {
 	 * @return array
 	 */
 	public static function export_options() {
-		$s                        = self::string();
-		$ids                      = self::items( self::integer( 1 ), 10000 );
-		$p                        = array_fill_keys( [ 'custom_export_file_name', 'orderby', 's', 'mime_type', 'status' ], $s );
-		$p['post_type']           = self::string( [ 'post', 'page', 'attachment' ] );
-		$p['type']                = self::string( [ 'comment', 'pingback', 'trackback' ] );
+		$s              = self::string();
+		$ids            = self::items( self::integer( 1 ), 10000 );
+		$p              = array_fill_keys( array( 'custom_export_file_name', 'orderby', 's', 'mime_type', 'status' ), $s );
+		$p['post_type'] = self::string( array( 'post', 'page', 'attachment' ) );
+		$p['type']      = self::string( array( 'comment', 'pingback', 'trackback' ) );
 		// WordPress also validates strings as arrays; scalar/list branches are not exclusive.
-		$p['post_status']         = [ 'anyOf' => [ $s, self::items( $s ) ] ];
-		$p['author']              = [ 'anyOf' => [ self::integer( 1 ), $ids ] ];
-		$p['order']               = self::string( [ 'ASC', 'DESC' ] );
+		$p['post_status']         = array( 'anyOf' => array( $s, self::items( $s ) ) );
+		$p['author']              = array( 'anyOf' => array( self::integer( 1 ), $ids ) );
+		$p['order']               = self::string( array( 'ASC', 'DESC' ) );
 		$p['selected_ids']        = $ids;
 		$p['post_parent']         = self::integer();
 		$p['post_id']             = self::integer( 1 );
 		$p['default_category']    = self::integer();
 		$p['items_per_iteration'] = self::integer( 1, 500 );
-		$p['include_file']        = [ 'type' => 'boolean' ];
+		$p['include_file']        = array( 'type' => 'boolean' );
 		$p['taxonomy']            = self::items(
 			self::object(
-				[
+				array(
 					'taxonomy'  => $s,
-					'terms'     => [ 'anyOf' => [ $s, self::items( self::value() ) ] ],
-					'condition' => self::string( [ 'in', 'not_in', 'and', 'or' ] ),
-				],
-				[ 'taxonomy', 'terms' ]
+					'terms'     => array( 'anyOf' => array( $s, self::items( self::value() ) ) ),
+					'condition' => self::string( array( 'in', 'not_in', 'and', 'or' ) ),
+				),
+				array( 'taxonomy', 'terms' )
 			),
 			100
 		);
 		$p['content_types']       = self::items( $s, 100 );
-		$p['form_source']         = self::string( [ 'gravityforms', 'flamingo' ] );
+		$p['form_source']         = self::string( array( 'gravityforms', 'flamingo' ) );
 		$p['form_id']             = self::integer( 1 );
 		// Column names in the file (field => name) and fixed values for custom_* columns.
-		foreach ( [ 'column_headers', 'custom_values' ] as $map ) {
-			$p[ $map ] = [
+		foreach ( array( 'column_headers', 'custom_values' ) as $map ) {
+			$p[ $map ] = array(
 				'type'                 => 'object',
-				'additionalProperties' => [ 'type' => 'string', 'maxLength' => 500 ],
+				'additionalProperties' => array(
+					'type'      => 'string',
+					'maxLength' => 500,
+				),
 				'maxProperties'        => 200,
-			];
+			);
 		}
-		$p['remote_destination'] = [
+		$p['remote_destination'] = array(
 			'type'        => 'string',
 			'pattern'     => '^(rsl-remote://[a-z0-9]{8,32}(/.*)?)?$',
 			'maxLength'   => 1000,
 			'description' => 'Upload the finished file to a saved FTP/FTPS/SFTP server: rsl-remote://<server id>/<folder>/ (keeps the file name) or rsl-remote://<server id>/<path/file.csv>. See rsl-ie/remote-servers.',
-		];
-		$p['variation_rows'] = [
+		);
+		$p['variation_rows']     = array(
 			'type'        => 'boolean',
 			'description' => 'WooCommerce products: one row per enabled variation instead of the variable product.',
-		];
-		foreach ( [ 'date', 'meta', 'tax' ] as $kind ) {
+		);
+		foreach ( array( 'date', 'meta', 'tax' ) as $kind ) {
 			$p[ $kind . '_query' ] = self::query( $kind ); }
 		return self::object( $p );
 	}
@@ -361,58 +364,58 @@ class Workflow_Schemas {
 	 * @return array
 	 */
 	public static function export_input( $start = false ) {
-		$b        = [ 'type' => 'boolean' ];
-		$p        = [
-			'export_type'     => self::string( [ 'post', 'page', 'comment', 'media', 'urls', 'form_entries' ] ),
-			'format'          => self::string( [ 'csv', 'json', 'xml', 'xlsx', 'ods' ] ),
+		$b        = array( 'type' => 'boolean' );
+		$p        = array(
+			'export_type'     => self::string( array( 'post', 'page', 'comment', 'media', 'urls', 'form_entries' ) ),
+			'format'          => self::string( array( 'csv', 'json', 'xml', 'xlsx', 'ods' ) ),
 			'fields'          => self::items( self::string() ),
 			'options'         => self::export_options(),
 			'filters'         => self::filters(),
 			'taxonomy'        => self::export_options()['properties']['taxonomy'],
 			'custom_fields'   => self::items(
 				self::object(
-					[
+					array(
 						'name'      => self::string(),
 						'value'     => self::value(),
 						'condition' => self::string(),
-					],
-					[ 'name', 'condition' ]
+					),
+					array( 'name', 'condition' )
 				),
 				100
 			),
-			'field_functions' => [
+			'field_functions' => array(
 				'type'                 => 'object',
 				'additionalProperties' => self::items(
-					[
-						'type'    => [ 'integer', 'string' ],
+					array(
+						'type'    => array( 'integer', 'string' ),
 						'pattern' => '^[A-Za-z0-9_-]+$',
-					],
+					),
 					100
 				),
-			],
+			),
 			'format_options'  => self::object(
-				[
+				array(
 					// Export accepts the same separators as the Custom field in the export screen (up to 10 characters).
-					'csv_delimiter'              => [
+					'csv_delimiter'              => array(
 						'type'      => 'string',
 						'minLength' => 1,
 						'maxLength' => 10,
 						'pattern'   => '^[^\r\n"]+$',
-					],
+					),
 					'csv_include_header'         => $b,
 					'csv_use_bom'                => $b,
 					'spreadsheet_include_header' => $b,
 					'json_pretty_print'          => $b,
 					'xml_pretty_print'           => $b,
-				]
+				)
 			),
-		];
-		$required = [ 'export_type' ];
+		);
+		$required = array( 'export_type' );
 		if ( $start ) {
 			$p['request_id']          = self::request_id();
 			$required[]               = 'request_id';
 			$required[]               = 'options';
-			$p['options']['required'] = [ 'custom_export_file_name' ]; }
+			$p['options']['required'] = array( 'custom_export_file_name' ); }
 		return self::object( $p, $required );
 	}
 	/**
@@ -421,34 +424,34 @@ class Workflow_Schemas {
 	 * @return array
 	 */
 	public static function job() {
-		$p                    = array_fill_keys( [ 'job_id', 'processed', 'total', 'success', 'failed', 'skipped', 'retries', 'poll_after_seconds' ], self::integer() );
-		$p                   += array_fill_keys( [ 'operation', 'content_type', 'job_name' ], self::string() );
-		$p['status']          = self::string( [ 'pending', 'processing', 'paused', 'completed', 'failed', 'cancelled' ] );
-		$p['progress']        = [ 'type' => 'number' ];
+		$p                    = array_fill_keys( array( 'job_id', 'processed', 'total', 'success', 'failed', 'skipped', 'retries', 'poll_after_seconds' ), self::integer() );
+		$p                   += array_fill_keys( array( 'operation', 'content_type', 'job_name' ), self::string() );
+		$p['status']          = self::string( array( 'pending', 'processing', 'paused', 'completed', 'failed', 'cancelled' ) );
+		$p['progress']        = array( 'type' => 'number' );
 		$p['allowed_actions'] = self::items( self::string() );
 		$required             = array_keys( $p );
-		$p['is_favorite']     = [ 'type' => 'boolean' ];
+		$p['is_favorite']     = array( 'type' => 'boolean' );
 		$p['created']         = self::integer();
 		$p['updated']         = self::integer();
 		$p['preparation']     = self::object(
-			[
-				'format'        => self::string( [ 'csv', 'json', 'xml', 'xlsx', 'ods' ] ),
-				'phase'         => self::string( [ 'indexing', 'preparing', 'ready' ] ),
+			array(
+				'format'        => self::string( array( 'csv', 'json', 'xml', 'xlsx', 'ods' ) ),
+				'phase'         => self::string( array( 'indexing', 'preparing', 'ready' ) ),
 				'prepared_rows' => self::integer(),
 				'indexed_rows'  => self::integer(),
-			],
-			[ 'format', 'phase', 'prepared_rows' ]
+			),
+			array( 'format', 'phase', 'prepared_rows' )
 		);
 		// Exports sent to a saved FTP/FTPS/SFTP server.
 		$p['remote_upload'] = self::object(
-			[
-				'status' => self::string( [ 'uploaded', 'failed' ] ),
+			array(
+				'status' => self::string( array( 'uploaded', 'failed' ) ),
 				'server' => self::string(),
 				'path'   => self::string(),
 				'size'   => self::integer(),
 				'error'  => self::string(),
-			],
-			[ 'status' ]
+			),
+			array( 'status' )
 		);
 		return self::object( $p, $required );
 	}
@@ -459,14 +462,14 @@ class Workflow_Schemas {
 	 */
 	public static function started() {
 		return self::object(
-			[
+			array(
 				'job_id'             => self::integer( 1 ),
 				'status'             => self::string(),
-				'deduplicated'       => [ 'type' => 'boolean' ],
+				'deduplicated'       => array( 'type' => 'boolean' ),
 				'poll_after_seconds' => self::integer(),
 				'scheduling_warning' => self::string(),
-			],
-			[ 'job_id', 'status', 'deduplicated', 'poll_after_seconds' ]
+			),
+			array( 'job_id', 'status', 'deduplicated', 'poll_after_seconds' )
 		);
 	}
 	/**
@@ -475,18 +478,18 @@ class Workflow_Schemas {
 	 * @return array
 	 */
 	public static function file() {
-		$p                   = array_fill_keys( [ 'file_id', 'file_name', 'format', 'purpose', 'status', 'download_url', 'browser_download_url', 'chunk_url', 'detected_delimiter' ], self::string() );
-		$p                  += array_fill_keys( [ 'file_size', 'expected_bytes', 'total_chunks', 'received_chunks', 'total_rows', 'columns', 'chunk_index', 'assembled_chunks', 'assembled_bytes' ], self::integer() );
+		$p                   = array_fill_keys( array( 'file_id', 'file_name', 'format', 'purpose', 'status', 'download_url', 'browser_download_url', 'chunk_url', 'detected_delimiter' ), self::string() );
+		$p                  += array_fill_keys( array( 'file_size', 'expected_bytes', 'total_chunks', 'received_chunks', 'total_rows', 'columns', 'chunk_index', 'assembled_chunks', 'assembled_bytes' ), self::integer() );
 		$p['headers']        = self::items( self::value() );
 		$p['preview']        = self::items( self::value(), 5 );
 		$p['parser_options'] = self::parser();
 		// Set when the upload was rewritten into native rows (Shopify exports, JSON records found deeper in the file).
 		$p['converted_from'] = self::string();
 		$p['records_path']   = self::string();
-		$p['conversion']     = [
+		$p['conversion']     = array(
 			'type'                 => 'object',
 			'additionalProperties' => self::integer(),
-		];
-		return self::object( $p, [ 'file_id', 'status' ] );
+		);
+		return self::object( $p, array( 'file_id', 'status' ) );
 	}
 }

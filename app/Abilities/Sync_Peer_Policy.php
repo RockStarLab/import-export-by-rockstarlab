@@ -20,8 +20,8 @@ class Sync_Peer_Policy {
 	 * @return true|\WP_Error
 	 */
 	public static function post( $type, $operation, $id = 0 ) {
-		if ( in_array( $type, [ 'post', 'page', 'attachment' ], true ) ) {
-			$result = Access_Policy::check_content_type( $type, $operation, [ 'selected_ids' => $id ? [ (int) $id ] : [] ] );
+		if ( in_array( $type, array( 'post', 'page', 'attachment' ), true ) ) {
+			$result = Access_Policy::check_content_type( $type, $operation, array( 'selected_ids' => $id ? array( (int) $id ) : array() ) );
 		} else {
 			$result = apply_filters( 'rsl_ie_authorize_sync_post_type', null, $type, $operation, $id );
 		}
@@ -55,7 +55,7 @@ class Sync_Peer_Policy {
 					get_the_title( (int) $id ),
 					(int) $id
 				),
-				[ 'status' => 403 ]
+				array( 'status' => 403 )
 			);
 		}
 		return $result;
@@ -70,14 +70,14 @@ class Sync_Peer_Policy {
 	 */
 	public static function comment_destination( array $comment, $post_id, $explicit_mapping = false ) {
 		$type = $comment['comment_type'] ?? '';
-		if ( ! current_user_can( 'manage_options' ) || ! current_user_can( 'moderate_comments' ) || ! in_array( $type, [ '', 'comment', 'pingback', 'trackback', 'review' ], true ) || ! $post_id ) {
+		if ( ! current_user_can( 'manage_options' ) || ! current_user_can( 'moderate_comments' ) || ! in_array( $type, array( '', 'comment', 'pingback', 'trackback', 'review' ), true ) || ! $post_id ) {
 			return self::denied(); }
 		$actual = get_post_type( $post_id );
 		if ( ( 'review' === $type ) !== ( 'product' === $actual ) ) {
 			return self::denied(); }
 		// An explicit ordinary-comment mapping may move between posts and pages.
-		$source_type = $comment['post']['post_type'] ?? '';
-		$mapped_standard_post = $explicit_mapping && in_array( $source_type, [ 'post', 'page' ], true ) && in_array( $actual, [ 'post', 'page' ], true );
+		$source_type          = $comment['post']['post_type'] ?? '';
+		$mapped_standard_post = $explicit_mapping && in_array( $source_type, array( 'post', 'page' ), true ) && in_array( $actual, array( 'post', 'page' ), true );
 		if ( $source_type && $source_type !== $actual && ! $mapped_standard_post ) {
 			return self::denied(); }
 		$access = Access_Policy::check_content_type( 'review' === $type ? 'woo_review' : 'comment', 'sync_pull' );
@@ -97,17 +97,17 @@ class Sync_Peer_Policy {
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access; }
-		if ( in_array( $action, [ 'validate_connection', 'get_site_info' ], true ) ) {
+		if ( in_array( $action, array( 'validate_connection', 'get_site_info' ), true ) ) {
 			return true; }
 		if ( false !== strpos( $action, 'terms' ) ) {
-			$access = Access_Policy::check_content_type( 'taxonomy', 'sync_pull', [ 'options' => [ 'taxonomy' => $input['taxonomy'] ?? '' ] ] );
+			$access = Access_Policy::check_content_type( 'taxonomy', 'sync_pull', array( 'options' => array( 'taxonomy' => $input['taxonomy'] ?? '' ) ) );
 			if ( is_wp_error( $access ) ) {
 				return $access; }
 			$taxonomy = get_taxonomy( $input['taxonomy'] ?? '' );
 			return $taxonomy && current_user_can( $taxonomy->cap->manage_terms ) ? true : self::denied();
 		}
 		if ( false !== strpos( $action, 'comments' ) ) {
-			foreach ( [ 'comments', 'comment_ids' ] as $key ) {
+			foreach ( array( 'comments', 'comment_ids' ) as $key ) {
 				if ( isset( $input[ $key ] ) && ! is_array( $input[ $key ] ) ) {
 					return self::denied(); }
 			}
@@ -117,7 +117,7 @@ class Sync_Peer_Policy {
 			$access = Access_Policy::check_content_type( $type, 'sync_pull' );
 			if ( is_wp_error( $access ) ) {
 				return $access; }
-			foreach ( $input['comment_ids'] ?? [] as $id ) {
+			foreach ( $input['comment_ids'] ?? array() as $id ) {
 				$comment = get_comment( (int) $id );
 				if ( $comment && ( ! current_user_can( 'edit_comment', $id ) || ! Standalone_Sync_Policy::comment_type( $comment->comment_type, $input['comment_type'] ?? '' ) ) ) {
 					return self::denied(); }
@@ -127,14 +127,14 @@ class Sync_Peer_Policy {
 				if ( is_wp_error( $access ) ) {
 					return $access; }
 			}
-			foreach ( $input['comments'] ?? [] as $comment ) {
+			foreach ( $input['comments'] ?? array() as $comment ) {
 				if ( ! is_array( $comment ) ) {
 					return self::denied(); }
 				$access = Access_Policy::check_content_type( 'review' === ( $comment['comment_type'] ?? '' ) ? 'woo_review' : 'comment', 'sync_pull' );
 				if ( is_wp_error( $access ) ) {
 					return $access; }
 			}
-			foreach ( [ 'target_post_id', 'post_id' ] as $key ) {
+			foreach ( array( 'target_post_id', 'post_id' ) as $key ) {
 				if ( ! empty( $input[ $key ] ) ) {
 					$access = self::post( get_post_type( $input[ $key ] ), 'sync_pull', (int) $input[ $key ] );
 					if ( is_wp_error( $access ) ) {
@@ -143,11 +143,11 @@ class Sync_Peer_Policy {
 			}
 			return true;
 		}
-		if ( in_array( $action, [ 'check_media', 'upload_media' ], true ) ) {
+		if ( in_array( $action, array( 'check_media', 'upload_media' ), true ) ) {
 			return current_user_can( 'upload_files' ) ? true : self::denied(); }
-		$ids = $input['post_ids'] ?? [];
+		$ids = $input['post_ids'] ?? array();
 		if ( 'get_children_posts' === $action ) {
-			$ids = [ $input['parent_id'] ?? 0 ]; }
+			$ids = array( $input['parent_id'] ?? 0 ); }
 		foreach ( $ids as $id ) {
 			$access = self::post( get_post_type( (int) $id ), 'sync_push', (int) $id );
 			if ( is_wp_error( $access ) ) {
@@ -156,7 +156,7 @@ class Sync_Peer_Policy {
 		if ( 'list_posts' === $action && ! empty( $input['post_type'] ) && 'any' !== $input['post_type'] ) {
 			return self::post( $input['post_type'], 'sync_push' );
 		}
-		foreach ( $input['posts'] ?? [] as $post ) {
+		foreach ( $input['posts'] ?? array() as $post ) {
 			if ( ! is_array( $post ) || empty( $post['post_type'] ) || empty( $post['ID'] ) ) {
 				return self::denied(); }
 			$target = (int) ( $input['post_mapping'][ $post['ID'] ] ?? 0 );
@@ -167,7 +167,7 @@ class Sync_Peer_Policy {
 			if ( ! apply_filters( 'rsl_ie_sync_payload_allowed', $allows_nested, $post ) ) {
 				return self::denied(); }
 			$definition = get_post_type_object( $post['post_type'] );
-			if ( ! in_array( $post['post_status'] ?? '', [ 'publish', 'future', 'private', 'draft', 'pending' ], true ) || ( in_array( $post['post_status'], [ 'publish', 'future', 'private' ], true ) && ! current_user_can( $definition->cap->publish_posts ) ) ) {
+			if ( ! in_array( $post['post_status'] ?? '', array( 'publish', 'future', 'private', 'draft', 'pending' ), true ) || ( in_array( $post['post_status'], array( 'publish', 'future', 'private' ), true ) && ! current_user_can( $definition->cap->publish_posts ) ) ) {
 				return self::denied(); }
 		}
 		return true;
@@ -179,12 +179,12 @@ class Sync_Peer_Policy {
 	 * @return array
 	 */
 	public static function browsable_types() {
-		$types = [];
-		foreach ( get_post_types( [ 'show_ui' => true ] ) as $type ) {
+		$types = array();
+		foreach ( get_post_types( array( 'show_ui' => true ) ) as $type ) {
 			if ( ! is_wp_error( self::post( $type, 'sync_push' ) ) ) {
 				$types[] = $type; }
 		}
-		return $types ? $types : [ '__rsl_ie_denied' ];
+		return $types ? $types : array( '__rsl_ie_denied' );
 	}
 
 	/**
@@ -193,6 +193,6 @@ class Sync_Peer_Policy {
 	 * @return \WP_Error
 	 */
 	private static function denied() {
-		return new \WP_Error( 'rsl_ie_sync_peer_forbidden', __( 'The current account cannot synchronize this content or destination.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
+		return new \WP_Error( 'rsl_ie_sync_peer_forbidden', __( 'The current account cannot synchronize this content or destination.', 'import-export-by-rockstarlab' ), array( 'status' => 403 ) );
 	}
 }

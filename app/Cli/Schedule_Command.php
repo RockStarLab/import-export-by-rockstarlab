@@ -53,16 +53,16 @@ class Schedule_Command {
 	 */
 	public function list_( $args, $assoc ) {
 		Cli_Helper::require_admin();
-		$rows = [];
+		$rows = array();
 		for ( $page = 1; $page <= 100; $page++ ) {
 			$batch = Cli_Helper::call(
 				'rsl-ie/schedule-list',
-				[
+				array(
 					'page'     => $page,
 					'per_page' => 100,
-				]
+				)
 			);
-			$rows  = array_merge( $rows, (array) ( $batch['schedules'] ?? [] ) );
+			$rows  = array_merge( $rows, (array) ( $batch['schedules'] ?? array() ) );
 			if ( empty( $batch['more'] ) ) {
 				break;
 			}
@@ -119,10 +119,10 @@ class Schedule_Command {
 		if ( isset( $assoc['output'] ) ) {
 			Main_Command::check_output( (string) $assoc['output'] );
 		}
-		$schedule = Cli_Helper::call( 'rsl-ie/schedule-get', [ 'schedule_id' => (int) $args[0] ] );
+		$schedule = Cli_Helper::call( 'rsl-ie/schedule-get', array( 'schedule_id' => (int) $args[0] ) );
 		$schedule = $schedule['schedule'] ?? $schedule;
 		$last     = ! empty( $schedule['last_job_id'] ) ? rsl_ie()->Model->job->find( (int) $schedule['last_job_id'] ) : null;
-		if ( $last && in_array( $last->status, [ 'pending', 'processing', 'paused' ], true ) ) {
+		if ( $last && in_array( $last->status, array( 'pending', 'processing', 'paused' ), true ) ) {
 			WP_CLI::error( sprintf( 'Job %d of this schedule is still running.', (int) $last->id ) );
 		}
 		$since   = ! empty( $schedule['changed_only'] ) && $last && 'completed' === $last->status ? (string) $last->created_at : '';
@@ -143,10 +143,10 @@ class Schedule_Command {
 		// "Changes only" run then exports only what changed since this run started.
 		rsl_ie()->Model->job_schedule->update(
 			(int) $schedule['id'],
-			[
+			array(
 				'last_job_id'  => $job_id,
 				'last_run_gmt' => current_time( 'mysql', true ),
-			]
+			)
 		);
 		if ( 'table' === ( $assoc['format'] ?? 'table' ) && empty( $assoc['porcelain'] ) ) {
 			WP_CLI::log( sprintf( 'Job %d started from schedule %d (%s).', $job_id, (int) $schedule['id'], (string) $schedule['name'] ) );
@@ -156,7 +156,7 @@ class Schedule_Command {
 			$job_id,
 			$assoc,
 			static function ( $res ) use ( $output ) {
-				return null !== $output && 'export' === ( $res['operation'] ?? '' ) && 'completed' === ( $res['status'] ?? '' ) ? [ 'file' => Main_Command::copy_export( (int) $res['job_id'], (string) $output ) ] : [];
+				return null !== $output && 'export' === ( $res['operation'] ?? '' ) && 'completed' === ( $res['status'] ?? '' ) ? array( 'file' => Main_Command::copy_export( (int) $res['job_id'], (string) $output ) ) : array();
 			}
 		);
 	}

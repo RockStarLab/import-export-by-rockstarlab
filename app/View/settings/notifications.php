@@ -14,12 +14,12 @@ $rsl_ie_notice = get_transient( 'rsl_ie_notify_notice_' . $rsl_ie_uid );
 $rsl_ie_secret = get_transient( 'rsl_ie_notify_secret_' . $rsl_ie_uid );
 delete_transient( 'rsl_ie_notify_notice_' . $rsl_ie_uid );
 delete_transient( 'rsl_ie_notify_secret_' . $rsl_ie_uid );
-$rsl_ie_types = [
+$rsl_ie_types = array(
 	'import'    => __( 'Imports', 'import-export-by-rockstarlab' ),
 	'export'    => __( 'Exports', 'import-export-by-rockstarlab' ),
 	'sync'      => __( 'Content Sync', 'import-export-by-rockstarlab' ),
 	'migration' => __( 'Content Migration', 'import-export-by-rockstarlab' ),
-];
+);
 ?>
 <div id="rsl-ie-notifications" class="import-export-by-rockstarlab wrap">
 	<h1><?php esc_html_e( 'Jobs Log', 'import-export-by-rockstarlab' ); ?></h1>

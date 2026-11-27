@@ -131,28 +131,28 @@ class Main_Command {
 		$assoc             = Cli_Helper::post_type_shortcut( $assoc );
 		list( $ns, $type ) = Cli_Helper::resolve_type( $assoc['type'] ?? 'post', false );
 		$file              = Cli_Helper::upload( $args[0], Cli_Helper::parser_options( $assoc ) );
-		$options           = [];
+		$options           = array();
 		if ( isset( $assoc['template'] ) ) {
 			$applied = Cli_Helper::call(
 				'rsl-ie/mapping-template-apply',
-				[
+				array(
 					'template_id' => (string) $assoc['template'],
 					'file_id'     => $file['file_id'],
-				]
+				)
 			);
 			$mapping = $applied['mapping'];
-			$options = (array) ( $applied['options'] ?? [] );
+			$options = (array) ( $applied['options'] ?? array() );
 			if ( ! empty( $applied['missing'] ) ) {
-				WP_CLI::warning( 'Template columns missing from the file (their fields stay empty): ' . implode( ', ', array_map( [ __CLASS__, 'label' ], (array) $applied['missing'] ) ) );
+				WP_CLI::warning( 'Template columns missing from the file (their fields stay empty): ' . implode( ', ', array_map( array( __CLASS__, 'label' ), (array) $applied['missing'] ) ) );
 			}
 		} elseif ( isset( $assoc['mapping'] ) ) {
 			$mapping = Cli_Helper::json_arg( $assoc['mapping'], 'mapping' );
 		} else {
-			$prepare = [
+			$prepare = array(
 				'file_id'     => $file['file_id'],
 				'import_type' => $type,
-			];
-			$target  = Cli_Helper::target_options( [], $assoc );
+			);
+			$target  = Cli_Helper::target_options( array(), $assoc );
 			if ( 'taxonomy' === $type ) {
 				unset( $target['taxonomy'] ); // Rows name their taxonomy; it is an import option, not a target.
 			}
@@ -160,10 +160,10 @@ class Main_Command {
 				$prepare['options'] = $target;
 			}
 			$prepared = Cli_Helper::call( $ns . 'import-prepare', $prepare );
-			$mapping  = (array) ( $prepared['mapping'] ?? [] );
+			$mapping  = (array) ( $prepared['mapping'] ?? array() );
 		}
 		if ( ! $mapping ) {
-			WP_CLI::error( 'No column matches a field by name. Give a mapping with --mapping or --template. File columns: ' . implode( ', ', array_map( 'strval', (array) ( $file['headers'] ?? [] ) ) ) );
+			WP_CLI::error( 'No column matches a field by name. Give a mapping with --mapping or --template. File columns: ' . implode( ', ', array_map( 'strval', (array) ( $file['headers'] ?? array() ) ) ) );
 		}
 		if ( isset( $assoc['options'] ) ) {
 			$options = array_merge( $options, Cli_Helper::json_arg( $assoc['options'], 'options' ) );
@@ -181,22 +181,22 @@ class Main_Command {
 			$options['unique_field'] = (string) $assoc['unique-field'];
 			// --unique-field=ID with an "ID" column: the column is the key (auto mapping leaves it out,
 			// and every row was skipped as "no match").
-			$id_col = array_search( 'ID', array_map( 'strval', (array) ( $file['headers'] ?? [] ) ), true );
+			$id_col = array_search( 'ID', array_map( 'strval', (array) ( $file['headers'] ?? array() ) ), true );
 			if ( 'ID' === $options['unique_field'] && false !== $id_col && ! in_array( 'ID', array_column( $mapping, 'target_field' ), true ) ) {
-				$mapping[] = [
+				$mapping[] = array(
 					'source_index' => (int) $id_col,
 					'target_field' => 'ID',
-				];
+				);
 			}
 		}
 		if ( isset( $assoc['status'] ) ) {
 			$options['post_status'] = (string) $assoc['status'];
 		}
-		$input = [
+		$input = array(
 			'file_id'     => $file['file_id'],
 			'import_type' => $type,
 			'mapping'     => array_values( $mapping ),
-		];
+		);
 		if ( $options ) {
 			$input['options'] = $options;
 		}
@@ -206,7 +206,7 @@ class Main_Command {
 			$checked = Cli_Helper::call( $ns . 'import-validate', $input );
 			if ( 'table' === $format ) {
 				WP_CLI::log( sprintf( 'File: %s, %d rows', $file['file_name'] ?? basename( $args[0] ), (int) ( $file['total_rows'] ?? 0 ) ) );
-				$headers = array_values( (array) ( $file['headers'] ?? [] ) );
+				$headers = array_values( (array) ( $file['headers'] ?? array() ) );
 				foreach ( $mapping as $map ) {
 					$column = $map['source_field'] ?? ( $headers[ (int) ( $map['source_index'] ?? -1 ) ] ?? ( '#' . ( $map['source_index'] ?? '?' ) ) );
 					WP_CLI::log( '  ' . $column . ' -> ' . $map['target_field'] );
@@ -214,16 +214,16 @@ class Main_Command {
 				WP_CLI::success( 'The file and the mapping are valid. Nothing was imported.' );
 			} else {
 				WP_CLI::print_value(
-					[
+					array(
 						'file'       => $file,
 						'mapping'    => $mapping,
 						'options'    => $options,
 						'validation' => $checked,
-					],
-					[ 'format' => $format ]
+					),
+					array( 'format' => $format )
 				);
 			}
-			Cli_Helper::try_call( 'rsl-ie/upload-abort', [ 'file_id' => $file['file_id'] ] );
+			Cli_Helper::try_call( 'rsl-ie/upload-abort', array( 'file_id' => $file['file_id'] ) );
 			return;
 		}
 		$input['request_id'] = Cli_Helper::request_id( 'import' );
@@ -319,7 +319,7 @@ class Main_Command {
 		$assoc             = Cli_Helper::post_type_shortcut( $assoc );
 		list( $ns, $type ) = Cli_Helper::resolve_type( $assoc['type'] ?? 'post', true );
 		self::check_output( $assoc['output'] ?? getcwd() );
-		$options = Cli_Helper::target_options( isset( $assoc['options'] ) ? Cli_Helper::json_arg( $assoc['options'], 'options' ) : [], $assoc );
+		$options = Cli_Helper::target_options( isset( $assoc['options'] ) ? Cli_Helper::json_arg( $assoc['options'], 'options' ) : array(), $assoc );
 		if ( isset( $assoc['status'] ) ) {
 			$list                   = Cli_Helper::csv_list( $assoc['status'] );
 			$options['post_status'] = 1 === count( $list ) ? $list[0] : $list;
@@ -329,12 +329,12 @@ class Main_Command {
 		}
 		$name                               = (string) ( $assoc['name'] ?? ( $type . '-export-' . wp_date( 'Y-m-d-His' ) ) );
 		$options['custom_export_file_name'] = $options['custom_export_file_name'] ?? $name;
-		$input                              = [
+		$input                              = array(
 			'export_type' => $type,
 			'format'      => (string) ( $assoc['format'] ?? 'csv' ),
 			'options'     => $options,
 			'request_id'  => Cli_Helper::request_id( 'export' ),
-		];
+		);
 		if ( isset( $assoc['fields'] ) ) {
 			$input['fields'] = Cli_Helper::csv_list( $assoc['fields'] );
 		}
@@ -343,7 +343,7 @@ class Main_Command {
 			$input['filters'] = $input['options']['filters'];
 			unset( $input['options']['filters'] );
 		}
-		Cli_Helper::check_options( $ns . 'export-start', 'export_type', $type, (array) ( $input['options'] ?? [] ) );
+		Cli_Helper::check_options( $ns . 'export-start', 'export_type', $type, (array) ( $input['options'] ?? array() ) );
 		$started = Cli_Helper::call( $ns . 'export-start', $input );
 		$summary = $assoc['format-output'] ?? 'table';
 		if ( 'table' === $summary && empty( $assoc['porcelain'] ) ) {
@@ -356,7 +356,7 @@ class Main_Command {
 			(int) $started['job_id'],
 			$flags,
 			static function ( $result ) use ( $output ) {
-				return 'completed' === ( $result['status'] ?? '' ) ? [ 'file' => self::copy_export( (int) $result['job_id'], (string) $output ) ] : [];
+				return 'completed' === ( $result['status'] ?? '' ) ? array( 'file' => self::copy_export( (int) $result['job_id'], (string) $output ) ) : array();
 			}
 		);
 	}
@@ -384,7 +384,7 @@ class Main_Command {
 	 * @return string Path written.
 	 */
 	public static function copy_export( $job_id, $output ) {
-		$file = Cli_Helper::call( 'rsl-ie/file-get', [ 'job_id' => (int) $job_id ] );
+		$file = Cli_Helper::call( 'rsl-ie/file-get', array( 'job_id' => (int) $job_id ) );
 		$rec  = \RockStarLab\ImportExport\Service\File_Store::get( (string) $file['file_id'] );
 		if ( is_wp_error( $rec ) || empty( $rec['path'] ) || ! is_file( $rec['path'] ) ) {
 			WP_CLI::error( sprintf( 'The file of job %d is no longer available.', $job_id ) );
@@ -456,8 +456,8 @@ class Main_Command {
 	 */
 	public function jobs( $args, $assoc ) {
 		Cli_Helper::require_admin();
-		$input = [ 'limit' => max( 1, min( 100, (int) ( $assoc['limit'] ?? 20 ) ) ) ];
-		foreach ( [ 'status', 'type' ] as $key ) {
+		$input = array( 'limit' => max( 1, min( 100, (int) ( $assoc['limit'] ?? 20 ) ) ) );
+		foreach ( array( 'status', 'type' ) as $key ) {
 			if ( isset( $assoc[ $key ] ) ) {
 				$input[ $key ] = (string) $assoc[ $key ];
 			}
@@ -465,7 +465,7 @@ class Main_Command {
 		if ( ! empty( $assoc['favorites'] ) ) {
 			$input['favorites_only'] = true;
 		}
-		$jobs   = (array) ( Cli_Helper::call( 'rsl-ie/job-list', $input )['jobs'] ?? [] );
+		$jobs   = (array) ( Cli_Helper::call( 'rsl-ie/job-list', $input )['jobs'] ?? array() );
 		$format = $assoc['format'] ?? 'table';
 		if ( 'ids' === $format ) {
 			WP_CLI::line( implode( ' ', wp_list_pluck( $jobs, 'job_id' ) ) );
@@ -507,7 +507,7 @@ class Main_Command {
 			WP_CLI::error( 'The WordPress Abilities API is not available on this site.' );
 		}
 		$search = strtolower( (string) ( $assoc['search'] ?? '' ) );
-		$rows   = [];
+		$rows   = array();
 		foreach ( wp_get_abilities() as $ability ) {
 			$name = $ability->get_name();
 			if ( 0 !== strpos( $name, 'rsl-ie/' ) && 0 !== strpos( $name, 'rsl-ie-pro/' ) ) {
@@ -517,10 +517,10 @@ class Main_Command {
 			if ( '' !== $search && false === strpos( strtolower( $name . ' ' . $text ), $search ) ) {
 				continue;
 			}
-			$rows[] = [
+			$rows[] = array(
 				'name'        => $name,
 				'description' => 'table' === ( $assoc['format'] ?? 'table' ) ? wp_html_excerpt( $text, 90, '...' ) : $text,
-			];
+			);
 		}
 		usort(
 			$rows,
@@ -528,7 +528,7 @@ class Main_Command {
 				return strcmp( $a['name'], $b['name'] );
 			}
 		);
-		WP_CLI\Utils\format_items( $assoc['format'] ?? 'table', $rows, [ 'name', 'description' ] );
+		WP_CLI\Utils\format_items( $assoc['format'] ?? 'table', $rows, array( 'name', 'description' ) );
 	}
 
 	/**
@@ -573,21 +573,21 @@ class Main_Command {
 		}
 		$format = $assoc['format'] ?? 'json';
 		if ( ! empty( $assoc['help-schema'] ) ) {
-			$result = [
+			$result = array(
 				'name'          => $ability->get_name(),
 				'description'   => $ability->get_description(),
 				'input_schema'  => $ability->get_input_schema(),
 				'output_schema' => $ability->get_output_schema(),
-			];
+			);
 		} else {
-			$input  = isset( $args[1] ) ? Cli_Helper::json_arg( $args[1], 'input' ) : [];
+			$input  = isset( $args[1] ) ? Cli_Helper::json_arg( $args[1], 'input' ) : array();
 			$result = Cli_Helper::call( $ability->get_name(), $input );
 		}
 		if ( 'json' === $format ) {
 			WP_CLI::line( (string) wp_json_encode( $result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
 			return;
 		}
-		WP_CLI::print_value( $result, [ 'format' => $format ] );
+		WP_CLI::print_value( $result, array( 'format' => $format ) );
 	}
 
 	/**

@@ -20,7 +20,7 @@ class Cli_Helper {
 	const EXIT_ROWS_FAILED = 2;
 
 	/** Job statuses that are still running. */
-	const ACTIVE = [ 'pending', 'processing' ];
+	const ACTIVE = array( 'pending', 'processing' );
 
 	/** Register the commands. */
 	public static function register() {
@@ -63,7 +63,7 @@ class Cli_Helper {
 		if ( false !== strpos( $name, '/' ) ) {
 			return 0 === strpos( $name, 'rsl-ie/' ) || 0 === strpos( $name, 'rsl-ie-pro/' ) ? wp_get_ability( $name ) : null;
 		}
-		foreach ( [ 'rsl-ie/', 'rsl-ie-pro/' ] as $prefix ) {
+		foreach ( array( 'rsl-ie/', 'rsl-ie-pro/' ) as $prefix ) {
 			$ability = wp_get_ability( $prefix . $name );
 			if ( $ability ) {
 				return $ability;
@@ -79,7 +79,7 @@ class Cli_Helper {
 	 * @param array  $input Input.
 	 * @return mixed
 	 */
-	public static function call( $name, array $input = [] ) {
+	public static function call( $name, array $input = array() ) {
 		$result = self::try_call( $name, $input );
 		if ( is_wp_error( $result ) ) {
 			self::fail( $result );
@@ -94,7 +94,7 @@ class Cli_Helper {
 	 * @param array  $input Input.
 	 * @return mixed|\WP_Error
 	 */
-	public static function try_call( $name, array $input = [] ) {
+	public static function try_call( $name, array $input = array() ) {
 		$ability = self::find_ability( $name );
 		if ( ! $ability ) {
 			return new \WP_Error( 'rsl_ie_cli_unknown_ability', sprintf( 'Unknown ability "%s". See: wp rsl-ie abilities', $name ) );
@@ -117,12 +117,12 @@ class Cli_Helper {
 			return false;
 		}
 		$schema   = (array) $ability->get_input_schema();
-		$branches = isset( $schema['oneOf'] ) && is_array( $schema['oneOf'] ) ? $schema['oneOf'] : [ $schema ];
+		$branches = isset( $schema['oneOf'] ) && is_array( $schema['oneOf'] ) ? $schema['oneOf'] : array( $schema );
 		foreach ( $branches as $branch ) {
-			$type_schema = $branch['properties'][ $type_key ] ?? [];
-			$allowed     = (array) ( $type_schema['enum'] ?? ( isset( $type_schema['const'] ) ? [ $type_schema['const'] ] : [] ) );
+			$type_schema = $branch['properties'][ $type_key ] ?? array();
+			$allowed     = (array) ( $type_schema['enum'] ?? ( isset( $type_schema['const'] ) ? array( $type_schema['const'] ) : array() ) );
 			if ( in_array( $type, $allowed, true ) ) {
-				$options = $branch['properties']['options']['properties'] ?? [];
+				$options = $branch['properties']['options']['properties'] ?? array();
 				return isset( $branch['properties'][ $property ] ) && ! isset( $options[ $property ] );
 			}
 		}
@@ -147,14 +147,14 @@ class Cli_Helper {
 			return;
 		}
 		$schema   = (array) $ability->get_input_schema();
-		$branches = isset( $schema['oneOf'] ) && is_array( $schema['oneOf'] ) ? $schema['oneOf'] : [ $schema ];
+		$branches = isset( $schema['oneOf'] ) && is_array( $schema['oneOf'] ) ? $schema['oneOf'] : array( $schema );
 		foreach ( $branches as $branch ) {
-			$type_schema = $branch['properties'][ $type_key ] ?? [];
-			$allowed     = (array) ( $type_schema['enum'] ?? ( isset( $type_schema['const'] ) ? [ $type_schema['const'] ] : [] ) );
+			$type_schema = $branch['properties'][ $type_key ] ?? array();
+			$allowed     = (array) ( $type_schema['enum'] ?? ( isset( $type_schema['const'] ) ? array( $type_schema['const'] ) : array() ) );
 			if ( ! in_array( $type, $allowed, true ) ) {
 				continue;
 			}
-			$option_schema = $branch['properties']['options'] ?? [];
+			$option_schema = $branch['properties']['options'] ?? array();
 			if ( empty( $option_schema['properties'] ) || ! array_key_exists( 'additionalProperties', $option_schema ) || false !== $option_schema['additionalProperties'] ) {
 				return;
 			}
@@ -220,7 +220,7 @@ class Cli_Helper {
 	 * @param array  $parser Parser options (delimiter, has_header, encoding).
 	 * @return array upload-complete result.
 	 */
-	public static function upload( $path, array $parser = [] ) {
+	public static function upload( $path, array $parser = array() ) {
 		if ( ! is_file( $path ) || ! is_readable( $path ) ) {
 			WP_CLI::error( 'Cannot read the file: ' . $path );
 		}
@@ -228,15 +228,15 @@ class Cli_Helper {
 		if ( $size < 1 ) {
 			WP_CLI::error( 'The file is empty: ' . $path );
 		}
-		$chunk = 1024 * 1024;
-		$total = (int) ceil( $size / $chunk );
-		$file  = self::call(
+		$chunk  = 1024 * 1024;
+		$total  = (int) ceil( $size / $chunk );
+		$file   = self::call(
 			'rsl-ie/upload-create',
-			[
+			array(
 				'file_name'    => basename( $path ),
 				'file_size'    => $size,
 				'total_chunks' => $total,
-			]
+			)
 		);
 		$handle = fopen( $path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Local file named by the operator.
 		if ( ! $handle ) {
@@ -247,21 +247,21 @@ class Cli_Helper {
 				$bytes = fread( $handle, $chunk ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Local file named by the operator.
 				$sent  = self::try_call(
 					'rsl-ie/upload-chunk',
-					[
+					array(
 						'file_id'     => $file['file_id'],
 						'index'       => $index,
 						'data_base64' => base64_encode( (string) $bytes ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions -- Chunk transport format.
-					]
+					)
 				);
 				if ( is_wp_error( $sent ) ) {
-					self::try_call( 'rsl-ie/upload-abort', [ 'file_id' => $file['file_id'] ] );
+					self::try_call( 'rsl-ie/upload-abort', array( 'file_id' => $file['file_id'] ) );
 					self::fail( $sent );
 				}
 			}
 		} finally {
 			fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Local file named by the operator.
 		}
-		$input = [ 'file_id' => $file['file_id'] ];
+		$input = array( 'file_id' => $file['file_id'] );
 		if ( $parser ) {
 			$input['parser_options'] = $parser;
 		}
@@ -275,7 +275,7 @@ class Cli_Helper {
 	 * @return array
 	 */
 	public static function parser_options( array $assoc ) {
-		$parser = [];
+		$parser = array();
 		if ( isset( $assoc['delimiter'] ) ) {
 			$parser['delimiter'] = 'tab' === $assoc['delimiter'] ? "\t" : (string) $assoc['delimiter'];
 		}
@@ -309,7 +309,7 @@ class Cli_Helper {
 				WP_CLI::error( sprintf( 'Job %d not found.', $job_id ) );
 			}
 			if ( ! in_array( $job->status, self::ACTIVE, true ) ) {
-				wp_clear_scheduled_hook( 'rsl_ie_run_job', [ $job_id ] );
+				wp_clear_scheduled_hook( 'rsl_ie_run_job', array( $job_id ) );
 				return $job;
 			}
 			if ( $timeout > 0 && time() - $started >= $timeout ) {
@@ -356,7 +356,7 @@ class Cli_Helper {
 				WP_CLI::success( sprintf( 'Job %d queued. WP-Cron will run it; check it with: wp rsl-ie job get %d', $job_id, $job_id ) );
 				WP_CLI::halt( 0 );
 			}
-			WP_CLI::print_value( self::result( $job_id ), [ 'format' => $format ] );
+			WP_CLI::print_value( self::result( $job_id ), array( 'format' => $format ) );
 			WP_CLI::halt( 0 );
 		}
 		$job = self::wait( $job_id, (int) ( $assoc['timeout'] ?? 0 ), 'table' !== $format || ! empty( $assoc['porcelain'] ) );
@@ -365,7 +365,7 @@ class Cli_Helper {
 			WP_CLI::halt( 3 );
 		}
 		$result = self::result( $job_id );
-		$more   = is_callable( $extra ) ? (array) call_user_func( $extra, $result ) : [];
+		$more   = is_callable( $extra ) ? (array) call_user_func( $extra, $result ) : array();
 		if ( ! empty( $assoc['porcelain'] ) ) {
 			WP_CLI::line( (string) ( $more['file'] ?? $job_id ) );
 			self::exit_for( $result );
@@ -386,10 +386,10 @@ class Cli_Helper {
 		}
 		return self::call(
 			'rsl-ie/job-get-result',
-			[
+			array(
 				'job_id' => (int) $job_id,
 				'limit'  => 20,
-			]
+			)
 		);
 	}
 
@@ -400,27 +400,27 @@ class Cli_Helper {
 	 * @return array
 	 */
 	public static function sync_result( $job_id ) {
-		$status = self::call( 'rsl-ie/sync-job-status', [ 'job_id' => (int) $job_id ] );
-		$result = is_array( $status['result'] ?? null ) ? $status['result'] : [];
+		$status = self::call( 'rsl-ie/sync-job-status', array( 'job_id' => (int) $job_id ) );
+		$result = is_array( $status['result'] ?? null ) ? $status['result'] : array();
 		$counts = is_array( $result['result'] ?? null ) ? $result['result'] : $result;
-		$errors = [];
-		foreach ( (array) ( $counts['items'] ?? [] ) as $item ) {
+		$errors = array();
+		foreach ( (array) ( $counts['items'] ?? array() ) as $item ) {
 			if ( is_array( $item ) && 'failed' === ( $item['status'] ?? '' ) ) {
-				$errors[] = [
+				$errors[] = array(
 					'row'     => $item['source_id'] ?? '?',
 					'field'   => '',
 					'message' => (string) ( $item['error_code'] ?? 'failed' ),
-				];
+				);
 			}
 		}
 		if ( ! empty( $status['error_code'] ) && ! $errors ) {
-			$errors[] = [
+			$errors[] = array(
 				'row'     => '-',
 				'field'   => '',
 				'message' => (string) $status['error_code'],
-			];
+			);
 		}
-		return [
+		return array(
 			'job_id'       => (int) $status['job_id'],
 			'operation'    => (string) ( $status['operation'] ?? '' ),
 			'status'       => (string) ( $status['status'] ?? '' ),
@@ -431,7 +431,7 @@ class Cli_Helper {
 			'skipped'      => (int) ( $counts['skipped'] ?? 0 ),
 			'errors'       => $errors,
 			'errors_total' => count( $errors ),
-		];
+		);
 	}
 
 	/**
@@ -441,8 +441,8 @@ class Cli_Helper {
 	 * @param string $format table|json|yaml.
 	 * @param array  $extra  Extra fields (file path).
 	 */
-	public static function finish( array $result, $format, array $extra = [] ) {
-		$row    = array_intersect_key( $result, array_flip( [ 'job_id', 'operation', 'content_type', 'job_name', 'status', 'total', 'processed', 'success', 'failed', 'skipped', 'remote_upload' ] ) ) + $extra;
+	public static function finish( array $result, $format, array $extra = array() ) {
+		$row    = array_intersect_key( $result, array_flip( array( 'job_id', 'operation', 'content_type', 'job_name', 'status', 'total', 'processed', 'success', 'failed', 'skipped', 'remote_upload' ) ) ) + $extra;
 		$reason = self::failure_reason( $result );
 		if ( '' !== $reason ) {
 			// A job that failed before any row (bad filter, missing form...) has no row errors: say why.
@@ -452,15 +452,15 @@ class Cli_Helper {
 			foreach ( $row as $key => $value ) {
 				WP_CLI::log( str_pad( $key . ':', 14 ) . ( is_scalar( $value ) ? $value : wp_json_encode( $value ) ) );
 			}
-			foreach ( array_slice( (array) ( $result['errors'] ?? [] ), 0, 10 ) as $error ) {
+			foreach ( array_slice( (array) ( $result['errors'] ?? array() ), 0, 10 ) as $error ) {
 				WP_CLI::warning( sprintf( 'Row %s%s: %s', $error['row'] ?? '?', ! empty( $error['field'] ) ? ' (' . $error['field'] . ')' : '', $error['message'] ?? '' ) );
 			}
 			if ( (int) ( $result['errors_total'] ?? 0 ) > 10 ) {
 				WP_CLI::log( sprintf( '%d failed rows in total. See: wp rsl-ie job errors %d', (int) $result['errors_total'], (int) $result['job_id'] ) );
 			}
 		} else {
-			$row['errors'] = $result['errors'] ?? [];
-			WP_CLI::print_value( $row, [ 'format' => $format ] );
+			$row['errors'] = $result['errors'] ?? array();
+			WP_CLI::print_value( $row, array( 'format' => $format ) );
 		}
 		self::exit_for( $result );
 	}
@@ -486,7 +486,7 @@ class Cli_Helper {
 	 */
 	public static function exit_for( array $result ) {
 		$status = $result['status'] ?? '';
-		if ( in_array( $status, [ 'failed', 'cancelled' ], true ) ) {
+		if ( in_array( $status, array( 'failed', 'cancelled' ), true ) ) {
 			WP_CLI::halt( 1 );
 		}
 		if ( (int) ( $result['failed'] ?? 0 ) > 0 || 'failed' === ( $result['remote_upload']['status'] ?? '' ) ) {
@@ -516,31 +516,31 @@ class Cli_Helper {
 	 */
 	public static function resolve_type( $type, $export ) {
 		$type  = strtolower( trim( (string) $type ) );
-		$free  = $export ? [ 'post', 'page', 'comment', 'media', 'urls', 'form_entries' ] : [ 'post', 'page', 'comment', 'media' ];
-		$alias = [
-			'product'   => 'woo_product',
-			'order'     => 'woo_order',
-			'coupon'    => 'woo_coupon',
-			'customer'  => 'woo_customer',
+		$free  = $export ? array( 'post', 'page', 'comment', 'media', 'urls', 'form_entries' ) : array( 'post', 'page', 'comment', 'media' );
+		$alias = array(
+			'product'       => 'woo_product',
+			'order'         => 'woo_order',
+			'coupon'        => 'woo_coupon',
+			'customer'      => 'woo_customer',
 			'shipping-zone' => 'woo_shipping_zone',
 			'shipping_zone' => 'woo_shipping_zone',
 			'tax-rate'      => 'woo_tax_rate',
 			'tax_rate'      => 'woo_tax_rate',
-			'review'    => 'woo_review',
-			'refund'    => 'woo_refund',
-			'attribute' => 'woo_attribute',
-			'cpt'       => 'custom_post_types',
-			'users'     => 'user',
-			'menus'     => 'menu',
-		];
+			'review'        => 'woo_review',
+			'refund'        => 'woo_refund',
+			'attribute'     => 'woo_attribute',
+			'cpt'           => 'custom_post_types',
+			'users'         => 'user',
+			'menus'         => 'menu',
+		);
 		if ( in_array( $type, $free, true ) ) {
-			return [ 'rsl-ie/', $type ];
+			return array( 'rsl-ie/', $type );
 		}
 		$type = $alias[ $type ] ?? $type;
 		if ( ! self::find_ability( 'rsl-ie-pro/' . ( $export ? 'export-start' : 'import-start' ) ) ) {
 			WP_CLI::error( sprintf( '"%s" needs the PRO plugin. The free plugin handles: %s.', $type, implode( ', ', $free ) ) );
 		}
-		return [ 'rsl-ie-pro/', $type ];
+		return array( 'rsl-ie-pro/', $type );
 	}
 
 	/**
@@ -551,7 +551,7 @@ class Cli_Helper {
 	 */
 	public static function post_type_shortcut( array $assoc ) {
 		$type = strtolower( trim( (string) ( $assoc['type'] ?? '' ) ) );
-		$own  = [ 'post', 'page', 'attachment', 'product', 'product_variation', 'shop_order', 'shop_order_refund', 'shop_coupon', 'nav_menu_item', 'revision' ];
+		$own  = array( 'post', 'page', 'attachment', 'product', 'product_variation', 'shop_order', 'shop_order_refund', 'shop_coupon', 'nav_menu_item', 'revision' );
 		if ( '' !== $type && ! isset( $assoc['post-type'] ) && ! in_array( $type, $own, true ) && post_type_exists( $type ) && get_post_type_object( $type )->show_ui ) {
 			$assoc['type']      = 'custom_post_types';
 			$assoc['post-type'] = $type;
@@ -567,11 +567,11 @@ class Cli_Helper {
 	 * @return array
 	 */
 	public static function target_options( array $options, array $assoc ) {
-		$keys = [
+		$keys = array(
 			'post-type' => 'post_type',
 			'taxonomy'  => 'taxonomy',
 			'table'     => 'table_name',
-		];
+		);
 		foreach ( $keys as $flag => $key ) {
 			if ( isset( $assoc[ $flag ] ) ) {
 				$options[ $key ] = (string) $assoc[ $flag ];
@@ -598,9 +598,9 @@ class Cli_Helper {
 	 * @return array
 	 */
 	public static function rows( array $rows, array $fields ) {
-		$out = [];
+		$out = array();
 		foreach ( $rows as $row ) {
-			$line = [];
+			$line = array();
 			foreach ( $fields as $field ) {
 				$value = $row[ $field ] ?? '';
 				if ( is_bool( $value ) ) {
