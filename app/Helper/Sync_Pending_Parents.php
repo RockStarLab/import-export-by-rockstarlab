@@ -61,7 +61,7 @@ class Sync_Pending_Parents {
 				'post_status'      => 'any',
 				'posts_per_page'   => 200,
 				'fields'           => 'ids',
-				'suppress_filters' => true,
+				'suppress_filters' => true, // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters -- Raw query: other plugins' query filters must not alter export/sync lookups.
 				'meta_key'         => self::META_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery -- Bounded lookup of waiting children.
 				'meta_value'       => $source_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- Bounded lookup of waiting children.
 			)

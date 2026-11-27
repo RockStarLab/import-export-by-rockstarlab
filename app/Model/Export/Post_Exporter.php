@@ -404,7 +404,7 @@ class Post_Exporter extends Abstract_Exporter {
 		$query_args['fields']           = 'ids';
 		$query_args['posts_per_page']   = 1;
 		$query_args['no_found_rows']    = false;
-		$query_args['suppress_filters'] = true;
+		$query_args['suppress_filters'] = true; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters -- Raw query: other plugins' query filters must not alter export/sync lookups.
 
 		// Combine custom filters
 		$custom_id_filters     = $query_args['_custom_id_filters'] ?? [];
@@ -892,7 +892,7 @@ class Post_Exporter extends Abstract_Exporter {
 			'orderby'             => $options['orderby'] ?? 'date',
 			'order'               => $options['order'] ?? 'DESC',
 			'ignore_sticky_posts' => true,
-			'suppress_filters'    => true,
+			'suppress_filters'    => true, // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters -- Raw query: other plugins' query filters must not alter export/sync lookups.
 			// Every language: Polylang otherwise limits the query to the language picked in the admin
 			// bar (or to the default language in REST and agent requests). A Language filter narrows it.
 			'lang'                => '',

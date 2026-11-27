@@ -331,7 +331,7 @@ class Migration_Map_Store {
 			$values[] = '(%d,%d,%s,%d)';
 			array_push( $args, $job_id, $next++, $key, $id );
 		}
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values contains only placeholder tuples; all data is passed to prepare.
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Values contains only placeholder tuples; all data is passed to prepare.
 		if ( false === $wpdb->query( $wpdb->prepare( 'INSERT INTO %i (job_id,ordinal,identity_key,target_id) VALUES ' . implode( ',', $values ), $args ) ) ) {
 			return Migration_Sync_Maps::error();
 		}

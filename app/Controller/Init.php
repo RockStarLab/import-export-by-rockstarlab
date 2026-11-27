@@ -254,6 +254,7 @@ class Init {
 	 * Loads the bundled .mo file of the current locale.
 	 */
 	public function load_textdomain() {
+		// phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound -- Loads the .mo files bundled in /languages.
 		load_plugin_textdomain( 'import-export-by-rockstarlab', false, dirname( plugin_basename( RSL_IE_FILE ) ) . '/languages' );
 	}
 
@@ -427,6 +428,7 @@ class Init {
 					/* translators: 1: server name, 2: error message. */
 					'remoteUploadFailed'                => __( 'Upload to %1$s failed: %2$s The file is still available for download.', 'import-export-by-rockstarlab' ),
 					'fileUrlDownloaded'                 => __( 'File downloaded', 'import-export-by-rockstarlab' ),
+					/* translators: 1: number of customers, 2: number of customers without an email address. */
 					'shopifyCustomersConverted'         => __( 'Shopify customer export detected: %1$s customers, %2$s without an email address. Import it as WooCommerce Customers and Auto Map will match every column.', 'import-export-by-rockstarlab' ),
 					/* translators: 1: path to the records inside the JSON file, 2: number of records */
 					'jsonRecordsFound'                  => __( 'The records in this JSON file are inside %1$s: %2$s records found. Each record becomes a row.', 'import-export-by-rockstarlab' ),

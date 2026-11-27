@@ -272,7 +272,7 @@ class Settings_Service {
 		$key = $input['api_key'] ?? '';
 		if ( 'ai-key-set' === $name && 'openai' === $id && ( 0 !== strpos( $key, 'sk-' ) || false !== strpos( $key, '...' ) ) ) {
 			return $this->error( 'ai_key_format', 400 ); }
-		$option = OpenAI_API_Key::is_wp7_plus() ? wp_get_connector( $id )['authentication']['setting_name'] : 'rsl_ie_openai_api_key';
+		$option = OpenAI_API_Key::is_wp7_plus() ? call_user_func( 'wp_get_connector', $id )['authentication']['setting_name'] : 'rsl_ie_openai_api_key'; // wp_get_connector() needs WP 7.0+, guarded by is_wp7_plus().
 		if ( 'ai-key-delete' === $name ) {
 			update_option( $option, '', false ); } else {
 			update_option( $option, sanitize_text_field( $key ), false ); }

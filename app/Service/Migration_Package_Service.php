@@ -298,7 +298,7 @@ class Migration_Package_Service {
 		} else {
 			$rows = $streamed ? $parser->rows( $path, $options ) : $parser->parse( $path, $options );
 		}
-		if ( ! $streamed && ( is_wp_error( $rows ) || ! is_array( $rows ) || ! array_is_list( $rows ) ) ) {
+		if ( ! $streamed && ( is_wp_error( $rows ) || ! is_array( $rows ) || array_values( $rows ) !== $rows ) ) {
 			return $this->error( 'invalid_rows' ); }
 		$batch       = array();
 		$batch_bytes = 0;

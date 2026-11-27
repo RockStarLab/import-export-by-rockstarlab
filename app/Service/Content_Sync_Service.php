@@ -520,7 +520,7 @@ class Content_Sync_Service {
 		if ( '' !== $language && 'all' !== $language ) {
 			$args['lang'] = $language;
 		} elseif ( 'all' === $language ) {
-			$args['suppress_filters'] = true;
+			$args['suppress_filters'] = true; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters -- Raw query: other plugins' query filters must not alter export/sync lookups.
 		}
 
 		return array_values( array_map( 'absint', get_posts( $args ) ) );

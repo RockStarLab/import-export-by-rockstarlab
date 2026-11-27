@@ -2715,7 +2715,7 @@ class Post_Importer extends Abstract_Importer {
 				'post_status'      => 'any',
 				'numberposts'      => 1,
 				'fields'           => 'ids',
-				'suppress_filters' => true,
+				'suppress_filters' => true, // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters -- Raw query: other plugins' query filters must not alter export/sync lookups.
 			]
 		);
 		if ( $found ) {
@@ -4308,6 +4308,7 @@ class Post_Importer extends Abstract_Importer {
 			return false;
 		}
 		$host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
+		// phpcs:ignore PluginCheck.CodeAnalysis.Offloading.OffloadedContent -- Host exclusion list only; nothing is loaded from these hosts.
 		foreach ( [ 'gravatar.com', 's.w.org', 'pixel.wp.com', 'stats.wp.com' ] as $service ) {
 			if ( $host === $service || '.' . $service === substr( $host, -strlen( '.' . $service ) ) ) {
 				return false;
