@@ -99,12 +99,12 @@ class App {
 		$this->View       = new \RockStarLab\ImportExport\View\View();
 
 		// Load controllers manually
-		$controllers = [
+		$controllers = array(
 			'Abilities_Controller',
 			'Agent_Controller',
 			'Files_Controller',
 			'Init',
-		];
+		);
 
 		$this->_load_controllers( $controllers );
 	}

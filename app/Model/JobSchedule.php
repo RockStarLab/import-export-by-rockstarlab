@@ -27,7 +27,7 @@ class JobSchedule extends Model {
 	 * @return array
 	 */
 	protected function get_allowed_columns() {
-		return [
+		return array(
 			'id',
 			'source_job_id',
 			'last_job_id',
@@ -41,7 +41,7 @@ class JobSchedule extends Model {
 			'created_by',
 			'created_at',
 			'updated_at',
-		];
+		);
 	}
 
 	/**
@@ -54,14 +54,14 @@ class JobSchedule extends Model {
 		$now  = current_time( 'mysql', true );
 		$data = wp_parse_args(
 			$data,
-			[
+			array(
 				'last_job_id'  => null,
 				'status'       => 'active',
 				'created_by'   => get_current_user_id(),
 				'created_at'   => $now,
 				'updated_at'   => $now,
 				'last_run_gmt' => null,
-			]
+			)
 		);
 
 		return $this->insert( $data );

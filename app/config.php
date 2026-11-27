@@ -7,4 +7,4 @@
 
 defined( 'ABSPATH' ) || exit;
 
-return [];
+return array();

@@ -11,14 +11,14 @@ defined( 'ABSPATH' ) || exit;
 
 /** Keeps only one encoded row in memory; json_decode validates each value. */
 class JSON_Row_Stream {
-	public static function rows( $path, array $options = [], &$cursor = null ) {
+	public static function rows( $path, array $options = array(), &$cursor = null ) {
 		$stream = fopen( $path, 'rb' );
 		if ( ! $stream ) {
 			throw new \RuntimeException( __( 'Cannot read JSON file.', 'import-export-by-rockstarlab' ) );
 		}
 		$phase   = 'start';
 		$value   = '';
-		$stack   = [];
+		$stack   = array();
 		$quoted  = false;
 		$escaped = false;
 		$depth   = $options['depth'] ?? 512;
@@ -26,10 +26,10 @@ class JSON_Row_Stream {
 		$opening = $object ? '{' : '[';
 		$closing = $object ? '}' : ']';
 		try {
-			$identity = array_intersect_key( fstat( $stream ), array_flip( [ 'dev', 'ino', 'size', 'mtime', 'ctime' ] ) );
-			$settings = hash( 'sha256', serialize( [ $depth, $object, $options['flags'] ?? 0 ] ) );
+			$identity = array_intersect_key( fstat( $stream ), array_flip( array( 'dev', 'ino', 'size', 'mtime', 'ctime' ) ) );
+			$settings = hash( 'sha256', serialize( array( $depth, $object, $options['flags'] ?? 0 ) ) );
 			if ( null !== $cursor ) {
-				if ( ! is_array( $cursor ) || ( $cursor['identity'] ?? null ) !== $identity || ( $cursor['settings'] ?? null ) !== $settings || ! isset( $cursor['offset'], $cursor['phase'] ) || ! is_int( $cursor['offset'] ) || $cursor['offset'] < 0 || $cursor['offset'] > $identity['size'] || ! in_array( $cursor['phase'], [ 'next', 'end' ], true ) || 0 !== fseek( $stream, $cursor['offset'] ) ) {
+				if ( ! is_array( $cursor ) || ( $cursor['identity'] ?? null ) !== $identity || ( $cursor['settings'] ?? null ) !== $settings || ! isset( $cursor['offset'], $cursor['phase'] ) || ! is_int( $cursor['offset'] ) || $cursor['offset'] < 0 || $cursor['offset'] > $identity['size'] || ! in_array( $cursor['phase'], array( 'next', 'end' ), true ) || 0 !== fseek( $stream, $cursor['offset'] ) ) {
 					throw new \RuntimeException( __( 'Invalid JSON cursor.', 'import-export-by-rockstarlab' ) ); }
 				$phase = $cursor['phase'];
 			}
@@ -58,12 +58,12 @@ class JSON_Row_Stream {
 							$row = json_decode( $object ? '{' . $value . '}' : $value, true, $object ? $depth : $depth - 1, $options['flags'] ?? 0 );
 							if ( JSON_ERROR_NONE !== json_last_error() ) {
 								throw new \RuntimeException( 'Invalid JSON row.' ); }
-							$cursor = [
+							$cursor = array(
 								'identity' => $identity,
 								'settings' => $settings,
 								'offset'   => ftell( $stream ) - $length + $i + 1,
 								'phase'    => $closing === $char ? 'end' : 'next',
-							];
+							);
 							yield $row;
 						}
 						$value = '';

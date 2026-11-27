@@ -31,11 +31,11 @@ class Required_Rule extends Validation_Rule {
 					__( '%s is required', 'import-export-by-rockstarlab' ),
 					$field_name
 				),
-				[
+				array(
 					'field' => $context['field_name'] ?? null,
 					'row'   => $context['row'] ?? null,
 					'rule'  => 'required',
-				]
+				)
 			);
 		}
 

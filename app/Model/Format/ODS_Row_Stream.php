@@ -8,7 +8,7 @@ class ODS_Row_Stream {
 	public static function validate( $path ) {
 		$parts = new Spreadsheet_XML_Parts( $path );
 		try {
-			foreach ( [ 'meta.xml', 'styles.xml' ] as $name ) {
+			foreach ( array( 'meta.xml', 'styles.xml' ) as $name ) {
 				try {
 					foreach ( $parts->nodes( $name ) as $node ) {
 					}
@@ -26,19 +26,19 @@ class ODS_Row_Stream {
 			$parts->close(); }
 	}
 
-	public static function headers( $path, array $options = [] ) {
+	public static function headers( $path, array $options = array() ) {
 		foreach ( self::scan( $path, $options, true ) as $headers ) {
 			return $headers; }
 	}
 
 	/** Return complete worksheet metadata and a bounded sample from one staging pass. */
-	public static function preview( $path, array $options = [] ) {
+	public static function preview( $path, array $options = array() ) {
 		foreach ( self::scan( $path, $options, false, true ) as $summary ) {
 			return $summary;
 		}
 	}
 
-	public static function rows( $path, array $options = [], &$raw_headers = null ) {
+	public static function rows( $path, array $options = array(), &$raw_headers = null ) {
 		yield from self::scan( $path, $options, false, false, $raw_headers ); }
 
 	private static function scan( $path, array $options, $headers_only, $preview = false, &$raw_headers = null ) {

@@ -18,7 +18,7 @@ class Regex_Rule extends Validation_Rule {
 	 *
 	 * @var array
 	 */
-	const PATTERNS = [
+	const PATTERNS = array(
 		'alphanumeric' => '/^[a-zA-Z0-9]+$/',
 		'alpha'        => '/^[a-zA-Z]+$/',
 		'numeric'      => '/^[0-9]+$/',
@@ -27,7 +27,7 @@ class Regex_Rule extends Validation_Rule {
 		'phone'        => '/^[\d\s\-\(\)\+]+$/',
 		'zipcode'      => '/^[0-9]{5}(?:-[0-9]{4})?$/',
 		'ipv4'         => '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/',
-	];
+	);
 
 	/**
 	 * Check if value matches regex pattern
@@ -69,11 +69,11 @@ class Regex_Rule extends Validation_Rule {
 			return $this->create_error(
 				'pattern_mismatch',
 				$message,
-				[
+				array(
 					'field'   => $context['field_name'] ?? null,
 					'value'   => $string_value,
 					'pattern' => $pattern,
-				]
+				)
 			);
 		}
 

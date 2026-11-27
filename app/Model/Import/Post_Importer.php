@@ -67,7 +67,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @return array
 	 */
 	public function get_required_fields() {
-		return [ 'post_title' ];
+		return array( 'post_title' );
 	}
 
 	/**
@@ -82,7 +82,7 @@ class Post_Importer extends Abstract_Importer {
 	public function validate( $data ) {
 		$match = (string) $this->get_option( 'duplicate_check', 'post_title' );
 		$match = 'slug' === $match ? 'post_name' : $match;
-		if ( 'update' === $this->get_option( 'duplicate_mode', 'skip' ) && in_array( $match, [ 'ID', 'post_name' ], true ) && ! empty( $data ) && is_array( $data ) ) {
+		if ( 'update' === $this->get_option( 'duplicate_mode', 'skip' ) && in_array( $match, array( 'ID', 'post_name' ), true ) && ! empty( $data ) && is_array( $data ) ) {
 			$first = reset( $data );
 			if ( is_array( $first ) && isset( $first[ $match ] ) && '' !== (string) $first[ $match ] ) {
 				return true;
@@ -106,7 +106,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @return array
 	 */
 	public function get_optional_fields() {
-		return [
+		return array(
 			'post_content',
 			'post_excerpt',
 			'post_status',
@@ -135,7 +135,7 @@ class Post_Importer extends Abstract_Importer {
 			'featured_image_title',
 			'featured_image_caption',
 			'featured_image_alt',
-		];
+		);
 	}
 
 	/**
@@ -144,7 +144,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @return array
 	 */
 	public function get_supported_options() {
-		return [
+		return array(
 			'duplicate_mode'       => 'How to handle duplicates: skip, update, create',
 			'post_status'          => 'Default post status: publish, draft, pending',
 			'post_type'            => __( 'Post type to import as: post, page, or custom type', 'import-export-by-rockstarlab' ),
@@ -154,7 +154,7 @@ class Post_Importer extends Abstract_Importer {
 			'duplicate_check'      => 'Field to check for duplicates: post_title, post_name, ID. With duplicate_mode=update matched by ID or post_name, post_title is not required and only mapped fields change',
 			'auto_import_media'    => 'Download media files from the file (images, files, galleries): true (default), false',
 			'media_duplicate_mode' => 'How to handle duplicate media: skip, create, replace',
-		];
+		);
 	}
 
 	/**
@@ -165,14 +165,14 @@ class Post_Importer extends Abstract_Importer {
 	protected function get_default_options() {
 		return array_merge(
 			parent::get_default_options(),
-			[
+			array(
 				'post_status'     => 'draft',
 				'post_type'       => 'post',
 				'post_author'     => get_current_user_id(),
 				'comment_status'  => 'open',
 				'ping_status'     => 'closed',
 				'duplicate_check' => 'post_title',
-			]
+			)
 		);
 	}
 
@@ -204,7 +204,7 @@ class Post_Importer extends Abstract_Importer {
 		if ( isset( $options['unique_field'] ) && ! isset( $options['duplicate_check'] ) ) {
 			$options['duplicate_check'] = $options['unique_field'];
 		}
-		if ( isset( $options['duplicate_mode'] ) && ! isset( $options['media_duplicate_mode'] ) && in_array( $options['duplicate_mode'], [ 'skip', 'update', 'create' ], true ) ) {
+		if ( isset( $options['duplicate_mode'] ) && ! isset( $options['media_duplicate_mode'] ) && in_array( $options['duplicate_mode'], array( 'skip', 'update', 'create' ), true ) ) {
 			$options['media_duplicate_mode'] = $options['duplicate_mode'];
 		}
 
@@ -235,42 +235,42 @@ class Post_Importer extends Abstract_Importer {
 	 * @return array Item with taxonomies / post_meta populated.
 	 */
 	private function normalize_prefixed_columns( array $item ): array {
-		$taxonomy_formats = $item['_taxonomy_formats'] ?? [];
+		$taxonomy_formats = $item['_taxonomy_formats'] ?? array();
 		unset( $item['_taxonomy_formats'] );
 
 		if ( ! isset( $item['post_meta'] ) || ! is_array( $item['post_meta'] ) ) {
 			// A CSV/XLSX export holds all custom fields (ACF, Elementor, SEO) as one JSON cell.
 			$decoded_meta      = is_string( $item['post_meta'] ?? null ) && '' !== trim( (string) $item['post_meta'] ) ? json_decode( (string) $item['post_meta'], true ) : null;
-			$item['post_meta'] = is_array( $decoded_meta ) ? $decoded_meta : [];
+			$item['post_meta'] = is_array( $decoded_meta ) ? $decoded_meta : array();
 		}
 		if ( ! isset( $item['taxonomies'] ) || ! is_array( $item['taxonomies'] ) ) {
 			$decoded_taxonomies = is_string( $item['taxonomies'] ?? null ) ? json_decode( (string) $item['taxonomies'], true ) : null;
-			$item['taxonomies'] = is_array( $decoded_taxonomies ) ? $decoded_taxonomies : [];
+			$item['taxonomies'] = is_array( $decoded_taxonomies ) ? $decoded_taxonomies : array();
 		}
 		// Track which post_meta keys came from acf_* columns so the importer
 		// can use update_field() for them (stores the ACF reference key _field_name).
 		if ( ! isset( $item['_acf_field_names'] ) || ! is_array( $item['_acf_field_names'] ) ) {
-			$item['_acf_field_names'] = [];
+			$item['_acf_field_names'] = array();
 		}
 		// Backup raw meta_* values that may be overridden by portable acf_* values.
 		// When ACF field definitions are missing on the target site, update_field()
 		// can fail; in that case we should fall back to the raw ACF storage format.
 		if ( ! isset( $item['_rsl_ie_raw_post_meta'] ) || ! is_array( $item['_rsl_ie_raw_post_meta'] ) ) {
-			$item['_rsl_ie_raw_post_meta'] = [];
+			$item['_rsl_ie_raw_post_meta'] = array();
 		}
 
 		// Taxonomy fields saved by older mapping screens use the bare taxonomy slug
 		// (e.g. "category") as the target; treat them like taxonomy_<slug> columns.
 		foreach ( $taxonomy_formats as $format_key => $format ) {
 			$format_key = (string) $format_key;
-			if ( 0 === strpos( $format_key, 'taxonomy_' ) || in_array( $format_key, [ 'categories', 'tags', 'taxonomies' ], true ) ) {
+			if ( 0 === strpos( $format_key, 'taxonomy_' ) || in_array( $format_key, array( 'categories', 'tags', 'taxonomies' ), true ) ) {
 				continue;
 			}
 			if ( ! array_key_exists( $format_key, $item ) || ! taxonomy_exists( $format_key ) ) {
 				continue;
 			}
 			if ( ! isset( $item[ 'taxonomy_' . $format_key ] ) ) {
-				$item[ 'taxonomy_' . $format_key ]           = $item[ $format_key ];
+				$item[ 'taxonomy_' . $format_key ]             = $item[ $format_key ];
 				$taxonomy_formats[ 'taxonomy_' . $format_key ] = $format;
 			}
 			unset( $item[ $format_key ] );
@@ -289,10 +289,10 @@ class Post_Importer extends Abstract_Importer {
 			if ( 0 === strpos( $key, 'taxonomy_' ) ) {
 				$taxonomy = substr( $key, strlen( 'taxonomy_' ) );
 				if ( '' !== $taxonomy && ! isset( $item['taxonomies'][ $taxonomy ] ) ) {
-					$item['taxonomies'][ $taxonomy ] = [
+					$item['taxonomies'][ $taxonomy ] = array(
 						'terms'  => $value,
 						'format' => $taxonomy_formats[ $key ] ?? 'name',
-					];
+					);
 				}
 				unset( $item[ $key ] );
 				continue;
@@ -300,10 +300,10 @@ class Post_Importer extends Abstract_Importer {
 
 			if ( 'categories' === $key ) {
 				if ( ! isset( $item['taxonomies']['category'] ) ) {
-					$item['taxonomies']['category'] = [
+					$item['taxonomies']['category'] = array(
 						'terms'  => $value,
 						'format' => $taxonomy_formats[ $key ] ?? 'name',
-					];
+					);
 				}
 				unset( $item[ $key ] );
 				continue;
@@ -311,10 +311,10 @@ class Post_Importer extends Abstract_Importer {
 
 			if ( 'tags' === $key ) {
 				if ( ! isset( $item['taxonomies']['post_tag'] ) ) {
-					$item['taxonomies']['post_tag'] = [
+					$item['taxonomies']['post_tag'] = array(
 						'terms'  => $value,
 						'format' => $taxonomy_formats[ $key ] ?? 'name',
-					];
+					);
 				}
 				unset( $item[ $key ] );
 				continue;
@@ -371,7 +371,7 @@ class Post_Importer extends Abstract_Importer {
 			if ( 0 === strpos( $key, '_rsl_ie_' ) ) {
 				continue;
 			}
-			if ( in_array( $key, [ '_acf_field_names', '_rsl_ie_raw_post_meta' ], true ) ) {
+			if ( in_array( $key, array( '_acf_field_names', '_rsl_ie_raw_post_meta' ), true ) ) {
 				continue;
 			}
 
@@ -431,7 +431,7 @@ class Post_Importer extends Abstract_Importer {
 			return null;
 		}
 		$status  = strtolower( trim( (string) $value ) );
-		$aliases = [
+		$aliases = array(
 			'1'           => 'publish',
 			'true'        => 'publish',
 			'yes'         => 'publish',
@@ -445,7 +445,7 @@ class Post_Importer extends Abstract_Importer {
 			'archived'    => 'draft',
 			'unpublished' => 'draft',
 			'scheduled'   => 'future',
-		];
+		);
 		if ( isset( $aliases[ $status ] ) ) {
 			return $aliases[ $status ];
 		}
@@ -463,10 +463,10 @@ class Post_Importer extends Abstract_Importer {
 			return null;
 		}
 		$status = strtolower( trim( (string) $value ) );
-		if ( in_array( $status, [ 'open', '1', 'true', 'yes', 'on' ], true ) ) {
+		if ( in_array( $status, array( 'open', '1', 'true', 'yes', 'on' ), true ) ) {
 			return 'open';
 		}
-		if ( in_array( $status, [ 'closed', '0', 'false', 'no', 'off' ], true ) ) {
+		if ( in_array( $status, array( 'closed', '0', 'false', 'no', 'off' ), true ) ) {
 			return 'closed';
 		}
 		return null;
@@ -513,7 +513,7 @@ class Post_Importer extends Abstract_Importer {
 			$this->log_skip_once( 'menu', sprintf( /* translators: %d: int row number. */ __( 'Menu items of the export are skipped (first: row %d). Import menus with a Menus import.', 'import-export-by-rockstarlab' ), (int) $index + 1 ) );
 			return 'skipped';
 		}
-		if ( 'inherit' === $row_status || in_array( $row_type, [ 'attachment', 'revision' ], true ) ) {
+		if ( 'inherit' === $row_status || in_array( $row_type, array( 'attachment', 'revision' ), true ) ) {
 			$this->log_skip_once( 'media', sprintf( /* translators: %d: int row number. */ __( 'Media files and revisions of the export are skipped (first: row %d). Import media files with a Media import.', 'import-export-by-rockstarlab' ), (int) $index + 1 ) );
 			return 'skipped';
 		}
@@ -608,7 +608,7 @@ class Post_Importer extends Abstract_Importer {
 		// An update file keyed by ID or slug often has no title column. A row whose key matched
 		// nothing would otherwise become an untitled, empty post.
 		$mode = $this->get_option( 'duplicate_mode', $this->get_option( 'if_exists', 'skip' ) );
-		if ( 'update' === $mode && in_array( $this->get_option( 'duplicate_check', 'post_title' ), [ 'ID', 'post_name', 'slug' ], true ) && '' === trim( (string) ( $item['post_title'] ?? '' ) ) && ! ( array_key_exists( 'post_title', $item ) && '' !== trim( (string) ( $item['post_content'] ?? '' ) . (string) ( $item['post_excerpt'] ?? '' ) ) ) ) {
+		if ( 'update' === $mode && in_array( $this->get_option( 'duplicate_check', 'post_title' ), array( 'ID', 'post_name', 'slug' ), true ) && '' === trim( (string) ( $item['post_title'] ?? '' ) ) && ! ( array_key_exists( 'post_title', $item ) && '' !== trim( (string) ( $item['post_content'] ?? '' ) . (string) ( $item['post_excerpt'] ?? '' ) ) ) ) {
 			// A full export row with an empty title column and real content is an untitled post
 			// (WordPress allows it) and is created. A partial update file without a title column is not.
 			$this->log_warning( 'A row was skipped: no existing item matched its ID or slug, and it has no title to create a new one.' );
@@ -709,7 +709,7 @@ class Post_Importer extends Abstract_Importer {
 		$key = $this->get_job_id_map_key();
 		$map = get_transient( $key );
 		if ( ! is_array( $map ) ) {
-			$map = [];
+			$map = array();
 		}
 
 		$map[ (string) $source_id ] = $target_id;
@@ -789,13 +789,13 @@ class Post_Importer extends Abstract_Importer {
 
 		// Check by post_name (slug)
 		if ( 'post_name' === $check_field && ! empty( $item['post_name'] ) ) {
-			$args = [
+			$args = array(
 				'name'           => $item['post_name'],
 				'post_type'      => $this->get_option( 'post_type', 'post' ),
 				'post_status'    => 'any',
 				'posts_per_page' => 1,
 				'fields'         => 'ids',
-			];
+			);
 
 			$posts = get_posts( $args );
 			if ( ! empty( $posts ) ) {
@@ -811,7 +811,7 @@ class Post_Importer extends Abstract_Importer {
 					(string) $this->get_option( 'post_type', 'post' )
 				)
 			);
-			$found = array_values(
+			$found      = array_values(
 				array_filter(
 					(array) $candidates,
 					static function ( $row ) use ( $slug ) {
@@ -882,13 +882,13 @@ class Post_Importer extends Abstract_Importer {
 		// Fallback: when title matching misses because content was edited or normalized
 		// differently, use the exported slug before creating another item.
 		if ( 'post_title' === $check_field && ! empty( $item['post_name'] ) ) {
-			$args = [
+			$args = array(
 				'name'           => $item['post_name'],
 				'post_type'      => $this->get_option( 'post_type', 'post' ),
 				'post_status'    => 'any',
 				'posts_per_page' => 1,
 				'fields'         => 'ids',
-			];
+			);
 
 			$posts = get_posts( $args );
 			return ! empty( $posts ) ? get_post( $posts[0] ) : null;
@@ -940,7 +940,7 @@ class Post_Importer extends Abstract_Importer {
 		$found     = get_page_by_path( $path, OBJECT, $post_type );
 		if ( ! $found ) {
 			global $wpdb;
-			$ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact title match, at most two rows.
+			$ids   = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact title match, at most two rows.
 				$wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_title = %s AND post_status NOT IN ('trash','auto-draft','inherit') ORDER BY ID ASC LIMIT 2", $post_type, $reference )
 			);
 			$found = 1 === count( $ids ) ? get_post( (int) $ids[0] ) : null;
@@ -967,7 +967,7 @@ class Post_Importer extends Abstract_Importer {
 			return (string) substr( $check_field, 4 );
 		}
 		// Underscore keys (_sku, _event_id) are stored as post meta under the same name.
-		if ( '_' === substr( $check_field, 0, 1 ) && ! in_array( $check_field, [ '_wp_page_template', '_thumbnail_id' ], true ) ) {
+		if ( '_' === substr( $check_field, 0, 1 ) && ! in_array( $check_field, array( '_wp_page_template', '_thumbnail_id' ), true ) ) {
 			return $check_field;
 		}
 		return '';
@@ -987,7 +987,7 @@ class Post_Importer extends Abstract_Importer {
 			return null;
 		}
 
-		$args = [
+		$args = array(
 			'name'                   => (string) $item['post_name'],
 			'post_type'              => $this->get_option( 'post_type', $item['post_type'] ?? 'post' ),
 			'post_status'            => 'any',
@@ -996,7 +996,7 @@ class Post_Importer extends Abstract_Importer {
 			'no_found_rows'          => true,
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
-		];
+		);
 
 		$posts = get_posts( $args );
 		if ( 1 === count( $posts ) ) {
@@ -1030,7 +1030,7 @@ class Post_Importer extends Abstract_Importer {
 			return null;
 		}
 
-		$args  = [
+		$args  = array(
 			'post_type'              => $this->get_option( 'post_type', 'post' ),
 			'post_status'            => 'any',
 			'posts_per_page'         => 1,
@@ -1042,7 +1042,7 @@ class Post_Importer extends Abstract_Importer {
 			'update_post_term_cache' => false,
 			'meta_key'               => self::SOURCE_ID_META_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- required for source-ID lookup.
 			'meta_value'             => $source_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- required for source-ID lookup.
-		];
+		);
 		$posts = get_posts( $args );
 		if ( ! empty( $posts ) ) {
 			return get_post( (int) $posts[0] );
@@ -1083,7 +1083,7 @@ class Post_Importer extends Abstract_Importer {
 		}
 		// Import post meta
 		if ( ! empty( $item['post_meta'] ) ) {
-			$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? [], $item['_rsl_ie_raw_post_meta'] ?? [] );
+			$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? array(), $item['_rsl_ie_raw_post_meta'] ?? array() );
 		}
 
 		if ( $this->is_job_cancelled() ) {
@@ -1103,7 +1103,7 @@ class Post_Importer extends Abstract_Importer {
 		if ( ! empty( $item['taxonomies'] ) ) {
 			$this->import_taxonomies( $post_id, $item['taxonomies'] );
 		}
-		$this->restore_primary_terms( (int) $post_id, $item['post_meta'] ?? [] );
+		$this->restore_primary_terms( (int) $post_id, $item['post_meta'] ?? array() );
 
 		// Import featured image — always, when data is present in the export.
 		// The featured_image field is explicitly selected at export time, so it
@@ -1167,7 +1167,7 @@ class Post_Importer extends Abstract_Importer {
 		}
 		// Update post meta
 		if ( ! empty( $item['post_meta'] ) ) {
-			$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? [], $item['_rsl_ie_raw_post_meta'] ?? [] );
+			$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? array(), $item['_rsl_ie_raw_post_meta'] ?? array() );
 		}
 
 		if ( $this->is_job_cancelled() ) {
@@ -1187,7 +1187,7 @@ class Post_Importer extends Abstract_Importer {
 		if ( ! empty( $item['taxonomies'] ) ) {
 			$this->import_taxonomies( $post_id, $item['taxonomies'] );
 		}
-		$this->restore_primary_terms( (int) $post_id, $item['post_meta'] ?? [] );
+		$this->restore_primary_terms( (int) $post_id, $item['post_meta'] ?? array() );
 
 		// Update featured image — always, when data is present in the export.
 		if ( ! empty( $item['featured_image'] ) ) {
@@ -1211,7 +1211,16 @@ class Post_Importer extends Abstract_Importer {
 		if ( ! $fields_changed && empty( $item['post_modified'] ) && empty( $item['post_modified_gmt'] ) ) {
 			// Only custom fields, terms or images changed: keep the post's "Last modified" date, as WordPress does.
 			global $wpdb;
-			$wpdb->update( $wpdb->posts, [ 'post_modified' => $before->post_modified, 'post_modified_gmt' => $before->post_modified_gmt ], [ 'ID' => (int) $post_id ], [ '%s', '%s' ], [ '%d' ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->update(
+				$wpdb->posts,
+				array(
+					'post_modified'     => $before->post_modified,
+					'post_modified_gmt' => $before->post_modified_gmt,
+				),
+				array( 'ID' => (int) $post_id ),
+				array( '%s', '%s' ),
+				array( '%d' )
+			); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			clean_post_cache( (int) $post_id );
 		}
 
@@ -1252,8 +1261,8 @@ class Post_Importer extends Abstract_Importer {
 
 		global $wpdb;
 
-		$update = [];
-		$format = [];
+		$update = array();
+		$format = array();
 
 		if ( ! empty( $item['post_modified'] ) ) {
 			$update['post_modified'] = (string) $item['post_modified'];
@@ -1265,7 +1274,7 @@ class Post_Importer extends Abstract_Importer {
 			$format[]                    = '%s';
 		}
 
-		$wpdb->update( $wpdb->posts, $update, [ 'ID' => $post_id ], $format, [ '%d' ] );
+		$wpdb->update( $wpdb->posts, $update, array( 'ID' => $post_id ), $format, array( '%d' ) );
 		clean_post_cache( $post_id );
 	}
 
@@ -1345,7 +1354,7 @@ class Post_Importer extends Abstract_Importer {
 	private function mark_post_import_job_action( $post_id, $action ) {
 		$post_id = absint( $post_id );
 		$job_id  = absint( $this->job_id );
-		if ( $post_id <= 0 || $job_id <= 0 || ! in_array( $action, [ 'created', 'updated' ], true ) ) {
+		if ( $post_id <= 0 || $job_id <= 0 || ! in_array( $action, array( 'created', 'updated' ), true ) ) {
 			return;
 		}
 
@@ -1371,7 +1380,7 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		$value     = is_string( $item['is_sticky'] ) ? strtolower( trim( $item['is_sticky'] ) ) : $item['is_sticky'];
-		$is_sticky = in_array( $value, [ 1, '1', true, 'true', 'yes', 'y', 'on', 'sticky' ], true );
+		$is_sticky = in_array( $value, array( 1, '1', true, 'true', 'yes', 'y', 'on', 'sticky' ), true );
 
 		if ( $is_sticky ) {
 			stick_post( (int) $post_id );
@@ -1387,15 +1396,15 @@ class Post_Importer extends Abstract_Importer {
 	 * @return array Prepared post data
 	 */
 	private function prepare_post_data( $item, $is_update = false ) {
-		$defaults = $is_update ? [] : [
+		$defaults = $is_update ? array() : array(
 			'post_status'    => $this->get_option( 'post_status', 'draft' ),
 			'post_type'      => $this->get_option( 'post_type', 'post' ),
 			'post_author'    => $this->get_option( 'post_author', get_current_user_id() ),
 			'comment_status' => $this->get_option( 'comment_status', 'open' ),
 			'ping_status'    => $this->get_option( 'ping_status', 'closed' ),
-		];
+		);
 
-		$allowed_fields = [
+		$allowed_fields = array(
 			'post_title',
 			'post_content',
 			'post_excerpt',
@@ -1412,9 +1421,9 @@ class Post_Importer extends Abstract_Importer {
 			'comment_status',
 			'ping_status',
 			'post_password',
-		];
+		);
 
-		$post_data = [];
+		$post_data = array();
 
 		foreach ( $allowed_fields as $field ) {
 			if ( isset( $item[ $field ] ) ) {
@@ -1430,7 +1439,7 @@ class Post_Importer extends Abstract_Importer {
 			if ( '' === $post_data['post_type'] ) {
 				unset( $post_data['post_type'] ); }
 		}
-		foreach ( [ 'post_status', 'comment_status', 'ping_status' ] as $field ) {
+		foreach ( array( 'post_status', 'comment_status', 'ping_status' ) as $field ) {
 			if ( ! array_key_exists( $field, $post_data ) ) {
 				continue;
 			}
@@ -1452,10 +1461,10 @@ class Post_Importer extends Abstract_Importer {
 		// Resolve the author (author IDs are not portable between sites): author_login, then
 		// author_email (a new user is created when allowed), then author_name as a login or as
 		// the display name of exactly one user. Existing users are never renamed.
-		$login   = trim( (string) ( $item['author_login'] ?? '' ) );
-		$name    = trim( (string) ( $item['author_name'] ?? '' ) );
-		$email   = trim( (string) ( $item['author_email'] ?? '' ) );
-		$user    = '' !== $login ? get_user_by( 'login', $login ) : false;
+		$login = trim( (string) ( $item['author_login'] ?? '' ) );
+		$name  = trim( (string) ( $item['author_name'] ?? '' ) );
+		$email = trim( (string) ( $item['author_email'] ?? '' ) );
+		$user  = '' !== $login ? get_user_by( 'login', $login ) : false;
 		// A WordPress export names the author by login; the same person may have another
 		// login here. Match by the export's author email (never creates a user).
 		if ( ! $user && '' === $email && ! empty( $item['_rsl_ie_wxr_author_email'] ) && is_email( (string) $item['_rsl_ie_wxr_author_email'] ) ) {
@@ -1464,8 +1473,8 @@ class Post_Importer extends Abstract_Importer {
 		if ( ! $user && '' !== $email && is_email( $email ) ) {
 			$user = get_user_by( 'email', $email );
 			if ( ! $user && current_user_can( 'create_users' ) ) {
-				$roles = isset( $item['author_roles'] ) ? ( is_array( $item['author_roles'] ) ? $item['author_roles'] : explode( ',', $item['author_roles'] ) ) : [ 'author' ];
-				$roles = array_values( array_filter( array_map( 'sanitize_key', $roles ) ) );
+				$roles    = isset( $item['author_roles'] ) ? ( is_array( $item['author_roles'] ) ? $item['author_roles'] : explode( ',', $item['author_roles'] ) ) : array( 'author' );
+				$roles    = array_values( array_filter( array_map( 'sanitize_key', $roles ) ) );
 				$editable = function_exists( 'get_editable_roles' ) ? get_editable_roles() : wp_roles()->roles;
 				if ( ! current_user_can( 'promote_users' ) || array_diff( $roles, array_keys( $editable ) ) ) {
 					throw new \RuntimeException( __( 'Cannot assign the imported author roles.', 'import-export-by-rockstarlab' ) );
@@ -1479,13 +1488,13 @@ class Post_Importer extends Abstract_Importer {
 					++$suffix;
 				}
 				$user_id = wp_insert_user(
-					[
+					array(
 						'user_login'   => $try,
 						'user_pass'    => wp_generate_password( 24, true, true ),
 						'user_email'   => $email,
 						'display_name' => '' !== $name ? $name : $try,
 						'role'         => $roles[0] ?? '',
-					]
+					)
 				);
 				if ( ! is_wp_error( $user_id ) ) {
 					$user = get_user_by( 'id', (int) $user_id );
@@ -1499,12 +1508,12 @@ class Post_Importer extends Abstract_Importer {
 			$user = get_user_by( 'login', $name );
 			if ( ! $user ) {
 				$matches = get_users(
-					[
+					array(
 						'search'         => $name,
-						'search_columns' => [ 'display_name' ],
+						'search_columns' => array( 'display_name' ),
 						'number'         => 2,
-						'fields'         => [ 'ID', 'display_name' ],
-					]
+						'fields'         => array( 'ID', 'display_name' ),
+					)
 				);
 				$matches = array_values(
 					array_filter(
@@ -1530,8 +1539,22 @@ class Post_Importer extends Abstract_Importer {
 				if ( ! $user ) {
 					$user = get_user_by( 'slug', sanitize_title( $given ) ); }
 				if ( ! $user ) {
-					$matches = get_users( [ 'search' => $given, 'search_columns' => [ 'display_name' ], 'number' => 2, 'fields' => [ 'ID', 'display_name' ] ] );
-					$matches = array_values( array_filter( $matches, static function ( $candidate ) use ( $given ) { return 0 === strcasecmp( (string) $candidate->display_name, $given ); } ) );
+					$matches = get_users(
+						array(
+							'search'         => $given,
+							'search_columns' => array( 'display_name' ),
+							'number'         => 2,
+							'fields'         => array( 'ID', 'display_name' ),
+						)
+					);
+					$matches = array_values(
+						array_filter(
+							$matches,
+							static function ( $candidate ) use ( $given ) {
+								return 0 === strcasecmp( (string) $candidate->display_name, $given );
+							}
+						)
+					);
 					$user    = 1 === count( $matches ) ? get_user_by( 'id', (int) $matches[0]->ID ) : false;
 				}
 				if ( ! $user ) {
@@ -1553,9 +1576,9 @@ class Post_Importer extends Abstract_Importer {
 			// Say so instead of silently giving the post to the importing administrator.
 			$this->log_warning(
 				sprintf(
-					/* translators: %1$s: string, %2$s: implode. */ __( 'Author not found for "%1$s" (%2$s); the post was assigned to the default author.', 'import-export-by-rockstarlab' ),
+					/* translators: %1$s: string, %2$s: implode. */                    __( 'Author not found for "%1$s" (%2$s); the post was assigned to the default author.', 'import-export-by-rockstarlab' ),
 					(string) ( $item['post_title'] ?? '' ),
-					implode( ', ', array_filter( [ $login, $email, $name ], 'strlen' ) )
+					implode( ', ', array_filter( array( $login, $email, $name ), 'strlen' ) )
 				)
 			);
 		}
@@ -1726,7 +1749,7 @@ class Post_Importer extends Abstract_Importer {
 		}
 		$value = self::normalize_numeric_date( $value, (string) $this->get_option( 'date_order', 'auto' ) );
 
-		$formats = [
+		$formats = array(
 			'Y-m-d H:i:s',
 			'Y-m-d H:i',
 			'Y/m/d H:i:s',
@@ -1735,7 +1758,7 @@ class Post_Importer extends Abstract_Importer {
 			'Y/m/d g:i A',
 			'Y-m-d\TH:i:sP',
 			'Y-m-d\TH:i:s',
-		];
+		);
 
 		foreach ( $formats as $format ) {
 			$dt = \DateTimeImmutable::createFromFormat( '!' . $format, $value, $timezone );
@@ -1777,7 +1800,7 @@ class Post_Importer extends Abstract_Importer {
 		if ( is_string( $map ) ) {
 			$map = json_decode( $map, true );
 		}
-		$map = is_array( $map ) ? $map : [];
+		$map = is_array( $map ) ? $map : array();
 
 		// A Primary Category column holds a slug, a name or a term ID (import_post_meta skips
 		// it). Save the term of this site only if the post has it; an empty cell clears it,
@@ -1828,7 +1851,7 @@ class Post_Importer extends Abstract_Importer {
 	 *                         automatically and the field is recognised on this site.
 	 * @param array $raw_meta_backup Raw meta_* values overridden by acf_* (key => value).
 	 */
-	private function import_post_meta( $post_id, $meta, $acf_keys = [], $raw_meta_backup = [] ) {
+	private function import_post_meta( $post_id, $meta, $acf_keys = array(), $raw_meta_backup = array() ) {
 		if ( ! is_array( $meta ) ) {
 			return;
 		}
@@ -1838,14 +1861,14 @@ class Post_Importer extends Abstract_Importer {
 		$patterns_key = \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::FILE_PATTERNS_KEY;
 		$terms_key    = \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::FILE_TERMS_KEY;
 		if ( array_key_exists( $patterns_key, $meta ) || array_key_exists( $terms_key, $meta ) ) {
-			$decode = static function ( $value ) {
-				if ( is_string( $value ) && '' !== $value && in_array( $value[0], [ '{', '[' ], true ) ) {
+			$decode      = static function ( $value ) {
+				if ( is_string( $value ) && '' !== $value && in_array( $value[0], array( '{', '[' ), true ) ) {
 					$decoded = json_decode( $value, true );
-					return is_array( $decoded ) ? $decoded : [];
+					return is_array( $decoded ) ? $decoded : array();
 				}
-				return is_array( $value ) ? $value : [];
+				return is_array( $value ) ? $value : array();
 			};
-			$pattern_ids = \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::apply_file_payload( (int) $post_id, $decode( $meta[ $patterns_key ] ?? [] ), $decode( $meta[ $terms_key ] ?? [] ) );
+			$pattern_ids = \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::apply_file_payload( (int) $post_id, $decode( $meta[ $patterns_key ] ?? array() ), $decode( $meta[ $terms_key ] ?? array() ) );
 			unset( $meta[ $patterns_key ], $meta[ $terms_key ] );
 			// Images inside the patterns are downloaded like the post's own content images.
 			if ( $this->get_option( 'auto_import_media', false ) ) {
@@ -1875,9 +1898,9 @@ class Post_Importer extends Abstract_Importer {
 		// accidentally overwrite what ACF just wrote.
 		//
 		// Build a skip list for nested meta keys that should be owned by ACF.
-		$skip_meta_key_patterns  = [];
-		$skip_meta_keys          = [];
-		$do_not_skip_nested_keys = [];
+		$skip_meta_key_patterns  = array();
+		$skip_meta_keys          = array();
+		$do_not_skip_nested_keys = array();
 		if ( $has_acf && is_array( $acf_keys ) ) {
 			foreach ( array_keys( $acf_keys ) as $acf_field_name ) {
 				// If ACF can't resolve the field on this site, don't skip anything:
@@ -1904,7 +1927,7 @@ class Post_Importer extends Abstract_Importer {
 
 				// Repeater/flexible content sub-field meta keys look like:
 				// {field}_{row}_{subfield}
-				if ( in_array( $field_type, [ 'repeater', 'flexible_content' ], true ) ) {
+				if ( in_array( $field_type, array( 'repeater', 'flexible_content' ), true ) ) {
 					// If the import payload contains explicit nested meta keys for this field,
 					// we must NOT skip them. Example: a repeater that contains a flexible_content
 					// sub-field is exported as flat meta keys (repeater_0_flex_content, etc),
@@ -1944,7 +1967,7 @@ class Post_Importer extends Abstract_Importer {
 				if ( 'group' === $field_type ) {
 					$sub_fields = is_array( $field_object ) ? ( $field_object['sub_fields'] ?? null ) : null;
 					if ( ! is_array( $sub_fields ) && $db_field && ! empty( $db_field['sub_field_names'] ) ) {
-						$sub_fields = array_map( fn( $n ) => [ 'name' => $n ], (array) $db_field['sub_field_names'] );
+						$sub_fields = array_map( fn( $n ) => array( 'name' => $n ), (array) $db_field['sub_field_names'] );
 					}
 
 					if ( is_array( $sub_fields ) ) {
@@ -1961,7 +1984,7 @@ class Post_Importer extends Abstract_Importer {
 
 		// Elementor templates that came with the page: created or updated first, then the
 		// page's references to them are renumbered as its design is imported.
-		$template_map = [];
+		$template_map = array();
 		if ( isset( $meta[ \RockStarLab\ImportExport\Helper\Elementor_Templates::META_KEY ] ) ) {
 			$template_map = \RockStarLab\ImportExport\Helper\Elementor_Fields::import_templates( $meta[ \RockStarLab\ImportExport\Helper\Elementor_Templates::META_KEY ], true );
 			unset( $meta[ \RockStarLab\ImportExport\Helper\Elementor_Templates::META_KEY ] );
@@ -1997,7 +2020,7 @@ class Post_Importer extends Abstract_Importer {
 			}
 
 			if ( is_string( $key ) && \RockStarLab\ImportExport\Helper\Elementor_Fields::is_elementor_meta_key( $key ) ) {
-				if ( $template_map && in_array( $key, [ '_elementor_data', '_elementor_page_settings' ], true ) ) {
+				if ( $template_map && in_array( $key, array( '_elementor_data', '_elementor_page_settings' ), true ) ) {
 					$value = is_string( $value ) ? \RockStarLab\ImportExport\Helper\Elementor_Templates::remap_json( $value, $template_map ) : \RockStarLab\ImportExport\Helper\Elementor_Templates::remap( $value, $template_map );
 				}
 				\RockStarLab\ImportExport\Helper\Elementor_Fields::import_meta_value( (int) $post_id, $key, $value, true, true );
@@ -2146,8 +2169,8 @@ class Post_Importer extends Abstract_Importer {
 			if ( ! $is_empty_named_nested_key ) {
 				// A URL in a text or URL field stays a URL; only media and container fields
 				// (or unknown ones) turn this site's upload URLs into attachment IDs.
-				$top_type                     = ( $has_acf && ! preg_match( '/_\d+_/', (string) $key ) ) ? $this->get_acf_field_type_for_meta_key( $post_id, (string) $key ) : '';
-				$this->keep_plain_media_urls  = '' !== $top_type && ! in_array( $top_type, [ 'image', 'file', 'gallery', 'repeater', 'group', 'flexible_content', 'clone' ], true );
+				$top_type                    = ( $has_acf && ! preg_match( '/_\d+_/', (string) $key ) ) ? $this->get_acf_field_type_for_meta_key( $post_id, (string) $key ) : '';
+				$this->keep_plain_media_urls = '' !== $top_type && ! in_array( $top_type, array( 'image', 'file', 'gallery', 'repeater', 'group', 'flexible_content', 'clone' ), true );
 				// Rank Math schema JSON-LD needs image URLs ("image": {"url": ...}), never attachment IDs.
 				$this->keep_plain_media_urls = $this->keep_plain_media_urls || 0 === strpos( (string) $key, 'rank_math_schema_' );
 				try {
@@ -2213,7 +2236,7 @@ class Post_Importer extends Abstract_Importer {
 				if ( '' !== $field_type && ( is_string( $value ) || is_int( $value ) ) ) {
 					$acf_cfg = ( '' !== $acf_field_key && function_exists( 'acf_get_field' ) ) ? acf_get_field( $acf_field_key ) : null;
 					if ( ! is_array( $acf_cfg ) ) {
-						$acf_cfg = is_array( $field_object ?? null ) ? $field_object : ( is_array( $db_field ) ? $db_field : [ 'type' => $field_type ] );
+						$acf_cfg = is_array( $field_object ?? null ) ? $field_object : ( is_array( $db_field ) ? $db_field : array( 'type' => $field_type ) );
 					}
 					$this->unresolved_post_ref = false;
 					$value                     = $this->normalize_acf_cell_value( (string) $value, $acf_cfg, (int) $post_id );
@@ -2297,7 +2320,7 @@ class Post_Importer extends Abstract_Importer {
 						update_post_meta( $post_id, '_' . (string) $key, $acf_field_key );
 						continue;
 					}
-					if ( is_array( $own_field ) && ! empty( $own_field['name'] ) && (string) $own_field['name'] !== (string) $key && ! in_array( (string) ( $own_field['type'] ?? '' ), [ 'repeater', 'group', 'flexible_content', 'clone' ], true ) ) {
+					if ( is_array( $own_field ) && ! empty( $own_field['name'] ) && (string) $own_field['name'] !== (string) $key && ! in_array( (string) ( $own_field['type'] ?? '' ), array( 'repeater', 'group', 'flexible_content', 'clone' ), true ) ) {
 						$this->update_imported_post_meta( $post_id, (string) $key, $value );
 						update_post_meta( $post_id, '_' . (string) $key, $acf_field_key );
 						$this->mark_acf_clone_parent( (int) $post_id, (string) $key );
@@ -2364,7 +2387,7 @@ class Post_Importer extends Abstract_Importer {
 				//
 				// Detect this "stored portable array" scenario and prefer the original
 				// meta_* value when available.
-				if ( true === $updated && ! in_array( $field_type, [ 'repeater', 'flexible_content' ], true ) && is_array( $raw_meta_backup ) && array_key_exists( $key, $raw_meta_backup ) && is_array( $value ) ) {
+				if ( true === $updated && ! in_array( $field_type, array( 'repeater', 'flexible_content' ), true ) && is_array( $raw_meta_backup ) && array_key_exists( $key, $raw_meta_backup ) && is_array( $value ) ) {
 					$first_val = reset( $value );
 					if ( is_array( $first_val ) ) {
 						$this->update_imported_post_meta( $post_id, (string) $key, $raw_meta_backup[ $key ] );
@@ -2374,7 +2397,7 @@ class Post_Importer extends Abstract_Importer {
 				// Safety net: some complex fields (repeaters in particular) can end up
 				// stored as a serialized array in a single meta key when they were not
 				// properly recognised by ACF. Detect and re-apply update_field().
-				if ( in_array( $field_type, [ 'repeater', 'flexible_content' ], true ) ) {
+				if ( in_array( $field_type, array( 'repeater', 'flexible_content' ), true ) ) {
 					$stored = get_post_meta( $post_id, (string) $key, true );
 
 					$looks_like_rows = false;
@@ -2435,10 +2458,10 @@ class Post_Importer extends Abstract_Importer {
 			return;
 		}
 		$pending = get_post_meta( $post_id, self::PENDING_ACF_REFS_META_KEY, true );
-		$pending = is_array( $pending ) ? $pending : [
-			'fields' => [],
+		$pending = is_array( $pending ) ? $pending : array(
+			'fields' => array(),
 			'tries'  => 0,
-		];
+		);
 
 		$pending['fields'][ $key ] = $value;
 		update_post_meta( $post_id, self::PENDING_ACF_REFS_META_KEY, wp_slash( $pending ) );
@@ -2463,7 +2486,7 @@ class Post_Importer extends Abstract_Importer {
 				delete_post_meta( $post_id, self::PENDING_ACF_REFS_META_KEY );
 				continue;
 			}
-			$left = [];
+			$left = array();
 			foreach ( (array) $pending['fields'] as $key => $portable ) {
 				$key       = (string) $key;
 				$is_nested = (bool) preg_match( '/_\d+_/', $key );
@@ -2475,7 +2498,7 @@ class Post_Importer extends Abstract_Importer {
 
 				$this->unresolved_post_ref = false;
 				$value                     = $this->resolve_acf_meta_value( $portable, $post_id );
-				if ( is_string( $value ) && in_array( $type, [ 'post_object', 'relationship', 'page_link' ], true ) ) {
+				if ( is_string( $value ) && in_array( $type, array( 'post_object', 'relationship', 'page_link' ), true ) ) {
 					$value = $this->normalize_acf_cell_value( $value, $field, $post_id );
 				}
 				if ( $this->unresolved_post_ref ) {
@@ -2500,10 +2523,10 @@ class Post_Importer extends Abstract_Importer {
 					$post_id,
 					self::PENDING_ACF_REFS_META_KEY,
 					wp_slash(
-						[
+						array(
 							'fields' => $left,
 							'tries'  => $tries,
-						]
+						)
 					)
 				);
 			}
@@ -2545,7 +2568,7 @@ class Post_Importer extends Abstract_Importer {
 	private function split_acf_list_cell( string $value ): array {
 		$value = trim( $value );
 		if ( '' === $value ) {
-			return [];
+			return array();
 		}
 		$parts = preg_split( preg_match( '/[|\n]/', $value ) ? '/\s*[|\n]+\s*/' : '/\s*,\s*/', $value );
 		return array_values( array_filter( array_map( 'trim', (array) $parts ), 'strlen' ) );
@@ -2565,7 +2588,7 @@ class Post_Importer extends Abstract_Importer {
 	private function normalize_acf_cell_value( string $value, array $field, int $post_id ) {
 		$type    = (string) ( $field['type'] ?? '' );
 		$trimmed = trim( $value );
-		if ( '' === $trimmed || in_array( $trimmed[0], [ '{', '[' ], true ) || is_serialized( $trimmed ) ) {
+		if ( '' === $trimmed || in_array( $trimmed[0], array( '{', '[' ), true ) || is_serialized( $trimmed ) ) {
 			return $value;
 		}
 		switch ( $type ) {
@@ -2573,8 +2596,8 @@ class Post_Importer extends Abstract_Importer {
 			case 'checkbox':
 			case 'radio':
 			case 'button_group':
-				$choices = is_array( $field['choices'] ?? null ) ? $field['choices'] : [];
-				$map     = static function ( $token ) use ( $choices ) {
+				$choices  = is_array( $field['choices'] ?? null ) ? $field['choices'] : array();
+				$map      = static function ( $token ) use ( $choices ) {
 					if ( array_key_exists( $token, $choices ) ) {
 						return (string) $token;
 					}
@@ -2587,31 +2610,31 @@ class Post_Importer extends Abstract_Importer {
 				};
 				$multiple = 'checkbox' === $type || ( 'select' === $type && ! empty( $field['multiple'] ) );
 				if ( ! $multiple || array_key_exists( $trimmed, $choices ) ) {
-					return $multiple ? [ $map( $trimmed ) ] : $map( $trimmed );
+					return $multiple ? array( $map( $trimmed ) ) : $map( $trimmed );
 				}
 				return array_values( array_unique( array_map( $map, $this->split_acf_list_cell( $trimmed ) ) ) );
 
 			case 'true_false':
 				$lower = strtolower( $trimmed );
-				if ( in_array( $lower, [ '1', 'yes', 'true', 'on', 'y' ], true ) ) {
+				if ( in_array( $lower, array( '1', 'yes', 'true', 'on', 'y' ), true ) ) {
 					return 1;
 				}
-				return in_array( $lower, [ '0', 'no', 'false', 'off', 'n' ], true ) ? 0 : $value;
+				return in_array( $lower, array( '0', 'no', 'false', 'off', 'n' ), true ) ? 0 : $value;
 
 			case 'link':
 				$url = $this->normalize_media_input_url( $trimmed );
-				return Content_Sync_Media::is_valid_url( $url ) || 0 === strpos( $url, '/' ) || 0 === strpos( $url, '#' ) || 0 === strpos( $url, 'mailto:' ) ? [
+				return Content_Sync_Media::is_valid_url( $url ) || 0 === strpos( $url, '/' ) || 0 === strpos( $url, '#' ) || 0 === strpos( $url, 'mailto:' ) ? array(
 					'title'  => '',
 					'url'    => $url,
 					'target' => '',
-				] : $value;
+				) : $value;
 
 			case 'post_object':
 			case 'relationship':
 			case 'page_link':
-				$post_types = array_filter( (array) ( $field['post_type'] ?? [] ) );
-				$ids        = [];
-				$tokens     = ( 'relationship' === $type || ! empty( $field['multiple'] ) ) ? $this->split_acf_list_cell( $trimmed ) : [ $trimmed ];
+				$post_types = array_filter( (array) ( $field['post_type'] ?? array() ) );
+				$ids        = array();
+				$tokens     = ( 'relationship' === $type || ! empty( $field['multiple'] ) ) ? $this->split_acf_list_cell( $trimmed ) : array( $trimmed );
 				foreach ( $tokens as $token ) {
 					$id = $this->resolve_acf_post_token( $token, $post_types );
 					if ( $id ) {
@@ -2627,7 +2650,7 @@ class Post_Importer extends Abstract_Importer {
 					// would save as post ID 0. The reference stays pending and is filled
 					// in when the referenced row is imported later.
 					if ( $this->unresolved_post_ref && 'page_link' !== $type ) {
-						return ( 'relationship' === $type || ! empty( $field['multiple'] ) ) ? [] : '';
+						return ( 'relationship' === $type || ! empty( $field['multiple'] ) ) ? array() : '';
 					}
 					return $value;
 				}
@@ -2635,9 +2658,9 @@ class Post_Importer extends Abstract_Importer {
 
 			case 'taxonomy':
 				$taxonomy = (string) ( $field['taxonomy'] ?? 'category' );
-				$multiple = in_array( $field['field_type'] ?? 'checkbox', [ 'checkbox', 'multi_select' ], true );
-				$ids      = [];
-				foreach ( $multiple ? $this->split_acf_list_cell( $trimmed ) : [ $trimmed ] as $token ) {
+				$multiple = in_array( $field['field_type'] ?? 'checkbox', array( 'checkbox', 'multi_select' ), true );
+				$ids      = array();
+				foreach ( $multiple ? $this->split_acf_list_cell( $trimmed ) : array( $trimmed ) as $token ) {
 					$term = ctype_digit( $token ) ? get_term( (int) $token, $taxonomy ) : null;
 					if ( ! $term || is_wp_error( $term ) ) {
 						$term = get_term_by( 'slug', sanitize_title( $token ), $taxonomy );
@@ -2659,10 +2682,10 @@ class Post_Importer extends Abstract_Importer {
 				return $multiple ? array_values( array_unique( $ids ) ) : $ids[0];
 
 			case 'user':
-				$ids = [];
-				foreach ( ! empty( $field['multiple'] ) ? $this->split_acf_list_cell( $trimmed ) : [ $trimmed ] as $token ) {
+				$ids = array();
+				foreach ( ! empty( $field['multiple'] ) ? $this->split_acf_list_cell( $trimmed ) : array( $trimmed ) as $token ) {
 					$user = ctype_digit( $token ) ? get_user_by( 'id', (int) $token ) : false;
-					foreach ( [ 'login', 'email', 'slug' ] as $by ) {
+					foreach ( array( 'login', 'email', 'slug' ) as $by ) {
 						$user = $user ? $user : get_user_by( $by, $token );
 					}
 					if ( $user ) {
@@ -2675,20 +2698,29 @@ class Post_Importer extends Abstract_Importer {
 				return ! empty( $field['multiple'] ) ? array_values( array_unique( $ids ) ) : $ids[0];
 
 			case 'date_picker':
-				return $this->parse_acf_date_cell( $trimmed, [ 'Ymd', $field['return_format'] ?? '', $field['display_format'] ?? '', 'Y-m-d', 'Y/m/d', 'd.m.Y' ], 'Ymd', $value );
+				return $this->parse_acf_date_cell( $trimmed, array( 'Ymd', $field['return_format'] ?? '', $field['display_format'] ?? '', 'Y-m-d', 'Y/m/d', 'd.m.Y' ), 'Ymd', $value );
 			case 'date_time_picker':
-				return $this->parse_acf_date_cell( $trimmed, [ 'Y-m-d H:i:s', 'Y-m-d H:i', $field['return_format'] ?? '', $field['display_format'] ?? '', 'Y-m-d\TH:i:s', 'Y-m-d\TH:i' ], 'Y-m-d H:i:s', $value );
+				return $this->parse_acf_date_cell( $trimmed, array( 'Y-m-d H:i:s', 'Y-m-d H:i', $field['return_format'] ?? '', $field['display_format'] ?? '', 'Y-m-d\TH:i:s', 'Y-m-d\TH:i' ), 'Y-m-d H:i:s', $value );
 			case 'time_picker':
-				return $this->parse_acf_date_cell( $trimmed, [ 'H:i:s', 'H:i', $field['return_format'] ?? '', $field['display_format'] ?? '', 'g:i a', 'g:i A' ], 'H:i:s', $value );
+				return $this->parse_acf_date_cell( $trimmed, array( 'H:i:s', 'H:i', $field['return_format'] ?? '', $field['display_format'] ?? '', 'g:i a', 'g:i A' ), 'H:i:s', $value );
 
 			case 'icon_picker':
 				if ( 0 === strpos( $trimmed, 'dashicons-' ) ) {
-					return [ 'type' => 'dashicons', 'value' => $trimmed ];
+					return array(
+						'type'  => 'dashicons',
+						'value' => $trimmed,
+					);
 				}
 				if ( ctype_digit( $trimmed ) ) {
-					return [ 'type' => 'media_library', 'value' => (int) $trimmed ];
+					return array(
+						'type'  => 'media_library',
+						'value' => (int) $trimmed,
+					);
 				}
-				return Content_Sync_Media::is_valid_url( $trimmed ) ? [ 'type' => 'url', 'value' => $trimmed ] : $value;
+				return Content_Sync_Media::is_valid_url( $trimmed ) ? array(
+					'type'  => 'url',
+					'value' => $trimmed,
+				) : $value;
 
 			case 'oembed':
 				// Older exports contained the rendered <iframe>; recover the media URL.
@@ -2715,7 +2747,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @return int Post ID or 0.
 	 */
 	private function resolve_acf_post_token( string $token, array $post_types ): int {
-		$types = $post_types ? $post_types : array_values( get_post_types( [ 'public' => true ] ) );
+		$types = $post_types ? $post_types : array_values( get_post_types( array( 'public' => true ) ) );
 		if ( ctype_digit( $token ) ) {
 			$post = get_post( (int) $token );
 			return ( $post && in_array( $post->post_type, $types, true ) ) ? (int) $post->ID : 0;
@@ -2729,14 +2761,14 @@ class Post_Importer extends Abstract_Importer {
 			$token = '' !== $path ? basename( $path ) : $token;
 		}
 		$found = get_posts(
-			[
+			array(
 				'name'             => sanitize_title( $token ),
 				'post_type'        => $types,
 				'post_status'      => 'any',
 				'numberposts'      => 1,
 				'fields'           => 'ids',
 				'suppress_filters' => true,
-			]
+			)
 		);
 		if ( $found ) {
 			return (int) $found[0];
@@ -2753,7 +2785,7 @@ class Post_Importer extends Abstract_Importer {
 				}
 			}
 		}
-		$id           = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_title = %s AND post_type IN ($placeholders) AND post_status NOT IN ('trash','auto-draft','inherit') ORDER BY ID ASC LIMIT 1", array_merge( [ $token ], $types ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Placeholders generated above.
+		$id = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_title = %s AND post_type IN ($placeholders) AND post_status NOT IN ('trash','auto-draft','inherit') ORDER BY ID ASC LIMIT 1", array_merge( array( $token ), $types ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Placeholders generated above.
 		return (int) $id;
 	}
 
@@ -2791,7 +2823,7 @@ class Post_Importer extends Abstract_Importer {
 	 */
 	private function resolve_gallery_list_cell( int $post_id, string $key, string $value ) {
 		$trimmed = trim( $value );
-		if ( '' === $trimmed || in_array( $trimmed[0], [ '{', '[' ], true ) || is_serialized( $trimmed ) || false !== strpos( $trimmed, '[[RSL_IE:' ) ) {
+		if ( '' === $trimmed || in_array( $trimmed[0], array( '{', '[' ), true ) || is_serialized( $trimmed ) || false !== strpos( $trimmed, '[[RSL_IE:' ) ) {
 			return null;
 		}
 		if ( 'gallery' !== $this->get_acf_field_type_for_meta_key( $post_id, $key ) ) {
@@ -2806,7 +2838,7 @@ class Post_Importer extends Abstract_Importer {
 		}
 		$auto_import_media    = (bool) $this->get_option( 'auto_import_media', false );
 		$media_duplicate_mode = (string) $this->get_option( 'media_duplicate_mode', 'skip' );
-		$ids                  = [];
+		$ids                  = array();
 		foreach ( $parts as $part ) {
 			if ( ctype_digit( $part ) ) {
 				if ( 'attachment' === get_post_type( (int) $part ) ) {
@@ -2891,11 +2923,11 @@ class Post_Importer extends Abstract_Importer {
 	 */
 	private function resolve_single_media_cell( int $post_id, string $key, string $value ) {
 		$trimmed = trim( $value );
-		if ( '' === $trimmed || in_array( $trimmed[0], [ '{', '[' ], true ) || is_serialized( $trimmed ) || ctype_digit( $trimmed ) || false !== strpos( $trimmed, '[[RSL_IE:' ) ) {
+		if ( '' === $trimmed || in_array( $trimmed[0], array( '{', '[' ), true ) || is_serialized( $trimmed ) || ctype_digit( $trimmed ) || false !== strpos( $trimmed, '[[RSL_IE:' ) ) {
 			return null;
 		}
 		$type = $this->get_acf_field_type_for_meta_key( $post_id, $key );
-		if ( ! in_array( $type, [ 'image', 'file' ], true ) ) {
+		if ( ! in_array( $type, array( 'image', 'file' ), true ) ) {
 			return null;
 		}
 		$url = $this->normalize_media_input_url( $trimmed );
@@ -3065,7 +3097,7 @@ class Post_Importer extends Abstract_Importer {
 		$path = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
 		$ext  = strtolower( (string) pathinfo( $path, PATHINFO_EXTENSION ) );
 
-		return in_array( $ext, [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp3', 'm4a', 'ogg', 'wav', 'mp4', 'm4v', 'webm', 'ogv', 'flv', 'mov', 'avi', 'wmv', 'zip' ], true );
+		return in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp3', 'm4a', 'ogg', 'wav', 'mp4', 'm4v', 'webm', 'ogv', 'flv', 'mov', 'avi', 'wmv', 'zip' ), true );
 	}
 
 	/**
@@ -3116,17 +3148,16 @@ class Post_Importer extends Abstract_Importer {
 			$value = $this->resolve_gallery_shortcode_tokens( $value, $post_id );
 		}
 
-
 		// ── 1. Typed JSON from our improved exporter ──────────────────────────
 		if ( is_array( $value ) && isset( $value['acf_type'] ) ) {
 			$type   = $value['acf_type'];
-			$values = $value['values'] ?? [];
+			$values = $value['values'] ?? array();
 
 			switch ( $type ) {
 				case 'gallery':
 					if ( ! $auto_import_media ) {
 						// Only files already in this Media Library; never store the export wrapper.
-						$ids = [];
+						$ids = array();
 						foreach ( (array) $values as $url ) {
 							$local = is_string( $url ) ? $this->local_media_id( $url ) : ( is_numeric( $url ) && 'attachment' === get_post_type( (int) $url ) ? (int) $url : 0 );
 							if ( $local ) {
@@ -3137,7 +3168,7 @@ class Post_Importer extends Abstract_Importer {
 					}
 
 					// Array of image/file URLs → download each and collect new attachment IDs.
-					$ids = [];
+					$ids = array();
 					foreach ( $values as $url ) {
 						if ( $this->is_job_cancelled() ) {
 							break;
@@ -3149,7 +3180,7 @@ class Post_Importer extends Abstract_Importer {
 
 						// Avoid downloading non-media URLs (HTML pages, oembed, etc.).
 						$ext        = strtolower( pathinfo( \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ?? '', PATHINFO_EXTENSION ) );
-						$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
+						$media_exts = array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' );
 						if ( '' === $ext || ! in_array( $ext, $media_exts, true ) ) {
 							continue;
 						}
@@ -3165,7 +3196,7 @@ class Post_Importer extends Abstract_Importer {
 					// Array of post slugs OR attachment URLs:
 					// - slug  → look up post ID by post_name (including attachments)
 					// - URL   → download media and return attachment ID
-					$ids = [];
+					$ids = array();
 					foreach ( $values as $raw ) {
 						if ( $this->is_job_cancelled() ) {
 							break;
@@ -3177,7 +3208,7 @@ class Post_Importer extends Abstract_Importer {
 						// relationship/post_object field references an attachment).
 						if ( '' !== $raw && Content_Sync_Media::is_valid_url( $raw ) ) {
 							$ext        = strtolower( pathinfo( \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $raw ) ?? '', PATHINFO_EXTENSION ) );
-							$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
+							$media_exts = array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' );
 							if ( $auto_import_media && '' !== $ext && in_array( $ext, $media_exts, true ) ) {
 								$new_id = $this->import_media_for_acf( $raw, $post_id, $media_duplicate_mode );
 								if ( $new_id ) {
@@ -3200,13 +3231,13 @@ class Post_Importer extends Abstract_Importer {
 						}
 
 						$posts = get_posts(
-							[
+							array(
 								'name'           => $slug,
 								'post_type'      => 'any',
 								'post_status'    => 'any',
 								'posts_per_page' => 1,
 								'fields'         => 'ids',
-							]
+							)
 						);
 						if ( ! empty( $posts ) ) {
 							$ids[] = (int) $posts[0];
@@ -3222,7 +3253,7 @@ class Post_Importer extends Abstract_Importer {
 				case 'taxonomy':
 					// Array of term names/descriptors → find or create terms, return IDs.
 					$taxonomy = $value['taxonomy'] ?? '';
-					$ids      = [];
+					$ids      = array();
 					foreach ( $values as $entry ) {
 						if ( $this->is_job_cancelled() ) {
 							break;
@@ -3242,7 +3273,7 @@ class Post_Importer extends Abstract_Importer {
 									$parent = get_term_by( 'name', (string) $entry['parent_name'], $entry_taxonomy );
 								}
 								if ( ! $parent && ! empty( $entry['parent_name'] ) ) {
-									$parent_args = ! empty( $entry['parent_slug'] ) ? [ 'slug' => sanitize_title( (string) $entry['parent_slug'] ) ] : [];
+									$parent_args = ! empty( $entry['parent_slug'] ) ? array( 'slug' => sanitize_title( (string) $entry['parent_slug'] ) ) : array();
 									$result      = wp_insert_term( (string) $entry['parent_name'], $entry_taxonomy, $parent_args );
 									$parent      = ! is_wp_error( $result ) ? get_term( $result['term_id'] ) : null;
 								}
@@ -3263,7 +3294,7 @@ class Post_Importer extends Abstract_Importer {
 								$term = get_term_by( 'name', $name, $entry_taxonomy );
 							}
 							if ( ! $term ) {
-								$args = $slug ? [ 'slug' => $slug ] : [];
+								$args = $slug ? array( 'slug' => $slug ) : array();
 								if ( $parent_id > 0 ) {
 									$args['parent'] = $parent_id;
 								}
@@ -3273,10 +3304,10 @@ class Post_Importer extends Abstract_Importer {
 						} else {
 							// No taxonomy hint — try a broad search
 							$terms = get_terms(
-								[
+								array(
 									'name'       => $name,
 									'hide_empty' => false,
-								]
+								)
 							);
 							$term  = ! is_wp_error( $terms ) && ! empty( $terms ) ? $terms[0] : null;
 						}
@@ -3291,7 +3322,7 @@ class Post_Importer extends Abstract_Importer {
 
 				case 'user':
 					// Array of user logins → look up (or create) users on this site.
-					$ids = [];
+					$ids = array();
 					foreach ( $values as $login ) {
 						if ( $this->is_job_cancelled() ) {
 							break;
@@ -3321,12 +3352,12 @@ class Post_Importer extends Abstract_Importer {
 							}
 
 							$user_id = wp_insert_user(
-								[
+								array(
 									'user_login' => $sanitized_login,
 									'user_pass'  => wp_generate_password( 20, true, true ),
 									'user_email' => $email,
 									'role'       => 'subscriber',
-								]
+								)
 							);
 
 							if ( ! is_wp_error( $user_id ) ) {
@@ -3355,7 +3386,7 @@ class Post_Importer extends Abstract_Importer {
 			$id  = $value['ID'] ?? $value['id'];
 			if ( is_string( $url ) && Content_Sync_Media::is_valid_url( $url ) && is_numeric( $id ) ) {
 				$ext        = strtolower( pathinfo( \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ?? '', PATHINFO_EXTENSION ) );
-				$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
+				$media_exts = array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' );
 				if ( '' !== $ext && in_array( $ext, $media_exts, true ) ) {
 					$new_id = $this->import_media_for_acf( $url, $post_id, $media_duplicate_mode );
 					if ( $new_id ) {
@@ -3367,7 +3398,7 @@ class Post_Importer extends Abstract_Importer {
 
 		// ── 1c. Recurse into nested arrays (repeaters/groups/flexible content) ─
 		if ( is_array( $value ) ) {
-			$out = [];
+			$out = array();
 			foreach ( $value as $k => $v ) {
 				if ( $this->is_job_cancelled() ) {
 					break;
@@ -3380,7 +3411,7 @@ class Post_Importer extends Abstract_Importer {
 
 		// Media import off: a URL of this site's own uploads still becomes its attachment ID.
 		if ( ! $auto_import_media && ! $this->keep_plain_media_urls && is_string( $value ) && '' !== $value && false === strpos( $value, '<' ) && Content_Sync_Media::is_valid_url( $value )
-			&& in_array( strtolower( pathinfo( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $value ), PATHINFO_EXTENSION ) ), [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ], true ) ) {
+			&& in_array( strtolower( pathinfo( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $value ), PATHINFO_EXTENSION ) ), array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ), true ) ) {
 			$local = $this->local_media_id( $value );
 			if ( $local ) {
 				return $local;
@@ -3393,7 +3424,7 @@ class Post_Importer extends Abstract_Importer {
 		// We detect media by file extension to avoid downloading page/oembed URLs.
 		if ( $auto_import_media && is_string( $value ) && '' !== $value && Content_Sync_Media::is_valid_url( $value ) ) {
 			$ext        = strtolower( pathinfo( \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $value ) ?? '', PATHINFO_EXTENSION ) );
-			$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
+			$media_exts = array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' );
 			if ( in_array( $ext, $media_exts, true ) ) {
 				$id = $this->import_media_for_acf( $value, $post_id, $media_duplicate_mode );
 				if ( $id && $this->keep_plain_media_urls ) {
@@ -3436,7 +3467,7 @@ class Post_Importer extends Abstract_Importer {
 
 		// get_page_by_path() takes real post types ("any" matches nothing); a full path such as
 		// parent/child is found here, a plain slug by the lookup below.
-		$post = get_page_by_path( $path, OBJECT, array_values( get_post_types( [ 'public' => true ] ) ) );
+		$post = get_page_by_path( $path, OBJECT, array_values( get_post_types( array( 'public' => true ) ) ) );
 		if ( $post instanceof \WP_Post ) {
 			return (int) $post->ID;
 		}
@@ -3447,7 +3478,7 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		$posts = get_posts(
-			[
+			array(
 				'name'                   => sanitize_title( $slug ),
 				'post_type'              => 'any',
 				'post_status'            => 'any',
@@ -3456,7 +3487,7 @@ class Post_Importer extends Abstract_Importer {
 				'no_found_rows'          => true,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
-			]
+			)
 		);
 
 		return empty( $posts ) ? 0 : (int) $posts[0];
@@ -3497,17 +3528,17 @@ class Post_Importer extends Abstract_Importer {
 
 					$payload  = json_decode( $json, true );
 					$acf_type = is_array( $payload ) ? (string) ( $payload['acf_type'] ?? '' ) : '';
-				if ( ! is_array( $payload ) || ! in_array( $acf_type, [ 'gallery_shortcode', 'media_shortcode' ], true ) ) {
+				if ( ! is_array( $payload ) || ! in_array( $acf_type, array( 'gallery_shortcode', 'media_shortcode' ), true ) ) {
 					return $m[0] ?? '';
 				}
 
 				$shortcode = (string) ( $payload['shortcode'] ?? '' );
-				$items     = $payload['items'] ?? [];
-				$urls      = $payload['urls'] ?? [];
+				$items     = $payload['items'] ?? array();
+				$urls      = $payload['urls'] ?? array();
 				if ( empty( $items ) && is_array( $urls ) ) {
 					$items = array_map(
 						static function ( $url ) {
-							return [ 'url' => $url ];
+							return array( 'url' => $url );
 						},
 						$urls
 					);
@@ -3521,7 +3552,7 @@ class Post_Importer extends Abstract_Importer {
 					return $shortcode;
 				}
 
-				$new_ids = [];
+				$new_ids = array();
 				foreach ( $items as $item ) {
 					if ( $this->is_job_cancelled() ) {
 						break;
@@ -3587,7 +3618,7 @@ class Post_Importer extends Abstract_Importer {
 				$source_ids = array_filter(
 					array_map(
 						'absint',
-						preg_split( '/\\s*,\\s*/', (string) ( $ids_match[2] ?? '' ) ) ?: []
+						preg_split( '/\\s*,\\s*/', (string) ( $ids_match[2] ?? '' ) ) ?: array()
 					)
 				);
 
@@ -3595,7 +3626,7 @@ class Post_Importer extends Abstract_Importer {
 					return $shortcode;
 				}
 
-				$local_ids = [];
+				$local_ids = array();
 				foreach ( $source_ids as $source_id ) {
 					$local_id = $this->find_attachment_by_source_attachment_id( $source_id );
 					if ( $local_id > 0 ) {
@@ -3611,7 +3642,7 @@ class Post_Importer extends Abstract_Importer {
 					return $shortcode;
 				}
 
-				$mapped_ids = [];
+				$mapped_ids = array();
 				foreach ( $source_ids as $source_id ) {
 					$mapped_ids[] = $this->find_attachment_by_source_attachment_id( $source_id ) ?: $source_id;
 				}
@@ -3646,7 +3677,7 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		$attachments = get_posts(
-			[
+			array(
 				'post_type'              => 'attachment',
 				'post_status'            => 'inherit',
 				'posts_per_page'         => 1,
@@ -3656,7 +3687,7 @@ class Post_Importer extends Abstract_Importer {
 				'no_found_rows'          => true,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
-			]
+			)
 		);
 
 		return ! empty( $attachments[0] ) ? absint( $attachments[0] ) : 0;
@@ -3727,7 +3758,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @return void
 	 */
 	private function maybe_update_attachment_metadata( int $attachment_id, array $item ): void {
-		$update = [ 'ID' => $attachment_id ];
+		$update = array( 'ID' => $attachment_id );
 		$dirty  = false;
 
 		if ( array_key_exists( 'title', $item ) ) {
@@ -3769,7 +3800,7 @@ class Post_Importer extends Abstract_Importer {
 		 * @return array|null { id, key, type, sub_field_names? } or null.
 		 */
 	private function acf_db_find_field_by_name( string $field_name ): ?array {
-		static $cache = [];
+		static $cache = array();
 
 		if ( array_key_exists( $field_name, $cache ) ) {
 			return $cache[ $field_name ];
@@ -3800,17 +3831,17 @@ class Post_Importer extends Abstract_Importer {
 
 			$settings = \RockStarLab\ImportExport\Helper\Serialized::parse( (string) $row['post_content'] );
 		if ( ! is_array( $settings ) ) {
-			$settings = [];
+			$settings = array();
 		}
 
 			$type = (string) ( $settings['type'] ?? '' );
 
-			$result = [
+			$result = array(
 				'id'              => (int) ( $row['ID'] ?? 0 ),
 				'key'             => (string) ( $row['post_name'] ?? '' ),
 				'type'            => $type,
-				'sub_field_names' => [],
-			];
+				'sub_field_names' => array(),
+			);
 
 			if ( 'group' === $type && $result['id'] > 0 ) {
 				$names = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Reading ACF field definitions.
@@ -3844,7 +3875,7 @@ class Post_Importer extends Abstract_Importer {
 		static $index = null;
 
 		if ( null === $index ) {
-			$index = [];
+			$index = array();
 
 			if ( function_exists( 'acf_get_field_groups' ) && function_exists( 'acf_get_fields' ) ) {
 				$groups = acf_get_field_groups();
@@ -3870,8 +3901,8 @@ class Post_Importer extends Abstract_Importer {
 						$type = (string) ( $field['type'] ?? '' );
 						// Clone fields list the cloned fields as sub_fields, named the way they are
 						// stored and exported (prefixed with the clone name when prefix_name is on).
-						if ( in_array( $type, [ 'repeater', 'group', 'clone' ], true ) && ! empty( $field['sub_fields'] ) ) {
-							$walk( $field['sub_fields'], 'clone' === $type && null === $clone && '' !== $name && ! empty( $field['key'] ) ? [ $name, (string) $field['key'] ] : null );
+						if ( in_array( $type, array( 'repeater', 'group', 'clone' ), true ) && ! empty( $field['sub_fields'] ) ) {
+							$walk( $field['sub_fields'], 'clone' === $type && null === $clone && '' !== $name && ! empty( $field['key'] ) ? array( $name, (string) $field['key'] ) : null );
 						}
 
 						if ( 'flexible_content' === $type && ! empty( $field['layouts'] ) && is_array( $field['layouts'] ) ) {
@@ -3899,12 +3930,12 @@ class Post_Importer extends Abstract_Importer {
 
 		$type = (string) ( $field['type'] ?? '' );
 
-		$result = [
+		$result = array(
 			'id'              => 0,
 			'key'             => (string) ( $field['key'] ?? '' ),
 			'type'            => $type,
-			'sub_field_names' => [],
-		];
+			'sub_field_names' => array(),
+		);
 
 		if ( 'group' === $type && ! empty( $field['sub_fields'] ) && is_array( $field['sub_fields'] ) ) {
 			$result['sub_field_names'] = array_values(
@@ -3935,7 +3966,7 @@ class Post_Importer extends Abstract_Importer {
 			// Languages and translation groups of Polylang and WPML are imported by the PRO add-on.
 			// Without it the free importer would treat them as ordinary terms and create a new
 			// "language" (for example "de-2"), so the columns are skipped with one warning per job.
-			if ( in_array( $taxonomy, [ 'language', 'post_translations', 'term_language', 'term_translations' ], true ) && ! \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) {
+			if ( in_array( $taxonomy, array( 'language', 'post_translations', 'term_language', 'term_translations' ), true ) && ! \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) {
 				if ( empty( $this->ml_columns_warned ) ) {
 					$this->ml_columns_warned = true;
 					$this->log_warning( __( 'The language and translation columns were skipped: importing Polylang and WPML languages and translations needs Import Export PRO.', 'import-export-by-rockstarlab' ) );
@@ -3968,7 +3999,7 @@ class Post_Importer extends Abstract_Importer {
 
 			// Resolve terms by the declared format so we always pass IDs to
 			// wp_set_object_terms (most reliable approach).
-			$term_ids = [];
+			$term_ids = array();
 			foreach ( $terms_data as $term_value ) {
 				$term_id = is_array( $term_value )
 					? $this->import_portable_taxonomy_term( $taxonomy, $term_value )
@@ -3995,7 +4026,7 @@ class Post_Importer extends Abstract_Importer {
 		if ( is_string( $terms_data ) ) {
 			$trimmed = trim( $terms_data );
 			if ( '' === $trimmed ) {
-				return [];
+				return array();
 			}
 
 			if ( '[' === $trimmed[0] ) {
@@ -4009,7 +4040,7 @@ class Post_Importer extends Abstract_Importer {
 			return array_map( 'trim', preg_split( '/[,|]/', $terms_data ) );
 		}
 
-		return is_array( $terms_data ) ? $terms_data : [];
+		return is_array( $terms_data ) ? $terms_data : array();
 	}
 
 	/**
@@ -4038,7 +4069,7 @@ class Post_Importer extends Abstract_Importer {
 		$parent_id = $this->ensure_taxonomy_parent_path( $taxonomy, (string) ( $term_data['parent_path'] ?? '' ) );
 		if ( $term && ! is_wp_error( $term ) ) {
 			$term_id = (int) $term->term_id;
-			$updates = [];
+			$updates = array();
 			if ( isset( $term_data['description'] ) ) {
 				$updates['description'] = $this->resolve_acf_meta_value( (string) $term_data['description'], 0 );
 			}
@@ -4049,7 +4080,7 @@ class Post_Importer extends Abstract_Importer {
 				wp_update_term( $term_id, $taxonomy, $updates );
 			}
 		} else {
-			$args = [];
+			$args = array();
 			if ( '' !== $slug ) {
 				$args['slug'] = $slug;
 			}
@@ -4091,7 +4122,7 @@ class Post_Importer extends Abstract_Importer {
 					if ( ! Content_Sync_Media::is_valid_url( $value ) || ! $this->looks_like_downloadable_media_url( $value ) ) {
 						return $value;
 					}
-					$id = $this->get_option( 'auto_import_media', true )
+					$id    = $this->get_option( 'auto_import_media', true )
 						? $this->import_media_for_acf( $value, 0, (string) $this->get_option( 'media_duplicate_mode', 'skip' ) )
 						: $this->local_media_id( $value );
 					$local = $id && ! is_wp_error( $id ) ? wp_get_attachment_url( (int) $id ) : '';
@@ -4133,7 +4164,7 @@ class Post_Importer extends Abstract_Importer {
 				if ( $term ) {
 					return (int) $term->term_id;
 				}
-				$result = wp_insert_term( $term_value, $taxonomy, [ 'slug' => $term_value ] );
+				$result = wp_insert_term( $term_value, $taxonomy, array( 'slug' => $term_value ) );
 				return is_wp_error( $result ) ? (int) $result->get_error_data( 'term_exists' ) : (int) $result['term_id'];
 
 			default:
@@ -4157,13 +4188,13 @@ class Post_Importer extends Abstract_Importer {
 	private function import_taxonomy_term_path( string $taxonomy, array $path, string $format ): int {
 		$parent_id = 0;
 		foreach ( $path as $level ) {
-			$args = [
+			$args = array(
 				'taxonomy'   => $taxonomy,
 				'parent'     => $parent_id,
 				'hide_empty' => false,
 				'number'     => 1,
 				'fields'     => 'ids',
-			];
+			);
 			if ( 'slug' === $format ) {
 				$args['slug'] = sanitize_title( $level );
 			} else {
@@ -4174,7 +4205,7 @@ class Post_Importer extends Abstract_Importer {
 				$parent_id = (int) $found[0];
 				continue;
 			}
-			$insert = [ 'parent' => $parent_id ];
+			$insert = array( 'parent' => $parent_id );
 			if ( 'slug' === $format ) {
 				$insert['slug'] = sanitize_title( $level );
 			}
@@ -4216,10 +4247,10 @@ class Post_Importer extends Abstract_Importer {
 				$slug,
 				$taxonomy,
 				array_filter(
-					[
+					array(
 						'slug'   => $slug,
 						'parent' => $parent_id,
-					]
+					)
 				)
 			);
 			if ( is_wp_error( $result ) ) {
@@ -4328,7 +4359,7 @@ class Post_Importer extends Abstract_Importer {
 			return false;
 		}
 		$host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
-		foreach ( [ 'gravatar.com', 's.w.org', 'pixel.wp.com', 'stats.wp.com' ] as $service ) {
+		foreach ( array( 'gravatar.com', 's.w.org', 'pixel.wp.com', 'stats.wp.com' ) as $service ) {
 			if ( $host === $service || '.' . $service === substr( $host, -strlen( '.' . $service ) ) ) {
 				return false;
 			}
@@ -4390,7 +4421,7 @@ class Post_Importer extends Abstract_Importer {
 			return;
 		}
 
-		$update = [ 'ID' => (int) $thumbnail_id ];
+		$update = array( 'ID' => (int) $thumbnail_id );
 		$dirty  = false;
 
 		if ( $has_title ) {
@@ -4462,7 +4493,7 @@ class Post_Importer extends Abstract_Importer {
 			//
 			// This is especially important for fields like post_object/user where the
 			// importer must look up local IDs by slug/login.
-			if ( is_string( $meta_value ) && '' !== $meta_value && in_array( $field_type, [ 'post_object', 'page_link', 'relationship', 'taxonomy', 'user', 'checkbox', 'google_map', 'gallery' ], true ) ) {
+			if ( is_string( $meta_value ) && '' !== $meta_value && in_array( $field_type, array( 'post_object', 'page_link', 'relationship', 'taxonomy', 'user', 'checkbox', 'google_map', 'gallery' ), true ) ) {
 				$resolved = $this->resolve_acf_meta_value( $meta_value, $post_id );
 				if ( $resolved !== $meta_value ) {
 					$acf_key = is_array( $field_object ) && ! empty( $field_object['key'] ) ? (string) $field_object['key'] : '';
@@ -4496,7 +4527,7 @@ class Post_Importer extends Abstract_Importer {
 					$gallery_value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $meta_value );
 
 					if ( is_array( $gallery_value ) ) {
-						$new_gallery = [];
+						$new_gallery = array();
 						$changed     = false;
 
 						foreach ( $gallery_value as $item_value ) {
@@ -4564,10 +4595,10 @@ class Post_Importer extends Abstract_Importer {
 		$row_count = intval( $field_value );
 
 		if ( $row_count <= 0 ) {
-			return [
+			return array(
 				'imported' => 0,
 				'skipped'  => 0,
-			];
+			);
 		}
 
 		// Process each row
@@ -4622,7 +4653,7 @@ class Post_Importer extends Abstract_Importer {
 						$gallery_value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $meta_value );
 
 						if ( is_array( $gallery_value ) ) {
-							$new_gallery = [];
+							$new_gallery = array();
 							$changed     = false;
 
 							foreach ( $gallery_value as $item_value ) {
@@ -4677,7 +4708,7 @@ class Post_Importer extends Abstract_Importer {
 									continue;
 								}
 
-								if ( in_array( $group_field_type, [ 'image', 'file' ], true ) ) {
+								if ( in_array( $group_field_type, array( 'image', 'file' ), true ) ) {
 									if ( is_string( $group_meta_value ) && Content_Sync_Media::is_valid_url( $group_meta_value ) ) {
 										$new_id = $this->import_and_replace_acf_media( $group_meta_value, $post_id, $group_meta_key, $media_duplicate_mode );
 										if ( $new_id ) {
@@ -4690,7 +4721,7 @@ class Post_Importer extends Abstract_Importer {
 									$gallery_value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $group_meta_value );
 
 									if ( is_array( $gallery_value ) ) {
-										$new_gallery = [];
+										$new_gallery = array();
 										$changed     = false;
 
 										foreach ( $gallery_value as $item_value ) {
@@ -4725,10 +4756,10 @@ class Post_Importer extends Abstract_Importer {
 			}
 		}
 
-		return [
+		return array(
 			'imported' => $imported_count,
 			'skipped'  => $skipped_count,
-		];
+		);
 	}
 
 	/**
@@ -4761,7 +4792,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @return int|false New attachment ID or false
 	 */
 	private function import_media_for_acf( $url, $post_id, $media_duplicate_mode, int $source_attachment_id = 0, $explicit = false ) {
-		static $url_to_attachment_cache = [];
+		static $url_to_attachment_cache = array();
 
 		$this->last_media_error = '';
 		if ( $this->is_job_cancelled() ) {
@@ -4872,10 +4903,10 @@ class Post_Importer extends Abstract_Importer {
 				$post_content = $resolved_content;
 				wp_update_post(
 					wp_slash(
-						[
+						array(
 							'ID'           => $post_id,
 							'post_content' => $post_content,
-						]
+						)
 					)
 				);
 			}
@@ -4904,7 +4935,7 @@ class Post_Importer extends Abstract_Importer {
 
 		// 4. File blocks keep the file URL in the block attributes too.
 		preg_match_all( '/<!-- wp:file\s+(\{.*?\})\s+\/?-->/s', $post_content, $file_blocks );
-		foreach ( $file_blocks[1] ?? [] as $attrs ) {
+		foreach ( $file_blocks[1] ?? array() as $attrs ) {
 			$attrs = json_decode( $attrs, true );
 			if ( is_array( $attrs ) && ! empty( $attrs['href'] ) && is_string( $attrs['href'] ) ) {
 				$media_urls[] = $attrs['href'];
@@ -4922,7 +4953,7 @@ class Post_Importer extends Abstract_Importer {
 		$imported_count       = 0;
 		$skipped_count        = 0;
 		$error_count          = 0;
-		$url_mapping          = []; // Store old URL => new URL mappings
+		$url_mapping          = array(); // Store old URL => new URL mappings
 
 		foreach ( $media_urls as $url ) {
 			if ( $this->is_job_cancelled() ) {
@@ -4948,10 +4979,10 @@ class Post_Importer extends Abstract_Importer {
 						$local_id = (int) attachment_url_to_postid( (string) preg_replace( '/-\d+x\d+(?=\.[a-z0-9]+$)/i', '', $url ) );
 					}
 					if ( $local_id > 0 ) {
-						$url_mapping[ $url ] = [
+						$url_mapping[ $url ] = array(
 							'url' => $url,
 							'id'  => $local_id,
-						];
+						);
 					}
 					continue;
 				}
@@ -4979,10 +5010,10 @@ class Post_Importer extends Abstract_Importer {
 				$plugins_path = $content_path . 'plugins/';
 			if ( is_string( $parsed_path ) && ( 0 === strpos( $parsed_path, $themes_path ) || 0 === strpos( $parsed_path, $plugins_path ) ) ) {
 				$relative_asset_path = ltrim( substr( $parsed_path, strlen( $content_path ) ), '/' );
-				$url_mapping[ $url ] = [
+				$url_mapping[ $url ] = array(
 					'url' => content_url( $relative_asset_path ),
 					'id'  => 0,
-				];
+				);
 				++$skipped_count;
 				continue;
 			}
@@ -5002,10 +5033,10 @@ class Post_Importer extends Abstract_Importer {
 				if ( 'skip' === $media_duplicate_mode ) {
 					// Use existing media - store URL mapping
 					$new_url                    = wp_get_attachment_url( $existing_attachment );
-					$url_mapping[ $source_url ] = [
+					$url_mapping[ $source_url ] = array(
 						'url' => $new_url,
 						'id'  => $existing_attachment,
-					];
+					);
 					++$skipped_count;
 					$this->log_info( sprintf( /* translators: %1$s: filename, %2$d: existing attachment. */ __( 'Skipped duplicate media: %1$s (using existing ID: %2$d)', 'import-export-by-rockstarlab' ), $filename, $existing_attachment ) );
 					continue;
@@ -5015,10 +5046,10 @@ class Post_Importer extends Abstract_Importer {
 					$this->log_info( sprintf( /* translators: %1$s: filename, %2$d: existing attachment. */ __( 'Deleted existing media for replacement: %1$s (ID: %2$d)', 'import-export-by-rockstarlab' ), $filename, $existing_attachment ) );
 				} elseif ( 'update' === $media_duplicate_mode ) {
 					$new_url                    = wp_get_attachment_url( $existing_attachment );
-					$url_mapping[ $source_url ] = [
+					$url_mapping[ $source_url ] = array(
 						'url' => $new_url,
 						'id'  => $existing_attachment,
-					];
+					);
 					++$skipped_count;
 					$this->log_info( sprintf( /* translators: %1$s: filename, %2$d: existing attachment. */ __( 'Updated duplicate media: %1$s (using existing ID: %2$d)', 'import-export-by-rockstarlab' ), $filename, $existing_attachment ) );
 					continue;
@@ -5032,10 +5063,10 @@ class Post_Importer extends Abstract_Importer {
 			if ( ! is_wp_error( $attachment_id ) && $attachment_id ) {
 				// Store URL mapping
 				$new_url                    = wp_get_attachment_url( $attachment_id );
-				$url_mapping[ $source_url ] = [
+				$url_mapping[ $source_url ] = array(
 					'url' => $new_url,
 					'id'  => $attachment_id,
-				];
+				);
 				++$imported_count;
 				$this->log_info( sprintf( /* translators: %1$s: filename, %2$d: attachment id. */ __( 'Imported media: %1$s (new ID: %2$d)', 'import-export-by-rockstarlab' ), $filename, $attachment_id ) );
 			} else {
@@ -5053,10 +5084,10 @@ class Post_Importer extends Abstract_Importer {
 
 			wp_update_post(
 				wp_slash(
-					[
+					array(
 						'ID'           => $post_id,
 						'post_content' => $post_content,
-					]
+					)
 				)
 			);
 		}
@@ -5067,7 +5098,7 @@ class Post_Importer extends Abstract_Importer {
 		$imported_count = max( $imported_count, $this->count_post_attachments( $post_id ) - $children_before );
 		$this->log_info(
 			sprintf(
-				/* translators: %1$d: post id, %2$d: imported count, %3$d: skipped count, %4$d: error count. */ __( 'Media import summary for post %1$d: %2$d imported, %3$d skipped, %4$d errors', 'import-export-by-rockstarlab' ),
+				/* translators: %1$d: post id, %2$d: imported count, %3$d: skipped count, %4$d: error count. */                __( 'Media import summary for post %1$d: %2$d imported, %3$d skipped, %4$d errors', 'import-export-by-rockstarlab' ),
 				$post_id,
 				$imported_count,
 				$skipped_count,
@@ -5093,7 +5124,7 @@ class Post_Importer extends Abstract_Importer {
 		if ( ! preg_match_all( '/<img\b[^>]*>/i', $content, $tags ) ) {
 			return;
 		}
-		$done = [];
+		$done = array();
 		foreach ( $tags[0] as $tag ) {
 			if ( ! preg_match( '/\salt\s*=\s*("([^"]*)"|\'([^\']*)\')/i', $tag, $alt_match ) ) {
 				continue;
@@ -5139,7 +5170,7 @@ class Post_Importer extends Abstract_Importer {
 	 */
 	private function should_restore_json_meta( $decoded ) {
 		$format = strtolower( (string) $this->get_option( 'source_format', '' ) );
-		if ( ! in_array( $format, [ 'json', 'xml' ], true ) ) {
+		if ( ! in_array( $format, array( 'json', 'xml' ), true ) ) {
 			return true;
 		}
 		if ( ! is_array( $decoded ) ) {
@@ -5153,7 +5184,7 @@ class Post_Importer extends Abstract_Importer {
 	 *
 	 * @var array<int, array{url: string, message: string}>
 	 */
-	private $media_issues = [];
+	private $media_issues = array();
 
 	/**
 	 * Whether the "language columns need PRO" warning was written for this job.
@@ -5187,16 +5218,24 @@ class Post_Importer extends Abstract_Importer {
 	 * @return void
 	 */
 	private function import_wxr_comments( $post_id, array $item ) {
-		$comments = $item['_rsl_ie_wxr_comments'] ?? [];
+		$comments = $item['_rsl_ie_wxr_comments'] ?? array();
 		if ( $post_id <= 0 || ! is_array( $comments ) || ! $comments || ! $this->get_option( 'import_wxr_comments', true ) || ! current_user_can( 'moderate_comments' ) ) {
 			return;
 		}
-		$existing = [];
-		foreach ( get_comments( [ 'post_id' => $post_id, 'status' => 'all', 'meta_key' => '_rsl_ie_source_comment_id', 'fields' => 'ids', 'number' => 0 ] ) as $comment_id ) { // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Per-post lookup.
+		$existing = array();
+		foreach ( get_comments(
+			array(
+				'post_id'  => $post_id,
+				'status'   => 'all',
+				'meta_key' => '_rsl_ie_source_comment_id',
+				'fields'   => 'ids',
+				'number'   => 0,
+			)
+		) as $comment_id ) { // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Per-post lookup.
 			$existing[ (string) get_comment_meta( (int) $comment_id, '_rsl_ie_source_comment_id', true ) ] = (int) $comment_id;
 		}
 		$map     = $existing;
-		$parents = [];
+		$parents = array();
 		$created = 0;
 		foreach ( $comments as $c ) {
 			$source = (string) ( $c['comment_id'] ?? '' );
@@ -5204,13 +5243,13 @@ class Post_Importer extends Abstract_Importer {
 				continue;
 			}
 			$status   = (string) ( $c['comment_approved'] ?? '1' );
-			$approved = in_array( $status, [ '1', 'approve', 'approved' ], true ) ? 1 : ( in_array( $status, [ 'spam', 'trash' ], true ) ? $status : 0 );
+			$approved = in_array( $status, array( '1', 'approve', 'approved' ), true ) ? 1 : ( in_array( $status, array( 'spam', 'trash' ), true ) ? $status : 0 );
 			$user_id  = 0;
 			if ( ! empty( $c['comment_author_email'] ) ) {
 				$user    = get_user_by( 'email', (string) $c['comment_author_email'] );
 				$user_id = $user ? (int) $user->ID : 0;
 			}
-			$data = [
+			$data = array(
 				'comment_post_ID'      => $post_id,
 				'comment_author'       => (string) ( $c['comment_author'] ?? '' ),
 				'comment_author_email' => (string) ( $c['comment_author_email'] ?? '' ),
@@ -5220,11 +5259,11 @@ class Post_Importer extends Abstract_Importer {
 				'comment_date_gmt'     => (string) ( $c['comment_date_gmt'] ?? get_gmt_from_date( (string) ( $c['comment_date'] ?? current_time( 'mysql' ) ) ) ),
 				'comment_content'      => (string) ( $c['comment_content'] ?? '' ),
 				'comment_approved'     => $approved,
-				'comment_type'         => in_array( (string) ( $c['comment_type'] ?? '' ), [ '', 'comment' ], true ) ? 'comment' : sanitize_key( (string) $c['comment_type'] ),
+				'comment_type'         => in_array( (string) ( $c['comment_type'] ?? '' ), array( '', 'comment' ), true ) ? 'comment' : sanitize_key( (string) $c['comment_type'] ),
 				'comment_parent'       => 0,
 				'user_id'              => $user_id,
-			];
-			$new = wp_insert_comment( wp_slash( $data ) );
+			);
+			$new  = wp_insert_comment( wp_slash( $data ) );
 			if ( ! $new ) {
 				continue;
 			}
@@ -5238,7 +5277,12 @@ class Post_Importer extends Abstract_Importer {
 		// Replies may come before their parent: link them once all comments exist.
 		foreach ( $parents as $comment_id => $source_parent ) {
 			if ( isset( $map[ $source_parent ] ) ) {
-				\RockStarLab\ImportExport\Helper\Comment_Update::update( [ 'comment_ID' => $comment_id, 'comment_parent' => $map[ $source_parent ] ] );
+				\RockStarLab\ImportExport\Helper\Comment_Update::update(
+					array(
+						'comment_ID'     => $comment_id,
+						'comment_parent' => $map[ $source_parent ],
+					)
+				);
 			}
 		}
 		if ( $created ) {
@@ -5252,7 +5296,7 @@ class Post_Importer extends Abstract_Importer {
 	 *
 	 * @var array<string,array{0:string,1:string}>
 	 */
-	private static $acf_clone_parents = [];
+	private static $acf_clone_parents = array();
 
 	/**
 	 * Write the reference of the Clone field a value belongs to.
@@ -5298,10 +5342,10 @@ class Post_Importer extends Abstract_Importer {
 		global $wpdb;
 		$this->title_lookup = null;
 		$check_field        = $this->get_option( 'duplicate_check', 'post_title' );
-		if ( ! in_array( $check_field, [ 'post_title', 'title' ], true ) ) {
+		if ( ! in_array( $check_field, array( 'post_title', 'title' ), true ) ) {
 			return;
 		}
-		$titles = [];
+		$titles = array();
 		foreach ( $items as $item ) {
 			if ( is_array( $item ) && isset( $item['post_title'] ) && is_scalar( $item['post_title'] ) && '' !== (string) $item['post_title'] ) {
 				$titles[ (string) $item['post_title'] ] = true;
@@ -5312,19 +5356,19 @@ class Post_Importer extends Abstract_Importer {
 		}
 		$post_type    = (string) $this->get_option( 'post_type', 'post' );
 		$placeholders = implode( ',', array_fill( 0, count( $titles ), '%s' ) );
-		$rows         = $wpdb->get_col( $wpdb->prepare( "SELECT post_title FROM {$wpdb->posts} WHERE post_type = %s AND post_status <> 'trash' AND post_title IN ($placeholders)", array_merge( [ $post_type ], array_map( 'strval', array_keys( $titles ) ) ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Placeholders are generated above.
+		$rows         = $wpdb->get_col( $wpdb->prepare( "SELECT post_title FROM {$wpdb->posts} WHERE post_type = %s AND post_status <> 'trash' AND post_title IN ($placeholders)", array_merge( array( $post_type ), array_map( 'strval', array_keys( $titles ) ) ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Placeholders are generated above.
 		if ( null === $rows || '' !== (string) $wpdb->last_error ) {
 			return;
 		}
-		$found = [];
+		$found = array();
 		foreach ( $rows as $title ) {
 			$found[ $this->title_lookup_key( $title ) ] = true;
 		}
-		$this->title_lookup = [
+		$this->title_lookup = array(
 			'post_type' => $post_type,
 			'requested' => $titles,
 			'found'     => $found,
-		];
+		);
 	}
 
 	/**
@@ -5369,7 +5413,7 @@ class Post_Importer extends Abstract_Importer {
 	 */
 	public function take_media_issues() {
 		$issues             = $this->media_issues;
-		$this->media_issues = [];
+		$this->media_issues = array();
 		return $issues;
 	}
 
@@ -5380,10 +5424,10 @@ class Post_Importer extends Abstract_Importer {
 	 * @param string $message Reason.
 	 */
 	private function add_media_issue( $url, $message ) {
-		$this->media_issues[] = [
+		$this->media_issues[] = array(
 			'url'     => esc_url_raw( (string) $url ),
 			'message' => sanitize_text_field( (string) $message ),
-		];
+		);
 	}
 
 	/**
@@ -5417,7 +5461,7 @@ class Post_Importer extends Abstract_Importer {
 		if ( null !== $enabled && ! filter_var( $enabled, FILTER_VALIDATE_BOOLEAN ) ) {
 			return '';
 		}
-		$rules = $this->get_option( 'replace_links_rules', [] );
+		$rules = $this->get_option( 'replace_links_rules', array() );
 		if ( ! is_array( $rules ) ) {
 			return '';
 		}
@@ -5451,12 +5495,12 @@ class Post_Importer extends Abstract_Importer {
 	private function count_post_attachments( $post_id ) {
 		return count(
 			get_children(
-				[
+				array(
 					'post_parent' => (int) $post_id,
 					'post_type'   => 'attachment',
 					'fields'      => 'ids',
 					'numberposts' => -1,
-				]
+				)
 			)
 		);
 	}
@@ -5489,11 +5533,11 @@ class Post_Importer extends Abstract_Importer {
 	 * @return array Media URLs.
 	 */
 	private function extract_av_media_urls( string $html ): array {
-		$urls = [];
+		$urls = array();
 		$tags = new \WP_HTML_Tag_Processor( $html );
 		while ( $tags->next_tag() ) {
-			$tag = $tags->get_tag();
-			$attributes = in_array( $tag, [ 'VIDEO', 'AUDIO', 'SOURCE' ], true ) ? [ 'src' ] : [];
+			$tag        = $tags->get_tag();
+			$attributes = in_array( $tag, array( 'VIDEO', 'AUDIO', 'SOURCE' ), true ) ? array( 'src' ) : array();
 			if ( 'VIDEO' === $tag ) {
 				$attributes[] = 'poster';
 			}
@@ -5550,7 +5594,7 @@ class Post_Importer extends Abstract_Importer {
 			return $html;
 		}
 
-		$url_mapping = [];
+		$url_mapping = array();
 		foreach ( $media_urls as $url ) {
 			if ( $this->is_job_cancelled() ) {
 				break;
@@ -5581,15 +5625,15 @@ class Post_Importer extends Abstract_Importer {
 
 			$new_url = wp_get_attachment_url( (int) $attachment_id );
 			if ( $new_url ) {
-				$url_mapping[ $url ] = [
+				$url_mapping[ $url ] = array(
 					'url' => $new_url,
 					'id'  => (int) $attachment_id,
-				];
+				);
 				if ( $source_url !== $url ) {
-					$url_mapping[ $source_url ] = [
+					$url_mapping[ $source_url ] = array(
 						'url' => $new_url,
 						'id'  => (int) $attachment_id,
-					];
+					);
 				}
 			}
 		}
@@ -5667,7 +5711,7 @@ class Post_Importer extends Abstract_Importer {
 			// (percent-encoded vs raw UTF-8). Bring the content to the key's spelling
 			// first so the ID and URL rewrites below see the same string.
 			if ( '' !== $old_url && false === strpos( $content, $old_url ) ) {
-				foreach ( array_unique( [ rawurldecode( $old_url ), Media_Importer::encode_url( $old_url ) ] ) as $variant ) {
+				foreach ( array_unique( array( rawurldecode( $old_url ), Media_Importer::encode_url( $old_url ) ) ) as $variant ) {
 					if ( is_string( $variant ) && '' !== $variant && $variant !== $old_url && false !== strpos( $content, $variant ) ) {
 						$content = str_replace( $variant, $old_url, $content );
 					}
@@ -5749,7 +5793,6 @@ class Post_Importer extends Abstract_Importer {
 			}
 		}
 
-
 		return self::sync_gallery_block_ids( (string) $content );
 	}
 
@@ -5776,7 +5819,7 @@ class Post_Importer extends Abstract_Importer {
 				if ( count( $ids ) !== count( $attrs['ids'] ) ) {
 					return $m[0];
 				}
-				$new = [];
+				$new = array();
 				foreach ( array_values( $attrs['ids'] ) as $i => $old ) {
 					$id = 'attachment' === get_post_type( $ids[ $i ] ) ? $ids[ $i ] : 0;
 					if ( ! $id ) {
@@ -5841,7 +5884,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @return int Attachment ID or 0.
 	 */
 	private function attachment_id_for_local_url( string $url ): int {
-		foreach ( array_unique( [ $url, rawurldecode( $url ) ] ) as $candidate ) {
+		foreach ( array_unique( array( $url, rawurldecode( $url ) ) ) as $candidate ) {
 			$id = (int) attachment_url_to_postid( $candidate );
 			if ( ! $id ) {
 				$id = (int) Content_Sync_Media::attachment_url_to_original_postid( $candidate );
@@ -5864,7 +5907,7 @@ class Post_Importer extends Abstract_Importer {
 		if ( '' === $url || ! Content_Sync_Media::is_valid_url( $url ) || 0 === strpos( $url, 'data:' ) ) {
 			return '';
 		}
-		if ( ! in_array( strtolower( (string) wp_parse_url( $url, PHP_URL_SCHEME ) ), [ 'http', 'https' ], true ) ) {
+		if ( ! in_array( strtolower( (string) wp_parse_url( $url, PHP_URL_SCHEME ) ), array( 'http', 'https' ), true ) ) {
 			return '';
 		}
 
@@ -6071,10 +6114,10 @@ class Post_Importer extends Abstract_Importer {
 			return null;
 		}
 
-		$data = [
+		$data = array(
 			'size' => filesize( $temp_file ),
 			'hash' => md5_file( $temp_file ),
-		];
+		);
 
 		// Keep temp file for potential reuse in import_media_from_url
 		// Store in transient with URL as key
@@ -6146,10 +6189,10 @@ class Post_Importer extends Abstract_Importer {
 			$base = sanitize_file_name( (string) pathinfo( $name, PATHINFO_FILENAME ) );
 			$name = ( '' !== $base ? $base : 'image' ) . '.' . $ext;
 		}
-		$file = [
+		$file = array(
 			'name'     => $name,
 			'tmp_name' => $temp_file,
-		];
+		);
 
 		// Import the file
 			$attachment_id = media_handle_sideload( $file, $post_id );
@@ -6218,12 +6261,12 @@ class Post_Importer extends Abstract_Importer {
 
 		$response = wp_remote_get(
 			$url,
-			[
+			array(
 				'timeout'            => $timeout,
 				'stream'             => true,
 				'filename'           => $tmp,
 				'reject_unsafe_urls' => false,
-			]
+			)
 		);
 
 		if ( is_wp_error( $response ) ) {

@@ -29,32 +29,32 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 *
 	 * @var array
 	 */
-	private $cancel_check_cache = [
+	private $cancel_check_cache = array(
 		'time'      => 0.0,
 		'cancelled' => false,
-	];
+	);
 
 	/**
 	 * Import options
 	 *
 	 * @var array
 	 */
-	protected $options = [];
+	protected $options = array();
 
 	/**
 	 * Import statistics
 	 *
 	 * @var array
 	 */
-	protected $stats = [
+	protected $stats = array(
 		'total'   => 0,
 		'success' => 0,
 		'skipped' => 0,
 		'failed'  => 0,
 		'updated' => 0,
 		'created' => 0,
-		'errors'  => [],
-	];
+		'errors'  => array(),
+	);
 
 	/**
 	 * Constructor
@@ -97,12 +97,12 @@ abstract class Abstract_Importer implements Importer_Interface {
 		}
 
 		$job       = ( new Job() )->find( $job_id );
-		$cancelled = $job && in_array( (string) $job->status, [ 'cancelled', 'paused' ], true );
+		$cancelled = $job && in_array( (string) $job->status, array( 'cancelled', 'paused' ), true );
 
-		$this->cancel_check_cache = [
+		$this->cancel_check_cache = array(
 			'time'      => $now,
 			'cancelled' => (bool) $cancelled,
-		];
+		);
 
 		return (bool) $cancelled;
 	}
@@ -114,7 +114,7 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 * @param array $options Optional. Import options
 	 * @return array|WP_Error Import results or WP_Error
 	 */
-	public function import( $data, $options = [] ) {
+	public function import( $data, $options = array() ) {
 		$this->options = wp_parse_args( $options, $this->get_default_options() );
 		$this->reset_stats();
 
@@ -139,11 +139,11 @@ abstract class Abstract_Importer implements Importer_Interface {
 
 			if ( is_wp_error( $result ) ) {
 				++$this->stats['failed'];
-				$this->stats['errors'][] = [
+				$this->stats['errors'][] = array(
 					'row'     => $index + 1,
 					'message' => $result->get_error_message(),
 					'data'    => $result->get_error_data(),
-				];
+				);
 				$this->log_error( sprintf( /* translators: %1$d: row number, %2$s: value. */ __( 'Failed to import row %1$d: %2$s', 'import-export-by-rockstarlab' ), $index + 1, $result->get_error_message() ) );
 			} elseif ( 'skipped' === $result ) {
 				++$this->stats['skipped'];
@@ -161,7 +161,7 @@ abstract class Abstract_Importer implements Importer_Interface {
 
 		$this->log_info(
 			sprintf(
-				/* translators: %1$d: stats, %2$d: stats, %3$d: stats, %4$d: stats. */ __( 'Import completed: %1$d total, %2$d success, %3$d failed, %4$d skipped', 'import-export-by-rockstarlab' ),
+				/* translators: %1$d: stats, %2$d: stats, %3$d: stats, %4$d: stats. */                __( 'Import completed: %1$d total, %2$d success, %3$d failed, %4$d skipped', 'import-export-by-rockstarlab' ),
 				$this->stats['total'],
 				$this->stats['success'],
 				$this->stats['failed'],
@@ -192,7 +192,7 @@ abstract class Abstract_Importer implements Importer_Interface {
 
 		// Check first item for required fields
 		$first_item     = reset( $data );
-		$missing_fields = [];
+		$missing_fields = array();
 
 		foreach ( $required_fields as $field ) {
 			if ( ! isset( $first_item[ $field ] ) ) {
@@ -225,7 +225,7 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 * @param array $mapping  Optional. Field mapping
 	 * @return array Prepared data
 	 */
-	public function prepare( $raw_data, $mapping = [] ) {
+	public function prepare( $raw_data, $mapping = array() ) {
 		if ( empty( $mapping ) ) {
 			return $raw_data;
 		}
@@ -235,9 +235,9 @@ abstract class Abstract_Importer implements Importer_Interface {
 
 		// Normalise to a flat [ source => target ] map.
 		// Also collect taxonomy_format and transformations per target field.
-		$flat_map         = [];
-		$taxonomy_formats = []; // [ target_field => 'name'|'slug'|'id' ]
-		$field_functions  = []; // [ target_field => [ transformation_id, ... ] ]
+		$flat_map         = array();
+		$taxonomy_formats = array(); // [ target_field => 'name'|'slug'|'id' ]
+		$field_functions  = array(); // [ target_field => [ transformation_id, ... ] ]
 		if ( $is_ui_format ) {
 			foreach ( $mapping as $entry ) {
 				$src = $entry['source_field'] ?? '';
@@ -266,10 +266,10 @@ abstract class Abstract_Importer implements Importer_Interface {
 			return $raw_data;
 		}
 
-		$prepared = [];
+		$prepared = array();
 
 		foreach ( $raw_data as $item ) {
-			$prepared_item = [];
+			$prepared_item = array();
 
 			foreach ( $flat_map as $source_field => $target_field ) {
 				if ( isset( $item[ $source_field ] ) ) {
@@ -287,7 +287,7 @@ abstract class Abstract_Importer implements Importer_Interface {
 
 					// Several columns may feed one taxonomy ("Category 1", "Category 2"):
 					// combine their terms instead of keeping only the last column.
-					$is_taxonomy_target = 0 === strpos( (string) $target_field, 'taxonomy_' ) || in_array( $target_field, [ 'categories', 'tags' ], true );
+					$is_taxonomy_target = 0 === strpos( (string) $target_field, 'taxonomy_' ) || in_array( $target_field, array( 'categories', 'tags' ), true );
 					if ( $is_taxonomy_target && is_string( $value ) && isset( $prepared_item[ $target_field ] ) && is_string( $prepared_item[ $target_field ] ) && '' !== trim( $prepared_item[ $target_field ] ) ) {
 						$value = '' === trim( $value ) ? $prepared_item[ $target_field ] : $prepared_item[ $target_field ] . ', ' . $value;
 					}
@@ -390,10 +390,10 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 * @return array Default options
 	 */
 	protected function get_default_options() {
-		return [
+		return array(
 			'duplicate_mode' => 'skip', // skip, update, create
 			'batch_size'     => 100,
-		];
+		);
 	}
 
 	/**
@@ -423,15 +423,15 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 * Reset statistics
 	 */
 	protected function reset_stats() {
-		$this->stats = [
+		$this->stats = array(
 			'total'   => 0,
 			'success' => 0,
 			'skipped' => 0,
 			'failed'  => 0,
 			'updated' => 0,
 			'created' => 0,
-			'errors'  => [],
-		];
+			'errors'  => array(),
+		);
 	}
 
 	/**
@@ -458,7 +458,7 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 * @param string $message Log message
 	 * @param array  $data    Optional. Additional data
 	 */
-	protected function log_info( $message, $data = [] ) {
+	protected function log_info( $message, $data = array() ) {
 		\RockStarLab\ImportExport\Service\Job_Log::write( $this->job_id, 'info', $message );
 	}
 
@@ -471,8 +471,8 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 * @return void
 	 */
 	protected function log_skip_once( $kind, $message ) {
-		static $logged = [];
-		$key = 'rsl_ie_skip_note_' . absint( $this->job_id ) . '_' . md5( (string) $kind );
+		static $logged = array();
+		$key           = 'rsl_ie_skip_note_' . absint( $this->job_id ) . '_' . md5( (string) $kind );
 		if ( isset( $logged[ $key ] ) || ( $this->job_id && get_transient( $key ) ) ) {
 			return;
 		}
@@ -489,7 +489,7 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 * @param string $message Log message
 	 * @param array  $data    Optional. Additional data
 	 */
-	protected function log_warning( $message, $data = [] ) {
+	protected function log_warning( $message, $data = array() ) {
 		\RockStarLab\ImportExport\Service\Job_Log::write( $this->job_id, 'warning', $message );
 	}
 
@@ -499,7 +499,7 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 * @param string $message Log message
 	 * @param array  $data    Optional. Additional data
 	 */
-	protected function log_error( $message, $data = [] ) {
+	protected function log_error( $message, $data = array() ) {
 		\RockStarLab\ImportExport\Service\Job_Log::write( $this->job_id, 'error', $message );
 	}
 

@@ -44,7 +44,7 @@ class CSV_Format implements File_Format_Interface {
 	 * @param array  $options   Optional. Parser options (delimiter, enclosure, has_header)
 	 * @return array|\WP_Error Array of parsed data or WP_Error on failure
 	 */
-	public function parse( $file_path, $options = [] ) {
+	public function parse( $file_path, $options = array() ) {
 		list( $file_path, $options ) = $this->normalize_source( $file_path, (array) $options );
 		if ( ! file_exists( $file_path ) ) {
 			return new \WP_Error( 'file_not_found', __( 'CSV file not found', 'import-export-by-rockstarlab' ) );
@@ -64,8 +64,8 @@ class CSV_Format implements File_Format_Interface {
 			return new \WP_Error( 'file_open_error', __( 'Cannot open CSV file', 'import-export-by-rockstarlab' ) );
 		}
 
-		$data    = [];
-		$headers = [];
+		$data    = array();
+		$headers = array();
 		$row_num = 0;
 
 		while ( true ) {
@@ -125,7 +125,7 @@ class CSV_Format implements File_Format_Interface {
 	}
 
 	/** Stream rows with the same CSV mapping and quoting rules as parse(). */
-	public function rows( $file_path, $options = [], &$cursor = null, &$preview_headers = null ) {
+	public function rows( $file_path, $options = array(), &$cursor = null, &$preview_headers = null ) {
 		list( $file_path, $options ) = $this->normalize_source( $file_path, (array) $options );
 		if ( ! file_exists( $file_path ) ) {
 			throw new \RuntimeException( 'CSV file not found.' );
@@ -145,13 +145,13 @@ class CSV_Format implements File_Format_Interface {
 			throw new \RuntimeException( __( 'Cannot open CSV file.', 'import-export-by-rockstarlab' ) );
 		}
 
-		$headers = [];
+		$headers = array();
 		$row_num = 0;
 
 		try {
 			$stat     = fstat( $handle );
-			$identity = array_intersect_key( $stat, array_flip( [ 'dev', 'ino', 'size', 'mtime', 'ctime' ] ) );
-			$settings = hash( 'sha256', serialize( [ $delimiter, $enclosure, $escape, $has_header, $encoding ] ) );
+			$identity = array_intersect_key( $stat, array_flip( array( 'dev', 'ino', 'size', 'mtime', 'ctime' ) ) );
+			$settings = hash( 'sha256', serialize( array( $delimiter, $enclosure, $escape, $has_header, $encoding ) ) );
 			if ( null !== $cursor ) {
 				if ( ! is_array( $cursor ) || ( $cursor['identity'] ?? null ) !== $identity || ( $cursor['settings'] ?? null ) !== $settings || ! isset( $cursor['offset'], $cursor['headers'], $cursor['row_num'] ) || ! is_int( $cursor['offset'] ) || $cursor['offset'] < 0 || ! is_array( $cursor['headers'] ) || ! is_int( $cursor['row_num'] ) || $cursor['row_num'] < 0 || $cursor['offset'] > fstat( $handle )['size'] || 0 !== fseek( $handle, $cursor['offset'] ) ) {
 					throw new \RuntimeException( __( 'Invalid CSV cursor.', 'import-export-by-rockstarlab' ) );
@@ -207,13 +207,13 @@ class CSV_Format implements File_Format_Interface {
 					continue;
 				}
 
-				$cursor = [
+				$cursor = array(
 					'identity' => $identity,
 					'settings' => $settings,
 					'offset'   => ftell( $handle ),
 					'headers'  => $headers,
 					'row_num'  => $row_num + 1,
-				];
+				);
 				if ( $has_header && ! empty( $headers ) ) {
 					// Skip rows where column count doesn't match headers (e.g. wrong delimiter)
 					if ( count( $row ) !== count( $headers ) ) {
@@ -237,15 +237,15 @@ class CSV_Format implements File_Format_Interface {
 	}
 
 	/** Read headers, sample and logical row count from one CSV stream. */
-	public function preview( $path, array $options = [] ) {
+	public function preview( $path, array $options = array() ) {
 		list( $path, $options ) = $this->normalize_source( $path, (array) $options );
-		$result  = [
-			'headers'    => [],
-			'preview'    => [],
+		$result                 = array(
+			'headers'    => array(),
+			'preview'    => array(),
 			'total_rows' => 0,
-		];
-		$cursor  = null;
-		$headers = null;
+		);
+		$cursor                 = null;
+		$headers                = null;
 		try {
 			foreach ( $this->rows( $path, $options, $cursor, $headers ) as $row ) {
 				if ( $result['total_rows'] < 5 ) {
@@ -274,7 +274,7 @@ class CSV_Format implements File_Format_Interface {
 	 * @param array  $options   Optional. Parser options
 	 * @return array|\WP_Error Array of parsed data or WP_Error on failure
 	 */
-	public function parse_chunk( $file_path, $offset, $limit, $options = [] ) {
+	public function parse_chunk( $file_path, $offset, $limit, $options = array() ) {
 		list( $file_path, $options ) = $this->normalize_source( $file_path, (array) $options );
 		if ( ! file_exists( $file_path ) ) {
 			return new \WP_Error( 'file_not_found', __( 'CSV file not found', 'import-export-by-rockstarlab' ) );
@@ -292,8 +292,8 @@ class CSV_Format implements File_Format_Interface {
 			return new \WP_Error( 'file_open_error', __( 'Cannot open CSV file', 'import-export-by-rockstarlab' ) );
 		}
 
-		$data    = [];
-		$headers = [];
+		$data    = array();
+		$headers = array();
 		$row_num = 0;
 		$read    = 0;
 
@@ -373,7 +373,7 @@ class CSV_Format implements File_Format_Interface {
 	 * @param array  $options   Optional. Generation options (delimiter, headers)
 	 * @return bool|\WP_Error True on success or WP_Error on failure
 	 */
-	public function generate( $data, $file_path, $options = [] ) {
+	public function generate( $data, $file_path, $options = array() ) {
 		$delimiter = $options['delimiter'] ?? self::DEFAULT_DELIMITER;
 		$delimiter = $this->normalize_delimiter( $delimiter );
 		$enclosure = $options['enclosure'] ?? self::DEFAULT_ENCLOSURE;
@@ -418,7 +418,7 @@ class CSV_Format implements File_Format_Interface {
 			}
 
 			if ( ! empty( $headers ) && ! isset( $row[0] ) ) {
-				$ordered_row = [];
+				$ordered_row = array();
 				foreach ( $headers as $header ) {
 					$value = $row[ $header ] ?? '';
 					if ( is_array( $value ) || is_object( $value ) ) {
@@ -440,7 +440,7 @@ class CSV_Format implements File_Format_Interface {
 			}
 
 			if ( false !== ( $options['protect_formulas'] ?? true ) ) {
-				$row = array_map( [ $this, 'protect_formula' ], $row );
+				$row = array_map( array( $this, 'protect_formula' ), $row );
 			}
 			$this->write_csv_row( $handle, $row, $delimiter, $enclosure, $escape );
 		}
@@ -456,7 +456,7 @@ class CSV_Format implements File_Format_Interface {
 	 * @return string|null
 	 */
 	public static function normalize_encoding( $encoding ) {
-		$map = [
+		$map = array(
 			'auto'         => 'auto',
 			'utf-8'        => 'UTF-8',
 			'utf8'         => 'UTF-8',
@@ -468,7 +468,7 @@ class CSV_Format implements File_Format_Interface {
 			'iso-8859-1'   => 'ISO-8859-1',
 			'iso-8859-2'   => 'ISO-8859-2',
 			'iso-8859-15'  => 'ISO-8859-15',
-		];
+		);
 		$key = strtolower( trim( (string) $encoding ) );
 		return '' === $key ? 'auto' : ( $map[ $key ] ?? null );
 	}
@@ -487,7 +487,7 @@ class CSV_Format implements File_Format_Interface {
 	 */
 	protected function normalize_source( $file_path, array $options ) {
 		if ( ! is_string( $file_path ) || '' === $file_path || ! is_readable( $file_path ) ) {
-			return [ $file_path, $options ];
+			return array( $file_path, $options );
 		}
 		$requested = self::normalize_encoding( $options['encoding'] ?? '' );
 		$encoding  = ( null === $requested || 'auto' === $requested ) ? $this->detect_encoding( $file_path ) : $requested;
@@ -501,7 +501,7 @@ class CSV_Format implements File_Format_Interface {
 		$options['encoding']  = $encoding;
 		$file_path            = $this->lf_copy( $file_path );
 		$options['delimiter'] = $this->detect_delimiter( $file_path, $options['delimiter'] ?? self::DEFAULT_DELIMITER, $options['enclosure'] ?? self::DEFAULT_ENCLOSURE );
-		return [ $file_path, $options ];
+		return array( $file_path, $options );
 	}
 
 	/**
@@ -604,7 +604,7 @@ class CSV_Format implements File_Format_Interface {
 		$utf16 = 0 === stripos( $encoding, 'UTF-16' );
 		$big   = 'UTF-16BE' === strtoupper( $encoding );
 		$head  = fread( $in, 2 ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread
-		if ( ! ( $utf16 && in_array( $head, [ "\xFF\xFE", "\xFE\xFF" ], true ) ) ) {
+		if ( ! ( $utf16 && in_array( $head, array( "\xFF\xFE", "\xFE\xFF" ), true ) ) ) {
 			$carry = $head;
 		} else {
 			$carry = '';
@@ -651,7 +651,7 @@ class CSV_Format implements File_Format_Interface {
 	protected function to_utf8( $text, $encoding ) {
 		static $mb = null;
 		if ( null === $mb ) {
-			$mb = function_exists( 'mb_list_encodings' ) ? array_map( 'strtolower', mb_list_encodings() ) : [];
+			$mb = function_exists( 'mb_list_encodings' ) ? array_map( 'strtolower', mb_list_encodings() ) : array();
 		}
 		if ( in_array( strtolower( $encoding ), $mb, true ) ) {
 			return mb_convert_encoding( $text, 'UTF-8', $encoding );
@@ -699,7 +699,7 @@ class CSV_Format implements File_Format_Interface {
 		}
 		$best  = $delimiter;
 		$count = 0;
-		foreach ( [ ',', ';', "\t", '|' ] as $candidate ) {
+		foreach ( array( ',', ';', "\t", '|' ) as $candidate ) {
 			$found = substr_count( $line, $candidate );
 			if ( $found > $count ) {
 				$best  = $candidate;
@@ -712,7 +712,7 @@ class CSV_Format implements File_Format_Interface {
 	/**
 	 * Characters that make a spreadsheet read a cell as a formula (CSV injection).
 	 */
-	const FORMULA_START = [ '=', '+', '-', '@', "\t", "\r" ];
+	const FORMULA_START = array( '=', '+', '-', '@', "\t", "\r" );
 
 	/**
 	 * Exported text that a spreadsheet would run as a formula (=HYPERLINK(...), +cmd, @SUM) gets a
@@ -800,7 +800,7 @@ class CSV_Format implements File_Format_Interface {
 			return (bool) fputcsv( $handle, $row, $delimiter, $enclosure, $escape );
 		}
 
-		$encoded_row = [];
+		$encoded_row = array();
 		foreach ( $row as $value ) {
 			if ( is_array( $value ) || is_object( $value ) ) {
 				$value = wp_json_encode( $value, JSON_UNESCAPED_UNICODE );
@@ -870,7 +870,7 @@ class CSV_Format implements File_Format_Interface {
 	 * @return array Parsed row
 	 */
 	protected function parse_csv_line( $line, $delimiter, $enclosure, $escape ) {
-		$columns   = [];
+		$columns   = array();
 		$token     = '';
 		$in_quotes = false;
 		$len       = strlen( $line );
@@ -955,7 +955,7 @@ class CSV_Format implements File_Format_Interface {
 	 * @param array  $options   Optional. Parser options
 	 * @return array|\WP_Error Array of headers or WP_Error on failure
 	 */
-	public function get_headers( $file_path, $options = [] ) {
+	public function get_headers( $file_path, $options = array() ) {
 		list( $file_path, $options ) = $this->normalize_source( $file_path, (array) $options );
 		if ( ! file_exists( $file_path ) ) {
 			return new \WP_Error( 'file_not_found', __( 'CSV file not found', 'import-export-by-rockstarlab' ) );
@@ -1019,9 +1019,9 @@ class CSV_Format implements File_Format_Interface {
 	 * @param array  $options Optional parser settings.
 	 * @return int|\WP_Error Row count or WP_Error on failure
 	 */
-	public function count_rows( $file_path, $options = [] ) {
+	public function count_rows( $file_path, $options = array() ) {
 		list( $file_path, $options ) = $this->normalize_source( $file_path, (array) $options );
-		$handle = fopen( $file_path, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Count logical CSV records without loading the file into memory.
+		$handle                      = fopen( $file_path, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Count logical CSV records without loading the file into memory.
 		if ( ! $handle ) {
 			return new \WP_Error( 'file_open_error', __( 'Cannot open CSV file', 'import-export-by-rockstarlab' ) );
 		}
@@ -1031,7 +1031,7 @@ class CSV_Format implements File_Format_Interface {
 		$count     = 0;
 		try {
 			while ( false !== ( $record = ( strlen( $delimiter ) > 1 ? $this->read_csv_record( $handle, $enclosure, $escape ) : fgetcsv( $handle, 0, $delimiter, $enclosure, $escape ) ) ) ) {
-				$cells = is_array( $record ) ? $record : [ (string) $record ];
+				$cells = is_array( $record ) ? $record : array( (string) $record );
 				if ( '' !== implode( '', array_map( 'trim', array_map( 'strval', $cells ) ) ) ) {
 					++$count;
 				}
@@ -1048,7 +1048,7 @@ class CSV_Format implements File_Format_Interface {
 	 * @return array
 	 */
 	public function get_extensions() {
-		return [ 'csv', 'txt' ];
+		return array( 'csv', 'txt' );
 	}
 
 	/**
@@ -1057,11 +1057,11 @@ class CSV_Format implements File_Format_Interface {
 	 * @return array
 	 */
 	public function get_mime_types() {
-		return [
+		return array(
 			'text/csv',
 			'text/plain',
 			'application/csv',
 			'application/vnd.ms-excel',
-		];
+		);
 	}
 }

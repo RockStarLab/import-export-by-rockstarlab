@@ -6,7 +6,7 @@ defined( 'ABSPATH' ) || exit;
 
 class JSON_Object_Stream {
 	/** Keep first-key order and last-key value without retaining all keys or rows. */
-	public static function rows( $path, array $options = [] ) {
+	public static function rows( $path, array $options = array() ) {
 		$directory = rtrim( get_temp_dir(), '/\\' ) . '/rsl-json-' . bin2hex( random_bytes( 16 ) );
 		if ( ! mkdir( $directory, 0700 ) ) {
 			throw new \RuntimeException( __( 'Cannot create JSON index.', 'import-export-by-rockstarlab' ) ); }
@@ -15,7 +15,7 @@ class JSON_Object_Stream {
 			$order = fopen( $directory . '/order', 'x+b' );
 			if ( ! $order ) {
 				throw new \RuntimeException( __( 'Cannot create JSON order.', 'import-export-by-rockstarlab' ) ); }
-			foreach ( JSON_Row_Stream::rows( $path, [ 'object_members' => true ] + $options ) as $member ) {
+			foreach ( JSON_Row_Stream::rows( $path, array( 'object_members' => true ) + $options ) as $member ) {
 				$key    = array_key_first( $member );
 				$hash   = hash( 'sha256', serialize( $key ) );
 				$bucket = $directory . '/' . substr( $hash, 0, 2 );
@@ -26,7 +26,7 @@ class JSON_Object_Stream {
 					if ( 65 !== fwrite( $order, $hash . "\n" ) ) {
 						throw new \RuntimeException( __( 'Cannot index JSON member.', 'import-export-by-rockstarlab' ) ); }
 				} else {
-					$previous = unserialize( file_get_contents( $file ), [ 'allowed_classes' => false ] );
+					$previous = unserialize( file_get_contents( $file ), array( 'allowed_classes' => false ) );
 					if ( ! is_array( $previous ) || array_key_first( $previous ) !== $key ) {
 						throw new \RuntimeException( __( 'Conflicting JSON key.', 'import-export-by-rockstarlab' ) ); }
 					unset( $previous );
@@ -39,7 +39,7 @@ class JSON_Object_Stream {
 				throw new \RuntimeException( __( 'Cannot rewind JSON order.', 'import-export-by-rockstarlab' ) ); }
 			while ( false !== ( $line = fgets( $order ) ) ) {
 				$hash   = rtrim( $line, "\n" );
-				$member = unserialize( file_get_contents( $directory . '/' . substr( $hash, 0, 2 ) . '/' . $hash ), [ 'allowed_classes' => false ] );
+				$member = unserialize( file_get_contents( $directory . '/' . substr( $hash, 0, 2 ) . '/' . $hash ), array( 'allowed_classes' => false ) );
 				if ( ! is_array( $member ) || count( $member ) !== 1 ) {
 					throw new \RuntimeException( __( 'Invalid JSON index.', 'import-export-by-rockstarlab' ) ); }
 				foreach ( $member as $key => $value ) {

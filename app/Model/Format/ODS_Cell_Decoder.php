@@ -21,7 +21,7 @@ class ODS_Cell_Decoder extends Ods {
 		// The inherited text walker expects canonical prefixes; XML prefixes are arbitrary.
 		foreach ( $cell->getElementsByTagNameNS( $text_namespace, '*' ) as $element ) {
 			$element->prefix = 'text'; }
-		$paragraphs = [];
+		$paragraphs = array();
 		foreach ( $cell->childNodes as $child ) {
 			// Match the legacy reader's paragraph selection and text traversal.
 			if ( 'p' === $child->localName && $text_namespace === $child->namespaceURI ) {
@@ -33,7 +33,7 @@ class ODS_Cell_Decoder extends Ods {
 		switch ( $cell->getAttributeNS( $office, 'value-type' ) ) {
 			case 'string':
 				// Keep newline normalization without the spreadsheet writer's text limit.
-				return str_replace( [ "\r\n", "\r" ], "\n", $text );
+				return str_replace( array( "\r\n", "\r" ), "\n", $text );
 			case 'boolean':
 				return 'TRUE' === $text ? '1' : '0';
 			case 'percentage':
@@ -54,7 +54,7 @@ class ODS_Cell_Decoder extends Ods {
 				$time = sscanf( $cell->getAttributeNS( $office, 'time-value' ), 'PT%dH%dM%dS' );
 				if ( is_array( $time ) && 3 === count( array_filter( $time, 'is_int' ) ) ) {
 					return sprintf( '%02d:%02d:%02d', $time[0], $time[1], $time[2] ); }
-				return (string) Date::PHPToExcel( strtotime( '01-01-1970 ' . implode( ':', $time ?? [] ) ) );
+				return (string) Date::PHPToExcel( strtotime( '01-01-1970 ' . implode( ':', $time ?? array() ) ) );
 			default:
 				return '';
 		}

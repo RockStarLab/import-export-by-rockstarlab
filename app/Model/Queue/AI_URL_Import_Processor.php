@@ -72,21 +72,21 @@ class AI_URL_Import_Processor {
 			}
 
 			// Check if job is paused or cancelled
-			if ( in_array( $job->status, [ 'paused', 'cancelled', 'completed', 'failed' ], true ) ) {
-				return [
+			if ( in_array( $job->status, array( 'paused', 'cancelled', 'completed', 'failed' ), true ) ) {
+				return array(
 					'status'    => $job->status,
 					'completed' => false,
-				];
+				);
 			}
 
 			// Set job to processing if it's pending
 			if ( 'pending' === $job->status ) {
 				$this->job_model->update(
 					$job_id,
-					[
+					array(
 						'status'     => 'processing',
 						'started_at' => current_time( 'mysql' ),
-					]
+					)
 				);
 			}
 
@@ -96,14 +96,14 @@ class AI_URL_Import_Processor {
 				throw new \Exception( __( 'Invalid job parameters', 'import-export-by-rockstarlab' ) );
 			}
 
-			$urls           = $parameters['urls'] ?? [];
+			$urls           = $parameters['urls'] ?? array();
 			$post_type      = $parameters['post_type'] ?? 'post';
 			$post_status    = $parameters['post_status'] ?? 'draft';
 			$content_field  = $parameters['content_field'] ?? 'post_content';
 			$import_images  = $parameters['import_images'] ?? true;
 			$import_excerpt = $parameters['import_excerpt'] ?? true;
 			$request_delay  = $parameters['request_delay'] ?? ( $parameters['timeout'] ?? 0 );
-			$saved_log      = isset( $parameters['import_log'] ) && is_array( $parameters['import_log'] ) ? $parameters['import_log'] : [];
+			$saved_log      = isset( $parameters['import_log'] ) && is_array( $parameters['import_log'] ) ? $parameters['import_log'] : array();
 
 			// Get current index
 			$current_index = (int) ( $job->processed_items ?? 0 );
@@ -115,25 +115,25 @@ class AI_URL_Import_Processor {
 			if ( 0 === $current_index ) {
 				$this->job_model->update(
 					$job_id,
-					[
+					array(
 						'total_items' => $total_count,
-					]
+					)
 				);
 			}
 
 			// Check if completed
 			if ( $current_index >= $total_count ) {
 				$this->complete_job( $job_id );
-				return [
+				return array(
 					'status'    => 'completed',
 					'completed' => true,
-				];
+				);
 			}
 
 			// Process current URL
 			$url = $urls[ $current_index ];
 
-			$import_log = [];
+			$import_log = array();
 
 			try {
 				// Extract content using AI
@@ -144,11 +144,11 @@ class AI_URL_Import_Processor {
 				}
 
 				// Prepare post data
-				$post_data = [
+				$post_data = array(
 					'post_type'   => $post_type,
 					'post_status' => $post_status,
 					'post_title'  => $extracted_data['title'] ?? 'Untitled',
-				];
+				);
 
 				// Handle excerpt
 				if ( $import_excerpt && ! empty( $extracted_data['excerpt'] ) ) {
@@ -170,9 +170,8 @@ class AI_URL_Import_Processor {
 				// Store source URL as meta
 				update_post_meta( $post_id, '_rsl_ie_source_url', $url );
 
-
 				// Handle featured image
-				$image_urls = [];
+				$image_urls = array();
 				if ( $import_images && ! empty( ( $extracted_data['featured_image'] ?? '' ) ) ) {
 					$image_id = $this->ai_extractor->import_image(
 						$extracted_data['featured_image'],
@@ -187,7 +186,7 @@ class AI_URL_Import_Processor {
 
 				// Handle additional images
 				if ( $import_images && ! empty( $extracted_data['images'] ) ) {
-					$imported_images = [];
+					$imported_images = array();
 					foreach ( $extracted_data['images'] as $image ) {
 						$image_url = is_array( $image ) ? ( $image['url'] ?? '' ) : $image;
 						$alt_text  = is_array( $image ) ? ( $image['alt'] ?? '' ) : '';
@@ -204,7 +203,7 @@ class AI_URL_Import_Processor {
 						$image_id = $this->ai_extractor->import_image( $image_url, $alt_text );
 
 						if ( ! is_wp_error( $image_id ) ) {
-							$imported_images[] = $image_id;
+							$imported_images[]        = $image_id;
 							$image_urls[ $image_url ] = wp_get_attachment_url( $image_id );
 						}
 					}
@@ -219,7 +218,15 @@ class AI_URL_Import_Processor {
 				if ( $image_urls ) {
 					$extracted_data['content'] = $this->localize_content_images( $extracted_data['content'] ?? '', $image_urls );
 					if ( 'post_content' === $content_field ) {
-						$updated = wp_update_post( wp_slash( [ 'ID' => $post_id, 'post_content' => $extracted_data['content'] ] ), true );
+						$updated = wp_update_post(
+							wp_slash(
+								array(
+									'ID'           => $post_id,
+									'post_content' => $extracted_data['content'],
+								)
+							),
+							true
+						);
 						if ( is_wp_error( $updated ) ) {
 							throw new \Exception( $updated->get_error_message() );
 						}
@@ -230,15 +237,15 @@ class AI_URL_Import_Processor {
 				if ( 'post_content' !== $content_field ) {
 					if ( function_exists( 'update_field' ) && ( ! $managed || 'acf_field' === ( $parameters['content_destination'] ?? '' ) ) ) {
 						$value = $extracted_data['content'] ?? '';
-						$path  = $parameters['acf_path'] ?? [];
+						$path  = $parameters['acf_path'] ?? array();
 						if ( $managed && $path ) {
 							for ( $index = count( $path ) - 1; $index > 0; --$index ) {
-								$value  = [ $path[ $index ]['key'] => $value ];
+								$value  = array( $path[ $index ]['key'] => $value );
 								$parent = $path[ $index - 1 ];
 								if ( 'flexible_content' === $parent['type'] ) {
 									$value['acf_fc_layout'] = $parent['layout']; }
-								if ( in_array( $parent['type'], [ 'repeater', 'flexible_content' ], true ) ) {
-									$value = [ $value ]; }
+								if ( in_array( $parent['type'], array( 'repeater', 'flexible_content' ), true ) ) {
+									$value = array( $value ); }
 							}
 							update_field( $path[0]['key'], $value, $post_id );
 						} else {
@@ -248,24 +255,23 @@ class AI_URL_Import_Processor {
 					}
 				}
 
-
 				// Success log
-				$import_log[] = [
+				$import_log[] = array(
 					'url'       => $url,
 					'status'    => 'success',
 					'post_id'   => $post_id,
 					'message'   => sprintf( /* translators: %s: extracted  post. */ __( 'Successfully imported: %s', 'import-export-by-rockstarlab' ), $extracted_data['title'] ?? 'Post' ),
 					'timestamp' => current_time( 'mysql' ),
-				];
+				);
 
 			} catch ( \Exception $e ) {
 				// Error log
-				$import_log[] = [
+				$import_log[] = array(
 					'url'       => $url,
 					'status'    => 'error',
 					'message'   => $managed ? 'rsl_ie_ai_item_failed' : $e->getMessage(),
 					'timestamp' => current_time( 'mysql' ),
-				];
+				);
 			}
 
 			// Update job progress
@@ -291,13 +297,13 @@ class AI_URL_Import_Processor {
 
 			$this->job_model->update(
 				$job_id,
-				[
+				array(
 					'processed_items' => $new_processed,
 					'success_items'   => ( $job->success_items ?? 0 ) + $success_increment,
 					'failed_items'    => ( $job->failed_items ?? 0 ) + $failed_increment,
 					'progress'        => $progress,
 					'parameters'      => wp_json_encode( $parameters ),
-				]
+				)
 			);
 
 			// Check if completed
@@ -305,34 +311,34 @@ class AI_URL_Import_Processor {
 
 			if ( $completed ) {
 				$this->complete_job( $job_id );
-				return [
+				return array(
 					'status'    => 'completed',
 					'completed' => true,
-				];
+				);
 			}
 
 			// Return processing status (JavaScript will call next batch)
-			return [
+			return array(
 				'status'    => 'processing',
 				'completed' => false,
 				'progress'  => $progress,
-			];
+			);
 
 		} catch ( \Exception $e ) {
 			// Job failed
 			$this->job_model->update(
 				$job_id,
-				[
+				array(
 					'status'       => 'failed',
 					'completed_at' => current_time( 'mysql' ),
-				]
+				)
 			);
 
-			return [
+			return array(
 				'status'    => 'failed',
 				'completed' => false,
 				'error'     => $e->getMessage(),
-			];
+			);
 		}
 	}
 
@@ -345,11 +351,11 @@ class AI_URL_Import_Processor {
 	protected function complete_job( $job_id ) {
 		$this->job_model->update(
 			$job_id,
-			[
+			array(
 				'status'       => 'completed',
 				'progress'     => 100,
 				'completed_at' => current_time( 'mysql' ),
-			]
+			)
 		);
 	}
 }

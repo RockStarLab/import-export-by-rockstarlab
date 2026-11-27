@@ -19,7 +19,7 @@ class Model_Registry {
 	 *
 	 * @var array
 	 */
-	private $models = [];
+	private $models = array();
 
 	/**
 	 * Register a model instance

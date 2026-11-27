@@ -91,7 +91,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 	}
 
 	/** Build a bounded sample and exact count with a single worksheet load. */
-	public function preview( $file_path, $options = [] ) {
+	public function preview( $file_path, $options = array() ) {
 		$validation = $this->basic_file_validation( $file_path );
 		if ( is_wp_error( $validation ) ) {
 			return $validation;
@@ -111,11 +111,11 @@ class Spreadsheet_Format implements File_Format_Interface {
 			}
 			$sheet  = $spreadsheet->getActiveSheet();
 			$width  = Coordinate::columnIndexFromString( $sheet->getHighestDataColumn() );
-			$result = [
+			$result = array(
 				'headers'    => ( $options['has_header'] ?? true ) ? $this->read_row( $sheet, 1, $width ) : $this->generate_column_headers( $width ),
-				'preview'    => [],
+				'preview'    => array(),
 				'total_rows' => 0,
-			];
+			);
 			foreach ( $this->worksheet_rows( $sheet, $options ) as $row ) {
 				if ( $result['total_rows'] < 5 ) {
 					$result['preview'][] = $row;
@@ -134,7 +134,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 
 	/** Iterate nonempty normalized rows of an already loaded worksheet. */
 	private function worksheet_rows( $sheet, array $options, &$raw_headers = null ) {
-		$raw_headers = [];
+		$raw_headers = array();
 		$highest_row = (int) $sheet->getHighestDataRow();
 		$highest_col = Coordinate::columnIndexFromString( $sheet->getHighestDataColumn() );
 		$has_header  = array_key_exists( 'has_header', $options ) ? (bool) $options['has_header'] : true;
@@ -167,7 +167,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 			return $validation; }
 		$offset = max( 0, (int) $offset );
 		$limit  = max( 1, (int) $limit );
-		$data   = [];
+		$data   = array();
 		$index  = 0;
 		try {
 			foreach ( $this->rows( $file_path, $options ) as $row ) {
@@ -263,16 +263,16 @@ class Spreadsheet_Format implements File_Format_Interface {
 	 * @return array [ headers, rows ]
 	 */
 	public function split_long_values( array $headers, $data ) {
-		$rows  = [];
-		$parts = [];
+		$rows  = array();
+		$parts = array();
 		foreach ( $data as $row ) {
 			if ( ! is_array( $row ) ) {
 				continue;
 			}
 			foreach ( $row as $key => $value ) {
 				// Measure the text the cell gets (arrays are written as JSON).
-				$value         = is_string( $value ) ? $value : $this->normalize_cell_value( $value );
-				$row[ $key ]   = $value;
+				$value       = is_string( $value ) ? $value : $this->normalize_cell_value( $value );
+				$row[ $key ] = $value;
 				if ( is_string( $value ) && mb_strlen( $value, 'UTF-8' ) > self::CELL_PART_LENGTH ) {
 					$parts[ $key ] = max( $parts[ $key ] ?? 1, (int) ceil( mb_strlen( $value, 'UTF-8' ) / self::CELL_PART_LENGTH ) );
 				}
@@ -280,9 +280,9 @@ class Spreadsheet_Format implements File_Format_Interface {
 			$rows[] = $row;
 		}
 		if ( ! $parts ) {
-			return [ $headers, $rows ];
+			return array( $headers, $rows );
 		}
-		$expanded = [];
+		$expanded = array();
 		foreach ( $headers as $header ) {
 			$expanded[] = $header;
 			for ( $n = 2; $n <= ( $parts[ $header ] ?? 1 ); $n++ ) {
@@ -302,7 +302,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 			}
 		}
 		unset( $row );
-		return [ $expanded, $rows ];
+		return array( $expanded, $rows );
 	}
 
 	/**
@@ -316,7 +316,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 			if ( ! is_string( $key ) || ! preg_match( '/^(.+)__part(\d+)$/D', $key, $m ) || ! array_key_exists( $m[1], $row ) ) {
 				continue;
 			}
-			$parts = [];
+			$parts = array();
 			for ( $n = 2; array_key_exists( $m[1] . '__part' . $n, $row ); $n++ ) {
 				$parts[] = (string) $row[ $m[1] . '__part' . $n ];
 			}
@@ -388,7 +388,7 @@ class Spreadsheet_Format implements File_Format_Interface {
 	 * @param array  $options Optional parser settings.
 	 * @return int|\WP_Error Row count or WP_Error on failure.
 	 */
-	public function count_rows( $file_path, $options = [] ) {
+	public function count_rows( $file_path, $options = array() ) {
 		$validation = $this->basic_file_validation( $file_path );
 		if ( is_wp_error( $validation ) ) {
 			return $validation; }

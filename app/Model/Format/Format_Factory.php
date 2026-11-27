@@ -18,7 +18,7 @@ class Format_Factory {
 	 *
 	 * @var array
 	 */
-	private static $handlers = [];
+	private static $handlers = array();
 
 	/**
 	 * Get format handler by file extension
@@ -101,13 +101,13 @@ class Format_Factory {
 	public static function get_handler( $format ) {
 		$format = strtolower( trim( $format ) );
 
-		$class_map = [
+		$class_map = array(
 			'csv'  => CSV_Format::class,
 			'json' => JSON_Format::class,
 			'xlsx' => Spreadsheet_Format::class,
 			'ods'  => Spreadsheet_Format::class,
 			'xml'  => XML_Format::class,
-		];
+		);
 
 		if ( ! isset( $class_map[ $format ] ) ) {
 			return new \WP_Error(
@@ -147,12 +147,12 @@ class Format_Factory {
 	 * @return array Array of handler instances
 	 */
 	public static function get_all_handlers() {
-		return [
+		return array(
 			self::get_handler( 'csv' ),
 			self::get_handler( 'json' ),
 			self::get_handler( 'xlsx' ),
 			self::get_handler( 'xml' ),
-		];
+		);
 	}
 
 	/**
@@ -161,7 +161,7 @@ class Format_Factory {
 	 * @return array Array of format names
 	 */
 	public static function get_supported_formats() {
-		return [ 'csv', 'json', 'xlsx', 'ods', 'xml' ];
+		return array( 'csv', 'json', 'xlsx', 'ods', 'xml' );
 	}
 
 	/**
@@ -170,7 +170,7 @@ class Format_Factory {
 	 * @return array Array of file extensions
 	 */
 	public static function get_supported_extensions() {
-		$extensions = [];
+		$extensions = array();
 		$handlers   = self::get_all_handlers();
 
 		foreach ( $handlers as $handler ) {
@@ -186,7 +186,7 @@ class Format_Factory {
 	 * @return array Array of MIME types
 	 */
 	public static function get_supported_mime_types() {
-		$mime_types = [];
+		$mime_types = array();
 		$handlers   = self::get_all_handlers();
 
 		foreach ( $handlers as $handler ) {

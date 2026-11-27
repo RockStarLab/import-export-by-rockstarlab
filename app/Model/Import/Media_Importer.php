@@ -57,7 +57,7 @@ class Media_Importer extends Abstract_Importer {
 	 * @return array
 	 */
 	public function get_optional_fields() {
-		return [
+		return array(
 			// ID field (for updating existing attachments)
 			'ID',              // Attachment ID
 
@@ -106,7 +106,7 @@ class Media_Importer extends Abstract_Importer {
 
 			// Parent post fields
 			'attached_post_title', // Parent post title (for reference)
-		];
+		);
 	}
 
 	/**
@@ -115,12 +115,12 @@ class Media_Importer extends Abstract_Importer {
 	 * @return array
 	 */
 	public function get_supported_options() {
-		return [
+		return array(
 			'duplicate_mode'      => 'How to handle duplicates: skip, update, create',
 			'duplicate_check'     => 'Field to check for duplicates: ID, file_url, filename, post_title',
 			'download_timeout'    => 'Timeout for downloading files from URL (seconds)',
 			'generate_thumbnails' => 'Whether to generate thumbnail sizes',
-		];
+		);
 	}
 
 	/**
@@ -158,11 +158,11 @@ class Media_Importer extends Abstract_Importer {
 	protected function get_default_options() {
 		return array_merge(
 			parent::get_default_options(),
-			[
+			array(
 				'download_timeout'    => 30,
 				'generate_thumbnails' => true,
 				'duplicate_check'     => 'file_url',
-			]
+			)
 		);
 	}
 
@@ -282,7 +282,7 @@ class Media_Importer extends Abstract_Importer {
 		}
 		if ( '' !== $parent_ref ) {
 			global $wpdb;
-			$ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact title/slug match, at most two rows.
+			$ids                 = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact title/slug match, at most two rows.
 				$wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE ( post_title = %s OR post_name = %s ) AND post_type NOT IN ('attachment','revision','nav_menu_item') AND post_status NOT IN ('trash','auto-draft','inherit') ORDER BY ID ASC LIMIT 2", $parent_ref, sanitize_title( $parent_ref ) )
 			);
 			$item['post_parent'] = ( 1 === count( $ids ) && current_user_can( 'edit_post', (int) $ids[0] ) ) ? (int) $ids[0] : 0;
@@ -513,7 +513,7 @@ class Media_Importer extends Abstract_Importer {
 			return true; // Missing files get the normal "File not found" error.
 		}
 		$real  = wp_normalize_path( $real );
-		$roots = [];
+		$roots = array();
 		$up    = wp_upload_dir( null, false );
 		if ( ! empty( $up['basedir'] ) ) {
 			$roots[] = realpath( $up['basedir'] );
@@ -596,11 +596,11 @@ class Media_Importer extends Abstract_Importer {
 		if ( ! function_exists( 'wp_tempnam' ) ) { // Not loaded in WP-Cron, REST and front-end requests.
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
-		$args = [
+		$args = array(
 			'timeout'  => $timeout,
 			'stream'   => true,
 			'filename' => wp_tempnam( $url ),
-		];
+		);
 
 		$response = wp_remote_get( $url, $args );
 
@@ -661,10 +661,10 @@ class Media_Importer extends Abstract_Importer {
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 
 		// Prepare file array
-		$file_array = [
+		$file_array = array(
 			'name'     => $filename,
 			'tmp_name' => $file_path,
-		];
+		);
 
 		// Get parent post ID
 		$parent_id = 0;
@@ -688,7 +688,7 @@ class Media_Importer extends Abstract_Importer {
 		add_filter( 'upload_mimes', $svg_mimes );
 		// Keep the source year/month folder (…/uploads/2008/06/photo.jpg stays in 2008/06).
 		$subdir = '';
-		foreach ( [ 'url', 'file', 'guid', 'file_url' ] as $key ) {
+		foreach ( array( 'url', 'file', 'guid', 'file_url' ) as $key ) {
 			$subdir = '' === $subdir && ! empty( $item[ $key ] ) && is_string( $item[ $key ] ) ? \RockStarLab\ImportExport\Helper\Upload_Subdir::of_url( $item[ $key ] ) : $subdir;
 		}
 		try {
@@ -726,7 +726,7 @@ class Media_Importer extends Abstract_Importer {
 	 */
 	private function set_attachment_metadata( $attachment_id, $item ) {
 		// Prepare post data for update
-		$post_data = [ 'ID' => $attachment_id ];
+		$post_data = array( 'ID' => $attachment_id );
 
 		// Set title (post_title)
 		if ( ! empty( $item['post_title'] ) ) {
@@ -819,7 +819,7 @@ class Media_Importer extends Abstract_Importer {
 		$key = 'rsl_ie_import_post_id_map_' . $job_id;
 		$map = get_transient( $key );
 		if ( ! is_array( $map ) ) {
-			$map = [];
+			$map = array();
 		}
 
 		$map[ (string) $source_id ] = $attachment_id;
@@ -844,7 +844,7 @@ class Media_Importer extends Abstract_Importer {
 
 		// Check if it's an image
 		$filetype = wp_check_filetype( $file_path );
-		if ( ! in_array( $filetype['type'], [ 'image/jpeg', 'image/png', 'image/gif', 'image/webp' ], true ) ) {
+		if ( ! in_array( $filetype['type'], array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp' ), true ) ) {
 			return;
 		}
 
@@ -882,7 +882,7 @@ class Media_Importer extends Abstract_Importer {
 		$check_field = $this->get_option( 'duplicate_check', 'file_url' );
 
 		// Check by title
-		if ( in_array( $check_field, [ 'post_title', 'title' ], true ) && ! empty( $item['post_title'] ) ) {
+		if ( in_array( $check_field, array( 'post_title', 'title' ), true ) && ! empty( $item['post_title'] ) ) {
 			return $this->find_existing_by_title( (string) $item['post_title'] );
 		}
 
@@ -973,7 +973,7 @@ class Media_Importer extends Abstract_Importer {
 	 * @return string Empty when the row has no file name or URL.
 	 */
 	private function source_file_stem( array $item ) {
-		foreach ( [ 'filename', 'file_name', 'file_url', 'url', 'file', 'guid' ] as $key ) {
+		foreach ( array( 'filename', 'file_name', 'file_url', 'url', 'file', 'guid' ) as $key ) {
 			$value = isset( $item[ $key ] ) && is_scalar( $item[ $key ] ) ? trim( (string) $item[ $key ] ) : '';
 			if ( '' === $value ) {
 				continue;
@@ -1011,7 +1011,7 @@ class Media_Importer extends Abstract_Importer {
 	 * @param array  $item      Media row.
 	 * @return int|null Attachment ID or null.
 	 */
-	private function find_existing_by_downloaded_file( $file_path, array $item = [] ) {
+	private function find_existing_by_downloaded_file( $file_path, array $item = array() ) {
 		if ( ! is_string( $file_path ) || ! is_file( $file_path ) || ! is_readable( $file_path ) ) {
 			return null;
 		}
@@ -1159,7 +1159,7 @@ class Media_Importer extends Abstract_Importer {
 		$parent_id = ! empty( $item['post_parent'] ) && is_numeric( $item['post_parent'] ) ? absint( $item['post_parent'] ) : 0;
 		$title     = ! empty( $item['post_title'] ) ? (string) $item['post_title'] : preg_replace( '/\.[^.]+$/', '', wp_basename( $file_path ) );
 
-		$attachment = [
+		$attachment = array(
 			'post_mime_type' => ! empty( $item['mime_type'] ) ? (string) $item['mime_type'] : ( $filetype['type'] ?? '' ),
 			'post_title'     => sanitize_text_field( $title ),
 			'post_content'   => isset( $item['post_content'] ) ? (string) $item['post_content'] : '',
@@ -1167,7 +1167,7 @@ class Media_Importer extends Abstract_Importer {
 			'post_status'    => 'inherit',
 			'post_author'    => ! empty( $item['post_author'] ) && is_numeric( $item['post_author'] ) ? absint( $item['post_author'] ) : get_current_user_id(),
 			'guid'           => trailingslashit( $uploads['baseurl'] ) . ltrim( $relative_path, '/\\' ),
-		];
+		);
 
 		$attachment_id = wp_insert_attachment( wp_slash( $attachment ), $file_path, $parent_id, true );
 		if ( is_wp_error( $attachment_id ) || ! $attachment_id ) {

@@ -48,15 +48,15 @@ class Exporter_Factory {
 	 * @return array Map of type => class
 	 */
 	private static function get_exporter_map() {
-		$default_map = [
+		$default_map = array(
 			// Free plugin content types.
-			'post'    => Post_Exporter::class,
-			'page'    => Post_Exporter::class,
-			'urls'    => Urls_Exporter::class,
-			'comment' => Comment_Exporter::class,
-			'media'   => Media_Exporter::class,
+			'post'         => Post_Exporter::class,
+			'page'         => Post_Exporter::class,
+			'urls'         => Urls_Exporter::class,
+			'comment'      => Comment_Exporter::class,
+			'media'        => Media_Exporter::class,
 			'form_entries' => Form_Entry_Exporter::class,
-		];
+		);
 
 		/**
 		 * Filter registered exporters
@@ -101,13 +101,13 @@ class Exporter_Factory {
 			return $exporter;
 		}
 
-		return [
+		return array(
 			'name'              => $exporter->get_name(),
 			'description'       => $exporter->get_description(),
 			'supported_filters' => $exporter->get_supported_filters(),
 			'available_fields'  => $exporter->get_available_fields(),
 			'default_fields'    => $exporter->get_default_fields(),
-		];
+		);
 	}
 
 	/**
@@ -116,7 +116,7 @@ class Exporter_Factory {
 	 * @return array Array of exporter info
 	 */
 	public static function get_all_exporters_info() {
-		$info      = [];
+		$info      = array();
 		$exporters = self::get_available_exporters();
 
 		foreach ( $exporters as $type ) {
@@ -154,7 +154,7 @@ class Exporter_Factory {
 	 * @param int    $job_id  Optional. Job ID for logging
 	 * @return int|\WP_Error Count or WP_Error
 	 */
-	public static function get_count( $type, $options = [], $job_id = 0 ) {
+	public static function get_count( $type, $options = array(), $job_id = 0 ) {
 		$exporter = self::get_exporter( $type, $job_id );
 
 		if ( is_wp_error( $exporter ) ) {
@@ -174,7 +174,7 @@ class Exporter_Factory {
 	 * @param int    $job_id  Optional. Job ID for logging
 	 * @return array|\WP_Error Export results or WP_Error
 	 */
-	public static function export( $type, $options = [], $job_id = 0 ) {
+	public static function export( $type, $options = array(), $job_id = 0 ) {
 		$exporter = self::get_exporter( $type, $job_id );
 
 		if ( is_wp_error( $exporter ) ) {

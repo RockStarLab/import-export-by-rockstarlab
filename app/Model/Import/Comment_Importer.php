@@ -54,7 +54,7 @@ class Comment_Importer extends Abstract_Importer {
 	 * @return array
 	 */
 	public function get_required_fields() {
-		return [ 'comment_content' ];
+		return array( 'comment_content' );
 	}
 
 	/**
@@ -63,7 +63,7 @@ class Comment_Importer extends Abstract_Importer {
 	 * @return array
 	 */
 	public function get_optional_fields() {
-		return [
+		return array(
 			'comment_ID',
 			'source_comment_id',
 			'source_comment_parent_id',
@@ -87,7 +87,7 @@ class Comment_Importer extends Abstract_Importer {
 			'post_title',
 			'post_author',
 			'comment_meta',
-		];
+		);
 	}
 
 	/**
@@ -96,7 +96,7 @@ class Comment_Importer extends Abstract_Importer {
 	 * @return array
 	 */
 	public function get_supported_options() {
-		return [
+		return array(
 			'duplicate_mode'       => 'How to handle duplicates: skip, update, create',
 			'duplicate_check'      => 'Field to check for duplicates: comment_ID, comment_content',
 			'default_status'       => __( 'Default comment status if not specified: 0 (pending), 1 (approved), spam, trash', 'import-export-by-rockstarlab' ),
@@ -107,7 +107,7 @@ class Comment_Importer extends Abstract_Importer {
 			'validate_post_exists' => 'Validate that post exists: true, false',
 			'skip_missing_posts'   => 'Skip comments if post does not exist: true, false',
 			'create_missing_posts' => 'Create missing posts: true, false (requires validate_post_exists=true or skip_missing_posts=false)',
-		];
+		);
 	}
 
 	/**
@@ -118,7 +118,7 @@ class Comment_Importer extends Abstract_Importer {
 	protected function get_default_options() {
 		return array_merge(
 			parent::get_default_options(),
-			[
+			array(
 				'duplicate_check'      => 'comment_ID',
 				'default_status'       => '1', // approved
 				'default_type'         => 'comment',
@@ -128,7 +128,7 @@ class Comment_Importer extends Abstract_Importer {
 				'validate_post_exists' => false, // Don't validate by default for performance
 				'create_missing_posts' => true,
 				'skip_missing_posts'   => false, // Don't skip by default - let it fail with clear error
-			]
+			)
 		);
 	}
 
@@ -166,11 +166,11 @@ class Comment_Importer extends Abstract_Importer {
 	 * @param array $mapping Field mapping
 	 * @return array Prepared data
 	 */
-	public function prepare( $data, $mapping = [] ) {
-		$prepared = [];
+	public function prepare( $data, $mapping = array() ) {
+		$prepared = array();
 
 		foreach ( $data as $row ) {
-			$item = [];
+			$item = array();
 
 			// Process mapping array
 			foreach ( $mapping as $map ) {
@@ -239,7 +239,7 @@ class Comment_Importer extends Abstract_Importer {
 		);
 
 		// Dates as people write them (15/02/2024, timestamps, "March 3, 2024") were saved as 0000-00-00.
-		foreach ( [ 'comment_date', 'comment_date_gmt' ] as $date_field ) {
+		foreach ( array( 'comment_date', 'comment_date_gmt' ) as $date_field ) {
 			if ( isset( $item[ $date_field ] ) && is_scalar( $item[ $date_field ] ) && '' !== trim( (string) $item[ $date_field ] ) ) {
 				$item[ $date_field ] = $this->mysql_date( (string) $item[ $date_field ], 'comment_date_gmt' === $date_field );
 				if ( '' === $item[ $date_field ] ) {
@@ -271,7 +271,7 @@ class Comment_Importer extends Abstract_Importer {
 		// Update by Comment ID without content or post columns (e.g. a moderation sheet).
 		$update_mode = 'update' === $this->get_option( 'duplicate_mode', 'skip' ) || $this->get_option( 'update_existing', false );
 		if ( $update_mode && $source_comment_id > 0
-			&& in_array( $this->get_option( 'duplicate_check', 'comment_ID' ), [ 'comment_ID', 'source_comment_id', '_aie_source_comment_id' ], true )
+			&& in_array( $this->get_option( 'duplicate_check', 'comment_ID' ), array( 'comment_ID', 'source_comment_id', '_aie_source_comment_id' ), true )
 			&& ( empty( $item['comment_content'] ) || ! absint( $item['comment_post_ID'] ?? 0 ) ) ) {
 			$existing_comment_id = $this->find_existing_comment_by_source_id( $source_comment_id );
 			if ( ! $existing_comment_id ) {
@@ -329,12 +329,12 @@ class Comment_Importer extends Abstract_Importer {
 					// Create placeholder post
 					$new_post_id = wp_insert_post(
 						wp_slash(
-							[
+							array(
 								// translators: %d is a dynamic value.
 								'post_title'   => $item['post_title'] ?? sprintf( __( 'Imported Post %d', 'import-export-by-rockstarlab' ), $post_id ),
 								'post_status'  => 'draft',
 								'post_content' => '',
-							]
+							)
 						)
 					);
 					if ( is_wp_error( $new_post_id ) ) {
@@ -370,7 +370,7 @@ class Comment_Importer extends Abstract_Importer {
 		$existing_comment_id = null;
 		$duplicate_check     = $this->get_option( 'duplicate_check', 'comment_ID' );
 
-		if ( in_array( $duplicate_check, [ 'comment_ID', 'source_comment_id', '_aie_source_comment_id' ], true ) ) {
+		if ( in_array( $duplicate_check, array( 'comment_ID', 'source_comment_id', '_aie_source_comment_id' ), true ) ) {
 			$existing_comment_id = $this->find_existing_comment_by_source_id( $source_comment_id, $post_id );
 			if ( ! $existing_comment_id ) {
 				$existing_comment_id = $this->find_existing_comment_by_local_id( $source_comment_id, $post_id, $item );
@@ -390,7 +390,7 @@ class Comment_Importer extends Abstract_Importer {
 			$duplicate_mode = $this->get_option( 'duplicate_mode', 'skip' );
 
 			if ( 'skip' === $duplicate_mode ) {
-				if ( in_array( $duplicate_check, [ 'comment_ID', 'source_comment_id', '_aie_source_comment_id' ], true ) ) {
+				if ( in_array( $duplicate_check, array( 'comment_ID', 'source_comment_id', '_aie_source_comment_id' ), true ) ) {
 					$this->store_source_comment_meta( $existing_comment_id, $source_comment_id, $source_comment_parent );
 				}
 				$this->record_source_id_map( $source_comment_id, $existing_comment_id );
@@ -469,7 +469,7 @@ class Comment_Importer extends Abstract_Importer {
 			} else {
 				unset( $keep['comment_post_ID'] );
 			}
-			if ( ! array_intersect( [ 'user_id', 'comment_author_email' ], $provided_fields ) ) {
+			if ( ! array_intersect( array( 'user_id', 'comment_author_email' ), $provided_fields ) ) {
 				unset( $keep['user_id'] );
 			}
 			if ( isset( $keep['comment_date'] ) && ! isset( $keep['comment_date_gmt'] ) ) {
@@ -595,7 +595,7 @@ class Comment_Importer extends Abstract_Importer {
 		}
 
 		$comment_ids = get_comments( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Targeted lookup by importer-specific meta key.
-			[
+			array(
 				'number'     => 1,
 				'orderby'    => 'comment_ID',
 				'order'      => 'ASC',
@@ -603,7 +603,7 @@ class Comment_Importer extends Abstract_Importer {
 				'status'     => 'any',
 				'meta_key'   => self::SOURCE_ID_META_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Targeted lookup by importer-specific meta key.
 				'meta_value' => (string) $source_comment_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Targeted lookup by importer-specific meta key.
-			]
+			)
 		);
 
 		if ( ! empty( $comment_ids[0] ) ) {
@@ -613,7 +613,7 @@ class Comment_Importer extends Abstract_Importer {
 		// A comment that came here by Content Sync carries the same source ID under the sync
 		// key; without this, importing a file after a sync added every comment a second time.
 		$comment_ids = get_comments( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Targeted lookup by the sync key.
-			[
+			array(
 				'number'     => 2,
 				'orderby'    => 'comment_ID',
 				'order'      => 'ASC',
@@ -621,7 +621,7 @@ class Comment_Importer extends Abstract_Importer {
 				'status'     => 'any',
 				'meta_key'   => '_rsl_ie_original_comment_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 				'meta_value' => (string) $source_comment_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-			]
+			)
 		);
 		if ( 1 !== count( $comment_ids ) ) {
 			return null;
@@ -664,7 +664,7 @@ class Comment_Importer extends Abstract_Importer {
 		// every field below matches (a file exported from this site carries its local ID).
 
 		// An unmarked clone must match the source, not merely its numeric ID/post.
-		foreach ( [ 'comment_content', 'comment_author', 'comment_author_email', 'comment_date', 'comment_type' ] as $field ) {
+		foreach ( array( 'comment_content', 'comment_author', 'comment_author_email', 'comment_date', 'comment_type' ) as $field ) {
 			if ( isset( $item[ $field ] ) && (string) $comment->$field !== (string) $item[ $field ] ) {
 				return null;
 			}
@@ -758,7 +758,7 @@ class Comment_Importer extends Abstract_Importer {
 			$post_slug = trim( $post_slug, '/' );
 			$post_type = $post_type !== '' ? sanitize_key( $post_type ) : 'any';
 
-			$post = get_page_by_path( $post_slug, OBJECT, $post_type === 'any' ? [ 'post', 'page', 'attachment' ] : $post_type );
+			$post = get_page_by_path( $post_slug, OBJECT, $post_type === 'any' ? array( 'post', 'page', 'attachment' ) : $post_type );
 			if ( $post ) {
 				return (int) $post->ID;
 			}
@@ -796,7 +796,7 @@ class Comment_Importer extends Abstract_Importer {
 		}
 
 		$matched = get_posts(
-			[
+			array(
 				'post_type'              => 'any',
 				'post_status'            => 'any',
 				'fields'                 => 'ids',
@@ -806,7 +806,7 @@ class Comment_Importer extends Abstract_Importer {
 				'update_post_term_cache' => false,
 				'meta_key'               => '_rsl_ie_source_post_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Imported post source-ID lookup.
 				'meta_value'             => $source_post_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Exact source post ID match.
-			]
+			)
 		);
 
 		return ! empty( $matched[0] ) ? absint( $matched[0] ) : 0;
@@ -826,7 +826,7 @@ class Comment_Importer extends Abstract_Importer {
 		}
 
 		$query = new \WP_Query(
-			[
+			array(
 				'post_type'              => $post_type,
 				'post_status'            => 'any',
 				'posts_per_page'         => 10,
@@ -835,7 +835,7 @@ class Comment_Importer extends Abstract_Importer {
 				'no_found_rows'          => true,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
-			]
+			)
 		);
 
 		if ( empty( $query->posts ) ) {
@@ -880,7 +880,7 @@ class Comment_Importer extends Abstract_Importer {
 			$date = get_date_from_gmt( $date_gmt );
 		}
 
-		$update = [];
+		$update = array();
 		if ( $date !== '' ) {
 			$update['comment_date'] = $date;
 		}
@@ -892,16 +892,16 @@ class Comment_Importer extends Abstract_Importer {
 			return;
 		}
 
-		$formats = [];
+		$formats = array();
 		foreach ( $update as $value ) {
 			$formats[] = '%s';
 		}
 		$wpdb->update(
 			$wpdb->comments,
 			$update,
-			[ 'comment_ID' => $comment_id ],
+			array( 'comment_ID' => $comment_id ),
 			$formats,
-			[ '%d' ]
+			array( '%d' )
 		);
 
 		clean_comment_cache( $comment_id );
@@ -929,10 +929,10 @@ class Comment_Importer extends Abstract_Importer {
 
 		$wpdb->update(
 			$wpdb->comments,
-			[ 'comment_content' => $content ],
-			[ 'comment_ID' => $comment_id ],
-			[ '%s' ],
-			[ '%d' ]
+			array( 'comment_content' => $content ),
+			array( 'comment_ID' => $comment_id ),
+			array( '%s' ),
+			array( '%d' )
 		);
 
 		clean_comment_cache( $comment_id );
@@ -954,12 +954,12 @@ class Comment_Importer extends Abstract_Importer {
 			: __( 'Imported Comment Source', 'import-export-by-rockstarlab' );
 		$post_name  = isset( $item['post_slug'] ) ? sanitize_title( basename( trim( (string) $item['post_slug'], '/' ) ) ) : '';
 
-		$post_data = [
+		$post_data = array(
 			'post_type'    => $post_type,
 			'post_title'   => $post_title,
 			'post_status'  => 'draft',
 			'post_content' => '',
-		];
+		);
 		if ( '' !== $post_name ) {
 			$post_data['post_name'] = $post_name;
 		}
@@ -978,7 +978,7 @@ class Comment_Importer extends Abstract_Importer {
 
 		// Say so: the comment now sits on a new draft instead of the post the file meant.
 		$hint = '';
-		foreach ( [ 'post_slug', 'post_permalink', 'post_title', 'source_post_id', 'comment_post_ID' ] as $field ) {
+		foreach ( array( 'post_slug', 'post_permalink', 'post_title', 'source_post_id', 'comment_post_ID' ) as $field ) {
 			if ( isset( $item[ $field ] ) && '' !== trim( (string) $item[ $field ] ) ) {
 				$hint = trim( (string) $item[ $field ] );
 				break;
@@ -986,7 +986,7 @@ class Comment_Importer extends Abstract_Importer {
 		}
 		$this->log_warning(
 			sprintf(
-				/* translators: %1$s: hint, %2$s: post title, %3$d: new post id. */ __( 'No post matched "%1$s", so the draft post "%2$s" (ID %3$d) was created for its comments.', 'import-export-by-rockstarlab' ),
+				/* translators: %1$s: hint, %2$s: post title, %3$d: new post id. */                __( 'No post matched "%1$s", so the draft post "%2$s" (ID %3$d) was created for its comments.', 'import-export-by-rockstarlab' ),
 				$hint,
 				$post_title,
 				(int) $new_post_id
@@ -1075,7 +1075,7 @@ class Comment_Importer extends Abstract_Importer {
 		$key = $this->get_job_id_map_key();
 		$map = get_transient( $key );
 		if ( ! is_array( $map ) ) {
-			$map = [];
+			$map = array();
 		}
 
 		$map[ (string) $source_id ] = $target_id;
@@ -1099,10 +1099,10 @@ class Comment_Importer extends Abstract_Importer {
 	 */
 	private function normalize_status( $status ) {
 		$key = strtolower( trim( (string) $status ) );
-		if ( in_array( $key, [ 'approve', 'approved' ], true ) ) {
+		if ( in_array( $key, array( 'approve', 'approved' ), true ) ) {
 			return '1';
 		}
-		if ( in_array( $key, [ 'hold', 'pending', 'unapproved' ], true ) ) {
+		if ( in_array( $key, array( 'hold', 'pending', 'unapproved' ), true ) ) {
 			return '0';
 		}
 		return $status;
@@ -1117,7 +1117,7 @@ class Comment_Importer extends Abstract_Importer {
 	private function prepare_comment_data( $item ) {
 		$comment_content = $this->prepare_comment_content( $item );
 
-		$comment_data = [
+		$comment_data = array(
 			'comment_post_ID'      => absint( $item['comment_post_ID'] ?? 0 ),
 			'comment_content'      => $comment_content,
 			'comment_approved'     => $item['comment_approved'] ?? $this->get_option( 'default_status', '1' ),
@@ -1130,7 +1130,7 @@ class Comment_Importer extends Abstract_Importer {
 			'user_id'              => absint( $item['user_id'] ?? 0 ),
 			'comment_karma'        => absint( $item['comment_karma'] ?? 0 ),
 			'comment_agent'        => $item['comment_agent'] ?? '',
-		];
+		);
 
 		// Handle dates
 		if ( ! empty( $item['comment_date'] ) ) {
@@ -1312,10 +1312,10 @@ class Comment_Importer extends Abstract_Importer {
 	 */
 	protected function sanitize_item( $item ) {
 		if ( ! is_array( $item ) ) {
-			return [];
+			return array();
 		}
 
-		$sanitized = [];
+		$sanitized = array();
 
 		foreach ( $item as $key => $value ) {
 			// Skip if value is empty

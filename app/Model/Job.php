@@ -29,7 +29,7 @@ class Job extends Model {
 	 * @return array
 	 */
 	protected function get_allowed_columns() {
-		return [
+		return array(
 			'id',
 			'job_name',
 			'user_id',
@@ -58,7 +58,7 @@ class Job extends Model {
 			'updated_at',
 			'started_at',
 			'completed_at',
-		];
+		);
 	}
 
 	/**
@@ -76,7 +76,7 @@ class Job extends Model {
 	 * @return int|WP_Error Created job ID on success, WP_Error on failure
 	 */
 	public function create( $data ) {
-		$defaults = [
+		$defaults = array(
 			'status'          => 'pending',
 			'total_items'     => 0,
 			'processed_items' => 0,
@@ -84,7 +84,7 @@ class Job extends Model {
 			'failed_items'    => 0,
 			'created_at'      => current_time( 'mysql' ),
 			'updated_at'      => current_time( 'mysql' ),
-		];
+		);
 
 		$data = wp_parse_args( $data, $defaults );
 
@@ -107,14 +107,14 @@ class Job extends Model {
 
 		return $this->update(
 			$job_id,
-			[
+			array(
 				'total_items'     => $total,
 				'processed_items' => $processed,
 				'success_items'   => $success,
 				'failed_items'    => $failed,
 				'progress'        => $percentage,
 				'updated_at'      => current_time( 'mysql' ),
-			]
+			)
 		);
 	}
 
@@ -169,7 +169,7 @@ class Job extends Model {
 			return null;
 		}
 
-		return [
+		return array(
 			'total'      => (int) $job->total_items,
 			'processed'  => (int) $job->processed_items,
 			'success'    => (int) $job->success_items,
@@ -177,7 +177,7 @@ class Job extends Model {
 			'percentage' => (float) $job->progress,
 			'status'     => $job->status,
 			'started_at' => $job->started_at ?? null,
-		];
+		);
 	}
 
 	/**
@@ -189,12 +189,12 @@ class Job extends Model {
 	 * @return int|WP_Error Number of rows affected or WP_Error
 	 */
 	public function update_status( $job_id, $status ) {
-		$data = [
+		$data = array(
 			'status'     => $status,
 			'updated_at' => current_time( 'mysql' ),
-		];
+		);
 
-		if ( in_array( $status, [ 'completed', 'failed', 'cancelled' ] ) ) {
+		if ( in_array( $status, array( 'completed', 'failed', 'cancelled' ) ) ) {
 			$data['completed_at'] = current_time( 'mysql' );
 		}
 
@@ -238,7 +238,7 @@ class Job extends Model {
 	 * @param array $args    Optional. Same as all() method arguments
 	 * @return array Array of job records
 	 */
-	public function get_by_user( $user_id, $args = [] ) {
+	public function get_by_user( $user_id, $args = array() ) {
 		global $wpdb;
 		$table = $this->get_table_name();
 
@@ -263,7 +263,7 @@ class Job extends Model {
 	 * @param array  $args   Optional. Same as all() method arguments
 	 * @return array Array of job records
 	 */
-	public function get_by_status( $status, $args = [] ) {
+	public function get_by_status( $status, $args = array() ) {
 		global $wpdb;
 		$table = $this->get_table_name();
 
@@ -349,10 +349,10 @@ class Job extends Model {
 			// Clear file_path in database
 			$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 				$table,
-				[ 'file_path' => null ],
-				[ 'id' => $row->id ],
-				[ '%s' ],
-				[ '%d' ]
+				array( 'file_path' => null ),
+				array( 'id' => $row->id ),
+				array( '%s' ),
+				array( '%d' )
 			);
 		}
 
@@ -370,7 +370,7 @@ class Job extends Model {
 	 * @param string $order  ORDER BY clause
 	 * @return array Jobs
 	 */
-	public function get_all( $where = [], $limit = 50, $offset = 0, $order = 'created_at DESC' ) {
+	public function get_all( $where = array(), $limit = 50, $offset = 0, $order = 'created_at DESC' ) {
 		global $wpdb;
 		$table = $this->get_table_name();
 
@@ -380,7 +380,7 @@ class Job extends Model {
 		$file_format_filter = ( is_array( $where ) && array_key_exists( 'file_format', $where ) ) ? (string) $where['file_format'] : '';
 		$status_filter      = ( is_array( $where ) && array_key_exists( 'status', $where ) ) ? (string) $where['status'] : '';
 
-		$allowed_order_fields = [
+		$allowed_order_fields = array(
 			'id',
 			'user_id',
 			'type',
@@ -396,7 +396,7 @@ class Job extends Model {
 			'updated_at',
 			'started_at',
 			'completed_at',
-		];
+		);
 
 		$field     = 'created_at';
 		$direction = 'DESC';
@@ -418,13 +418,13 @@ class Job extends Model {
 
 		$cache_key = 'rsl_ie_jobs:get_all:' . md5(
 			wp_json_encode(
-				[
+				array(
 					$where,
 					$limit,
 					$offset,
 					$order_field,
 					$direction,
-				]
+				)
 			)
 		);
 		$cached    = wp_cache_get( $cache_key, 'rsl_ie' );
@@ -513,7 +513,7 @@ class Job extends Model {
 	 * @param array $where WHERE conditions
 	 * @return int Count
 	 */
-	public function count( $where = [] ) {
+	public function count( $where = array() ) {
 		global $wpdb;
 		$table = $this->get_table_name();
 
@@ -525,14 +525,14 @@ class Job extends Model {
 
 		$cache_key = 'rsl_ie_jobs:count:' . md5(
 			wp_json_encode(
-				[
+				array(
 					$where,
 					$user_id_filter,
 					$type_filter,
 					$data_type_filter,
 					$file_format_filter,
 					$status_filter,
-				]
+				)
 			)
 		);
 		$cached    = wp_cache_get( $cache_key, 'rsl_ie' );
@@ -580,10 +580,10 @@ class Job extends Model {
 		$schedule_model = rsl_ie()->Model->job_schedule;
 		if ( $schedule_model ) {
 			$active_schedules = $schedule_model->find_by(
-				[
+				array(
 					'source_job_id' => $id,
 					'status'        => 'active',
-				]
+				)
 			);
 			if ( ! empty( $active_schedules ) ) {
 				return new \WP_Error(
@@ -632,14 +632,14 @@ class Job extends Model {
 		// Delete job record only after schedule/file checks above have succeeded.
 		$result = parent::delete( $id );
 		if ( ! is_wp_error( $result ) && false !== $result ) {
-			wp_clear_scheduled_hook( 'rsl_ie_run_job', [ (int) $id ] );
+			wp_clear_scheduled_hook( 'rsl_ie_run_job', array( (int) $id ) );
 			global $wpdb;
-			$wpdb->delete( $wpdb->prefix . 'rsl_ie_import_objects', [ 'job_id' => (int) $id ], [ '%d' ] );
-			$wpdb->delete( $wpdb->prefix . 'rsl_ie_import_rows', [ 'job_id' => (int) $id ], [ '%d' ] );
-			$wpdb->delete( $wpdb->prefix . 'rsl_ie_migration_maps', [ 'job_id' => (int) $id ], [ '%d' ] );
-			$wpdb->delete( $wpdb->prefix . 'rsl_ie_migration_snapshots', [ 'job_id' => (int) $id ], [ '%d' ] );
-			$wpdb->delete( $wpdb->prefix . 'rsl_ie_migration_sources', [ 'job_id' => (int) $id ], [ '%d' ] );
-			$wpdb->delete( $wpdb->prefix . 'rsl_ie_job_logs', [ 'job_id' => (int) $id ], [ '%d' ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Delete logs belonging to the removed job.
+			$wpdb->delete( $wpdb->prefix . 'rsl_ie_import_objects', array( 'job_id' => (int) $id ), array( '%d' ) );
+			$wpdb->delete( $wpdb->prefix . 'rsl_ie_import_rows', array( 'job_id' => (int) $id ), array( '%d' ) );
+			$wpdb->delete( $wpdb->prefix . 'rsl_ie_migration_maps', array( 'job_id' => (int) $id ), array( '%d' ) );
+			$wpdb->delete( $wpdb->prefix . 'rsl_ie_migration_snapshots', array( 'job_id' => (int) $id ), array( '%d' ) );
+			$wpdb->delete( $wpdb->prefix . 'rsl_ie_migration_sources', array( 'job_id' => (int) $id ), array( '%d' ) );
+			$wpdb->delete( $wpdb->prefix . 'rsl_ie_job_logs', array( 'job_id' => (int) $id ), array( '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Delete logs belonging to the removed job.
 		}
 		return $result;
 	}

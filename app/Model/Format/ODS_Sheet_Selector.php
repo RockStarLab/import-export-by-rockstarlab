@@ -34,7 +34,7 @@ class ODS_Sheet_Selector {
 		$selected    = 0;
 		$matched     = false;
 		$sheet_depth = null;
-		foreach ( [ 'index', 'selected', 'matched', 'sheet_depth' ] as $field ) {
+		foreach ( array( 'index', 'selected', 'matched', 'sheet_depth' ) as $field ) {
 			if ( isset( $checkpoint['state'] ) && array_key_exists( $field, $checkpoint['state'] ) ) {
 				$$field = $checkpoint['state'][ $field ]; }
 		}
@@ -53,7 +53,7 @@ class ODS_Sheet_Selector {
 			}
 		}
 		if ( $resume ) {
-			foreach ( [ 'index', 'selected', 'matched', 'sheet_depth' ] as $field ) {
+			foreach ( array( 'index', 'selected', 'matched', 'sheet_depth' ) as $field ) {
 				$checkpoint['state'][ $field ] = $$field; }
 			if ( empty( $checkpoint['nodes']['done'] ) ) {
 				return null; }

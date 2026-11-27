@@ -44,7 +44,7 @@ abstract class Model {
 	 * @return array
 	 */
 	protected function get_allowed_columns() {
-		return [ 'id' ];
+		return array( 'id' );
 	}
 
 	/**
@@ -77,7 +77,7 @@ abstract class Model {
 	 * @return array
 	 */
 	protected function normalize_where_conditions( $where ) {
-		$normalized = [];
+		$normalized = array();
 
 		foreach ( $where as $column => $value ) {
 			$safe_column = $this->get_allowed_column( $column, '' );
@@ -135,11 +135,11 @@ abstract class Model {
 		global $wpdb;
 		$table = $this->get_table_name();
 
-		$where      = is_array( $column ) ? $column : [ $column => $value ];
+		$where      = is_array( $column ) ? $column : array( $column => $value );
 		$conditions = $this->normalize_where_conditions( $where );
 
 		if ( empty( $conditions ) ) {
-			return [];
+			return array();
 		}
 
 		$first_column = key( $conditions );
@@ -183,14 +183,14 @@ abstract class Model {
 	 * }
 	 * @return array Array of database row objects
 	 */
-	public function all( $args = [] ) {
+	public function all( $args = array() ) {
 		global $wpdb;
 		$table = $this->get_table_name();
 
 		$limit    = isset( $args['limit'] ) ? max( 0, intval( $args['limit'] ) ) : 100;
 		$offset   = isset( $args['offset'] ) ? max( 0, intval( $args['offset'] ) ) : 0;
 		$order_by = isset( $args['order_by'] ) ? $this->get_allowed_column( $args['order_by'], 'id' ) : 'id';
-		$order    = isset( $args['order'] ) && in_array( strtoupper( $args['order'] ), [ 'ASC', 'DESC' ], true )
+		$order    = isset( $args['order'] ) && in_array( strtoupper( $args['order'] ), array( 'ASC', 'DESC' ), true )
 			? strtoupper( $args['order'] )
 			: 'DESC';
 		if ( 'ASC' === $order ) {
@@ -253,9 +253,9 @@ abstract class Model {
 		$result = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Updating the plugin's custom table.
 			$table,
 			$data,
-			[ 'id' => $id ],
+			array( 'id' => $id ),
 			$formats,
-			[ '%d' ]
+			array( '%d' )
 		);
 
 		if ( false === $result ) {
@@ -277,8 +277,8 @@ abstract class Model {
 
 		return $wpdb->delete( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Deleting from the plugin's custom table.
 			$table,
-			[ 'id' => $id ],
-			[ '%d' ]
+			array( 'id' => $id ),
+			array( '%d' )
 		);
 	}
 
@@ -288,7 +288,7 @@ abstract class Model {
 	 * @param array $where Optional. Associative array of column => value pairs for WHERE clause.
 	 * @return int Number of matching records
 	 */
-	public function count( $where = [] ) {
+	public function count( $where = array() ) {
 		global $wpdb;
 		$table = $this->get_table_name();
 
@@ -309,7 +309,7 @@ abstract class Model {
 	 * @return array Array of format strings (%d, %f, or %s)
 	 */
 	protected function get_formats( $data ) {
-		$formats = [];
+		$formats = array();
 
 		foreach ( $data as $value ) {
 			if ( is_int( $value ) ) {
