@@ -126,7 +126,7 @@ class Review_Notice {
 		check_ajax_referer( 'rsl_ie_dismiss_review', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => 'Unauthorized' ], 403 );
+			wp_send_json_error( [ 'message' => __( 'Unauthorized', 'import-export-by-rockstarlab' ) ], 403 );
 			return;
 		}
 

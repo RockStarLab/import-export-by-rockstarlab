@@ -123,7 +123,7 @@ class Schedule_Command {
 		$schedule = $schedule['schedule'] ?? $schedule;
 		$last     = ! empty( $schedule['last_job_id'] ) ? rsl_ie()->Model->job->find( (int) $schedule['last_job_id'] ) : null;
 		if ( $last && in_array( $last->status, [ 'pending', 'processing', 'paused' ], true ) ) {
-			WP_CLI::error( sprintf( 'Job %d of this schedule is still running.', (int) $last->id ) );
+			WP_CLI::error( sprintf( /* translators: %d: job ID. */ __( 'Job %d of this schedule is still running.', 'import-export-by-rockstarlab' ), (int) $last->id ) );
 		}
 		$since   = ! empty( $schedule['changed_only'] ) && $last && 'completed' === $last->status ? (string) $last->created_at : '';
 		$context = \RockStarLab\ImportExport\Abilities\Execution_Context::from_storage( get_current_user_id(), get_current_blog_id() );
@@ -137,7 +137,7 @@ class Schedule_Command {
 		}
 		$job_id = (int) ( $result['job_id'] ?? 0 );
 		if ( ! $job_id ) {
-			WP_CLI::error( 'The schedule did not start a job.' );
+			WP_CLI::error( __( 'The schedule did not start a job.', 'import-export-by-rockstarlab' ) );
 		}
 		// Remember this run like a scheduled one (the next run time stays): the next
 		// "Changes only" run then exports only what changed since this run started.
@@ -149,7 +149,7 @@ class Schedule_Command {
 			]
 		);
 		if ( 'table' === ( $assoc['format'] ?? 'table' ) && empty( $assoc['porcelain'] ) ) {
-			WP_CLI::log( sprintf( 'Job %d started from schedule %d (%s).', $job_id, (int) $schedule['id'], (string) $schedule['name'] ) );
+			WP_CLI::log( sprintf( /* translators: 1: job ID, 2: schedule ID, 3: schedule name. */ __( 'Job %1$d started from schedule %2$d (%3$s).', 'import-export-by-rockstarlab' ), $job_id, (int) $schedule['id'], (string) $schedule['name'] ) );
 		}
 		$output = $assoc['output'] ?? null;
 		Cli_Helper::wait_and_finish(

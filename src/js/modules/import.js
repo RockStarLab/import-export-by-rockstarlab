@@ -1088,7 +1088,7 @@ const ImportModule = {
 		if ( ! server || ! path || /\/$/.test( path ) ) {
 			Utils.showNotice(
 				( window.rslIeData.i18n || {} ).remotePickFile ||
-					'Enter the path of the file on the server, or click Browse.',
+					__( 'Enter the path of the file on the server, or click Browse.', 'import-export-by-rockstarlab' ),
 				'error'
 			);
 			return;

@@ -1085,7 +1085,7 @@ const MediaSyncModule = {
 					? (
 							window.rslIeData.i18n
 								.processedBeforeCancellationPlural ||
-							'Processed %s files before cancellation.'
+							__( 'Processed %s files before cancellation.', 'import-export-by-rockstarlab' )
 					  ).replace( '%s', `<strong>${ processed }</strong>` )
 					: (
 							window.rslIeData.i18n.processedBeforeCancellation ||

@@ -711,7 +711,7 @@ const getActionNonce = ( action ) =>
 								alert(
 									rslIePostSyncData?.i18n
 										?.saveBeforePushFailed ||
-										'The post could not be saved, so it was not pushed. Save it and try again.'
+										__( 'The post could not be saved, so it was not pushed. Save it and try again.', 'import-export-by-rockstarlab' )
 								);
 								return;
 							}
@@ -855,7 +855,7 @@ const getActionNonce = ( action ) =>
 									const message =
 										( rslIePostSyncData?.i18n
 											?.failedLoadRemotePosts ||
-											'Failed to load remote posts' ) +
+											__( 'Failed to load remote posts', 'import-export-by-rockstarlab' ) ) +
 										': ' +
 										errorMsg;
 									alert( message );
@@ -868,7 +868,8 @@ const getActionNonce = ( action ) =>
 									xhr.responseJSON?.message ||
 									rslIePostSyncData?.i18n
 										?.failedConnectRemote ||
-									'Failed to connect to remote site';
+									
+									__( 'Failed to connect to remote site', 'import-export-by-rockstarlab' );
 								alert( message );
 								this.closeMappingModal();
 							},

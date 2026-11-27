@@ -48,7 +48,7 @@ class JSON_Row_Stream {
 								throw new \RuntimeException( 'JSON depth exceeded.' ); }
 							$phase = 'first';
 							continue; }
-						throw new \RuntimeException( 'Expected a JSON container without trailing content.' );
+						throw new \RuntimeException( esc_html__( 'Expected a JSON container without trailing content.', 'import-export-by-rockstarlab' ) );
 					}
 					if ( ! $quoted && ! $stack && ( ',' === $char || $closing === $char ) ) {
 						if ( '' === trim( $value ) ) {

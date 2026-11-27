@@ -115,11 +115,11 @@ class UpdraftPlus_Service {
 	 */
 	public function execute( $name, $input = [] ) {
 		if ( ! self::allowed() ) {
-			return new \WP_Error( 'updraft_access_denied', 'Enable both abilities switches and use an authorized UpdraftPlus administrator.', [ 'status' => 403 ] );
+			return new \WP_Error( 'updraft_access_denied', __( 'Enable both abilities switches and use an authorized UpdraftPlus administrator.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
 		}
 		$definitions = UpdraftPlus_Catalog::definitions();
 		if ( ! isset( $definitions[ $name ] ) || ! is_array( $input ) ) {
-			return new \WP_Error( 'updraft_invalid_input', 'Unknown operation or invalid input.' );
+			return new \WP_Error( 'updraft_invalid_input', __( 'Unknown operation or invalid input.', 'import-export-by-rockstarlab' ) );
 		}
 		$valid = rest_validate_value_from_schema( $input, $definitions[ $name ]['input'], 'input' );
 		if ( is_wp_error( $valid ) ) {
@@ -219,7 +219,7 @@ class UpdraftPlus_Service {
 				'backup_id'     => $plan ? $plan['backup_id'] : '',
 				'native_job_id' => bin2hex( random_bytes( 6 ) ),
 				'error_code'    => '',
-				'message'       => 'Queued; poll status. A working WP-Cron or system cron runner is required.',
+				'message'       => __( 'Queued; poll status. A working WP-Cron or system cron runner is required.', 'import-export-by-rockstarlab' ),
 				'recovery_url'  => admin_url( 'options-general.php?page=updraftplus' ),
 				'owner'         => self::owner(),
 				'user_id'       => get_current_user_id(),
