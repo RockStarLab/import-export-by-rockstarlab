@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.65
+Stable tag: 2.2.66
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,9 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.66 =
+* Fix: a Media import from WP-CLI or an AI agent that only updates existing attachments (for example a file with ID and alt_text, set to update) no longer stops with "Missing required fields: file"; as in the import wizard, the matched attachments get the new details and keep their files.
+
 = 2.2.65 =
 * Fix: a schedule made from a Media Sync job now scans the folder again on every run, so files added to the folder after the first import are imported; files imported before are handled by the job's duplicate check. Before, every run repeated the files of the first job.
 
@@ -297,8 +300,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 * Fix: a WPML or Polylang import of several rows in another language that share a new category (for example posts of a German-only site merged into an English site) now assigns the category to every row, not only the first one.
 * Fix: an AI agent update by ID (import-start with ID as the key) no longer skips every row when the mapping from import-prepare leaves the ID column out; the ID column is used as the key, as with wp rsl-ie import --unique-field=ID.
 * Improvement: the export and import wizards for Taxonomy Terms now list WooCommerce product attributes (such as pa_size) and, on a WPML or Polylang site, have the Language and Translation group columns of terms, so attribute terms can be translated in a spreadsheet without WP-CLI.
-
-= 2.2.61 =
-* Fix: importing WooCommerce products (admin, WP-CLI and AI agents) did not map the language and translation group columns of a WPML or Polylang site, so rows in a second language matched the product of the first language by SKU and were not created; the Categories & Tags group now has Language and Translation group targets, and the columns map by name.
 
 Older versions: see changelog.txt in the plugin folder.

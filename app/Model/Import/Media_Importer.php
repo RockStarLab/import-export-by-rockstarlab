@@ -42,6 +42,12 @@ class Media_Importer extends Abstract_Importer {
 	 * @return array
 	 */
 	public function get_required_fields() {
+		// An import set to update existing attachments can change only their details
+		// (alt text, title, caption, description) without a file column: import_item()
+		// updates the matched attachment and leaves its file as it is.
+		if ( 'update' === $this->get_option( 'duplicate_mode', 'skip' ) ) {
+			return [];
+		}
 		return [ 'file' ]; // URL or file path
 	}
 
