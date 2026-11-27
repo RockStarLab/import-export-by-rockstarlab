@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.66
+Stable tag: 2.2.67
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,9 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.67 =
+* Fix: an import that updates posts by ID (Check for Existing Items by Field: ID) now updates the post with that ID on this site. Before, when a post imported earlier from another site had the same number as its source ID (for example after a Content Migration), a file with only ID and a few columns, such as categories or excerpts, updated that imported post instead.
+
 = 2.2.66 =
 * Fix: a Media import from WP-CLI or an AI agent that only updates existing attachments (for example a file with ID and alt_text, set to update) no longer stops with "Missing required fields: file"; as in the import wizard, the matched attachments get the new details and keep their files.
 
@@ -294,11 +297,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 = 2.2.63 =
 * Fix: without Import Export PRO, an import file with Polylang or WPML language and translation columns no longer creates an extra language (for example "de-2"). The columns are skipped and the Jobs Log says that languages and translations need PRO.
-
-= 2.2.62 =
-* Fix: on a multisite network with the plugin network-activated, the texts of the admin pages stayed in English for users with another language; the PHP texts are now translated like the rest.
-* Fix: a WPML or Polylang import of several rows in another language that share a new category (for example posts of a German-only site merged into an English site) now assigns the category to every row, not only the first one.
-* Fix: an AI agent update by ID (import-start with ID as the key) no longer skips every row when the mapping from import-prepare leaves the ID column out; the ID column is used as the key, as with wp rsl-ie import --unique-field=ID.
-* Improvement: the export and import wizards for Taxonomy Terms now list WooCommerce product attributes (such as pa_size) and, on a WPML or Polylang site, have the Language and Translation group columns of terms, so attribute terms can be translated in a spreadsheet without WP-CLI.
 
 Older versions: see changelog.txt in the plugin folder.
