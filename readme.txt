@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.67
+Stable tag: 2.2.68
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,9 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.68 =
+* Improvement: Content Sync now sends the WP Recipe Maker recipes shown in the selected posts (block, [wprm-recipe] shortcode) with the posts, with their images, on push and on pull. The other site gets the recipes, the posts show them there, and a later sync updates the same recipes instead of making copies. Before, the posts arrived without their recipes and the recipe block pointed at a recipe ID that does not exist there.
+
 = 2.2.67 =
 * Fix: an import that updates posts by ID (Check for Existing Items by Field: ID) now updates the post with that ID on this site. Before, when a post imported earlier from another site had the same number as its source ID (for example after a Content Migration), a file with only ID and a few columns, such as categories or excerpts, updated that imported post instead.
 
@@ -294,8 +297,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 = 2.2.64 =
 * Fix: an export filter with an unknown condition is now refused for every content type, not only posts and pages; before, a PRO export such as customers ignored it and exported every record. Conditions written as greater_than_or_equal or less_than_or_equal are understood.
-
-= 2.2.63 =
-* Fix: without Import Export PRO, an import file with Polylang or WPML language and translation columns no longer creates an extra language (for example "de-2"). The columns are skipped and the Jobs Log says that languages and translations need PRO.
 
 Older versions: see changelog.txt in the plugin folder.
