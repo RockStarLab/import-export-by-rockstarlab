@@ -50,6 +50,16 @@ class Content_Sync_Media {
 			}
 		}
 
+		// 3c. Images of the WP Recipe Maker recipes the content shows (the recipes travel with the post).
+		if ( class_exists( \RockStarLab\ImportExport\Service\Sync_WP_Recipe_Maker::class ) ) {
+			foreach ( \RockStarLab\ImportExport\Service\Sync_WP_Recipe_Maker::image_ids( $post->post_content ) as $recipe_image_id ) {
+				$data = self::prepare_image_data( $recipe_image_id, 'wprm_recipe' );
+				if ( $data ) {
+					$images[] = $data;
+				}
+			}
+		}
+
 		// 4. ACF Images
 		$acf_images = self::get_acf_images( $post_id );
 		$images     = array_merge( $images, $acf_images );

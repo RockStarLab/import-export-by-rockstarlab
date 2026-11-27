@@ -740,6 +740,26 @@ class Post_Importer extends Abstract_Importer {
 		// configured "unique field" (e.g. title) is not strictly stable (whitespace,
 		// functions, editor adjustments, etc.).
 		$source_id = isset( $item['_rsl_ie_source_id'] ) ? absint( $item['_rsl_ie_source_id'] ) : 0;
+
+		// "Check for Existing Items by Field: ID" means the IDs of this site. A post imported
+		// earlier from another site may keep that number as its source ID (for example after a
+		// Content Migration); it wins only when the row names it by slug or title. Before, a file
+		// with only ID and a few columns (categories, excerpts) updated those migrated posts
+		// instead of the local posts with these IDs.
+		if ( 'ID' === $this->get_option( 'duplicate_check', 'post_title' ) && ! empty( $item['ID'] ) ) {
+			$local = get_post( absint( $item['ID'] ) );
+			if ( $local && $local->post_type === $this->get_option( 'post_type', $item['post_type'] ?? 'post' ) ) {
+				$mapped = $source_id > 0 ? $this->find_existing_post_by_source_id( $source_id ) : null;
+				$named  = $mapped && (
+					( ! empty( $item['post_name'] ) && (string) $item['post_name'] === $mapped->post_name )
+					|| ( ! empty( $item['post_title'] ) && (string) $item['post_title'] === $mapped->post_title )
+				);
+				if ( ! $mapped || (int) $mapped->ID === (int) $local->ID || ! $named ) {
+					return $local;
+				}
+			}
+		}
+
 		if ( $source_id > 0 ) {
 			$existing = $this->find_existing_post_by_slug( $item );
 			if ( $existing ) {

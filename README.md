@@ -341,30 +341,25 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 ## Changelog
 
+### 2.2.68
+
+* Improvement: Content Sync now sends the WP Recipe Maker recipes shown in the selected posts (block, [wprm-recipe] shortcode) with the posts, with their images, on push and on pull. The other site gets the recipes, the posts show them there, and a later sync updates the same recipes instead of making copies. Before, the posts arrived without their recipes and the recipe block pointed at a recipe ID that does not exist there.
+
+### 2.2.67
+
+* Fix: an import that updates posts by ID (Check for Existing Items by Field: ID) now updates the post with that ID on this site. Before, when a post imported earlier from another site had the same number as its source ID (for example after a Content Migration), a file with only ID and a few columns, such as categories or excerpts, updated that imported post instead.
+
+### 2.2.66
+
+* Fix: a Media import from WP-CLI or an AI agent that only updates existing attachments (for example a file with ID and alt_text, set to update) no longer stops with "Missing required fields: file"; as in the import wizard, the matched attachments get the new details and keep their files.
+
+### 2.2.65
+
+* Fix: a schedule made from a Media Sync job now scans the folder again on every run, so files added to the folder after the first import are imported; files imported before are handled by the job's duplicate check. Before, every run repeated the files of the first job.
+
 ### 2.2.64
 
 * Fix: an export filter with an unknown condition is now refused for every content type, not only posts and pages; before, a PRO export such as customers ignored it and exported every record. Conditions written as greater_than_or_equal or less_than_or_equal are understood.
-
-### 2.2.63
-
-* Fix: without Import Export PRO, an import file with Polylang or WPML language and translation columns no longer creates an extra language (for example "de-2"). The columns are skipped and the Jobs Log says that languages and translations need PRO.
-
-### 2.2.62
-
-* Fix: on a multisite network with the plugin network-activated, the texts of the admin pages stayed in English for users with another language; the PHP texts are now translated like the rest.
-* Fix: a WPML or Polylang import of several rows in another language that share a new category (for example posts of a German-only site merged into an English site) now assigns the category to every row, not only the first one.
-* Fix: an AI agent update by ID (import-start with ID as the key) no longer skips every row when the mapping from import-prepare leaves the ID column out; the ID column is used as the key, as with wp rsl-ie import --unique-field=ID.
-* Improvement: the export and import wizards for Taxonomy Terms now list WooCommerce product attributes (such as pa_size) and, on a WPML or Polylang site, have the Language and Translation group columns of terms, so attribute terms can be translated in a spreadsheet without WP-CLI.
-
-### 2.2.61
-
-* Fix: importing WooCommerce products (admin, WP-CLI and AI agents) did not map the language and translation group columns of a WPML or Polylang site, so rows in a second language matched the product of the first language by SKU and were not created; the Categories & Tags group now has Language and Translation group targets, and the columns map by name.
-
-### 2.2.60
-
-* Fix: WP-CLI and AI agent imports did not map the Rank Math and Yoast SEO columns of the plugin's own export by name ("No column matches a field by name" for a file with ID and rank_math_title); the SEO fields of the active SEO plugin are now matched automatically.
-* Fix: `wp rsl-ie import --unique-field=ID` with an "ID" column skipped every row; the ID column is now used as the key.
-* Fix: `wp rsl-ie job get` and the ability job-get-result failed with "job runner unavailable" for Content Sync jobs started in the admin; their stored result is now shown.
 
 Older versions: see changelog.txt in the plugin folder.
 
@@ -374,7 +369,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.64 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.68 |
 
 ---
 

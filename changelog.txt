@@ -1,5 +1,17 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.68 =
+* Improvement: Content Sync now sends the WP Recipe Maker recipes shown in the selected posts (block, [wprm-recipe] shortcode) with the posts, with their images, on push and on pull. The other site gets the recipes, the posts show them there, and a later sync updates the same recipes instead of making copies. Before, the posts arrived without their recipes and the recipe block pointed at a recipe ID that does not exist there.
+
+= 2.2.67 =
+* Fix: an import that updates posts by ID (Check for Existing Items by Field: ID) now updates the post with that ID on this site. Before, when a post imported earlier from another site had the same number as its source ID (for example after a Content Migration), a file with only ID and a few columns, such as categories or excerpts, updated that imported post instead.
+
+= 2.2.66 =
+* Fix: a Media import from WP-CLI or an AI agent that only updates existing attachments (for example a file with ID and alt_text, set to update) no longer stops with "Missing required fields: file"; as in the import wizard, the matched attachments get the new details and keep their files.
+
+= 2.2.65 =
+* Fix: a schedule made from a Media Sync job now scans the folder again on every run, so files added to the folder after the first import are imported; files imported before are handled by the job's duplicate check. Before, every run repeated the files of the first job.
+
 = 2.2.64 =
 * Fix: an export filter with an unknown condition is now refused for every content type, not only posts and pages; before, a PRO export such as customers ignored it and exported every record. Conditions written as greater_than_or_equal or less_than_or_equal are understood.
 
