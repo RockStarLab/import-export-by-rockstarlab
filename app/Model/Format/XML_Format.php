@@ -56,6 +56,20 @@ class XML_Format implements File_Format_Interface {
 
 	/** Stream records while validating the complete document before publication. */
 	public function rows( $file_path, $options = array(), &$cursor = null ) {
+		// A Blogger export mixes settings, template, posts, pages and comments: read posts and pages only.
+		if ( \RockStarLab\ImportExport\Helper\Blogger_Feed::is_feed( $file_path ) ) {
+			$skip = is_array( $cursor ) && isset( $cursor['blogger'], $cursor['count'] ) ? max( 0, (int) $cursor['count'] ) : 0;
+			foreach ( array_slice( \RockStarLab\ImportExport\Helper\Blogger_Feed::rows( $file_path ), $skip ) as $i => $row ) {
+				if ( func_num_args() >= 3 ) {
+					$cursor = array(
+						'blogger' => 1,
+						'count'   => $skip + $i + 1,
+					);
+				}
+				yield $row;
+			}
+			return;
+		}
 		// Cursor and spool identities stay keyed by the caller's options; the
 		// detected record element depends only on the (fingerprinted) file.
 		$requested = $options;

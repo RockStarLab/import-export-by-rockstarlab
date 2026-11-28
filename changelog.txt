@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.78 =
+* New: import a Blogger export (the Atom file from Back up content): posts and pages only, without the blog settings, template and comments; labels become categories, drafts stay drafts, dates and the blogspot address (source_url) are kept.
+
 = 2.2.77 =
 * New: import a ZIP of HTML pages, such as a Medium export: each page becomes a post with its title, subtitle as excerpt, body without Medium layout markup, publish date and the original address in the source_url custom field; drafts stay drafts. Images in the body can be copied to the Media Library with the existing media option.
 
