@@ -17,7 +17,14 @@ defined( 'ABSPATH' ) || exit;
  * ip, user_agent and user. Only entries are read; nothing is written.
  */
 class Form_Entries_Service {
-	const SOURCES        = [ 'gravityforms', 'flamingo', 'fluentform' ];
+	const SOURCES        = [ 'gravityforms', 'flamingo', 'fluentform', 'ninjaforms' ];
+	const SKIP_NF_TYPES  = [ 'submit', 'html', 'hr', 'recaptcha', 'recaptcha_v3', 'hcaptcha', 'turnstile', 'note', 'spam', 'confirm', 'unknown' ];
+	/** Ninja Forms submission post status per export status (Ninja Forms has no spam status). */
+	const NF_STATE       = [
+		'active' => [ 'publish' ],
+		'spam'   => [],
+		'trash'  => [ 'trash' ],
+	];
 	const SKIP_FF_TYPES  = [ 'custom_html', 'section_break', 'recaptcha', 'hcaptcha', 'turnstile', 'shortcode', 'action_hook', 'form_step', 'custom_submit_button', 'cpt_selection' ];
 	/** Fluent Forms submission status => export status (read and unread entries are both active). */
 	const FF_STATE       = [
@@ -93,6 +100,9 @@ class Form_Entries_Service {
 		if ( defined( 'FLUENTFORM_VERSION' ) && self::ff_table_exists() ) {
 			$out['fluentform'] = 'Fluent Forms';
 		}
+		if ( function_exists( 'Ninja_Forms' ) && post_type_exists( 'nf_sub' ) ) {
+			$out['ninjaforms'] = 'Ninja Forms';
+		}
 		return $out;
 	}
 
@@ -145,6 +155,17 @@ class Form_Entries_Service {
 					'title'   => (string) $form['title'],
 					'active'  => 'published' === (string) $form['status'],
 					'entries' => $this->ff_count( (int) $form['id'], [ 'status' => 'active' ] ),
+				];
+			}
+		}
+		if ( isset( self::available_sources()['ninjaforms'] ) ) {
+			foreach ( (array) \Ninja_Forms()->form()->get_forms() as $form ) {
+				$out[] = [
+					'source'  => 'ninjaforms',
+					'form_id' => (int) $form->get_id(),
+					'title'   => (string) $form->get_setting( 'title' ),
+					'active'  => true,
+					'entries' => $this->nf_count( (int) $form->get_id(), [ 'status' => 'active' ] ),
 				];
 			}
 		}
@@ -205,7 +226,8 @@ class Form_Entries_Service {
 	}
 
 	/**
-	 * Columns exported when none are chosen: everything except IP, browser and user.
+	 * Columns exported when none are chosen: everything except IP, browser and user
+	 * (and the page URL for Ninja Forms, which does not store it).
 	 *
 	 * @param string $source  Source.
 	 * @param int    $form_id Form.
@@ -213,7 +235,9 @@ class Form_Entries_Service {
 	 */
 	public function default_fields( $source, $form_id ) {
 		$fields = $this->fields( $source, $form_id );
-		return is_wp_error( $fields ) ? $fields : array_values( array_diff( array_keys( $fields ), [ 'ip', 'user_agent', 'user' ] ) );
+		// Ninja Forms keeps no page URL, so the column would always be empty.
+		$skip = 'ninjaforms' === $source ? [ 'source_url', 'ip', 'user_agent', 'user' ] : [ 'ip', 'user_agent', 'user' ];
+		return is_wp_error( $fields ) ? $fields : array_values( array_diff( array_keys( $fields ), $skip ) );
 	}
 
 	/**
@@ -234,6 +258,9 @@ class Form_Entries_Service {
 		}
 		if ( 'fluentform' === $source ) {
 			return $this->ff_count( (int) $form_id, $query );
+		}
+		if ( 'ninjaforms' === $source ) {
+			return $this->nf_count( (int) $form_id, $query );
 		}
 		return $this->flamingo_count( (int) $form_id, $query );
 	}
@@ -261,6 +288,9 @@ class Form_Entries_Service {
 		if ( 'fluentform' === $source ) {
 			return $this->ff_rows( (int) $form_id, $query, $map, max( 0, (int) $offset ), $limit );
 		}
+		if ( 'ninjaforms' === $source ) {
+			return $this->nf_rows( (int) $form_id, $query, $map, max( 0, (int) $offset ), $limit );
+		}
 		return 'gravityforms' === $source ? $this->gf_rows( (int) $form_id, $query, $map, max( 0, (int) $offset ), $limit ) : $this->flamingo_rows( (int) $form_id, $query, $map, max( 0, (int) $offset ), $limit );
 	}
 
@@ -277,7 +307,7 @@ class Form_Entries_Service {
 			return $access;
 		}
 		if ( ! isset( self::available_sources()[ $source ] ) ) {
-			return $this->error( 'form_source_unavailable', __( 'Choose Gravity Forms, Contact Form 7 (Flamingo) or Fluent Forms; the plugin must be active.', 'import-export-by-rockstarlab' ) );
+			return $this->error( 'form_source_unavailable', __( 'Choose Gravity Forms, Contact Form 7 (Flamingo), Fluent Forms or Ninja Forms; the plugin must be active.', 'import-export-by-rockstarlab' ) );
 		}
 		if ( 'gravityforms' === $source ) {
 			$form = \GFAPI::get_form( (int) $form_id );
@@ -285,6 +315,9 @@ class Form_Entries_Service {
 		}
 		if ( 'fluentform' === $source ) {
 			return null !== self::ff_form( (int) $form_id ) ? true : $this->error( 'form_not_found', __( 'Form not found.', 'import-export-by-rockstarlab' ), 404 );
+		}
+		if ( 'ninjaforms' === $source ) {
+			return self::nf_form_exists( (int) $form_id ) ? true : $this->error( 'form_not_found', __( 'Form not found.', 'import-export-by-rockstarlab' ), 404 );
 		}
 		$term = get_term( (int) $form_id, self::FLAMINGO_TAX );
 		return $term && ! is_wp_error( $term ) ? true : $this->error( 'form_not_found', __( 'Form not found.', 'import-export-by-rockstarlab' ), 404 );
@@ -305,8 +338,8 @@ class Form_Entries_Service {
 		// Column headers of the entry columns are taken too: a form field labelled "Date" must not
 		// share the header of the entry date.
 		$lower = static function ( $s ) { return function_exists( 'mb_strtolower' ) ? mb_strtolower( $s ) : strtolower( $s ); };
-		// Subject and From are entry columns of Flamingo only; a Fluent Forms field named Subject keeps its name.
-		$taken = array_map( $lower, array_merge( self::BASE_START, self::BASE_END, 'fluentform' === $source ? [] : [ 'subject', 'from_name', 'from_email' ], array_values( self::base_labels( $source ) ) ) );
+		// Subject and From are entry columns of Flamingo only; a field named Subject in another form keeps its name.
+		$taken = array_map( $lower, array_merge( self::BASE_START, self::BASE_END, 'flamingo' === $source ? [ 'subject', 'from_name', 'from_email' ] : [], array_values( self::base_labels( $source ) ) ) );
 		$out   = [];
 		$add   = static function ( $label, $ref ) use ( &$out, $taken, $lower ) {
 			$label = trim( wp_strip_all_tags( (string) $label ) );
@@ -333,6 +366,12 @@ class Form_Entries_Service {
 			$fields = json_decode( (string) ( $form['form_fields'] ?? '' ), true );
 			foreach ( self::ff_inputs( is_array( $fields ) ? (array) ( $fields['fields'] ?? [] ) : [] ) as $name => $label ) {
 				$add( $label, $name );
+			}
+			return $out;
+		}
+		if ( 'ninjaforms' === $source ) {
+			foreach ( self::nf_inputs( (int) $form_id ) as $field_id => $label ) {
+				$add( $label, (string) $field_id );
 			}
 			return $out;
 		}
@@ -424,7 +463,7 @@ class Form_Entries_Service {
 				return $this->error( 'form_filter_field', sprintf( __( 'This form cannot be filtered by "%s".', 'import-export-by-rockstarlab' ), $field ) );
 			}
 		}
-		if ( 'flamingo' === $source || 'fluentform' === $source ) {
+		if ( in_array( $source, [ 'flamingo', 'fluentform', 'ninjaforms' ], true ) ) {
 			return $q;
 		}
 		$search = [ 'status' => $q['status'] ];
@@ -807,6 +846,158 @@ class Form_Entries_Service {
 				'ip'         => (string) ( $entry['ip'] ?? '' ),
 				// Fluent Forms keeps the browser and device names, not the full user agent.
 				'user_agent' => implode( ', ', array_diff( array_filter( [ (string) ( $entry['browser'] ?? '' ), (string) ( $entry['device'] ?? '' ) ], 'strlen' ), [ 'unknown' ] ) ),
+				'user'       => $user ? $user->user_login : '',
+			];
+			$rows[] = $row;
+		}
+		return $rows;
+	}
+
+	/** Whether a Ninja Forms form exists. */
+	private static function nf_form_exists( $form_id ) {
+		if ( $form_id <= 0 ) {
+			return false;
+		}
+		foreach ( (array) \Ninja_Forms()->form()->get_forms() as $form ) {
+			if ( (int) $form->get_id() === $form_id ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Input fields of a Ninja Forms form in form order: field ID => label.
+	 *
+	 * @param int $form_id Form.
+	 * @return array
+	 */
+	private static function nf_inputs( $form_id ) {
+		$fields = (array) \Ninja_Forms()->form( $form_id )->get_fields();
+		uasort(
+			$fields,
+			static function ( $a, $b ) {
+				return (int) $a->get_setting( 'order' ) <=> (int) $b->get_setting( 'order' );
+			}
+		);
+		$out = [];
+		foreach ( $fields as $field ) {
+			if ( ! is_object( $field ) || in_array( (string) $field->get_setting( 'type' ), self::SKIP_NF_TYPES, true ) ) {
+				continue;
+			}
+			$admin = (string) $field->get_setting( 'admin_label' );
+			$label = '' !== trim( $admin ) ? $admin : (string) $field->get_setting( 'label' );
+			$out[ (int) $field->get_id() ] = '' !== trim( wp_strip_all_tags( $label ) ) ? $label : (string) $field->get_setting( 'key' );
+		}
+		return $out;
+	}
+
+	/**
+	 * WP_Query arguments for the submissions of one Ninja Forms form.
+	 *
+	 * @param int   $form_id Form.
+	 * @param array $q       Query description.
+	 * @return array|null Null when the status has no Ninja Forms equivalent.
+	 */
+	private function nf_args( $form_id, array $q ) {
+		$q     += [ 'status' => 'active', 'from' => '', 'to' => '', 'ids' => [], 'fields' => [] ];
+		$states = self::NF_STATE[ $q['status'] ] ?? self::NF_STATE['active'];
+		if ( ! $states ) {
+			return null;
+		}
+		$meta = [
+			[
+				'key'   => '_form_id',
+				'value' => (string) $form_id,
+			],
+		];
+		foreach ( $q['fields'] as $f ) {
+			$meta[] = [
+				'key'     => '_field_' . $f['ref'],
+				'value'   => $f['value'],
+				'compare' => [
+					'equals'       => '=',
+					'not_equals'   => '!=',
+					'contains'     => 'LIKE',
+					'not_contains' => 'NOT LIKE',
+				][ $f['condition'] ],
+			];
+		}
+		$args = [
+			'post_type'        => 'nf_sub',
+			'post_status'      => $states,
+			'meta_query'       => $meta, // phpcs:ignore WordPress.DB.SlowDBQuery -- Submissions of one form.
+			'suppress_filters' => true,
+		];
+		if ( '' !== $q['from'] || '' !== $q['to'] ) {
+			$date = [ 'inclusive' => true ];
+			if ( '' !== $q['from'] ) {
+				$date['after'] = $q['from'];
+			}
+			if ( '' !== $q['to'] ) {
+				$date['before'] = $q['to'];
+			}
+			$args['date_query'] = [ $date ];
+		}
+		if ( $q['ids'] ) {
+			$args['post__in'] = $q['ids'];
+		}
+		return $args;
+	}
+
+	/** Number of Ninja Forms submissions matching a query description. */
+	private function nf_count( $form_id, array $q ) {
+		$args = $this->nf_args( $form_id, $q );
+		if ( null === $args ) {
+			return 0;
+		}
+		$query = new \WP_Query(
+			$args + [
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+			]
+		);
+		return (int) $query->found_posts;
+	}
+
+	/**
+	 * Ninja Forms submissions as rows.
+	 *
+	 * @param int   $form_id Form.
+	 * @param array $q       Query description.
+	 * @param array $map     Column => field ID.
+	 * @param int   $offset  Offset.
+	 * @param int   $limit   Limit.
+	 * @return array
+	 */
+	private function nf_rows( $form_id, array $q, array $map, $offset, $limit ) {
+		$args = $this->nf_args( $form_id, $q );
+		if ( null === $args ) {
+			return [];
+		}
+		$posts = get_posts(
+			$args + [
+				'posts_per_page' => $limit,
+				'offset'         => $offset,
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
+			]
+		);
+		$rows  = [];
+		foreach ( $posts as $post ) {
+			$row = [
+				'entry_id'     => (int) $post->ID,
+				'date_created' => (string) $post->post_date,
+				'status'       => 'trash' === $post->post_status ? 'trash' : 'active',
+			];
+			foreach ( $map as $column => $field_id ) {
+				$row[ $column ] = $this->text( get_post_meta( $post->ID, '_field_' . $field_id, true ) );
+			}
+			$user   = $post->post_author ? get_userdata( (int) $post->post_author ) : false;
+			$row   += [
+				'source_url' => '',
+				'ip'         => '',
+				'user_agent' => '',
 				'user'       => $user ? $user->user_login : '',
 			];
 			$rows[] = $row;

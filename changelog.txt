@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.72 =
+* New: Ninja Forms submissions as a Form entries export source (CSV, Excel, JSON, XML) with the form fields as columns and filters by date, status (active or trash), entry ID and field value; also in the rsl-ie/form-entry-forms and form-entry-fields abilities.
+
 = 2.2.71 =
 * Fix: comment import keeps comment_parent for new reply rows without a comment ID when the parent is a comment on the same post, so replies written for the site land in the right thread.
 
