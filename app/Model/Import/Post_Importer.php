@@ -21,6 +21,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @var string
 	 */
 	const SOURCE_ID_META_KEY            = '_rsl_ie_source_post_id';
+	const SOURCE_SITE_META_KEY          = '_rsl_ie_source_site';
 	const SOURCE_ATTACHMENT_ID_META_KEY = '_rsl_ie_source_attachment_id';
 
 	/**
@@ -749,7 +750,7 @@ class Post_Importer extends Abstract_Importer {
 		if ( 'ID' === $this->get_option( 'duplicate_check', 'post_title' ) && ! empty( $item['ID'] ) ) {
 			$local = get_post( absint( $item['ID'] ) );
 			if ( $local && $local->post_type === $this->get_option( 'post_type', $item['post_type'] ?? 'post' ) ) {
-				$mapped = $source_id > 0 ? $this->find_existing_post_by_source_id( $source_id ) : null;
+				$mapped = $source_id > 0 ? $this->find_existing_post_by_source_id( $source_id, $item ) : null;
 				$named  = $mapped && (
 					( ! empty( $item['post_name'] ) && (string) $item['post_name'] === $mapped->post_name )
 					|| ( ! empty( $item['post_title'] ) && (string) $item['post_title'] === $mapped->post_title )
@@ -766,7 +767,7 @@ class Post_Importer extends Abstract_Importer {
 				return $existing;
 			}
 
-			$existing = $this->find_existing_post_by_source_id( $source_id );
+			$existing = $this->find_existing_post_by_source_id( $source_id, $item );
 			if ( $existing ) {
 				return $existing;
 			}
@@ -1024,16 +1025,21 @@ class Post_Importer extends Abstract_Importer {
 	 * @param int $source_id Source-site post ID.
 	 * @return \WP_Post|null Existing post.
 	 */
-	private function find_existing_post_by_source_id( $source_id ) {
+	private function find_existing_post_by_source_id( $source_id, array $item = array() ) {
 		$source_id = absint( $source_id );
 		if ( $source_id <= 0 ) {
 			return null;
 		}
+		// A WordPress export names the site it came from. Source IDs of two sites overlap (post 3 of
+		// a Squarespace export is not post 3 of an earlier CSV or another blog): a match counts when
+		// the post came from the same site, or, for posts imported before the site was recorded,
+		// when it has the same slug or title.
+		$site = isset( $item['_rsl_ie_source_site'] ) ? (string) $item['_rsl_ie_source_site'] : '';
 
 		$args  = [
 			'post_type'              => $this->get_option( 'post_type', 'post' ),
 			'post_status'            => 'any',
-			'posts_per_page'         => 1,
+			'posts_per_page'         => '' === $site ? 1 : 20,
 			'fields'                 => 'ids',
 			'orderby'                => 'ID',
 			'order'                  => 'ASC',
@@ -1044,12 +1050,26 @@ class Post_Importer extends Abstract_Importer {
 			'meta_value'             => $source_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- required for source-ID lookup.
 		];
 		$posts = get_posts( $args );
-		if ( ! empty( $posts ) ) {
-			return get_post( (int) $posts[0] );
+		foreach ( $posts as $post_id ) {
+			if ( '' === $site ) {
+				return get_post( (int) $post_id );
+			}
+			$post_site = (string) get_post_meta( (int) $post_id, self::SOURCE_SITE_META_KEY, true );
+			if ( $post_site === $site ) {
+				return get_post( (int) $post_id );
+			}
+			$post = get_post( (int) $post_id );
+			if ( '' === $post_site && $post && (
+				( ! empty( $item['post_name'] ) && (string) $item['post_name'] === $post->post_name )
+				|| ( ! empty( $item['post_title'] ) && (string) $item['post_title'] === $post->post_title )
+			) ) {
+				return $post;
+			}
 		}
 
 		return null;
 	}
+
 
 	/**
 	 * Create new post
@@ -1080,6 +1100,9 @@ class Post_Importer extends Abstract_Importer {
 		// Persist the source-site ID for safe reruns.
 		if ( ! empty( $item['_rsl_ie_source_id'] ) ) {
 			update_post_meta( $post_id, self::SOURCE_ID_META_KEY, absint( $item['_rsl_ie_source_id'] ) );
+		}
+		if ( ! empty( $item['_rsl_ie_source_site'] ) ) {
+			update_post_meta( $post_id, self::SOURCE_SITE_META_KEY, (string) $item['_rsl_ie_source_site'] );
 		}
 		// Import post meta
 		if ( ! empty( $item['post_meta'] ) ) {
@@ -1164,6 +1187,9 @@ class Post_Importer extends Abstract_Importer {
 		// Persist the source-site ID for safe reruns.
 		if ( ! empty( $item['_rsl_ie_source_id'] ) ) {
 			update_post_meta( $post_id, self::SOURCE_ID_META_KEY, absint( $item['_rsl_ie_source_id'] ) );
+		}
+		if ( ! empty( $item['_rsl_ie_source_site'] ) ) {
+			update_post_meta( $post_id, self::SOURCE_SITE_META_KEY, (string) $item['_rsl_ie_source_site'] );
 		}
 		// Update post meta
 		if ( ! empty( $item['post_meta'] ) ) {

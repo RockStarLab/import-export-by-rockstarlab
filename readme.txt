@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.79
+Stable tag: 2.2.80
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,10 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.80 =
+* New: Squarespace exports (WordPress XML) import clean: Squarespace layout wrappers, inline styles and lazy-loading attributes are removed from posts and pages, lazy-loaded images get their address, captions stay.
+* Fix: importing a WordPress export from another site no longer skips a post because a post imported earlier from a different file kept the same source ID; the source site is now recorded and compared.
+
 = 2.2.79 =
 * New: import a Substack export ZIP: one post per line of posts.csv with the body from posts/<post_id>.html, the subtitle as the excerpt, the publish date, drafts as drafts and the slug from the post address; the subscriber list and statistics files are left out, Substack buttons and subscribe forms are removed from the body, the audience (everyone or paid) is kept in a custom field.
 
@@ -294,8 +298,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 = 2.2.76 =
 * New: Meta Box fields with several values (checkbox list, multiple select): a cell such as "a|b" imports as one meta row per value, and the export writes the values back as "a|b".
-
-= 2.2.75 =
-* Fix: Content Sync of bbPress forums, topics and replies keeps them connected on the other site: topics point at the local forum, replies at the local topic and the reply they answer, and the reply and topic counts are recalculated, for push and for pull back.
 
 Older versions: see changelog.txt in the plugin folder.
