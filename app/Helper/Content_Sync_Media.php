@@ -89,6 +89,16 @@ class Content_Sync_Media {
 			}
 		}
 
+		// 9. Files of Easy Digital Downloads products: the buyer's download link must work on the other site.
+		if ( class_exists( \RockStarLab\ImportExport\Service\Sync_Easy_Digital_Downloads::class ) ) {
+			foreach ( \RockStarLab\ImportExport\Service\Sync_Easy_Digital_Downloads::file_ids( $post_id ) as $file_id ) {
+				$data = self::prepare_image_data( $file_id, 'edd_download' );
+				if ( $data ) {
+					$images[] = $data;
+				}
+			}
+		}
+
 		// Remove duplicates based on attachment ID
 		$images = self::remove_duplicate_images( $images );
 

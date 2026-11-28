@@ -341,6 +341,10 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 ## Changelog
 
+### 2.2.74
+
+* Fix: Content Sync of Easy Digital Downloads products now sends their files (edd_download_files) with the product and points each file at the copy on the other site, in the protected uploads/edd folder; before, the file links pointed at files that did not exist there.
+
 ### 2.2.73
 
 * New: Formidable Forms entries as a Form entries export source (CSV, Excel, JSON, XML): submitted entries with the form fields as columns, dates in site time, page URL, IP and browser, and filters by date, entry ID and field value; also in the form-entry abilities.
@@ -357,10 +361,6 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 * Fix: a Media export made with Include file content now imports back with its files when the original files or the original site are gone: the import writes the file from the file_content column instead of downloading it. Before, the column was ignored and the import failed for files that could no longer be downloaded.
 
-### 2.2.69
-
-* Improvement: Fluent Forms entries can be exported like Gravity Forms and Contact Form 7 (Flamingo) entries: choose Form Entries on the Export screen, pick a Fluent Forms form and export its entries to CSV, Excel, ODS, JSON or XML, with the form fields as columns (a name field in one cell), filters by status (active, spam, trash), date, entry ID and field value, and the same options for WP-CLI and AI agents (form_source fluentform).
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -369,7 +369,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.73 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.74 |
 
 ---
 
