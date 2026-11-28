@@ -341,6 +341,10 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 ## Changelog
 
+### 2.2.76
+
+* New: Meta Box fields with several values (checkbox list, multiple select): a cell such as "a|b" imports as one meta row per value, and the export writes the values back as "a|b".
+
 ### 2.2.75
 
 * Fix: Content Sync of bbPress forums, topics and replies keeps them connected on the other site: topics point at the local forum, replies at the local topic and the reply they answer, and the reply and topic counts are recalculated, for push and for pull back.
@@ -357,10 +361,6 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 * New: Ninja Forms submissions as a Form entries export source (CSV, Excel, JSON, XML) with the form fields as columns and filters by date, status (active or trash), entry ID and field value; also in the rsl-ie/form-entry-forms and form-entry-fields abilities.
 
-### 2.2.71
-
-* Fix: comment import keeps comment_parent for new reply rows without a comment ID when the parent is a comment on the same post, so replies written for the site land in the right thread.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -369,7 +369,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.75 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.76 |
 
 ---
 

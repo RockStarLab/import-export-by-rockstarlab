@@ -1828,6 +1828,28 @@ class Post_Importer extends Abstract_Importer {
 	 *                         automatically and the field is recognised on this site.
 	 * @param array $raw_meta_backup Raw meta_* values overridden by acf_* (key => value).
 	 */
+	/**
+	 * Values of a Meta Box field that stores one meta row per value (multiple, not cloneable),
+	 * from a cell such as "ethiopia|kenya" (or "ethiopia, kenya" when there is no |).
+	 *
+	 * @param int    $post_id Post.
+	 * @param string $key     Meta key.
+	 * @param mixed  $value   Cell value.
+	 * @return array|null Rows, or null when the key is not such a field or the value is not a plain list.
+	 */
+	private function meta_box_multiple_rows( $post_id, $key, $value ) {
+		if ( ! is_string( $value ) || '' === trim( $value ) || ! function_exists( 'rwmb_get_field_settings' ) || in_array( $value[0], [ '{', '[' ], true ) || is_serialized( $value ) ) {
+			return null;
+		}
+		$field = rwmb_get_field_settings( $key, [ 'object_type' => 'post' ], $post_id );
+		if ( ! is_array( $field ) || empty( $field['multiple'] ) || ! empty( $field['clone'] ) || ( isset( $field['save_field'] ) && ! $field['save_field'] ) ) {
+			return null;
+		}
+		$separator = false !== strpos( $value, '|' ) ? '|' : ',';
+		$rows      = array_values( array_filter( array_map( 'trim', explode( $separator, $value ) ), 'strlen' ) );
+		return $rows ? $rows : null;
+	}
+
 	private function import_post_meta( $post_id, $meta, $acf_keys = [], $raw_meta_backup = [] ) {
 		if ( ! is_array( $meta ) ) {
 			return;
@@ -1973,6 +1995,12 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		foreach ( $meta as $key => $value ) {
+			// A Meta Box field with several values (checkbox list, multiple select...) keeps one meta row
+			// per value; a cell such as "ethiopia|kenya" becomes those rows.
+			$mb_rows = $this->meta_box_multiple_rows( (int) $post_id, (string) $key, $value );
+			if ( null !== $mb_rows ) {
+				$value = wp_json_encode( [ '_rsl_ie_meta_rows' => $mb_rows ] );
+			}
 			// Several rows of one meta key (see Post_Exporter::META_ROWS_KEY): written back as rows.
 			$rows = is_string( $value ) && '' !== $value && '{' === $value[0] && false !== strpos( $value, '_rsl_ie_meta_rows' ) ? json_decode( $value, true ) : $value;
 			if ( is_array( $rows ) && 1 === count( $rows ) && isset( $rows['_rsl_ie_meta_rows'] ) && is_array( $rows['_rsl_ie_meta_rows'] ) && is_string( $key ) && '' !== $key ) {

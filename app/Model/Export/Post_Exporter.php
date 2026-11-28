@@ -3058,6 +3058,16 @@ class Post_Exporter extends Abstract_Exporter {
 					$meta_key = substr( $field, 5 ); // Remove 'meta_' prefix (5 characters)
 				}
 
+				// A Meta Box field with several values keeps one meta row per value: one cell "a|b".
+				if ( function_exists( 'rwmb_get_field_settings' ) ) {
+					$mb_field = rwmb_get_field_settings( $meta_key, [ 'object_type' => 'post' ], $post->ID );
+					if ( is_array( $mb_field ) && ! empty( $mb_field['multiple'] ) && empty( $mb_field['clone'] ) ) {
+						$mb_rows = array_filter( array_map( 'maybe_unserialize', (array) get_post_meta( $post->ID, $meta_key, false ) ), 'is_scalar' );
+						$data[ $field ] = implode( '|', array_map( 'strval', $mb_rows ) );
+						continue;
+					}
+				}
+
 				// If this meta key belongs to an ACF field, export it in a portable format.
 				// This is important for edge cases like nested fields with empty names
 				// (their meta key ends with an underscore, so there is no matching acf_* column).
