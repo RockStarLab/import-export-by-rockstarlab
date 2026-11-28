@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.80
+Stable tag: 2.2.81
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,9 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.81 =
+* New: import a Wix blog feed (blog-feed.xml): every item becomes a published post with its date, the slug from its /post/ address, the description as the excerpt, the cover image as the featured image, its categories and the Wix address in the source_url custom field.
+
 = 2.2.80 =
 * New: Squarespace exports (WordPress XML) import clean: Squarespace layout wrappers, inline styles and lazy-loading attributes are removed from posts and pages, lazy-loaded images get their address, captions stay.
 * Fix: importing a WordPress export from another site no longer skips a post because a post imported earlier from a different file kept the same source ID; the source site is now recorded and compared.
@@ -295,8 +298,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 = 2.2.77 =
 * New: import a ZIP of HTML pages, such as a Medium export: each page becomes a post with its title, subtitle as excerpt, body without Medium layout markup, publish date and the original address in the source_url custom field; drafts stay drafts. Images in the body can be copied to the Media Library with the existing media option.
-
-= 2.2.76 =
-* New: Meta Box fields with several values (checkbox list, multiple select): a cell such as "a|b" imports as one meta row per value, and the export writes the values back as "a|b".
 
 Older versions: see changelog.txt in the plugin folder.

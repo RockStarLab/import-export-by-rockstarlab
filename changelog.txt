@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.81 =
+* New: import a Wix blog feed (blog-feed.xml): every item becomes a published post with its date, the slug from its /post/ address, the description as the excerpt, the cover image as the featured image, its categories and the Wix address in the source_url custom field.
+
 = 2.2.80 =
 * New: Squarespace exports (WordPress XML) import clean: Squarespace layout wrappers, inline styles and lazy-loading attributes are removed from posts and pages, lazy-loaded images get their address, captions stay.
 * Fix: importing a WordPress export from another site no longer skips a post because a post imported earlier from a different file kept the same source ID; the source site is now recorded and compared.
