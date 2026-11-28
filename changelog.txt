@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.71 =
+* Fix: comment import keeps comment_parent for new reply rows without a comment ID when the parent is a comment on the same post, so replies written for the site land in the right thread.
+
 = 2.2.70 =
 * Fix: a Media export made with Include file content now imports back with its files when the original files or the original site are gone: the import writes the file from the file_content column instead of downloading it. Before, the column was ignored and the import failed for files that could no longer be downloaded.
 

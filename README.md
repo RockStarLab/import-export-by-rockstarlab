@@ -341,6 +341,10 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 ## Changelog
 
+### 2.2.71
+
+* Fix: comment import keeps comment_parent for new reply rows without a comment ID when the parent is a comment on the same post, so replies written for the site land in the right thread.
+
 ### 2.2.70
 
 * Fix: a Media export made with Include file content now imports back with its files when the original files or the original site are gone: the import writes the file from the file_content column instead of downloading it. Before, the column was ignored and the import failed for files that could no longer be downloaded.
@@ -357,10 +361,6 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 * Fix: an import that updates posts by ID (Check for Existing Items by Field: ID) now updates the post with that ID on this site. Before, when a post imported earlier from another site had the same number as its source ID (for example after a Content Migration), a file with only ID and a few columns, such as categories or excerpts, updated that imported post instead.
 
-### 2.2.66
-
-* Fix: a Media import from WP-CLI or an AI agent that only updates existing attachments (for example a file with ID and alt_text, set to update) no longer stops with "Missing required fields: file"; as in the import wizard, the matched attachments get the new details and keep their files.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -369,7 +369,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.70 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.71 |
 
 ---
 
