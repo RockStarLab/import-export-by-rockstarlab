@@ -853,6 +853,25 @@ class File_Service {
 					$entries[] = $stat + [ 'format' => $format ];
 				}
 			}
+			if ( ! $entries ) {
+				// No data file: HTML pages (a Medium export, saved articles) become one post per page.
+				$pages = \RockStarLab\ImportExport\Helper\Html_Archive::pages( $zip );
+				if ( $pages ) {
+					$output = $dir . '/extracted.json';
+					$json   = \RockStarLab\ImportExport\Helper\Html_Archive::to_json( $zip, $pages );
+					if ( strlen( $json ) > self::max_bytes() ) {
+						return File_Store::error( 'zip_content_limit' );
+					}
+					if ( false === file_put_contents( $output, $json ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Private import folder.
+						return File_Store::error( 'zip_read' );
+					}
+					return [
+						'path'      => $output,
+						'file_name' => 'html-pages.json',
+						'format'    => 'json',
+					];
+				}
+			}
 			if ( 1 !== count( $entries ) ) {
 				return File_Store::error( 'zip_entry_count' );
 			}
