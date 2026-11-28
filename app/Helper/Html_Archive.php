@@ -58,7 +58,7 @@ class Html_Archive {
 			if ( ! is_string( $html ) || '' === trim( $html ) ) {
 				continue;
 			}
-			$row = self::parse( $html, basename( $name ) );
+			$row = self::parse( $html, basename( $name ), $zip, $name );
 			if ( $row ) {
 				$rows[] = $row;
 			}
@@ -70,10 +70,12 @@ class Html_Archive {
 	 * One page as a post row.
 	 *
 	 * @param string $html     Page HTML.
-	 * @param string $filename File name.
+	 * @param string           $filename File name.
+	 * @param \ZipArchive|null $zip      Archive of the page (images next to it).
+	 * @param string           $entry    Entry name of the page in the archive.
 	 * @return array|null
 	 */
-	public static function parse( $html, $filename = '' ) {
+	public static function parse( $html, $filename = '', $zip = null, $entry = '' ) {
 		$dom  = new \DOMDocument();
 		$prev = libxml_use_internal_errors( true );
 		$dom->loadHTML( '<?xml encoding="UTF-8">' . $html, LIBXML_NONET | LIBXML_NOWARNING | LIBXML_NOERROR );
@@ -98,7 +100,8 @@ class Html_Archive {
 			return trim( $out );
 		};
 
-		$title_node = $first( '//*[contains(concat(" ", normalize-space(@class), " "), " p-name ")]' ) ?: $first( '//h1' );
+		$google = Google_Docs_Html::is_google_doc( $html );
+		$title_node = $first( '//*[contains(concat(" ", normalize-space(@class), " "), " p-name ")]' ) ?: ( $google ? null : $first( '//h1' ) );
 		$title      = $text( $title_node );
 		if ( '' === $title ) {
 			$title = $text( $first( '//title' ) );
@@ -106,6 +109,14 @@ class Html_Archive {
 		$body = $first( '//*[@data-field="body"]' ) ?: $first( '//*[contains(concat(" ", normalize-space(@class), " "), " e-content ")]' ) ?: $first( '//article' ) ?: $first( '//body' );
 		if ( ! $body ) {
 			return null;
+		}
+		$google_parts = null;
+		if ( $google ) {
+			// A Google Docs download: its Title paragraph is the post title, Subtitle the excerpt.
+			$google_parts = Google_Docs_Html::clean( $dom, $xp, $body, $html, $zip, (string) $entry );
+			if ( '' !== $google_parts['title'] ) {
+				$title = $google_parts['title'];
+			}
 		}
 		// The story title is repeated at the top of a Medium body: drop the first heading if it is the title.
 		$lead = $xp->query( './/h3[contains(@class,"graf--title")] | .//h1', $body );
@@ -115,6 +126,9 @@ class Html_Archive {
 		$content = self::clean( $inner( $body ) );
 
 		$summary = $text( $first( '//*[@data-field="subtitle"]' ) ?: $first( '//*[contains(concat(" ", normalize-space(@class), " "), " p-summary ")]' ) );
+		if ( $google_parts && '' !== $google_parts['subtitle'] ) {
+			$summary = $google_parts['subtitle'];
+		}
 		$time    = $first( '//time[contains(concat(" ", normalize-space(@class), " "), " dt-published ")]' ) ?: $first( '//time[@datetime]' );
 		$date    = $time ? (string) $time->getAttribute( 'datetime' ) : '';
 		if ( '' === $date ) {

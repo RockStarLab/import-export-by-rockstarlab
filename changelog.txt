@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.82 =
+* New: import a Google Docs download (File > Download > Web page, .html zipped): the Title paragraph becomes the post title and Subtitle the excerpt, bold, italic and underline are kept as tags, headings move one level down under the post title, links get their real address instead of going through google.com/url, and the images in the ZIP are added to the Media Library with media import on.
+
 = 2.2.81 =
 * New: import a Wix blog feed (blog-feed.xml): every item becomes a published post with its date, the slug from its /post/ address, the description as the excerpt, the cover image as the featured image, its categories and the Wix address in the source_url custom field.
 
