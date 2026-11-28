@@ -341,6 +341,10 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 ## Changelog
 
+### 2.2.72
+
+* New: Ninja Forms submissions as a Form entries export source (CSV, Excel, JSON, XML) with the form fields as columns and filters by date, status (active or trash), entry ID and field value; also in the rsl-ie/form-entry-forms and form-entry-fields abilities.
+
 ### 2.2.71
 
 * Fix: comment import keeps comment_parent for new reply rows without a comment ID when the parent is a comment on the same post, so replies written for the site land in the right thread.
@@ -357,10 +361,6 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 * Improvement: Content Sync now sends the WP Recipe Maker recipes shown in the selected posts (block, [wprm-recipe] shortcode) with the posts, with their images, on push and on pull. The other site gets the recipes, the posts show them there, and a later sync updates the same recipes instead of making copies. Before, the posts arrived without their recipes and the recipe block pointed at a recipe ID that does not exist there.
 
-### 2.2.67
-
-* Fix: an import that updates posts by ID (Check for Existing Items by Field: ID) now updates the post with that ID on this site. Before, when a post imported earlier from another site had the same number as its source ID (for example after a Content Migration), a file with only ID and a few columns, such as categories or excerpts, updated that imported post instead.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -369,7 +369,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.71 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.72 |
 
 ---
 
