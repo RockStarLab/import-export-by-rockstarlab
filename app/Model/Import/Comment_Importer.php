@@ -264,9 +264,17 @@ class Comment_Importer extends Abstract_Importer {
 		// Resolve user_id: imported IDs are from the source site. Prefer local user by email.
 		$item['user_id'] = $this->resolve_comment_user_id( $item );
 
-		// Always defer parent mapping to a post-import fixup; source comment IDs
-		// do not exist on the target site.
-		$item['comment_parent'] = 0;
+		// Defer parent mapping to a post-import fixup; source comment IDs do not exist
+		// on the target site. A row without its own comment ID (a new reply written for
+		// this site) names a local parent: keep it when that comment is on the same post.
+		$local_parent = 0;
+		if ( 0 === $source_comment_id && $source_comment_parent > 0 && absint( $item['comment_post_ID'] ?? 0 ) > 0 ) {
+			$parent_comment = get_comment( $source_comment_parent );
+			if ( $parent_comment && (int) $parent_comment->comment_post_ID === absint( $item['comment_post_ID'] ) ) {
+				$local_parent = $source_comment_parent;
+			}
+		}
+		$item['comment_parent'] = $local_parent;
 
 		// Update by Comment ID without content or post columns (e.g. a moderation sheet).
 		$update_mode = 'update' === $this->get_option( 'duplicate_mode', 'skip' ) || $this->get_option( 'update_existing', false );
