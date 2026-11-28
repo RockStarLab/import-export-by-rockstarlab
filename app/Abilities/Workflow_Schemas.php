@@ -330,7 +330,7 @@ class Workflow_Schemas {
 			100
 		);
 		$p['content_types']       = self::items( $s, 100 );
-		$p['form_source']         = self::string( [ 'gravityforms', 'flamingo', 'fluentform', 'ninjaforms' ] );
+		$p['form_source']         = self::string( [ 'gravityforms', 'flamingo', 'fluentform', 'ninjaforms', 'formidable' ] );
 		$p['form_id']             = self::integer( 1 );
 		// Column names in the file (field => name) and fixed values for custom_* columns.
 		foreach ( [ 'column_headers', 'custom_values' ] as $map ) {

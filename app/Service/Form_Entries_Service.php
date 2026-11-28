@@ -17,7 +17,8 @@ defined( 'ABSPATH' ) || exit;
  * ip, user_agent and user. Only entries are read; nothing is written.
  */
 class Form_Entries_Service {
-	const SOURCES        = [ 'gravityforms', 'flamingo', 'fluentform', 'ninjaforms' ];
+	const SOURCES        = [ 'gravityforms', 'flamingo', 'fluentform', 'ninjaforms', 'formidable' ];
+	const SKIP_FM_TYPES  = [ 'submit', 'html', 'divider', 'end_divider', 'break', 'captcha', 'summary', 'form' ];
 	const SKIP_NF_TYPES  = [ 'submit', 'html', 'hr', 'recaptcha', 'recaptcha_v3', 'hcaptcha', 'turnstile', 'note', 'spam', 'confirm', 'unknown' ];
 	/** Ninja Forms submission post status per export status (Ninja Forms has no spam status). */
 	const NF_STATE       = [
@@ -103,6 +104,9 @@ class Form_Entries_Service {
 		if ( function_exists( 'Ninja_Forms' ) && post_type_exists( 'nf_sub' ) ) {
 			$out['ninjaforms'] = 'Ninja Forms';
 		}
+		if ( class_exists( 'FrmEntry' ) && self::fm_table_exists() ) {
+			$out['formidable'] = 'Formidable Forms';
+		}
 		return $out;
 	}
 
@@ -166,6 +170,19 @@ class Form_Entries_Service {
 					'title'   => (string) $form->get_setting( 'title' ),
 					'active'  => true,
 					'entries' => $this->nf_count( (int) $form->get_id(), [ 'status' => 'active' ] ),
+				];
+			}
+		}
+		if ( isset( self::available_sources()['formidable'] ) ) {
+			global $wpdb;
+			$forms = $wpdb->get_results( "SELECT id, name, status FROM {$wpdb->prefix}frm_forms WHERE is_template = 0 AND ( parent_form_id = 0 OR parent_form_id IS NULL ) AND status <> 'trash' ORDER BY name ASC", ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Formidable table, no input.
+			foreach ( (array) $forms as $form ) {
+				$out[] = [
+					'source'  => 'formidable',
+					'form_id' => (int) $form['id'],
+					'title'   => (string) $form['name'],
+					'active'  => 'published' === (string) $form['status'],
+					'entries' => $this->fm_count( (int) $form['id'], [ 'status' => 'active' ] ),
 				];
 			}
 		}
@@ -262,6 +279,9 @@ class Form_Entries_Service {
 		if ( 'ninjaforms' === $source ) {
 			return $this->nf_count( (int) $form_id, $query );
 		}
+		if ( 'formidable' === $source ) {
+			return $this->fm_count( (int) $form_id, $query );
+		}
 		return $this->flamingo_count( (int) $form_id, $query );
 	}
 
@@ -291,6 +311,9 @@ class Form_Entries_Service {
 		if ( 'ninjaforms' === $source ) {
 			return $this->nf_rows( (int) $form_id, $query, $map, max( 0, (int) $offset ), $limit );
 		}
+		if ( 'formidable' === $source ) {
+			return $this->fm_rows( (int) $form_id, $query, $map, max( 0, (int) $offset ), $limit );
+		}
 		return 'gravityforms' === $source ? $this->gf_rows( (int) $form_id, $query, $map, max( 0, (int) $offset ), $limit ) : $this->flamingo_rows( (int) $form_id, $query, $map, max( 0, (int) $offset ), $limit );
 	}
 
@@ -307,7 +330,7 @@ class Form_Entries_Service {
 			return $access;
 		}
 		if ( ! isset( self::available_sources()[ $source ] ) ) {
-			return $this->error( 'form_source_unavailable', __( 'Choose Gravity Forms, Contact Form 7 (Flamingo), Fluent Forms or Ninja Forms; the plugin must be active.', 'import-export-by-rockstarlab' ) );
+			return $this->error( 'form_source_unavailable', __( 'Choose Gravity Forms, Contact Form 7 (Flamingo), Fluent Forms, Ninja Forms or Formidable Forms; the plugin must be active.', 'import-export-by-rockstarlab' ) );
 		}
 		if ( 'gravityforms' === $source ) {
 			$form = \GFAPI::get_form( (int) $form_id );
@@ -318,6 +341,9 @@ class Form_Entries_Service {
 		}
 		if ( 'ninjaforms' === $source ) {
 			return self::nf_form_exists( (int) $form_id ) ? true : $this->error( 'form_not_found', __( 'Form not found.', 'import-export-by-rockstarlab' ), 404 );
+		}
+		if ( 'formidable' === $source ) {
+			return self::fm_inputs( (int) $form_id, true ) ? true : $this->error( 'form_not_found', __( 'Form not found.', 'import-export-by-rockstarlab' ), 404 );
 		}
 		$term = get_term( (int) $form_id, self::FLAMINGO_TAX );
 		return $term && ! is_wp_error( $term ) ? true : $this->error( 'form_not_found', __( 'Form not found.', 'import-export-by-rockstarlab' ), 404 );
@@ -371,6 +397,12 @@ class Form_Entries_Service {
 		}
 		if ( 'ninjaforms' === $source ) {
 			foreach ( self::nf_inputs( (int) $form_id ) as $field_id => $label ) {
+				$add( $label, (string) $field_id );
+			}
+			return $out;
+		}
+		if ( 'formidable' === $source ) {
+			foreach ( self::fm_inputs( (int) $form_id ) as $field_id => $label ) {
 				$add( $label, (string) $field_id );
 			}
 			return $out;
@@ -463,7 +495,7 @@ class Form_Entries_Service {
 				return $this->error( 'form_filter_field', sprintf( __( 'This form cannot be filtered by "%s".', 'import-export-by-rockstarlab' ), $field ) );
 			}
 		}
-		if ( in_array( $source, [ 'flamingo', 'fluentform', 'ninjaforms' ], true ) ) {
+		if ( in_array( $source, [ 'flamingo', 'fluentform', 'ninjaforms', 'formidable' ], true ) ) {
 			return $q;
 		}
 		$search = [ 'status' => $q['status'] ];
@@ -998,6 +1030,142 @@ class Form_Entries_Service {
 				'source_url' => '',
 				'ip'         => '',
 				'user_agent' => '',
+				'user'       => $user ? $user->user_login : '',
+			];
+			$rows[] = $row;
+		}
+		return $rows;
+	}
+
+	/** Whether the Formidable Forms entries table exists. */
+	private static function fm_table_exists() {
+		global $wpdb;
+		$table = $wpdb->prefix . 'frm_items';
+		return $table === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	}
+
+	/**
+	 * Input fields of a Formidable form in form order: field ID => label.
+	 *
+	 * @param int  $form_id Form.
+	 * @param bool $exists  Only tell whether the form exists.
+	 * @return array|bool
+	 */
+	private static function fm_inputs( $form_id, $exists = false ) {
+		global $wpdb;
+		$form = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}frm_forms WHERE id = %d AND is_template = 0", $form_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		if ( $exists ) {
+			return null !== $form;
+		}
+		if ( null === $form ) {
+			return [];
+		}
+		$fields = $wpdb->get_results( $wpdb->prepare( "SELECT id, name, type, field_key FROM {$wpdb->prefix}frm_fields WHERE form_id = %d ORDER BY field_order ASC, id ASC", $form_id ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$out    = [];
+		foreach ( (array) $fields as $field ) {
+			if ( in_array( (string) $field['type'], self::SKIP_FM_TYPES, true ) ) {
+				continue;
+			}
+			$label                       = (string) $field['name'];
+			$out[ (int) $field['id'] ] = '' !== trim( wp_strip_all_tags( $label ) ) ? $label : (string) $field['field_key'];
+		}
+		return $out;
+	}
+
+	/**
+	 * SQL WHERE (with values) for the entries of one Formidable form: submitted entries
+	 * only (drafts are left out); the spam and trash status filters match nothing.
+	 *
+	 * @param int   $form_id Form.
+	 * @param array $q       Query description (status, from, to, ids, fields).
+	 * @return array|null [ sql, values ], or null when the status cannot match.
+	 */
+	private function fm_where( $form_id, array $q ) {
+		global $wpdb;
+		$q += [ 'status' => 'active', 'from' => '', 'to' => '', 'ids' => [], 'fields' => [] ];
+		if ( 'active' !== $q['status'] ) {
+			return null;
+		}
+		$sql  = 'i.form_id = %d AND i.is_draft = 0 AND ( i.parent_item_id = 0 OR i.parent_item_id IS NULL )';
+		$vals = [ (int) $form_id ];
+		// created_at is stored in UTC; the filters are in site time.
+		if ( '' !== $q['from'] ) {
+			$sql   .= ' AND i.created_at >= %s';
+			$vals[] = get_gmt_from_date( $q['from'] );
+		}
+		if ( '' !== $q['to'] ) {
+			$sql   .= ' AND i.created_at <= %s';
+			$vals[] = get_gmt_from_date( $q['to'] );
+		}
+		if ( $q['ids'] ) {
+			$sql .= ' AND i.id IN (' . implode( ',', array_map( 'absint', $q['ids'] ) ) . ')';
+		}
+		$ops = [ 'equals' => '= %s', 'not_equals' => '= %s', 'contains' => 'LIKE %s', 'not_contains' => 'LIKE %s' ];
+		foreach ( $q['fields'] as $f ) {
+			$value  = in_array( $f['condition'], [ 'contains', 'not_contains' ], true ) ? '%' . $wpdb->esc_like( $f['value'] ) . '%' : $f['value'];
+			$not    = in_array( $f['condition'], [ 'not_equals', 'not_contains' ], true ) ? 'NOT ' : '';
+			$sql   .= " AND {$not}EXISTS (SELECT 1 FROM {$wpdb->prefix}frm_item_metas m WHERE m.item_id = i.id AND m.field_id = %d AND m.meta_value " . $ops[ $f['condition'] ] . ')';
+			$vals[] = (int) $f['ref'];
+			$vals[] = $value;
+		}
+		return [ $sql, $vals ];
+	}
+
+	/** Number of Formidable entries matching a query description. */
+	private function fm_count( $form_id, array $q ) {
+		global $wpdb;
+		$where = $this->fm_where( $form_id, $q );
+		if ( null === $where ) {
+			return 0;
+		}
+		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}frm_items i WHERE {$where[0]}", $where[1] ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	}
+
+	/**
+	 * Formidable entries as rows.
+	 *
+	 * @param int   $form_id Form.
+	 * @param array $q       Query description.
+	 * @param array $map     Column => field ID.
+	 * @param int   $offset  Offset.
+	 * @param int   $limit   Limit.
+	 * @return array
+	 */
+	private function fm_rows( $form_id, array $q, array $map, $offset, $limit ) {
+		global $wpdb;
+		$where = $this->fm_where( $form_id, $q );
+		if ( null === $where ) {
+			return [];
+		}
+		$vals    = array_merge( $where[1], [ (int) $limit, (int) $offset ] );
+		$entries = $wpdb->get_results( $wpdb->prepare( "SELECT i.* FROM {$wpdb->prefix}frm_items i WHERE {$where[0]} ORDER BY i.id ASC LIMIT %d OFFSET %d", $vals ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$rows    = [];
+		foreach ( (array) $entries as $entry ) {
+			$metas = $wpdb->get_results( $wpdb->prepare( "SELECT field_id, meta_value FROM {$wpdb->prefix}frm_item_metas WHERE item_id = %d", (int) $entry['id'] ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$by    = [];
+			foreach ( (array) $metas as $meta ) {
+				$by[ (int) $meta['field_id'] ] = maybe_unserialize( $meta['meta_value'] );
+			}
+			$row = [
+				'entry_id'     => (int) $entry['id'],
+				'date_created' => get_date_from_gmt( (string) $entry['created_at'] ),
+				'status'       => 'active',
+			];
+			foreach ( $map as $column => $field_id ) {
+				$value = $by[ (int) $field_id ] ?? '';
+				// A name field keeps first, middle and last name apart: one cell reads "Nino Beridze".
+				if ( is_array( $value ) && array_intersect( array_keys( $value ), [ 'first', 'middle', 'last' ] ) ) {
+					$value = implode( ' ', array_filter( array_map( 'strval', array_filter( $value, 'is_scalar' ) ), 'strlen' ) );
+				}
+				$row[ $column ] = $this->text( $value );
+			}
+			$desc   = json_decode( (string) $entry['description'], true );
+			$desc   = is_array( $desc ) ? $desc : (array) maybe_unserialize( (string) $entry['description'] );
+			$user   = ! empty( $entry['user_id'] ) ? get_userdata( (int) $entry['user_id'] ) : false;
+			$row   += [
+				'source_url' => (string) ( $desc['referrer'] ?? '' ),
+				'ip'         => (string) ( $entry['ip'] ?? '' ),
+				'user_agent' => (string) ( $desc['browser'] ?? '' ),
 				'user'       => $user ? $user->user_login : '',
 			];
 			$rows[] = $row;

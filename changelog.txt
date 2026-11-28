@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.73 =
+* New: Formidable Forms entries as a Form entries export source (CSV, Excel, JSON, XML): submitted entries with the form fields as columns, dates in site time, page URL, IP and browser, and filters by date, entry ID and field value; also in the form-entry abilities.
+
 = 2.2.72 =
 * New: Ninja Forms submissions as a Form entries export source (CSV, Excel, JSON, XML) with the form fields as columns and filters by date, status (active or trash), entry ID and field value; also in the rsl-ie/form-entry-forms and form-entry-fields abilities.
 

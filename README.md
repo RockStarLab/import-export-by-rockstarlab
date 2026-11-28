@@ -341,6 +341,10 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 ## Changelog
 
+### 2.2.73
+
+* New: Formidable Forms entries as a Form entries export source (CSV, Excel, JSON, XML): submitted entries with the form fields as columns, dates in site time, page URL, IP and browser, and filters by date, entry ID and field value; also in the form-entry abilities.
+
 ### 2.2.72
 
 * New: Ninja Forms submissions as a Form entries export source (CSV, Excel, JSON, XML) with the form fields as columns and filters by date, status (active or trash), entry ID and field value; also in the rsl-ie/form-entry-forms and form-entry-fields abilities.
@@ -357,10 +361,6 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 * Improvement: Fluent Forms entries can be exported like Gravity Forms and Contact Form 7 (Flamingo) entries: choose Form Entries on the Export screen, pick a Fluent Forms form and export its entries to CSV, Excel, ODS, JSON or XML, with the form fields as columns (a name field in one cell), filters by status (active, spam, trash), date, entry ID and field value, and the same options for WP-CLI and AI agents (form_source fluentform).
 
-### 2.2.68
-
-* Improvement: Content Sync now sends the WP Recipe Maker recipes shown in the selected posts (block, [wprm-recipe] shortcode) with the posts, with their images, on push and on pull. The other site gets the recipes, the posts show them there, and a later sync updates the same recipes instead of making copies. Before, the posts arrived without their recipes and the recipe block pointed at a recipe ID that does not exist there.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -369,7 +369,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.72 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.73 |
 
 ---
 
