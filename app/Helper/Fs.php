@@ -240,6 +240,23 @@ class FS {
 			return new \WP_Error( 'rsl_ie_zip_open_failed', __( 'Could not open ZIP archive.', 'import-export-by-rockstarlab' ) );
 		}
 
+		// A Substack export (posts.csv, posts/*.html, subscriber and statistics CSV files): one row per post.
+		$substack = Substack_Archive::posts_csv( $zip );
+		if ( '' !== $substack ) {
+			$filename    = 'substack-posts-' . time() . '.json';
+			$target_path = trailingslashit( $real_destination ) . $filename;
+			$written     = file_put_contents( $target_path, Substack_Archive::to_json( $zip, $substack ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Import upload folder.
+			$zip->close();
+			if ( false === $written ) {
+				return new \WP_Error( 'rsl_ie_zip_write_failed', __( 'Could not write the extracted import file.', 'import-export-by-rockstarlab' ) );
+			}
+			return array(
+				'file'   => $filename,
+				'path'   => $target_path,
+				'format' => 'json',
+			);
+		}
+
 		$allowed_extensions = array( 'csv', 'json', 'xml', 'xlsx', 'ods' );
 		$candidates         = array();
 
