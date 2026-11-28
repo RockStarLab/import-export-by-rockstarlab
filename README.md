@@ -341,6 +341,10 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 ## Changelog
 
+### 2.2.75
+
+* Fix: Content Sync of bbPress forums, topics and replies keeps them connected on the other site: topics point at the local forum, replies at the local topic and the reply they answer, and the reply and topic counts are recalculated, for push and for pull back.
+
 ### 2.2.74
 
 * Fix: Content Sync of Easy Digital Downloads products now sends their files (edd_download_files) with the product and points each file at the copy on the other site, in the protected uploads/edd folder; before, the file links pointed at files that did not exist there.
@@ -357,10 +361,6 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 * Fix: comment import keeps comment_parent for new reply rows without a comment ID when the parent is a comment on the same post, so replies written for the site land in the right thread.
 
-### 2.2.70
-
-* Fix: a Media export made with Include file content now imports back with its files when the original files or the original site are gone: the import writes the file from the file_content column instead of downloading it. Before, the column was ignored and the import failed for files that could no longer be downloaded.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -369,7 +369,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.74 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.75 |
 
 ---
 

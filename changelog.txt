@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.75 =
+* Fix: Content Sync of bbPress forums, topics and replies keeps them connected on the other site: topics point at the local forum, replies at the local topic and the reply they answer, and the reply and topic counts are recalculated, for push and for pull back.
+
 = 2.2.74 =
 * Fix: Content Sync of Easy Digital Downloads products now sends their files (edd_download_files) with the product and points each file at the copy on the other site, in the protected uploads/edd folder; before, the file links pointed at files that did not exist there.
 

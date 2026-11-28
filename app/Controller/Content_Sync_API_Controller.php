@@ -790,6 +790,7 @@ class Content_Sync_API_Controller {
 		}
 
 		\RockStarLab\ImportExport\Service\Sync_Easy_Digital_Downloads::fix_received( array_values( (array) $source_to_local_map ), (array) $image_map, (array) $image_sources );
+		\RockStarLab\ImportExport\Service\Sync_BbPress::fix_received( (array) $source_to_local_map );
 
 		foreach ( array_unique( $product_post_ids ) as $product_post_id ) {
 			$this->remap_linked_product_ids( (int) $product_post_id, $source_to_local_map );
