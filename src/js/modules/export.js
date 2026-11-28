@@ -3469,7 +3469,7 @@ const ExportModule = {
 	getFormEntrySelection() {
 		const value = String( jQuery( '#rsl-ie-form-entry-form' ).val() || '' );
 		const match = value.match(
-			/^(gravityforms|flamingo|fluentform|ninjaforms):(\d+)$/
+			/^(gravityforms|flamingo|fluentform|ninjaforms|formidable):(\d+)$/
 		);
 		return match
 			? { form_source: match[ 1 ], form_id: parseInt( match[ 2 ], 10 ) }
@@ -3525,6 +3525,10 @@ const ExportModule = {
 					),
 					ninjaforms: __(
 						'Ninja Forms',
+						'import-export-by-rockstarlab'
+					),
+					formidable: __(
+						'Formidable Forms',
 						'import-export-by-rockstarlab'
 					),
 				};

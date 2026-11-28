@@ -12,7 +12,7 @@ use RockStarLab\ImportExport\Service\Form_Entries_Service;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Options: form_source (gravityforms|flamingo|fluentform|ninjaforms), form_id, filters, fields.
+ * Options: form_source (gravityforms|flamingo|fluentform|ninjaforms|formidable), form_id, filters, fields.
  */
 class Form_Entry_Exporter extends Abstract_Exporter {
 
@@ -46,7 +46,7 @@ class Form_Entry_Exporter extends Abstract_Exporter {
 	/** @return array */
 	public function get_supported_filters() {
 		return [
-			'form_source'  => __( 'gravityforms, flamingo, fluentform or ninjaforms (required)', 'import-export-by-rockstarlab' ),
+			'form_source'  => __( 'gravityforms, flamingo, fluentform, ninjaforms or formidable (required)', 'import-export-by-rockstarlab' ),
 			'form_id'      => __( 'Gravity Forms form ID, or the Flamingo channel ID of a Contact Form 7 form (required; see form-entry-forms)', 'import-export-by-rockstarlab' ),
 			'status'       => __( 'Filter field "status" equals active (default), spam or trash', 'import-export-by-rockstarlab' ),
 			'date_created' => __( 'Filter field "date_created" with greater, less, equals_or_greater, equals_or_less, equals or between ("2026-10-01,2026-10-31"), in site time', 'import-export-by-rockstarlab' ),

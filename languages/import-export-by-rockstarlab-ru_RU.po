@@ -8453,8 +8453,8 @@ msgid "From email"
 msgstr "Email отправителя"
 
 #: app/Service/Form_Entries_Service.php:251
-msgid "Choose Gravity Forms, Contact Form 7 (Flamingo), Fluent Forms or Ninja Forms; the plugin must be active."
-msgstr "Выберите Gravity Forms, Contact Form 7 (Flamingo), Fluent Forms или Ninja Forms; плагин должен быть активен."
+msgid "Choose Gravity Forms, Contact Form 7 (Flamingo), Fluent Forms, Ninja Forms or Formidable Forms; the plugin must be active."
+msgstr "Выберите Gravity Forms, Contact Form 7 (Flamingo), Fluent Forms, Ninja Forms или Formidable Forms; плагин должен быть активен."
 
 #: app/Service/Form_Entries_Service.php:255
 #: app/Service/Form_Entries_Service.php:258
