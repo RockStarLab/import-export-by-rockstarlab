@@ -94,6 +94,7 @@ class Media_Importer extends Abstract_Importer {
 			'post_mime_type',  // MIME type (read-only, auto-detected)
 			'mime_type',       // MIME type alias
 			'file_hash',       // MD5 file hash for duplicate detection
+			'file_content',    // Base64 file bytes from an export with "Include file content"
 
 			// Image metadata
 			'width',           // Image width (read-only, auto-detected)
@@ -380,8 +381,12 @@ class Media_Importer extends Abstract_Importer {
 			return 'skipped';
 		}
 
-		// Download file
-		$tmp_file = $this->download_file( $url );
+		// A file exported with "Include file content" carries its bytes: use them, so the import
+		// works when the source site or its file no longer exists. Otherwise download the file.
+		$tmp_file = $this->temp_file_from_content( $item, $url );
+		if ( null === $tmp_file ) {
+			$tmp_file = $this->download_file( $url );
+		}
 		if ( is_wp_error( $tmp_file ) ) {
 			return $tmp_file;
 		}
@@ -423,6 +428,30 @@ class Media_Importer extends Abstract_Importer {
 		@wp_delete_file( $tmp_file );
 
 		return $attachment_id;
+	}
+
+	/**
+	 * Write the base64 file_content of an exported media row to a temporary file.
+	 *
+	 * @param array  $item Media data.
+	 * @param string $url  Source URL (for the file name).
+	 * @return string|\WP_Error|null Temporary file, an error, or null when the row has no content.
+	 */
+	private function temp_file_from_content( array $item, $url ) {
+		$content = $item['file_content'] ?? '';
+		if ( ! is_string( $content ) || '' === trim( $content ) ) {
+			return null;
+		}
+		$bytes = base64_decode( preg_replace( '/\s+/', '', $content ), true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Exported file content.
+		if ( false === $bytes || '' === $bytes ) {
+			return new \WP_Error( 'invalid_file_content', __( 'The file content of this row is not valid base64.', 'import-export-by-rockstarlab' ) );
+		}
+		$name = sanitize_file_name( rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( (string) $url ) ) ) );
+		$tmp  = wp_tempnam( '' !== $name ? $name : 'media' );
+		if ( ! $tmp || false === file_put_contents( $tmp, $bytes ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+			return new \WP_Error( 'file_content_write', __( 'Could not write the file content to a temporary file.', 'import-export-by-rockstarlab' ) );
+		}
+		return $tmp;
 	}
 
 	/**
