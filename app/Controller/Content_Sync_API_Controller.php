@@ -789,6 +789,8 @@ class Content_Sync_API_Controller {
 			}
 		}
 
+		\RockStarLab\ImportExport\Service\Sync_Easy_Digital_Downloads::fix_received( array_values( (array) $source_to_local_map ), (array) $image_map, (array) $image_sources );
+
 		foreach ( array_unique( $product_post_ids ) as $product_post_id ) {
 			$this->remap_linked_product_ids( (int) $product_post_id, $source_to_local_map );
 			$this->fix_downloadable_file_urls( (int) $product_post_id, (array) $image_map, (array) $image_sources );

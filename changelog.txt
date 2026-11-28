@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.74 =
+* Fix: Content Sync of Easy Digital Downloads products now sends their files (edd_download_files) with the product and points each file at the copy on the other site, in the protected uploads/edd folder; before, the file links pointed at files that did not exist there.
+
 = 2.2.73 =
 * New: Formidable Forms entries as a Form entries export source (CSV, Excel, JSON, XML): submitted entries with the form fields as columns, dates in site time, page URL, IP and browser, and filters by date, entry ID and field value; also in the form-entry abilities.
 
