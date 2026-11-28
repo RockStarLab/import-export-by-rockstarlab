@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.81
+Stable tag: 2.2.82
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,9 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.82 =
+* New: import a Google Docs download (File > Download > Web page, .html zipped): the Title paragraph becomes the post title and Subtitle the excerpt, bold, italic and underline are kept as tags, headings move one level down under the post title, links get their real address instead of going through google.com/url, and the images in the ZIP are added to the Media Library with media import on.
+
 = 2.2.81 =
 * New: import a Wix blog feed (blog-feed.xml): every item becomes a published post with its date, the slug from its /post/ address, the description as the excerpt, the cover image as the featured image, its categories and the Wix address in the source_url custom field.
 
@@ -295,8 +298,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 = 2.2.78 =
 * New: import a Blogger export (the Atom file from Back up content): posts and pages only, without the blog settings, template and comments; labels become categories, drafts stay drafts, dates and the blogspot address (source_url) are kept.
-
-= 2.2.77 =
-* New: import a ZIP of HTML pages, such as a Medium export: each page becomes a post with its title, subtitle as excerpt, body without Medium layout markup, publish date and the original address in the source_url custom field; drafts stay drafts. Images in the body can be copied to the Media Library with the existing media option.
 
 Older versions: see changelog.txt in the plugin folder.
