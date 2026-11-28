@@ -1,5 +1,8 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.79 =
+* New: import a Substack export ZIP: one post per line of posts.csv with the body from posts/<post_id>.html, the subtitle as the excerpt, the publish date, drafts as drafts and the slug from the post address; the subscriber list and statistics files are left out, Substack buttons and subscribe forms are removed from the body, the audience (everyone or paid) is kept in a custom field.
+
 = 2.2.78 =
 * New: import a Blogger export (the Atom file from Back up content): posts and pages only, without the blog settings, template and comments; labels become categories, drafts stay drafts, dates and the blogspot address (source_url) are kept.
 

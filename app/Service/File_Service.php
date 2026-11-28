@@ -830,6 +830,23 @@ class File_Service {
 			return File_Store::error( 'zip_invalid' );
 		}
 		try {
+			// A Substack export (posts.csv, posts/*.html, subscriber and statistics CSV files): one row per post.
+			$substack = \RockStarLab\ImportExport\Helper\Substack_Archive::posts_csv( $zip );
+			if ( '' !== $substack ) {
+				$output = $dir . '/extracted.json';
+				$json   = \RockStarLab\ImportExport\Helper\Substack_Archive::to_json( $zip, $substack );
+				if ( strlen( $json ) > self::max_bytes() ) {
+					return File_Store::error( 'zip_content_limit' );
+				}
+				if ( false === file_put_contents( $output, $json ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Private import folder.
+					return File_Store::error( 'zip_read' );
+				}
+				return [
+					'path'      => $output,
+					'file_name' => 'substack-posts.json',
+					'format'    => 'json',
+				];
+			}
 			$entries = [];
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName -- Native ZipArchive property.
 			for ( $i = 0; $i < $zip->numFiles; ++$i ) {

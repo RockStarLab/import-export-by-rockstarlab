@@ -341,6 +341,10 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 ## Changelog
 
+### 2.2.79
+
+* New: import a Substack export ZIP: one post per line of posts.csv with the body from posts/<post_id>.html, the subtitle as the excerpt, the publish date, drafts as drafts and the slug from the post address; the subscriber list and statistics files are left out, Substack buttons and subscribe forms are removed from the body, the audience (everyone or paid) is kept in a custom field.
+
 ### 2.2.78
 
 * New: import a Blogger export (the Atom file from Back up content): posts and pages only, without the blog settings, template and comments; labels become categories, drafts stay drafts, dates and the blogspot address (source_url) are kept.
@@ -357,10 +361,6 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 * Fix: Content Sync of bbPress forums, topics and replies keeps them connected on the other site: topics point at the local forum, replies at the local topic and the reply they answer, and the reply and topic counts are recalculated, for push and for pull back.
 
-### 2.2.74
-
-* Fix: Content Sync of Easy Digital Downloads products now sends their files (edd_download_files) with the product and points each file at the copy on the other site, in the protected uploads/edd folder; before, the file links pointed at files that did not exist there.
-
 Older versions: see changelog.txt in the plugin folder.
 
 Older versions: see [changelog.txt](changelog.txt).
@@ -369,7 +369,7 @@ Older versions: see [changelog.txt](changelog.txt).
 
 | WordPress | Tested up to | PHP | Stable version |
 |---|---|---|---|
-| 6.2+ | 7.2 | 7.4+ | 2.2.78 |
+| 6.2+ | 7.2 | 7.4+ | 2.2.79 |
 
 ---
 
