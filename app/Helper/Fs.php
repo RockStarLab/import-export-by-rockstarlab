@@ -268,6 +268,22 @@ class FS {
 		}
 
 		if ( 0 === count( $candidates ) ) {
+			// No data file: HTML pages (a Medium export, saved articles) become one post per page.
+			$pages = Html_Archive::pages( $zip );
+			if ( $pages ) {
+				$filename    = 'html-pages-' . time() . '.json';
+				$target_path = trailingslashit( $real_destination ) . $filename;
+				$written     = file_put_contents( $target_path, Html_Archive::to_json( $zip, $pages ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Import upload folder.
+				$zip->close();
+				if ( false === $written ) {
+					return new \WP_Error( 'rsl_ie_zip_write_failed', __( 'Could not write the extracted import file.', 'import-export-by-rockstarlab' ) );
+				}
+				return array(
+					'file'   => $filename,
+					'path'   => $target_path,
+					'format' => 'json',
+				);
+			}
 			$zip->close();
 			return new \WP_Error( 'rsl_ie_zip_no_supported_file', __( 'The ZIP archive does not contain a supported import file. Please include one CSV, JSON, XML, XLSX, or ODS file.', 'import-export-by-rockstarlab' ) );
 		}

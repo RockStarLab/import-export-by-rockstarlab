@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.76
+Stable tag: 2.2.77
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,9 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.77 =
+* New: import a ZIP of HTML pages, such as a Medium export: each page becomes a post with its title, subtitle as excerpt, body without Medium layout markup, publish date and the original address in the source_url custom field; drafts stay drafts. Images in the body can be copied to the Media Library with the existing media option.
+
 = 2.2.76 =
 * New: Meta Box fields with several values (checkbox list, multiple select): a cell such as "a|b" imports as one meta row per value, and the export writes the values back as "a|b".
 
@@ -294,8 +297,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 = 2.2.73 =
 * New: Formidable Forms entries as a Form entries export source (CSV, Excel, JSON, XML): submitted entries with the form fields as columns, dates in site time, page URL, IP and browser, and filters by date, entry ID and field value; also in the form-entry abilities.
-
-= 2.2.72 =
-* New: Ninja Forms submissions as a Form entries export source (CSV, Excel, JSON, XML) with the form fields as columns and filters by date, status (active or trash), entry ID and field value; also in the rsl-ie/form-entry-forms and form-entry-fields abilities.
 
 Older versions: see changelog.txt in the plugin folder.
