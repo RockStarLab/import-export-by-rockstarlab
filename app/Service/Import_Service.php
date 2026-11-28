@@ -880,6 +880,27 @@ class Import_Service {
 	}
 
 	/** Apply the existing importer and relationship policy to one raw row set. */
+	/**
+	 * The site a WordPress export (WXR) came from: the host of its wp:base_site_url.
+	 *
+	 * @param string $file_path Import file.
+	 * @return string Host, or '' when the file does not name one.
+	 */
+	public static function wxr_source_site( $file_path ) {
+		static $cache = array();
+		if ( '' === $file_path || ! is_file( $file_path ) ) {
+			return '';
+		}
+		if ( ! isset( $cache[ $file_path ] ) ) {
+			$head                 = (string) file_get_contents( $file_path, false, null, 0, 65536 ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Local import file.
+			$url                  = preg_match( '~<wp:base_site_url>\s*(?:<!\[CDATA\[)?\s*([^<\]\s]+)~', $head, $m ) ? $m[1] : '';
+			$host                 = $url ? strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) ) : '';
+			$path                 = $url ? untrailingslashit( (string) wp_parse_url( $url, PHP_URL_PATH ) ) : '';
+			$cache[ $file_path ] = '' !== $host ? $host . $path : '';
+		}
+		return $cache[ $file_path ];
+	}
+
 	private function prepare_rows( array $request, $job_id, array $data ) {
 		$import_type = $request['import_type'];
 		$options     = $request['options'];
@@ -991,6 +1012,14 @@ class Import_Service {
 			if ( isset( $raw['wp:post_type'] ) && is_scalar( $raw['wp:post_type'] ) && '' !== trim( (string) $raw['wp:post_type'] ) ) {
 				$prepared_row['_rsl_ie_source_post_type'] = sanitize_key( (string) $raw['wp:post_type'] );
 				$prepared_row['_rsl_ie_wxr_item']         = true;
+				$wxr_site = self::wxr_source_site( (string) ( $request['file_path'] ?? '' ) );
+				if ( '' !== $wxr_site ) {
+					$prepared_row['_rsl_ie_source_site'] = $wxr_site;
+				}
+				// Squarespace exports carry its layout wrappers and lazy-loading attributes.
+				if ( isset( $prepared_row['post_content'] ) && \RockStarLab\ImportExport\Helper\Squarespace_Content::is_squarespace( $prepared_row['post_content'] ) ) {
+					$prepared_row['post_content'] = \RockStarLab\ImportExport\Helper\Squarespace_Content::clean( $prepared_row['post_content'] );
+				}
 				// Settings a WordPress export keeps in its own columns and Auto Map does not offer:
 				// without them a password-protected post arrived public, sticky posts lost the
 				// flag and closed comments opened.
