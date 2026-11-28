@@ -3032,6 +3032,7 @@ class Content_Sync_Service {
 		}
 
 		Sync_Easy_Digital_Downloads::fix_received( array_values( $imported_remote_to_local ), (array) $image_map, (array) $remote_images );
+		Sync_BbPress::fix_received( $imported_remote_to_local );
 
 		foreach ( array_unique( $product_post_ids ) as $product_post_id ) {
 			$this->refresh_woocommerce_product_after_sync( $product_post_id );
