@@ -3468,7 +3468,9 @@ const ExportModule = {
 	 */
 	getFormEntrySelection() {
 		const value = String( jQuery( '#rsl-ie-form-entry-form' ).val() || '' );
-		const match = value.match( /^(gravityforms|flamingo|fluentform):(\d+)$/ );
+		const match = value.match(
+			/^(gravityforms|flamingo|fluentform):(\d+)$/
+		);
 		return match
 			? { form_source: match[ 1 ], form_id: parseInt( match[ 2 ], 10 ) }
 			: null;

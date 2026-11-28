@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, synchronization
 Requires at least: 6.2
 Tested up to: 7.2
-Stable tag: 2.2.69
+Stable tag: 2.2.70
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -283,6 +283,9 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 == Changelog ==
 
+= 2.2.70 =
+* Fix: a Media export made with Include file content now imports back with its files when the original files or the original site are gone: the import writes the file from the file_content column instead of downloading it. Before, the column was ignored and the import failed for files that could no longer be downloaded.
+
 = 2.2.69 =
 * Improvement: Fluent Forms entries can be exported like Gravity Forms and Contact Form 7 (Flamingo) entries: choose Form Entries on the Export screen, pick a Fluent Forms form and export its entries to CSV, Excel, ODS, JSON or XML, with the form fields as columns (a name field in one cell), filters by status (active, spam, trash), date, entry ID and field value, and the same options for WP-CLI and AI agents (form_source fluentform).
 
@@ -294,8 +297,5 @@ Yes, with the PRO addon. Content Sync sends the selected posts, pages or product
 
 = 2.2.66 =
 * Fix: a Media import from WP-CLI or an AI agent that only updates existing attachments (for example a file with ID and alt_text, set to update) no longer stops with "Missing required fields: file"; as in the import wizard, the matched attachments get the new details and keep their files.
-
-= 2.2.65 =
-* Fix: a schedule made from a Media Sync job now scans the folder again on every run, so files added to the folder after the first import are imported; files imported before are handled by the job's duplicate check. Before, every run repeated the files of the first job.
 
 Older versions: see changelog.txt in the plugin folder.
